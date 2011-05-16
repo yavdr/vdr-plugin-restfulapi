@@ -7,14 +7,16 @@
  */
 
 #include <vdr/plugin.h>
+#include "serverthread.h"
 
 static const char *VERSION        = "0.0.1";
-static const char *DESCRIPTION    = "Enter description for 'restfulapi' plugin";
-static const char *MAINMENUENTRY  = "Restfulapi";
+static const char *DESCRIPTION    = "Offers an RESTful-API to retrieve json formatted data form the VDR";
+static const char *MAINMENUENTRY  = NULL;//"Restfulapi";
 
 class cPluginRestfulapi : public cPlugin {
 private:
   // Add any member variables or functions you may need here.
+  cServerThread serverThread;
 public:
   cPluginRestfulapi(void);
   virtual ~cPluginRestfulapi();
@@ -71,6 +73,7 @@ bool cPluginRestfulapi::Initialize(void)
 bool cPluginRestfulapi::Start(void)
 {
   // Start any background activities the plugin shall perform.
+  serverThread.Start();
   return true;
 }
 
