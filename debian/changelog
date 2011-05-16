@@ -1,0 +1,6 @@
+vdr-plugin-restfulapi (0.0.1-1yavdr1) unstable; urgency=low
+
+  * renamed jsonapi plugin
+  
+ -- Michael Eiler <aelo@yavdr.org>  Mon, 16 May 2011 22:40:00 +0200
+

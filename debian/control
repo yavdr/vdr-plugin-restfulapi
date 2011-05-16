@@ -1,0 +1,15 @@
+Source: vdr-plugin-restfulapi
+Section: video
+Priority: extra
+Maintainer: Michael Eiler <michael@unknown>
+Build-Depends: debhelper (>= 7.0.50~), vdr-dev (>= 1.7.18-2yavdr1~natty), gettext
+Standards-Version: 3.9.1
+Vcs-Svn: svn://svn.debian.org/pkg-vdr-dvb/vdr/vdr-plugin-restfulapi/trunk/
+Vcs-Browser: http://svn.debian.org/wsvn/pkg-vdr-dvb/vdr/vdr-plugin-restfulapi/trunk/
+Homepage: <url://example.com>
+
+Package: vdr-plugin-restfulapi
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${vdr:Depends}
+Description: <insert up to 60 chars description>
+ <insert long description, indented with spaces>
