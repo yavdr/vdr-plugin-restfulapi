@@ -27,7 +27,6 @@
 
 using namespace std;
 
-
 class cServerThread : public cThread {
 private:
     bool active;

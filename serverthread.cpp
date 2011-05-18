@@ -6,6 +6,7 @@
  */
 
 #include "serverthread.h"
+
 cxxtools::Utf8Codec codec;
 
 // TimersResponder
@@ -22,7 +23,17 @@ class TimersResponder : public cxxtools::http::Responder
 //implementation not final!!!
 void TimersResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  esyslog("jsonapi, timers: /%s/", request.method().c_str());
+  std::string qparams = request.qparams();
+
+  if ( !IsFormat(qparams, ".json") ) {
+     reply.httpReturn(403, "Resources are not available for the selected format. (Use: .json)");
+     return;
+  }
+
+  if ( request.method() != "GET") {
+     reply.httpReturn(403, "To retrieve information use the GET method!");
+     return;
+  }
  
   SerTimer serTimer;
   std::vector < struct SerTimer > serTimers;
@@ -70,6 +81,18 @@ class ChannelsResponder : public cxxtools::http::Responder
 
 void ChannelsResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
+  std::string qparams = request.qparams();
+
+  if ( !IsFormat(qparams, ".json") ) {
+     reply.httpReturn(403, "Resources are not available for the selected format. (Use: .json)");
+     return;
+  }
+
+  if ( request.method() != "GET") {
+     reply.httpReturn(403, "To retrieve information use the GET method!");
+     return;
+  }
+
   SerChannel serChannel;
   std::vector < struct SerChannel > serChannels;
 
@@ -114,16 +137,26 @@ class EventsResponder : public cxxtools::http::Responder
 void EventsResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   std::string qparams = request.qparams();
-  
-  int channel_number = GetIntParam(qparams, (std::string)"channel=");
-  int from = GetIntParam(qparams, (std::string)"from=");
-  int timespan = GetIntParam(qparams, (std::string)"timespan=");
-  
-  dsyslog("jsonapi: %s ///%i///%i///%i///", qparams.c_str(), channel_number, from, timespan);
 
-  if ( channel_number == -1 || !channel_number ) return; 
+  if ( !IsFormat(qparams, ".json") ) {
+     reply.httpReturn(403, "Resources are not available for the selected format. (Use: .json)");
+     return;
+  }
+
+  if ( request.method() != "GET") {
+     reply.httpReturn(403, "To retrieve information use the GET method!");
+     return;
+  }
+  
+  int channel_number = GetIntParam(qparams, 0);
+  int timespan = GetIntParam(qparams, 1);
+  int from = GetIntParam(qparams, 2);
+  
   cChannel* channel = GetChannel(channel_number);
-  if ( !channel ) return;
+  if ( channel == NULL ) { 
+     reply.httpReturn(404, "Channel with number _xx_ not found!"); 
+     return; 
+  }
 
   if ( from == -1 ) from = time(NULL); // default time is now
   if ( timespan == -1 ) timespan = 3600; // default timespan is one hour
@@ -140,18 +173,25 @@ void EventsResponder::reply(std::ostream& out, cxxtools::http::Request& request,
   cSchedulesLock MutexLock;
   const cSchedules *Schedules = cSchedules::Schedules(MutexLock);
 
-  if(!Schedules) return;
+  if( !Schedules ) {
+     reply.httpReturn(404, "Could not find schedules!");
+     return;
+  }
 
   const cSchedule *Schedule = Schedules->GetSchedule(channel->GetChannelID());
   
-  if(!Schedule) return;
+  if ( !Schedule ) {
+     reply.httpReturn(404, "Could not find schedule!");
+     return;
+  }
 
-
+  bool found = false;
   for(const cEvent* event = Schedule->Events()->First(); event; event = Schedule->Events()->Next(event))
   {
     int ts = event->StartTime();
     int te = ts + event->Duration();
     if ( ts <= to && te >= from ) {
+       found = true;
        if( !event->Title() ) { eventTitle = empty; } else { eventTitle = codec.decode(event->Title()); }
        if( !event->ShortText() ) { eventShortText = empty; } else { eventShortText = codec.decode(event->ShortText()); }
        if( !event->Description() ) { eventDescription = empty; } else { eventDescription = codec.decode(event->Description()); }
@@ -166,6 +206,11 @@ void EventsResponder::reply(std::ostream& out, cxxtools::http::Request& request,
     }else{
       if(ts > to) break;
     }
+  }
+
+  if ( !found ) {
+     reply.httpReturn(403, "No event information in the epg cache! Try to switch to the channel and update the cache before calling this method.");
+     return;
   }
   
   reply.addHeader("Content-Type", "application/json; charset=utf-8");
@@ -194,6 +239,18 @@ class RecordingsResponder : public cxxtools::http::Responder
 
 void RecordingsResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
+  std::string qparams = request.qparams();
+
+  if ( !IsFormat(qparams, ".json") ) {
+     reply.httpReturn(403, "Resources are not available for the selected format. (Use: .json)");
+     return;
+  }
+
+  if ( request.method() != "GET") {
+     reply.httpReturn(403, "To retrieve information use the GET method!");
+     return;
+  }
+
   SerRecording serRecording;
   std::vector < struct SerRecording > serRecordings;
 
@@ -248,10 +305,10 @@ void cServerThread::Action(void)
   RecordingsService recordingsService;
   TimersService timersService;
 
-  server->addService("/channels.json", channelsService);
-  server->addService("/events.json", eventsService);
-  server->addService("/recordings.json", recordingsService);
-  server->addService("/timers.json", timersService);
+  server->addService("/channels", channelsService);
+  server->addService("/events", eventsService);
+  server->addService("/recordings", recordingsService);
+  server->addService("/timers", timersService);
 
   loop.run();
 
