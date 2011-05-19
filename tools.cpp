@@ -1,6 +1,37 @@
 #include "tools.h"
 
-int GetIntParam(std::string qparams, int level)
+cxxtools::String UTF8Decode(std::string str)
+{
+  static cxxtools::Utf8Codec utf8;
+  return utf8.decode(str);
+}
+
+void write(std::ostream* out, std::string str)
+{
+  out->write(str.c_str(), str.length());
+}
+
+void writeHtmlHeader(std::ostream* out)
+{
+  write(out, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
+  write(out, "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n");
+  write(out, "<html xml:lang=\"en\" lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\">\n");
+  write(out, "<head>\n");
+  write(out, "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />");
+  write(out, "</head><body>");
+}
+
+int getIntParam(std::string qparams, int level)
+{
+  std::string param = getStringParam(qparams, level);
+  if ( param.length() > 0 )
+  {
+     return atoi(param.c_str());
+  } 
+  return -1;
+}
+
+std::string getStringParam(std::string qparams, int level)
 {
   int start = -1;
   int end = -1;
@@ -8,7 +39,7 @@ int GetIntParam(std::string qparams, int level)
 
   const char* params = qparams.c_str();
 
-  for(int i=0;i<qparams.length();i++)
+  for(int i=0;i<(int)qparams.length();i++)
   {
     if(params[i] == '/')
     {
@@ -19,7 +50,7 @@ int GetIntParam(std::string qparams, int level)
         end = i;
         if(on_level == level)
         {
-          return atoi(qparams.substr(start + 1, end -1).c_str());
+          return qparams.substr(start + 1, end -1);
         }
         start = end;
         end = -1;
@@ -27,28 +58,16 @@ int GetIntParam(std::string qparams, int level)
       }
     }
   }
-  return -1;
-
-  /* old html param parser
- 
-  int result = -1;
-  int begin_parse = qparams.find(param);
-  if ( begin_parse != -1 )
-  {
-     int end_parse = qparams.find_first_of("&/ ", begin_parse + param.length());
-     if ( end_parse == -1 ) { end_parse = qparams.length() - 1; }
-     if( qparams.length() > 0 && begin_parse != -1 ) { result = atoi(qparams.substr(begin_parse+param.length(), end_parse).c_str()); }
-  }
-  return result;*/
+  return (std::string)"";
 }
 
-bool IsFormat(std::string qparams, std::string format)
+bool isFormat(std::string qparams, std::string format)
 {
   int result = qparams.find(format);
   return result == -1 ? false : true;
 }
 
-cChannel* GetChannel(int number)
+cChannel* getChannel(int number)
 {
   if( number == -1 || number >= Channels.Count() ) { return NULL; }
 

@@ -15,16 +15,18 @@
 #include <cxxtools/eventloop.h>
 #include <cxxtools/arg.h>
 #include <cxxtools/jsonserializer.h>
-#include <cxxtools/utf8codec.h>
 
 #include <unistd.h>
 #include <vdr/tools.h>
 #include <vdr/thread.h>
 #include <vdr/recording.h>
+#include <vdr/timers.h>
 
-#include "data.h"
+#include "channels.h"
+#include "events.h"
+#include "recordings.h"
+#include "timers.h"
 #include "tools.h"
-
 using namespace std;
 
 class cServerThread : public cThread {
