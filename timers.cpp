@@ -29,11 +29,8 @@ void TimersResponder::reply(std::ostream& out, cxxtools::http::Request& request,
      timerList->addTimer(timer);   
   }
 
-  if ( isFormat(params, ".json") ) {
-     delete (JsonTimerList*)timerList;
-  } else {
-     delete (HtmlTimerList*)timerList;
-  }
+  timerList->finish();
+  delete timerList;   
 }
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerTimer& t)
@@ -80,12 +77,6 @@ HtmlTimerList::HtmlTimerList(std::ostream* _out) : TimerList(_out)
   write(out, "<ul>");
 }
 
-HtmlTimerList::~HtmlTimerList()
-{
-  write(out, "</ul>");
-  write(out, "</body></html>");
-}
-
 void HtmlTimerList::addTimer(cTimer* timer)
 {
   write(out, "<li>");
@@ -93,16 +84,15 @@ void HtmlTimerList::addTimer(cTimer* timer)
   write(out, "\n");
 }
 
+void HtmlTimerList::finish()
+{
+  write(out, "</ul>");
+  write(out, "</body></html>");
+}
+
 JsonTimerList::JsonTimerList(std::ostream* _out) : TimerList(_out)
 {
 
-}
-
-JsonTimerList::~JsonTimerList()
-{
-  cxxtools::JsonSerializer serializer(*out);
-  serializer.serialize(serTimers, "timers");
-  serializer.finish();
 }
 
 void JsonTimerList::addTimer(cTimer* timer)
@@ -121,4 +111,11 @@ void JsonTimerList::addTimer(cTimer* timer)
     serTimer.FileName = UTF8Decode(timer->File());
     serTimer.ChannelName = UTF8Decode(timer->Channel()->Name());
     serTimers.push_back(serTimer);
+}
+
+void JsonTimerList::finish()
+{
+  cxxtools::JsonSerializer serializer(*out);
+  serializer.serialize(serTimers, "timers");
+  serializer.finish();
 }

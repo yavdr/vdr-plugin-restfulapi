@@ -53,14 +53,16 @@ class TimerList
     TimerList(std::ostream* _out) { out = _out; };
     ~TimerList() { };
     virtual void addTimer(cTimer* timer) { };
+    virtual void finish() { };
 };
 
 class HtmlTimerList : TimerList
 {
   public:
     HtmlTimerList(std::ostream* _out);
-    ~HtmlTimerList();
+    ~HtmlTimerList() { };
     virtual void addTimer(cTimer* timer);
+    virtual void finish();
 };
 
 class JsonTimerList : TimerList
@@ -69,6 +71,7 @@ class JsonTimerList : TimerList
     std::vector < struct SerTimer > serTimers;
   public:
     JsonTimerList(std::ostream* _out);
-    ~JsonTimerList();
+    ~JsonTimerList() { };
     virtual void addTimer(cTimer* timer);
+    virtual void finish();
 };

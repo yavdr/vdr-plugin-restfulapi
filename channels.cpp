@@ -28,11 +28,8 @@ void ChannelsResponder::reply(std::ostream& out, cxxtools::http::Request& reques
     }
   }
 
-  if ( isFormat(params, ".json") ) {
-     delete (JsonChannelList*)channelList;
-  } else {
-     delete (HtmlChannelList*)channelList;
-  } 
+  channelList->finish();
+  delete channelList;
 }
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerChannel& c)
@@ -59,12 +56,6 @@ HtmlChannelList::HtmlChannelList(std::ostream* _out) : ChannelList(_out)
   write(out, "<ul>");
 }
 
-HtmlChannelList::~HtmlChannelList()
-{
-  write(out, "</ul>");
-  write(out, "</body></html>");
-}
-
 void HtmlChannelList::addChannel(cChannel* channel)
 {
   write(out, "<li>");
@@ -72,16 +63,15 @@ void HtmlChannelList::addChannel(cChannel* channel)
   write(out, "\n");
 }
 
+void HtmlChannelList::finish()
+{
+  write(out, "</ul>");
+  write(out, "</body></html>");
+}
+
 JsonChannelList::JsonChannelList(std::ostream* _out) : ChannelList(_out)
 {
 
-}
-
-JsonChannelList::~JsonChannelList()
-{
-  cxxtools::JsonSerializer serializer(*out);
-  serializer.serialize(serChannels, "channels");
-  serializer.finish();
 }
 
 void JsonChannelList::addChannel(cChannel* channel)
@@ -98,5 +88,12 @@ void JsonChannelList::addChannel(cChannel* channel)
   serChannel.IsSat = channel->IsSat();
   serChannel.IsTerr = channel->IsTerr();
   serChannels.push_back(serChannel);
+}
+
+void JsonChannelList::finish()
+{
+  cxxtools::JsonSerializer serializer(*out);
+  serializer.serialize(serChannels, "channels");
+  serializer.finish();
 }
 

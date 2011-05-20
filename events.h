@@ -46,14 +46,16 @@ class EventList
     EventList(std::ostream* _out) { out = _out; };
     ~EventList() { };
     virtual void addEvent(cEvent* event) { };
+    virtual void finish() { };
 };
 
 class HtmlEventList : EventList
 {
   public:
     HtmlEventList(std::ostream* _out);
-    ~HtmlEventList();
+    ~HtmlEventList() { };
     virtual void addEvent(cEvent* event);
+    virtual void finish();
 };
 
 class JsonEventList : EventList
@@ -62,6 +64,7 @@ class JsonEventList : EventList
     std::vector < struct SerEvent > serEvents;
   public:
     JsonEventList(std::ostream* _out);
-    ~JsonEventList();
+    ~JsonEventList() { };
     virtual void addEvent(cEvent* event);
+    virtual void finish();
 };

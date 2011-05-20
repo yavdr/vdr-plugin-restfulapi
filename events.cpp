@@ -61,11 +61,8 @@ void EventsResponder::reply(std::ostream& out, cxxtools::http::Request& request,
     }
   }
 
-  if ( isFormat(params, ".json") ) {
-     delete (JsonEventList*)eventList;
-  } else  {
-     delete (HtmlEventList*)eventList;
-  }  
+  eventList->finish();
+  delete eventList;
 }
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)
@@ -90,12 +87,6 @@ HtmlEventList::HtmlEventList(std::ostream* _out) : EventList(_out)
   write(out, "<ul>");
 }
 
-HtmlEventList::~HtmlEventList()
-{
-  write(out, "</ul>");
-  write(out, "</body></html>");
-}
-
 void HtmlEventList::addEvent(cEvent* event)
 {
   write(out, "<li>");
@@ -103,16 +94,15 @@ void HtmlEventList::addEvent(cEvent* event)
   write(out, "\n");
 }
 
+void HtmlEventList::finish()
+{
+  write(out, "</ul>");
+  write(out, "</body></html>");
+}
+
 JsonEventList::JsonEventList(std::ostream* _out) : EventList(_out)
 {
 
-}
-
-JsonEventList::~JsonEventList()
-{
-  cxxtools::JsonSerializer serializer(*out);
-  serializer.serialize(serEvents, "events");
-  serializer.finish();
 }
 
 void JsonEventList::addEvent(cEvent* event)
@@ -134,4 +124,11 @@ void JsonEventList::addEvent(cEvent* event)
   serEvent.StartTime = event->StartTime();
   serEvent.Duration = event->Duration();
   serEvents.push_back(serEvent);
-	}
+}
+
+void JsonEventList::finish()
+{
+  cxxtools::JsonSerializer serializer(*out);
+  serializer.serialize(serEvents, "events");
+  serializer.finish();
+}

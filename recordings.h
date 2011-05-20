@@ -46,14 +46,16 @@ class RecordingList
     RecordingList(std::ostream* _out) { out = _out; };
     ~RecordingList() { };
     virtual void addRecording(cRecording* recording) { };
+    virtual void finish() { };
 };
 
 class HtmlRecordingList : RecordingList
 {
   public:
     HtmlRecordingList(std::ostream* _out);
-    ~HtmlRecordingList();
+    ~HtmlRecordingList() { };
     virtual void addRecording(cRecording* recording);
+    virtual void finish();
 };
 
 class JsonRecordingList : RecordingList
@@ -62,6 +64,7 @@ class JsonRecordingList : RecordingList
     std::vector < struct SerRecording > serRecordings;
   public:
     JsonRecordingList(std::ostream* _out);
-    ~JsonRecordingList();
+    ~JsonRecordingList() { };
     virtual void addRecording(cRecording* recording);
+    virtual void finish();
 };

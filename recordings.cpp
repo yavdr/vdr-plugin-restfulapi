@@ -24,12 +24,9 @@ void RecordingsResponder::reply(std::ostream& out, cxxtools::http::Request& requ
   for (cRecording* recording = Recordings.First(); recording; recording = Recordings.Next(recording)) {
      recordingList->addRecording(recording); 
   }
- 
-  if ( isFormat(params, ".json") ) {
-     delete (JsonRecordingList*)recordingList;
-  } else {
-     delete (HtmlRecordingList*)recordingList;
-  } 
+
+  recordingList->finish();
+  delete recordingList; 
 }
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerRecording& p)
@@ -53,12 +50,6 @@ HtmlRecordingList::HtmlRecordingList(std::ostream* _out) : RecordingList(_out)
   write(out, "<ul>");
 }
 
-HtmlRecordingList::~HtmlRecordingList()
-{
-  write(out, "</ul>");
-  write(out, "</body></html>");
-}
-
 void HtmlRecordingList::addRecording(cRecording* recording)
 {
   write(out, "<li>");
@@ -66,16 +57,15 @@ void HtmlRecordingList::addRecording(cRecording* recording)
   write(out, "</body></html>");
 }
 
+void HtmlRecordingList::finish()
+{
+  write(out, "</ul>");
+  write(out, "</body></html>");
+}
+
 JsonRecordingList::JsonRecordingList(std::ostream* _out) : RecordingList(_out)
 {
 
-}
-
-JsonRecordingList::~JsonRecordingList()
-{
-  cxxtools::JsonSerializer serializer(*out);
-  serializer.serialize(serRecordings, "recordings");
-  serializer.finish();
 }
 
 void JsonRecordingList::addRecording(cRecording* recording)
@@ -87,4 +77,11 @@ void JsonRecordingList::addRecording(cRecording* recording)
   serRecording.IsEdited = recording->IsEdited();
   serRecording.IsPesRecording = recording->IsPesRecording();
   serRecordings.push_back(serRecording);
+}
+
+void JsonRecordingList::finish()
+{
+  cxxtools::JsonSerializer serializer(*out);
+  serializer.serialize(serRecordings, "recordings");
+  serializer.finish();
 }
