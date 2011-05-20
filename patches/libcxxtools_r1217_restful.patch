@@ -1,0 +1,87 @@
+--- include/cxxtools/http/server.h.orig	2011-04-30 08:28:52.000000000 +0200
++++ include/cxxtools/http/server.h	2011-05-20 21:05:41.573078998 +0200
+@@ -63,6 +63,9 @@
+         std::size_t writeTimeout() const;
+         std::size_t keepAliveTimeout() const;
+ 
++        bool isRestful();
++        void isRestful(bool restful);
++
+         void readTimeout(std::size_t ms);
+         void writeTimeout(std::size_t ms);
+         void keepAliveTimeout(std::size_t ms);
+--- src/http/server.cpp.orig	2011-04-30 08:28:57.000000000 +0200
++++ src/http/server.cpp	2011-05-20 19:04:48.293079003 +0200
+@@ -75,6 +75,16 @@
+     _impl->removeService(service);
+ }
+ 
++void Server::isRestful(bool restful)
++{
++    _impl->isRestful(restful);
++}
++
++bool Server::isRestful()
++{
++    return _impl->isRestful();
++}
++
+ std::size_t Server::readTimeout() const
+ {
+     return _impl->readTimeout();
+--- src/http/serverimpl.cpp.orig	2011-04-30 08:28:57.000000000 +0200
++++ src/http/serverimpl.cpp	2011-05-20 21:09:07.493078999 +0200
+@@ -344,20 +344,21 @@
+ 
+     ReadLock serviceLock(_serviceMutex);
+ 
+-    for (ServicesType::const_iterator it = _services.lower_bound(request.url());
+-        it != _services.end() && it->first == request.url(); ++it)
++    for (ServicesType::const_iterator it = _services.begin(); it != _services.end(); ++it)
+     {
+-        if (!it->second->checkAuth(request))
+-        {
+-            return _noAuthService.createResponder(request, it->second->realm(), it->second->authContent());
+-        }
++	if ( it->first == request.url() || (isRestful() && request.url().find(it->first) == 0)) {
++        	if (!it->second->checkAuth(request))
++        	{
++           	 	return _noAuthService.createResponder(request, it->second->realm(), it->second->authContent());
++        	}
+ 
+-        Responder* resp = it->second->doCreateResponder(request);
+-        if (resp)
+-        {
+-            log_debug("got responder");
+-            return resp;
+-        }
++        	Responder* resp = it->second->doCreateResponder(request);
++        	if (resp)
++        	{
++            		log_debug("got responder");
++           		return resp;
++        	}
++	}
+     }
+ 
+     log_debug("use default responder");
+--- src/http/serverimpl.h.orig	2011-04-30 08:28:57.000000000 +0200
++++ src/http/serverimpl.h	2011-05-20 19:05:37.563078998 +0200
+@@ -142,6 +142,9 @@
+         std::size_t keepAliveTimeout() const  { return _keepAliveTimeout; }
+         std::size_t idleTimeout() const       { return _idleTimeout; }
+ 
++        bool isRestful() 		      { return _restful; }
++        void isRestful(bool restful)	      { _restful = restful; }
++
+         void readTimeout(std::size_t ms)      { _readTimeout = ms; }
+         void writeTimeout(std::size_t ms)     { _writeTimeout = ms; }
+         void keepAliveTimeout(std::size_t ms) { _keepAliveTimeout = ms; }
+@@ -218,6 +221,7 @@
+         ServicesType _services;
+         NotFoundService _defaultService;
+         NotAuthenticatedService _noAuthService;
++        bool _restful;
+ };
+ 
+ }

@@ -2,7 +2,7 @@
 
 void RecordingsResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  std::string qparams = request.qparams();
+  std::string params = getRestParams((std::string)"/recordings", request.url()); 
   RecordingList* recordingList;
 
   if ( request.method() != "GET") {
@@ -10,10 +10,10 @@ void RecordingsResponder::reply(std::ostream& out, cxxtools::http::Request& requ
      return;
   }
 
-  if ( isFormat(qparams, ".json") ) {
+  if ( isFormat(params, ".json") ) {
      reply.addHeader("Content-Type", "application/json; charset=utf-8");
      recordingList = (RecordingList*)new JsonRecordingList(&out);
-  } else if ( isFormat(qparams, ".html") ) {
+  } else if ( isFormat(params, ".html") ) {
      reply.addHeader("Content-Type", "text/html; charset=utf-8");
      recordingList = (RecordingList*)new HtmlRecordingList(&out);
   } else {
@@ -25,7 +25,7 @@ void RecordingsResponder::reply(std::ostream& out, cxxtools::http::Request& requ
      recordingList->addRecording(recording); 
   }
  
-  if ( isFormat(qparams, ".json") ) {
+  if ( isFormat(params, ".json") ) {
      delete (JsonRecordingList*)recordingList;
   } else {
      delete (HtmlRecordingList*)recordingList;

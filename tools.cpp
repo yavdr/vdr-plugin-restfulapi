@@ -21,6 +21,11 @@ void writeHtmlHeader(std::ostream* out)
   write(out, "</head><body>");
 }
 
+std::string getRestParams(std::string service, std::string url)
+{
+  return url.substr(service.length(), url.length() - 1);
+}
+
 int getIntParam(std::string qparams, int level)
 {
   std::string param = getStringParam(qparams, level);

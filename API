@@ -6,18 +6,18 @@ Details of the current API:
 <format> -> json or html
 
 TIMERS:
-GET http://<ip>:<port>/timers?/.<format>
+GET http://<ip>:<port>/timers/.<format>
 
 RECORDINGS:
-GET http://<ip>:<port>/recordings?/.<format>
+GET http://<ip>:<port>/recordings/.<format>
 
 EVENTS/EPG:
-GET http://<ip>:<port>/events?/<channel>/.<format>
-GET http://<ip>:<port>/events?/<channel>/<duration>/.<format>
-GET http://<ip>:<port>/events?/<channel>/<duration>/<from>/.<format>
+GET http://<ip>:<port>/events/<channel>/.<format>
+GET http://<ip>:<port>/events/<channel>/<duration>/.<format>
+GET http://<ip>:<port>/events/<channel>/<duration>/<from>/.<format>
 <channel> is the number of your channel
 <duration> duration of the time period in seconds from which you want to know the event details
 <from> start of the time period
 
 CHANNELS:
-GET http://<ip>:<port>/channels?/.<format>
+GET http://<ip>:<port>/channels/.<format>

@@ -2,7 +2,7 @@
 
 void TimersResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  std::string qparams = request.qparams();
+  std::string params = getRestParams((std::string)"/timers", request.url());
   TimerList* timerList;
 
   if ( request.method() != "GET") {
@@ -10,10 +10,10 @@ void TimersResponder::reply(std::ostream& out, cxxtools::http::Request& request,
      return;
   }
 
-  if ( isFormat(qparams, ".json") ) {
+  if ( isFormat(params, ".json") ) {
      reply.addHeader("Content-Type", "application/json; charset=utf-8");
      timerList = (TimerList*)new JsonTimerList(&out);
-  } else if ( isFormat(qparams, ".html") ) {
+  } else if ( isFormat(params, ".html") ) {
      reply.addHeader("Content-Type", "text/html; charset=utf-8");
      timerList = (TimerList*)new HtmlTimerList(&out);
   } else {
@@ -29,7 +29,7 @@ void TimersResponder::reply(std::ostream& out, cxxtools::http::Request& request,
      timerList->addTimer(timer);   
   }
 
-  if ( isFormat(qparams, ".json") ) {
+  if ( isFormat(params, ".json") ) {
      delete (JsonTimerList*)timerList;
   } else {
      delete (HtmlTimerList*)timerList;
@@ -47,6 +47,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerTimer& t)
   si.addMember("day") <<= t.Day;
   si.addMember("channel") <<= t.Channel;
   si.addMember("filename") <<= t.FileName;
+  si.addMember("channel_name") <<= t.ChannelName;
   si.addMember("is_pending") <<= t.IsPending;
   si.addMember("is_recording") <<= t.IsRecording;
 }
@@ -62,6 +63,7 @@ void operator>>= (const cxxtools::SerializationInfo& si, SerTimer& t)
   si.getMember("day") >>= t.Day;
   si.getMember("channel") >>= t.Channel;
   si.getMember("filename") >>= t.FileName;
+  si.getMember("channel_name") >>= t.ChannelName;
   si.getMember("is_pending") >>= t.IsPending;
   si.getMember("is_recording") >>= t.IsRecording;
 }
@@ -117,5 +119,6 @@ void JsonTimerList::addTimer(cTimer* timer)
     serTimer.IsRecording = timer->Recording();
     serTimer.IsPending = timer->Pending();
     serTimer.FileName = UTF8Decode(timer->File());
+    serTimer.ChannelName = UTF8Decode(timer->Channel()->Name());
     serTimers.push_back(serTimer);
 }

@@ -33,6 +33,7 @@ struct SerTimer
   bool IsRecording;
   bool IsPending;
   cxxtools::String FileName;
+  cxxtools::String ChannelName;
 };
 
 struct SerTimers

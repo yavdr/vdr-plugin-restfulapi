@@ -7,13 +7,13 @@ void ChannelsResponder::reply(std::ostream& out, cxxtools::http::Request& reques
      return;
   }
 
-  std::string qparams = request.qparams();
+  std::string params = getRestParams((std::string)"/channels", request.url()); 
   ChannelList* channelList;
 
-  if ( isFormat(qparams, ".json") ) {
+  if ( isFormat(params, ".json") ) {
     reply.addHeader("Content-Type", "application/json; charset=utf-8");
     channelList = (ChannelList*)new JsonChannelList(&out);
-  } else if ( isFormat(qparams, ".html") ) {
+  } else if ( isFormat(params, ".html") ) {
     reply.addHeader("Content-Type", "text/html; charset=utf-8");
     channelList = (ChannelList*)new HtmlChannelList(&out);
   } else {
@@ -28,7 +28,7 @@ void ChannelsResponder::reply(std::ostream& out, cxxtools::http::Request& reques
     }
   }
 
-  if ( isFormat(qparams, ".json") ) {
+  if ( isFormat(params, ".json") ) {
      delete (JsonChannelList*)channelList;
   } else {
      delete (HtmlChannelList*)channelList;

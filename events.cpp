@@ -2,7 +2,7 @@
 
 void EventsResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  std::string qparams = request.qparams();
+  std::string params = getRestParams((std::string)"/events", request.url()); 
   EventList* eventList;
 
   if ( request.method() != "GET") {
@@ -10,9 +10,9 @@ void EventsResponder::reply(std::ostream& out, cxxtools::http::Request& request,
      return;
   }
 
-  int channel_number = getIntParam(qparams, 0);
-  int timespan = getIntParam(qparams, 1);
-  int from = getIntParam(qparams, 2);
+  int channel_number = getIntParam(params, 0);
+  int timespan = getIntParam(params, 1);
+  int from = getIntParam(params, 2);
   
   cChannel* channel = getChannel(channel_number);
   if ( channel == NULL ) { 
@@ -39,10 +39,10 @@ void EventsResponder::reply(std::ostream& out, cxxtools::http::Request& request,
      return;
   }
 
-  if ( isFormat(qparams, ".json") ) {
+  if ( isFormat(params, ".json") ) {
      reply.addHeader("Content-Type", "application/json; charset=utf-8");
      eventList = (EventList*)new JsonEventList(&out);
-  } else if ( isFormat(qparams, ".html") ) {
+  } else if ( isFormat(params, ".html") ) {
      reply.addHeader("Content-Type", "text/html; charset=utf-8");
      eventList = (EventList*)new HtmlEventList(&out);
   } else {
@@ -61,7 +61,7 @@ void EventsResponder::reply(std::ostream& out, cxxtools::http::Request& request,
     }
   }
 
-  if ( isFormat(qparams, ".json") ) {
+  if ( isFormat(params, ".json") ) {
      delete (JsonEventList*)eventList;
   } else  {
      delete (HtmlEventList*)eventList;

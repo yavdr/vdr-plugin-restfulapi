@@ -16,6 +16,7 @@ cServerThread::cServerThread ()
 
   isyslog("create server");
   server = new cxxtools::http::Server(loop, listenIp, listenPort);
+  server->isRestful(true);
 
   Start ();
 }
