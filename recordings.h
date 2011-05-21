@@ -17,6 +17,8 @@ class RecordingsResponder : public cxxtools::http::Responder
       { }
 
     virtual void reply(std::ostream&, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+    virtual void deleteRecording(std::ostream&, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+    virtual void showRecordings(std::ostream&, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
 };
 
 typedef cxxtools::http::CachedService<RecordingsResponder> RecordingsService;

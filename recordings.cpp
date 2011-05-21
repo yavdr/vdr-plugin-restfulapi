@@ -2,13 +2,34 @@
 
 void RecordingsResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
+  if ( request.method() == "GET" ) {
+     showRecordings(out, request, reply);
+  } else if ( request.method() == "DELETE" ) {
+     deleteRecording(out, request, reply);
+  } else {
+     reply.httpReturn(501, "Only GET and DELETE methods are supported.");
+  }
+}
+
+void RecordingsResponder::deleteRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+{
+  std::string params = getRestParams((std::string)"/recordings", request.url());
+  int recording_number = getIntParam(params, 0);
+  if ( recording_number <= 0 || recording_number > Recordings.Count() ) { 
+     reply.httpReturn(404, "Wrong recording number!");
+  } else {
+     recording_number--; // first recording is 0 and not 1 like in param
+     cRecording* delRecording = Recordings.Get(recording_number);
+     if ( delRecording->Delete() ) {
+        Recordings.DelByName(delRecording->FileName());
+     }
+  }
+}
+
+void RecordingsResponder::showRecordings(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+{
   std::string params = getRestParams((std::string)"/recordings", request.url()); 
   RecordingList* recordingList;
-
-  if ( request.method() != "GET") {
-     reply.httpReturn(403, "To retrieve information use the GET method!");
-     return;
-  }
 
   if ( isFormat(params, ".json") ) {
      reply.addHeader("Content-Type", "application/json; charset=utf-8");
@@ -17,7 +38,7 @@ void RecordingsResponder::reply(std::ostream& out, cxxtools::http::Request& requ
      reply.addHeader("Content-Type", "text/html; charset=utf-8");
      recordingList = (RecordingList*)new HtmlRecordingList(&out);
   } else {
-     reply.httpReturn(403, "Resources are not available for the selected format. (Use: .json or .html)");
+     reply.httpReturn(404, "Resources are not available for the selected format. (Use: .json or .html)");
      return;
   }
 

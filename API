@@ -11,6 +11,7 @@ DELETE http://<ip>:<port>/timers/<number>       #the first timer has number 1
 
 RECORDINGS:
 GET http://<ip>:<port>/recordings/.<format>
+DELETE http://<ip>:<port>/recordings/<number>	#the first recording has number 1
 
 EVENTS/EPG:
 GET http://<ip>:<port>/events/<channel>/.<format>

@@ -19,4 +19,4 @@ IMPORTANT NOTE: This plugin currently needs libcxxtools >= r1217 including the f
 @TESTERS: to simply test the restfulapi you can use the following tool (works with sun-jre and open-jre):
 WizTools.org RESTClient 2.3.3
 http://code.google.com/p/rest-client/
-It's licenced under Apache Licence 2.0.
+It's licensed under Apache Licence 2.0.
