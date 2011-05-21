@@ -8,6 +8,7 @@
 #include "tools.h"
 
 #include "vdr/timers.h"
+#include "vdr/menu.h"
 
 class TimersResponder : public cxxtools::http::Responder
 {
@@ -16,6 +17,9 @@ class TimersResponder : public cxxtools::http::Responder
       : cxxtools::http::Responder(service)
       { }
      virtual void reply(std::ostream&, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+     virtual void createTimer(std::ostream&, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+     virtual void deleteTimer(std::ostream&, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+     virtual void showTimers(std::ostream&, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
 };
 
 typedef cxxtools::http::CachedService<TimersResponder> TimersService;

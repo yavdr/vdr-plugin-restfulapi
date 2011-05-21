@@ -7,6 +7,7 @@ Details of the current API:
 
 TIMERS:
 GET http://<ip>:<port>/timers/.<format>
+DELETE http://<ip>:<port>/timers/<number>       #the first timer has number 1
 
 RECORDINGS:
 GET http://<ip>:<port>/recordings/.<format>

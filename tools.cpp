@@ -36,15 +36,13 @@ int getIntParam(std::string qparams, int level)
   return -1;
 }
 
-std::string getStringParam(std::string qparams, int level)
+std::string getStringParam(std::string params, int level)
 {
   int start = -1;
   int end = -1;
   int on_level = 0;
 
-  const char* params = qparams.c_str();
-
-  for(int i=0;i<(int)qparams.length();i++)
+  for(int i=0;i<(int)params.length();i++)
   {
     if(params[i] == '/')
     {
@@ -55,13 +53,16 @@ std::string getStringParam(std::string qparams, int level)
         end = i;
         if(on_level == level)
         {
-          return qparams.substr(start + 1, end -1);
+          return params.substr(start + 1, end -1);
         }
         start = end;
         end = -1;
         on_level++;
       }
     }
+  }
+  if(start != -1 && on_level == level) {
+    return params.substr(start + 1, params.length() - 1);
   }
   return (std::string)"";
 }

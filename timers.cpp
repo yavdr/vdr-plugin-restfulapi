@@ -3,12 +3,53 @@
 void TimersResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   std::string params = getRestParams((std::string)"/timers", request.url());
-  TimerList* timerList;
 
-  if ( request.method() != "GET") {
-     reply.httpReturn(403, "To retrieve information use the GET method!");
-     return;
+  if ( request.method() == "GET" ) {
+     showTimers(out, request, reply);
+  } else if ( request.method() == "DELETE" ) {
+     deleteTimer(out, request, reply);
+  } else if ( request.method() == "POST" ) {
+     createTimer(out, request, reply);
+  } else {
+    reply.httpReturn(501, "Only GET, DELETE and POST methods are supported.");
   }
+}
+
+void TimersResponder::createTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+{
+  reply.httpReturn(501, "Creating timer is not implemented yet.");
+}
+
+void TimersResponder::deleteTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+{
+  std::string params = getRestParams((std::string)"/timers", request.url());
+  int timer_number = getIntParam(params, 0);
+  timer_number--; //first timer ist 0 and not 1
+
+  int timer_count = Timers.Count();
+
+  if ( timer_number < 0 || timer_number >= timer_count) {
+     reply.httpReturn(404, "Timer number invalid!");
+  } else {
+     cTimer* timer = Timers.Get(timer_number);
+     if ( timer ) {
+        if ( !Timers.BeingEdited())
+        {
+           if ( timer->Recording() ) {
+              timer->Skip();
+              cRecordControls::Process(time(NULL));
+           }
+           Timers.Del(timer);
+           Timers.SetModified();
+        }
+     }
+  }
+}
+
+void TimersResponder::showTimers(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+{
+  std::string params = getRestParams((std::string)"/timers", request.url());
+  TimerList* timerList;
 
   if ( isFormat(params, ".json") ) {
      reply.addHeader("Content-Type", "application/json; charset=utf-8");
@@ -17,7 +58,7 @@ void TimersResponder::reply(std::ostream& out, cxxtools::http::Request& request,
      reply.addHeader("Content-Type", "text/html; charset=utf-8");
      timerList = (TimerList*)new HtmlTimerList(&out);
   } else {
-     reply.httpReturn(403, "Resources are not available for the selected format. (Use: .json or .html)");
+     reply.httpReturn(404, "Resources are not available for the selected format. (Use: .json or .html)");
      return;
   }
 
