@@ -87,7 +87,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerTimer& t)
   si.addMember("day") <<= t.Day;
   si.addMember("channel") <<= t.Channel;
   si.addMember("filename") <<= t.FileName;
-  si.addMember("channel_name") <<= t.ChannelName;
+  si.addMember("channelname") <<= t.ChannelName;
   si.addMember("is_pending") <<= t.IsPending;
   si.addMember("is_recording") <<= t.IsRecording;
 }
