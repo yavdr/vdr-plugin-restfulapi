@@ -21,6 +21,8 @@ void RecordingsResponder::reply(std::ostream& out, cxxtools::http::Request& requ
      return;
   }
 
+  recordingList->init();
+
   for (cRecording* recording = Recordings.First(); recording; recording = Recordings.Next(recording)) {
      recordingList->addRecording(recording); 
   }
@@ -36,6 +38,11 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerRecording& p)
   si.addMember("is_new") <<= p.IsNew;
   si.addMember("is_edited") <<= p.IsEdited;
   si.addMember("is_pes_recording") <<= p.IsPesRecording;
+  si.addMember("event_title") <<= p.EventTitle;
+  si.addMember("event_short_text") <<= p.EventShortText;
+  si.addMember("event_description") <<= p.EventDescription;
+  si.addMember("event_start_time") <<= p.EventStartTime;
+  si.addMember("event_duration") <<= p.EventDuration;
 }
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerRecordings& p)
@@ -43,7 +50,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerRecordings& p)
   si.addMember("rows") <<= p.recording;
 }
 
-HtmlRecordingList::HtmlRecordingList(std::ostream* _out) : RecordingList(_out)
+void HtmlRecordingList::init()
 {
   writeHtmlHeader(out);
   
@@ -63,19 +70,37 @@ void HtmlRecordingList::finish()
   write(out, "</body></html>");
 }
 
-JsonRecordingList::JsonRecordingList(std::ostream* _out) : RecordingList(_out)
-{
-
-}
-
 void JsonRecordingList::addRecording(cRecording* recording)
 {
+  cxxtools::String empty = UTF8Decode("");
+  cxxtools::String eventTitle = empty;
+  cxxtools::String eventShortText = empty;
+  cxxtools::String eventDescription = empty;
+  int eventStartTime = -1;
+  int eventDuration = -1;
+
+  cEvent* event = (cEvent*)recording->Info()->GetEvent();
+
+  if ( event != NULL )
+  {
+     if ( event->Title() ) { eventTitle = UTF8Decode(event->Title()); }
+     if ( event->ShortText() ) { eventShortText = UTF8Decode(event->ShortText()); }
+     if ( event->Description() ) { eventDescription = UTF8Decode(event->Description()); }
+     if ( event->StartTime() > 0 ) { eventStartTime = event->StartTime(); }
+     if ( event->Duration() > 0 ) { eventDuration = event->Duration(); }
+  }
+
   SerRecording serRecording;
   serRecording.Name = UTF8Decode(recording->Name());
   serRecording.FileName = UTF8Decode(recording->FileName());
   serRecording.IsNew = recording->IsNew();
   serRecording.IsEdited = recording->IsEdited();
   serRecording.IsPesRecording = recording->IsPesRecording();
+  serRecording.EventTitle = eventTitle;
+  serRecording.EventShortText = eventShortText;
+  serRecording.EventDescription = eventDescription;
+  serRecording.EventStartTime = eventStartTime;
+  serRecording.EventDuration = eventDuration;
   serRecordings.push_back(serRecording);
 }
 

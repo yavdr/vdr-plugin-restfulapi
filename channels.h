@@ -47,6 +47,7 @@ class ChannelList
   public:
     ChannelList(std::ostream* _out) { out = _out; };
     ~ChannelList() { };
+    virtual void init() { };
     virtual void addChannel(cChannel* channel) { };
     virtual void finish() { };
 };
@@ -54,8 +55,9 @@ class ChannelList
 class HtmlChannelList : ChannelList
 {
   public:
-    HtmlChannelList(std::ostream* _out);
+    HtmlChannelList(std::ostream* _out) : ChannelList(_out) { };
     ~HtmlChannelList() { };
+    virtual void init();
     virtual void addChannel(cChannel* channel);
     virtual void finish();
 };
@@ -65,7 +67,7 @@ class JsonChannelList : ChannelList
   private:
     std::vector < struct SerChannel > serChannels;
   public:
-    JsonChannelList(std::ostream* _out);
+    JsonChannelList(std::ostream* _out) : ChannelList(_out) { };
     ~JsonChannelList() { };
     virtual void addChannel(cChannel* channel);
     virtual void finish();

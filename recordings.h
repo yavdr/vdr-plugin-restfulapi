@@ -28,6 +28,11 @@ struct SerRecording
   bool IsNew;
   bool IsEdited;
   bool IsPesRecording;
+  cxxtools::String EventTitle;
+  cxxtools::String EventShortText;
+  cxxtools::String EventDescription;
+  int EventStartTime;
+  int EventDuration;
 };
 
 struct SerRecordings
@@ -45,6 +50,7 @@ class RecordingList
   public:
     RecordingList(std::ostream* _out) { out = _out; };
     ~RecordingList() { };
+    virtual void init() { };
     virtual void addRecording(cRecording* recording) { };
     virtual void finish() { };
 };
@@ -52,8 +58,9 @@ class RecordingList
 class HtmlRecordingList : RecordingList
 {
   public:
-    HtmlRecordingList(std::ostream* _out);
+    HtmlRecordingList(std::ostream* _out) : RecordingList(_out) { };
     ~HtmlRecordingList() { };
+    virtual void init();
     virtual void addRecording(cRecording* recording);
     virtual void finish();
 };
@@ -63,7 +70,7 @@ class JsonRecordingList : RecordingList
   private:
     std::vector < struct SerRecording > serRecordings;
   public:
-    JsonRecordingList(std::ostream* _out);
+    JsonRecordingList(std::ostream* _out) : RecordingList(_out) { };
     ~JsonRecordingList() { };
     virtual void addRecording(cRecording* recording);
     virtual void finish();

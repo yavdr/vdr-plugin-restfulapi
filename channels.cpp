@@ -21,6 +21,8 @@ void ChannelsResponder::reply(std::ostream& out, cxxtools::http::Request& reques
     return;
   }
 
+  channelList->init();
+
   for (cChannel *channel = Channels.First(); channel; channel = Channels.Next(channel))
   {
     if (!channel->GroupSep()) {
@@ -49,7 +51,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerChannels& c)
   si.addMember("rows") <<= c.channel;
 }
 
-HtmlChannelList::HtmlChannelList(std::ostream* _out) : ChannelList(_out)
+void HtmlChannelList::init()
 {
   writeHtmlHeader(out);
 
@@ -67,11 +69,6 @@ void HtmlChannelList::finish()
 {
   write(out, "</ul>");
   write(out, "</body></html>");
-}
-
-JsonChannelList::JsonChannelList(std::ostream* _out) : ChannelList(_out)
-{
-
 }
 
 void JsonChannelList::addChannel(cChannel* channel)

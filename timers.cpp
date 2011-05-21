@@ -21,6 +21,8 @@ void TimersResponder::reply(std::ostream& out, cxxtools::http::Request& request,
      return;
   }
 
+  timerList->init();
+
   int timer_count = Timers.Count();
   cTimer *timer;
   for (int i=0;i<timer_count;i++)
@@ -70,7 +72,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerTimers& t)
   si.addMember("rows") <<= t.timer;
 }
 
-HtmlTimerList::HtmlTimerList(std::ostream* _out) : TimerList(_out)
+void HtmlTimerList::init()
 {
   writeHtmlHeader(out); 
 
@@ -88,11 +90,6 @@ void HtmlTimerList::finish()
 {
   write(out, "</ul>");
   write(out, "</body></html>");
-}
-
-JsonTimerList::JsonTimerList(std::ostream* _out) : TimerList(_out)
-{
-
 }
 
 void JsonTimerList::addTimer(cTimer* timer)

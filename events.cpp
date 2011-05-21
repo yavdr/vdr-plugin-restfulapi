@@ -10,6 +10,17 @@ void EventsResponder::reply(std::ostream& out, cxxtools::http::Request& request,
      return;
   }
 
+  if ( isFormat(params, ".json") ) {
+     reply.addHeader("Content-Type", "application/json; charset=utf-8");
+     eventList = (EventList*)new JsonEventList(&out);
+  } else if ( isFormat(params, ".html") ) {
+     reply.addHeader("Content-Type", "text/html; charset=utf-8");
+     eventList = (EventList*)new HtmlEventList(&out);
+  } else {
+     reply.httpReturn(403, "Resources are not available for the selected format. (Use: .json or .html)");
+     return;
+  }
+
   int channel_number = getIntParam(params, 0);
   int timespan = getIntParam(params, 1);
   int from = getIntParam(params, 2);
@@ -39,16 +50,7 @@ void EventsResponder::reply(std::ostream& out, cxxtools::http::Request& request,
      return;
   }
 
-  if ( isFormat(params, ".json") ) {
-     reply.addHeader("Content-Type", "application/json; charset=utf-8");
-     eventList = (EventList*)new JsonEventList(&out);
-  } else if ( isFormat(params, ".html") ) {
-     reply.addHeader("Content-Type", "text/html; charset=utf-8");
-     eventList = (EventList*)new HtmlEventList(&out);
-  } else {
-     reply.httpReturn(403, "Resources are not available for the selected format. (Use: .json or .html)");
-     return;
-  }
+  eventList->init();
 
   for(cEvent* event = Schedule->Events()->First(); event; event = Schedule->Events()->Next(event))
   {
@@ -80,7 +82,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerEvents& e)
   si.addMember("rows") <<= e.event;
 }
 
-HtmlEventList::HtmlEventList(std::ostream* _out) : EventList(_out)
+void HtmlEventList::init()
 {
   writeHtmlHeader(out);
   
@@ -98,11 +100,6 @@ void HtmlEventList::finish()
 {
   write(out, "</ul>");
   write(out, "</body></html>");
-}
-
-JsonEventList::JsonEventList(std::ostream* _out) : EventList(_out)
-{
-
 }
 
 void JsonEventList::addEvent(cEvent* event)
