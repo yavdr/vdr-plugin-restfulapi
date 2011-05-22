@@ -31,7 +31,12 @@ int getIntParam(std::string qparams, int level)
   std::string param = getStringParam(qparams, level);
   if ( param.length() > 0 )
   {
-     return atoi(param.c_str());
+     int res = atoi(param.c_str());
+     if ( res == 0 ) {
+        return param.find_first_of("0") > -1 ? res : -1;
+     } else {
+        return res;
+     }
   } 
   return -1;
 }
