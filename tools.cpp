@@ -33,7 +33,7 @@ int getIntParam(std::string qparams, int level)
   {
      int res = atoi(param.c_str());
      if ( res == 0 ) {
-        return param.find_first_of("0") > -1 ? res : -1;
+        return (int)param.find_first_of("0") > -1 ? res : -1;
      } else {
         return res;
      }
@@ -96,18 +96,4 @@ cChannel* getChannel(int number)
       }
   }
   return result;
-}
-
-int getSizeOfRecording(std::string recording)
-{
-  std::string command = (std::string)"du -s \"" + recording + "\" | cut -f 1";
-
-  FILE *in = popen(command.c_str(), "r");
-  int size;
-  if ( fscanf(in, "%d", &size) <= 0 ) {
-     fclose(in);
-     return -1;
-  }
-  fclose(in);
-  return size;
 }

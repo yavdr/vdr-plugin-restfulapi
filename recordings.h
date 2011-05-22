@@ -5,6 +5,9 @@
 #include <cxxtools/jsonserializer.h>
 #include <cxxtools/serializationinfo.h>
 #include <cxxtools/utf8codec.h>
+#include <iostream>
+#include <fstream>
+#include <sstream>
 #include "tools.h"
 
 #include "vdr/recording.h"
@@ -23,6 +26,8 @@ class RecordingsResponder : public cxxtools::http::Responder
 
 typedef cxxtools::http::CachedService<RecordingsResponder> RecordingsService;
 
+int getRecordingDuration(cRecording* m_recording);
+
 struct SerRecording
 {
   cxxtools::String Name;
@@ -30,7 +35,7 @@ struct SerRecording
   bool IsNew;
   bool IsEdited;
   bool IsPesRecording;
-  int Size;
+  int Duration;
   cxxtools::String EventTitle;
   cxxtools::String EventShortText;
   cxxtools::String EventDescription;
