@@ -30,6 +30,7 @@ struct SerRecording
   bool IsNew;
   bool IsEdited;
   bool IsPesRecording;
+  int Size;
   cxxtools::String EventTitle;
   cxxtools::String EventShortText;
   cxxtools::String EventDescription;
@@ -77,3 +78,16 @@ class JsonRecordingList : RecordingList
     virtual void addRecording(cRecording* recording);
     virtual void finish();
 };
+
+/*class RecordingCache
+{
+  private:
+    static RecordingCache instance = NULL;
+    RecordingCache() { };
+    std::multimap<int, int> sizeCache;
+  public:
+    static void get() { if ( instance == NULL ) { instance = new RecordingCache(); } return instance; };
+    int getSizeOfRecording();
+};
+
+typedef pair <int, int> SizeCachePair;*/

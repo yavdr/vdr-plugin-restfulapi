@@ -1,10 +1,12 @@
 This is a "plugin" for the Video Disk Recorder (VDR).
 
-Written by:                  Your Name <email@host.dom>
+Written by:                  Michael Eiler <aelo@yavdr.org>
 
-Project's homepage:          URL
+Initiator of the project:    Gerald Dachs <gda@dachsweb.de>
 
-Latest version available at: URL
+Project's homepage:          http://github.com/yavdr/vdr-plugin-restfulapi
+
+Latest version available at: http://github.com/yavdr/vdr-plugin-restfulapi
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

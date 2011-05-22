@@ -59,6 +59,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerRecording& p)
   si.addMember("is_new") <<= p.IsNew;
   si.addMember("is_edited") <<= p.IsEdited;
   si.addMember("is_pes_recording") <<= p.IsPesRecording;
+  si.addMember("size") <<= p.Size;
   si.addMember("event_title") <<= p.EventTitle;
   si.addMember("event_short_text") <<= p.EventShortText;
   si.addMember("event_description") <<= p.EventDescription;
@@ -111,12 +112,15 @@ void JsonRecordingList::addRecording(cRecording* recording)
      if ( event->Duration() > 0 ) { eventDuration = event->Duration(); }
   }
 
+  int size = getSizeOfRecording((std::string)recording->FileName());
+
   SerRecording serRecording;
   serRecording.Name = UTF8Decode(recording->Name());
   serRecording.FileName = UTF8Decode(recording->FileName());
   serRecording.IsNew = recording->IsNew();
   serRecording.IsEdited = recording->IsEdited();
   serRecording.IsPesRecording = recording->IsPesRecording();
+  serRecording.Size = size;
   serRecording.EventTitle = eventTitle;
   serRecording.EventShortText = eventShortText;
   serRecording.EventDescription = eventDescription;

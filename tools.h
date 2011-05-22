@@ -18,4 +18,5 @@ bool isFormat(std::string qparams, std::string format);
 
 // VDR API Helper Methods
 cChannel* getChannel(int number);
+int getSizeOfRecording(std::string recording);
 

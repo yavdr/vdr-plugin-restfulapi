@@ -93,3 +93,16 @@ cChannel* getChannel(int number)
   return result;
 }
 
+int getSizeOfRecording(std::string recording)
+{
+  std::string command = (std::string)"du -s \"" + recording + "\" | cut -f 1";
+
+  FILE *in = popen(command.c_str(), "r");
+  int size;
+  if ( fscanf(in, "%d", &size) <= 0 ) {
+     fclose(in);
+     return -1;
+  }
+  fclose(in);
+  return size;
+}
