@@ -1,15 +1,13 @@
 Source: vdr-plugin-restfulapi
 Section: video
 Priority: extra
-Maintainer: Michael Eiler <michael@unknown>
+Maintainer: Michael Eiler <michael@unknown.de>
 Build-Depends: debhelper (>= 7.0.50~), vdr-dev, gettext, libcxxtools-dev
 Standards-Version: 3.9.1
-Vcs-Svn: svn://svn.debian.org/pkg-vdr-dvb/vdr/vdr-plugin-restfulapi/trunk/
-Vcs-Browser: http://svn.debian.org/wsvn/pkg-vdr-dvb/vdr/vdr-plugin-restfulapi/trunk/
-Homepage: <url://example.com>
+Homepage: https://github.com/yavdr/vdr-plugin-restfulapi
 
 Package: vdr-plugin-restfulapi
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${vdr:Depends}, libcxxtools7
-Description: <insert up to 60 chars description>
- <insert long description, indented with spaces>
+Description: VDR restfulapi
+ VDR restfulapi Plugin

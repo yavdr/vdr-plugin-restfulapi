@@ -1,15 +1,14 @@
 Upstream Homepage:
-    <fill in http/ftp site>
+    https://github.com/yavdr/vdr-plugin-restfulapi
 
-Upstream Author(s):
-    <put author(s) name and email here>
+Upstream Author:
+    Michael Eiler <michael@unknown.de>
 
 Debian Maintainer(s):
-    Michael Eiler <michael@unknown>
+    Michael Eiler <michael@unknown.de>
 
 Copyright:
-    <put the year(s) of the copyright, and the names of the copyright
-     holder(s) here>
+    (C) 2011 Michael Eiler
 
 Copyright (Debian packaging):
     (C) 2011 Michael Eiler
