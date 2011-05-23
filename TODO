@@ -1,0 +1,8 @@
+MUST HAVE'S:
+implement creating timers (with params in html body from f.e. html form)
+implement unique-ids if they will be in vdr 1.7.19
+find a better way to get the duration (maybe patch videodir.* from vdr)
+
+NICE TO HAVE:
+add xml output format (optional)
+add remote.json to control vdr

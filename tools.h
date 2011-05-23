@@ -7,6 +7,7 @@
 
 // General Helper Methods
 cxxtools::String UTF8Decode(std::string str);
+std::string UTF8Encode(cxxtools::String str);
 void write(std::ostream* out, std::string str);
 void writeHtmlHeader(std::ostream* out);
 

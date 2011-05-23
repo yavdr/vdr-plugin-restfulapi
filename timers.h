@@ -1,6 +1,7 @@
 #include <cxxtools/http/request.h>
 #include <cxxtools/http/reply.h>
 #include <cxxtools/http/responder.h>
+#include <cxxtools/query_params.h>
 #include <cxxtools/arg.h>
 #include <cxxtools/jsonserializer.h>
 #include <cxxtools/serializationinfo.h>

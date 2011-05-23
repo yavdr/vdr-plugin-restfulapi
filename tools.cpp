@@ -1,5 +1,11 @@
 #include "tools.h"
 
+std::string UTF8Encode(cxxtools::String str)
+{
+  static cxxtools::Utf8Codec utf8;
+  return utf8.encode(str);
+}
+
 cxxtools::String UTF8Decode(std::string str)
 {
   static cxxtools::Utf8Codec utf8;
@@ -97,3 +103,4 @@ cChannel* getChannel(int number)
   }
   return result;
 }
+

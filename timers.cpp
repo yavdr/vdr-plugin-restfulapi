@@ -17,7 +17,28 @@ void TimersResponder::reply(std::ostream& out, cxxtools::http::Request& request,
 
 void TimersResponder::createTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  reply.httpReturn(501, "Creating timer is not implemented yet.");
+  cxxtools::QueryParams q;
+  if ( request.method() != "POST" &&  request.method() != "PUT" ) {
+    reply.httpReturn(501, "ONly POST and PUT methods are supported.");
+  } else {
+    q.parse_url(request.bodyStr());
+  }
+
+  std::string event_id = q.param("event_id");
+  std::string aux = q.param("aux");
+  std::string file = q.param("file");
+  std::string lifetime = q.param("lifetime");
+  std::string priority = q.param("priority");
+  std::string stop = q.param("stop");
+  std::string start = q.param("start");
+  std::string weekdays = q.param("weekdays");
+  std::string day = q.param("day");
+  std::string channel = q.param("channel"); //id/nummer
+
+
+  //search timer
+  //update if found
+  //create if not found
 }
 
 void TimersResponder::deleteTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
