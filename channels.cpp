@@ -16,8 +16,11 @@ void ChannelsResponder::reply(std::ostream& out, cxxtools::http::Request& reques
   } else if ( isFormat(params, ".html") ) {
     reply.addHeader("Content-Type", "text/html; charset=utf-8");
     channelList = (ChannelList*)new HtmlChannelList(&out);
+  } else if ( isFormat(params, ".xml") ) {
+    reply.addHeader("Content-Type", "text/xml; charset=utf-8");
+    channelList = (ChannelList*)new XmlChannelList(&out);
   } else {
-    reply.httpReturn(403, "Resources are not available for the selected format. (Use: .json or .html)");
+    reply.httpReturn(403, "Resources are not available for the selected format. (Use: .json, .html or .xml)");
     return;
   }
 
@@ -94,3 +97,29 @@ void JsonChannelList::finish()
   serializer.finish();
 }
 
+void XmlChannelList::init()
+{
+  write(out, "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n");
+  write(out, "<channels xmlns=\"http://www.domain.org/restfulapi/2011/recordings-xml\">\n");
+}
+
+void XmlChannelList::addChannel(cChannel* channel)
+{
+  std::string suffix = (std::string) ".ts";
+
+  write(out, " <channel>\n");
+  write(out, (const char*)cString::sprintf("  <param name=\"name\" value=\"%s\" />\n", channel->Name()));
+  write(out, (const char*)cString::sprintf("  <param name=\"number\" value=\"%i\" />\n", channel->Number()));
+  write(out, (const char*)cString::sprintf("  <param name=\"transponder\" value=\"%i\" />\n", channel->Transponder()));
+  write(out, (const char*)cString::sprintf("  <param name=\"stream\" value=\"%s\" />\n", ((std::string)channel->GetChannelID().ToString() + (std::string)suffix).c_str()));
+  write(out, (const char*)cString::sprintf("  <param name=\"is_atsc\" value=\"%s\" />\n", channel->IsAtsc() ? "true" : "false"));
+  write(out, (const char*)cString::sprintf("  <param name=\"is_cable\" value=\"%s\" />\n", channel->IsCable() ? "true" : "false"));
+  write(out, (const char*)cString::sprintf("  <param name=\"is_sat\" value=\"%s\" />\n", channel->IsSat() ? "true" : "false"));
+  write(out, (const char*)cString::sprintf("  <param name=\"is_terr\" value=\"%s\" />\n", channel->IsTerr() ? "true" : "false"));
+  write(out, " </channel>\n");
+}
+
+void XmlChannelList::finish()
+{
+  write(out, "</channels>");
+}

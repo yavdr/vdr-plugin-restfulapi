@@ -73,3 +73,12 @@ class JsonChannelList : ChannelList
     virtual void finish();
 };
 
+class XmlChannelList : ChannelList
+{
+  public:
+    XmlChannelList(std::ostream* _out) : ChannelList(_out) { };
+    ~XmlChannelList() { };
+    virtual void init();
+    virtual void addChannel(cChannel* channel);
+    virtual void finish();
+};
