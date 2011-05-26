@@ -36,7 +36,7 @@
 +                       {
 +                          cIndexFile *index = new cIndexFile(r->FileName(), false, r->IsPesRecording());
 +                          int d = -1; 
-+                          if ( index && index->Ok() ) { d = (int) (index->Last() / SecondsToFrames(60, r->FramesPerSecond())); }
++                          if ( index && !index->IsStillRecording() && index->Ok() ) { d = (int) (index->Last() / SecondsToFrames(60, r->FramesPerSecond())); }
 +                          delete index;
 +			  r->SetDuration(d);
                         }
