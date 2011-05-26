@@ -17,6 +17,8 @@ void TimersResponder::reply(std::ostream& out, cxxtools::http::Request& request,
 
 void TimersResponder::createTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
+  esyslog("restulfapi: /%s/", request.bodyStr().c_str());
+
   cxxtools::QueryParams q;
   if ( request.method() != "POST" &&  request.method() != "PUT" ) {
     reply.httpReturn(501, "ONly POST and PUT methods are supported.");
@@ -24,21 +26,69 @@ void TimersResponder::createTimer(std::ostream& out, cxxtools::http::Request& re
     q.parse_url(request.bodyStr());
   }
 
-  std::string event_id = q.param("event_id");
-  std::string aux = q.param("aux");
-  std::string file = q.param("file");
-  std::string lifetime = q.param("lifetime");
-  std::string priority = q.param("priority");
-  std::string stop = q.param("stop");
-  std::string start = q.param("start");
-  std::string weekdays = q.param("weekdays");
-  std::string day = q.param("day");
-  std::string channel = q.param("channel"); //id/nummer
+  std::string timer_id_str = q.param("timer_id");
+  std::string event_id_str = q.param("event_id");
+  std::string aux_str = q.param("aux");
+  std::string file_str = q.param("file");
+  std::string lifetime_str = q.param("lifetime");
+  std::string priority_str = q.param("priority");
+  std::string stop_str = q.param("stop");
+  std::string start_str = q.param("start");
+  std::string weekdays_str = q.param("weekdays");
+  std::string day_str = q.param("day");
+  std::string channel_str = q.param("channel"); //id/nummer
+
+  int flags = 1;
+
+  int timer_id = -1; 
+  if ( timer_id_str.length() != 0 ) { timer_id = atoi(timer_id_str.c_str()); }
+
+  int event_id = -1;
+  if ( event_id_str.length() != 0 ) { event_id = atoi(event_id_str.c_str()); }
+
+  int lifetime = -1;
+  if ( lifetime_str.length() != 0 ) { lifetime = atoi(lifetime_str.c_str()); }
+  
+  int priority = -1;
+  if ( priority_str.length() != 0 ) { priority = atoi(priority_str.c_str()); }
+
+  int start = time(NULL) - 1;
+  if ( start_str.length() != 0 ) { start = atoi(start_str.c_str()); }
+
+  int stop = time(NULL) - 1;
+  if ( stop_str.length() != 0 ) { stop = atoi(stop_str.c_str()); }
+
+  int weekdays = 0;
+  if ( weekdays_str.length() != 0 ) { weekdays = atoi(weekdays_str.c_str()); }
+
+  time_t day = time(NULL) - 1;
+  if ( day_str.length() != 0 ) { day = atoi(day_str.c_str()); }
+
+  int channel = 1;
+  if ( channel_str.length() != 0 ) { channel = atoi(channel_str.c_str()); }
+  cChannel* channelInstance = getChannel(channel);
 
 
-  //search timer
-  //update if found
-  //create if not found
+  if ( timer_id != -1 ) {
+     // update timer information
+     cTimer* timer = Timers.Get(timer_id);
+     // change the values here
+     Timers.SetModified();
+  } else if (channelInstance != NULL) {
+     cString buffer = cString::sprintf("%u:%s:%s:%04d:%04d:%d:%d:%s:%s\n", flags, (const char*)channelInstance->GetChannelID().ToString(), *cTimer::PrintDay(day, weekdays, true), start, stop, priority, lifetime, file_str.c_str(), aux_str.c_str());
+     esyslog("restfulapi:%u:%s:%s:%04d:%04d:%d:%d:%s:%s\n", flags, (const char*)channelInstance->GetChannelID().ToString(), *cTimer::PrintDay(day, weekdays, true), start, stop, priority, lifetime, file_str.c_str(), aux_str.c_str());
+     cTimer *timer = new cTimer();
+     if (timer->Parse(buffer)) {
+        esyslog("restfulapi: successfully parsed");
+        //add event id
+        cTimer *t = Timers.GetTimer(timer);
+        if ( !t ) {
+           Timers.Add(timer);
+           Timers.SetModified();
+           esyslog("restfulapi: successfully added timer");
+        }
+     }
+  }
 }
 
 void TimersResponder::deleteTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
@@ -71,6 +121,8 @@ void TimersResponder::showTimers(std::ostream& out, cxxtools::http::Request& req
 {
   std::string params = getRestParams((std::string)"/timers", request.url());
   TimerList* timerList;
+ 
+  Timers.SetModified();
 
   if ( isFormat(params, ".json") ) {
      reply.addHeader("Content-Type", "application/json; charset=utf-8");

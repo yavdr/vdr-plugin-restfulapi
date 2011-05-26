@@ -130,12 +130,15 @@ void JsonRecordingList::addRecording(cRecording* recording)
   serRecording.IsNew = recording->IsNew();
   serRecording.IsEdited = recording->IsEdited();
   serRecording.IsPesRecording = recording->IsPesRecording();
-  serRecording.Duration = getRecordingDuration(recording);
+  serRecording.Duration = -1;// don't start HDD / disabled until implemented in vdr --- getRecordingDuration(recording);
   serRecording.EventTitle = eventTitle;
   serRecording.EventShortText = eventShortText;
   serRecording.EventDescription = eventDescription;
   serRecording.EventStartTime = eventStartTime;
   serRecording.EventDuration = eventDuration;
+
+  //esyslog("restfulapi: name: %s, filename:%s, event_title:%s, event_short_text:%s, event_description:%s", recording->Name(), recording->FileName()
+
   serRecordings.push_back(serRecording);
 }
 
