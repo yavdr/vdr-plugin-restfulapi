@@ -27,6 +27,38 @@ void writeHtmlHeader(std::ostream* out)
   write(out, "</head><body>");
 }
 
+std::string encodeToXml( const std::string &sSrc )
+{
+    //source: http://www.mdawson.net/misc/xmlescape.php
+    std::ostringstream sRet;
+
+    for( std::string::const_iterator iter = sSrc.begin(); iter!=sSrc.end(); iter++ )
+    {
+         unsigned char c = (unsigned char)*iter;
+
+         switch( c )
+         {
+             case '&': sRet << "&amp;"; break;
+             case '<': sRet << "&lt;"; break;
+             case '>': sRet << "&gt;"; break;
+             case '"': sRet << "&quot;"; break;
+             case '\'': sRet << "&apos;"; break;
+
+             default:
+              /*if ( c<32 || c>127 )
+              {
+                   sRet << "&#" << (unsigned int)c << ";";
+              }
+              else
+              {*/
+                   sRet << c;
+              //}
+         }
+    }
+
+    return sRet.str();
+}
+
 std::string getRestParams(std::string service, std::string url)
 {
   return url.substr(service.length(), url.length() - 1);

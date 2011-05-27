@@ -70,3 +70,13 @@ class JsonEventList : EventList
     virtual void addEvent(cEvent* event);
     virtual void finish();
 };
+
+class XmlEventList : EventList
+{
+  public:
+    XmlEventList(std::ostream* _out) : EventList(_out) { };
+    ~XmlEventList() { };
+    virtual void init();
+    virtual void addEvent(cEvent* event);
+    virtual void finish();
+};

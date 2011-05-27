@@ -83,3 +83,13 @@ class JsonRecordingList : RecordingList
     virtual void addRecording(cRecording* recording);
     virtual void finish();
 };
+
+class XmlRecordingList : RecordingList
+{
+  public:
+    XmlRecordingList(std::ostream* _out) : RecordingList(_out) { };
+    ~XmlRecordingList() { };
+    virtual void init();
+    virtual void addRecording(cRecording* recording);
+    virtual void finish();
+};

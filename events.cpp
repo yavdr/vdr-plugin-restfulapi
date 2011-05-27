@@ -16,6 +16,9 @@ void EventsResponder::reply(std::ostream& out, cxxtools::http::Request& request,
   } else if ( isFormat(params, ".html") ) {
      reply.addHeader("Content-Type", "text/html; charset=utf-8");
      eventList = (EventList*)new HtmlEventList(&out);
+  } else if ( isFormat(params, ".xml") ) {
+     reply.addHeader("Content-Type", "text/xml; charset=utf-8");
+     eventList = (EventList*)new XmlEventList(&out);
   } else {
      reply.httpReturn(403, "Resources are not available for the selected format. (Use: .json or .html)");
      return;
@@ -128,4 +131,35 @@ void JsonEventList::finish()
   cxxtools::JsonSerializer serializer(*out);
   serializer.serialize(serEvents, "events");
   serializer.finish();
+}
+
+void XmlEventList::init()
+{
+  write(out, "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n");
+  write(out, "<events xmlns=\"http://www.domain.org/restfulapi/2011/events-xml\">\n");
+}
+
+void XmlEventList::addEvent(cEvent* event)
+{
+  std::string eventTitle;
+  std::string eventShortText;
+  std::string eventDescription;
+
+  if ( event->Title() == NULL ) { eventTitle = ""; } else { eventTitle = event->Title(); }
+  if ( event->ShortText() == NULL ) { eventShortText = ""; } else { eventShortText = event->ShortText(); }
+  if ( event->Description() == NULL ) { eventDescription = ""; } else { eventDescription = event->Description(); }
+
+  write(out, " <event>\n");
+  write(out, (const char*)cString::sprintf("  <param name=\"id\">%i</param>\n", event->EventID()));
+  write(out, (const char*)cString::sprintf("  <param name=\"title\">%s</param>\n", encodeToXml(eventTitle).c_str()));
+  write(out, (const char*)cString::sprintf("  <param name=\"short_text\">%s</param>\n", encodeToXml(eventShortText).c_str()));
+  write(out, (const char*)cString::sprintf("  <param name=\"description\">%s</param>\n", encodeToXml(eventDescription).c_str()));
+  write(out, (const char*)cString::sprintf("  <param name=\"start_time\">%i</param>\n", (int)event->StartTime()));
+  write(out, (const char*)cString::sprintf("  <param name=\"duration\">%i</param>\n", event->Duration()));
+  write(out, " </event>\n");
+}
+
+void XmlEventList::finish()
+{
+  write(out, "</events>");
 }

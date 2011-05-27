@@ -130,6 +130,9 @@ void TimersResponder::showTimers(std::ostream& out, cxxtools::http::Request& req
   } else if ( isFormat(params, ".html") ) {
      reply.addHeader("Content-Type", "text/html; charset=utf-8");
      timerList = (TimerList*)new HtmlTimerList(&out);
+  } else if ( isFormat(params, ".xml") ) {
+     reply.addHeader("Content-Type", "text/xml; charset=utf-8");
+     timerList = (TimerList*)new XmlTimerList(&out);
   } else {
      reply.httpReturn(404, "Resources are not available for the selected format. (Use: .json or .html)");
      return;
@@ -223,7 +226,7 @@ void JsonTimerList::addTimer(cTimer* timer)
     serTimer.IsPending = timer->Pending();
     serTimer.FileName = UTF8Decode(timer->File());
     serTimer.ChannelName = UTF8Decode(timer->Channel()->Name());
-    serTimer.IsActive = timer->Flags() % 2 == 1 ? true : false;
+    serTimer.IsActive = timer->Flags() & 0x01 == 0x01 ? true : false;
     serTimers.push_back(serTimer);
 }
 
@@ -232,4 +235,34 @@ void JsonTimerList::finish()
   cxxtools::JsonSerializer serializer(*out);
   serializer.serialize(serTimers, "timers");
   serializer.finish();
+}
+
+void XmlTimerList::init()
+{
+  write(out, "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n");
+  write(out, "<timers xmlns=\"http://www.domain.org/restfulapi/2011/timers-xml\">\n");
+}
+
+void XmlTimerList::addTimer(cTimer* timer)
+{
+  write(out, " <timer>\n");
+  write(out, (const char*)cString::sprintf("  <param name=\"start\">%i</param>\n", timer->Start()) );
+  write(out, (const char*)cString::sprintf("  <param name=\"stop\">%i</param>\n", timer->Stop()) );
+  write(out, (const char*)cString::sprintf("  <param name=\"priority\">%i</param>\n", timer->Priority()) );
+  write(out, (const char*)cString::sprintf("  <param name=\"lifetime\">%i</param>\n", timer->Lifetime()) );
+  write(out, (const char*)cString::sprintf("  <param name=\"event_id\">%i</param>\n", timer->Event() != NULL ? timer->Event()->EventID() : -1) );
+  write(out, (const char*)cString::sprintf("  <param name=\"weekdays\">%i</param>\n", timer->WeekDays()) );
+  write(out, (const char*)cString::sprintf("  <param name=\"day\">%i</param>\n", (int)timer->Day()));
+  write(out, (const char*)cString::sprintf("  <param name=\"channel\">%i</param>\n", timer->Channel()->Number()) );
+  write(out, (const char*)cString::sprintf("  <param name=\"is_recording\">%s</param>\n", timer->Recording() ? "true" : "false" ) );
+  write(out, (const char*)cString::sprintf("  <param name=\"is_pending\">%s</param>\n", timer->Pending() ? "true" : "false" ));
+  write(out, (const char*)cString::sprintf("  <param name=\"filename\">%s</param>\n", encodeToXml(timer->File()).c_str()) );
+  write(out, (const char*)cString::sprintf("  <param name=\"channelname\">%s</param>\n", encodeToXml(timer->Channel()->Name()).c_str()));
+  write(out, (const char*)cString::sprintf("  <param name=\"is_active\">%s</param>\n", timer->Flags() & 0x01 == 0x01 ? "true" : "false" ));
+  write(out, " </timer>\n");
+}
+
+void XmlTimerList::finish()
+{
+  write(out, "</timers>");
 }

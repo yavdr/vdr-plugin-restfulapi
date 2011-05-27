@@ -100,7 +100,7 @@ void JsonChannelList::finish()
 void XmlChannelList::init()
 {
   write(out, "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n");
-  write(out, "<channels xmlns=\"http://www.domain.org/restfulapi/2011/recordings-xml\">\n");
+  write(out, "<channels xmlns=\"http://www.domain.org/restfulapi/2011/channels-xml\">\n");
 }
 
 void XmlChannelList::addChannel(cChannel* channel)
@@ -108,14 +108,14 @@ void XmlChannelList::addChannel(cChannel* channel)
   std::string suffix = (std::string) ".ts";
 
   write(out, " <channel>\n");
-  write(out, (const char*)cString::sprintf("  <param name=\"name\" value=\"%s\" />\n", channel->Name()));
-  write(out, (const char*)cString::sprintf("  <param name=\"number\" value=\"%i\" />\n", channel->Number()));
-  write(out, (const char*)cString::sprintf("  <param name=\"transponder\" value=\"%i\" />\n", channel->Transponder()));
-  write(out, (const char*)cString::sprintf("  <param name=\"stream\" value=\"%s\" />\n", ((std::string)channel->GetChannelID().ToString() + (std::string)suffix).c_str()));
-  write(out, (const char*)cString::sprintf("  <param name=\"is_atsc\" value=\"%s\" />\n", channel->IsAtsc() ? "true" : "false"));
-  write(out, (const char*)cString::sprintf("  <param name=\"is_cable\" value=\"%s\" />\n", channel->IsCable() ? "true" : "false"));
-  write(out, (const char*)cString::sprintf("  <param name=\"is_sat\" value=\"%s\" />\n", channel->IsSat() ? "true" : "false"));
-  write(out, (const char*)cString::sprintf("  <param name=\"is_terr\" value=\"%s\" />\n", channel->IsTerr() ? "true" : "false"));
+  write(out, (const char*)cString::sprintf("  <param name=\"name\">%s</param>\n", encodeToXml(channel->Name()).c_str()));
+  write(out, (const char*)cString::sprintf("  <param name=\"number\">%i</param>\n", channel->Number()));
+  write(out, (const char*)cString::sprintf("  <param name=\"transponder\">%i</param>\n", channel->Transponder()));
+  write(out, (const char*)cString::sprintf("  <param name=\"stream\">%s</param>\n", encodeToXml( ((std::string)channel->GetChannelID().ToString() + (std::string)suffix).c_str()).c_str()));
+  write(out, (const char*)cString::sprintf("  <param name=\"is_atsc\">%s</param>\n", channel->IsAtsc() ? "true" : "false"));
+  write(out, (const char*)cString::sprintf("  <param name=\"is_cable\">%s</param>\n", channel->IsCable() ? "true" : "false"));
+  write(out, (const char*)cString::sprintf("  <param name=\"is_sat\">%s</param>\n", channel->IsSat() ? "true" : "false"));
+  write(out, (const char*)cString::sprintf("  <param name=\"is_terr\">%s</param>\n", channel->IsTerr() ? "true" : "false"));
   write(out, " </channel>\n");
 }
 

@@ -83,3 +83,13 @@ class JsonTimerList : TimerList
     virtual void addTimer(cTimer* timer);
     virtual void finish();
 };
+
+class XmlTimerList : TimerList
+{
+  public:
+    XmlTimerList(std::ostream* _out) : TimerList(_out) { };
+    ~XmlTimerList() { };
+    virtual void init();
+    virtual void addTimer(cTimer* timer);
+    virtual void finish();
+};

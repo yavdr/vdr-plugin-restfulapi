@@ -3,7 +3,7 @@ Details of the current API:
 
 <ip> -> the ip address of your vdr
 <port> -> currently 8002
-<format> -> json or html
+<format> -> json, html or xml
 
 TIMERS:
 GET http://<ip>:<port>/timers/.<format>
