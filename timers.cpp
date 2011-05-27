@@ -163,6 +163,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerTimer& t)
   si.addMember("channelname") <<= t.ChannelName;
   si.addMember("is_pending") <<= t.IsPending;
   si.addMember("is_recording") <<= t.IsRecording;
+  si.addMember("is_active") <<= t.IsActive;
 }
 
 void operator>>= (const cxxtools::SerializationInfo& si, SerTimer& t)
@@ -179,6 +180,7 @@ void operator>>= (const cxxtools::SerializationInfo& si, SerTimer& t)
   si.getMember("channel_name") >>= t.ChannelName;
   si.getMember("is_pending") >>= t.IsPending;
   si.getMember("is_recording") >>= t.IsRecording;
+  si.getMember("is_active") >>= t.IsActive;
 }
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerTimers& t)
@@ -221,6 +223,7 @@ void JsonTimerList::addTimer(cTimer* timer)
     serTimer.IsPending = timer->Pending();
     serTimer.FileName = UTF8Decode(timer->File());
     serTimer.ChannelName = UTF8Decode(timer->Channel()->Name());
+    serTimer.IsActive = timer->Flags() % 2 == 1 ? true : false;
     serTimers.push_back(serTimer);
 }
 
