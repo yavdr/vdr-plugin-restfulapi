@@ -40,10 +40,10 @@ void cServerThread::Action(void)
   RecordingsService recordingsService;
   TimersService timersService;
 
-  server->addService("/channels", channelsService);
-  server->addService("/events", eventsService);
-  server->addService("/recordings", recordingsService);
-  server->addService("/timers", timersService);
+  server->addService(/*(const cxxtools::Regex*)new cxxtools::Regex(*/"/channels"/**")*/, channelsService);
+  server->addService(/*(const cxxtools::Regex*)new cxxtools::Regex(*/"/events"/**")*/, eventsService);
+  server->addService(/*(const cxxtools::Regex*)new cxxtools::Regex(*/"/recordings"/**")*/, recordingsService);
+  server->addService(/*(const cxxtools::Regex*)new cxxtools::Regex(*/"/timers"/**")*/, timersService);
 
   loop.run();
 

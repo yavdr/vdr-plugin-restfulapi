@@ -2,7 +2,7 @@ Source: vdr-plugin-restfulapi
 Section: video
 Priority: extra
 Maintainer: Michael Eiler <michael@unknown.de>
-Build-Depends: debhelper (>= 7.0.50~), vdr-dev, gettext, libcxxtools-dev
+Build-Depends: debhelper (>= 7.0.50~), vdr-dev (>= 1.7.18), gettext, libcxxtools-dev
 Standards-Version: 3.9.1
 Homepage: https://github.com/yavdr/vdr-plugin-restfulapi
 

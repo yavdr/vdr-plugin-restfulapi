@@ -1,5 +1,24 @@
 #include "timers.h"
 
+/*std::size_t TimersResponder::readBody(std::istream& in)
+{
+    std::streambuf* sb = in.rdbuf();
+    
+    std::string res = "";
+
+    std::size_t ret = 0;
+    char c;
+    while (sb->in_avail() > 0)
+    {
+        c = sb->sbumpc();
+        res += (std::string)(const char*)c;
+        ++ret;
+    }
+    esyslog("restfulapi: /%i/", (int)ret);
+    esyslog("restfulapi: /%s/", res.c_str());
+    return ret;
+}*/
+
 void TimersResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   std::string params = getRestParams((std::string)"/timers", request.url());

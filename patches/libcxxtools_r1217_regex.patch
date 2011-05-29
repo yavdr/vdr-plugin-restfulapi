@@ -1,0 +1,326 @@
+--- src/http/server.cpp.orig	2011-04-30 08:28:57.000000000 +0200
++++ src/http/server.cpp		2011-05-29 22:47:52.268500005 +0200
+@@ -65,9 +65,9 @@
+     _impl->listen(ip, port, backlog);
+ }
+ 
+-void Server::addService(const std::string& url, Service& service)
++void Server::addService(const cxxtools::Regex* reg, Service& service)
+ {
+-    _impl->addService(url, service);
++    _impl->addService(reg, service);
+ }
+ 
+ void Server::removeService(Service& service)
+--- src/http/serverimpl.cpp.orig	2011-04-30 08:28:57.000000000 +0200
++++ src/http/serverimpl.cpp	2011-05-29 23:12:27.718500009 +0200
+@@ -311,12 +311,10 @@
+     delete socket;
+ }
+ 
+-void ServerImpl::addService(const std::string& url, Service& service)
++void ServerImpl::addService(const cxxtools::Regex* reg, Service& service)
+ {
+-    log_debug("add service for url <" << url << '>');
+-
+     WriteLock serviceLock(_serviceMutex);
+-    _services.insert(ServicesType::value_type(url, &service));
++    _services.insert(ServicesType::value_type((cxxtools::Regex*)reg, &service));
+ }
+ 
+ void ServerImpl::removeService(Service& service)
+@@ -344,20 +342,21 @@
+ 
+     ReadLock serviceLock(_serviceMutex);
+ 
+-    for (ServicesType::const_iterator it = _services.lower_bound(request.url());
+-        it != _services.end() && it->first == request.url(); ++it)
++    for (ServicesType::const_iterator it = _services.begin(); it != _services.end(); ++it)
+     {
+-        if (!it->second->checkAuth(request))
+-        {
+-            return _noAuthService.createResponder(request, it->second->realm(), it->second->authContent());
+-        }
+-
+-        Responder* resp = it->second->doCreateResponder(request);
+-        if (resp)
+-        {
+-            log_debug("got responder");
+-            return resp;
+-        }
++        if ( it->first->match(request.url()) ) {
++           if (!it->second->checkAuth(request))
++           {
++              return _noAuthService.createResponder(request, it->second->realm(), it->second->authContent());
++           }
++
++           Responder* resp = it->second->doCreateResponder(request);
++           if (resp)
++           {
++              log_debug("got responder");
++              return resp;
++           }
++       }
+     }
+ 
+     log_debug("use default responder");
+--- src/http/serverimpl.h.orig	2011-04-30 08:28:57.000000000 +0200
++++ src/http/serverimpl.h	2011-05-29 22:47:37.598500005 +0200
+@@ -37,6 +37,7 @@
+ #include <cxxtools/http/server.h>
+ #include <cxxtools/http/service.h>
+ #include <cxxtools/http/responder.h>
++#include <cxxtools/regex.h>
+ #include "socket.h"
+ #include "notfoundservice.h"
+ #include "notauthenticatedservice.h"
+@@ -130,7 +131,7 @@
+         void listen(const std::string& ip, unsigned short int port, int backlog);
+         void noWaitingThreads();
+ 
+-        void addService(const std::string& url, Service& service);
++        void addService(const cxxtools::Regex* reg, Service& service);
+         void removeService(Service& service);
+ 
+         Responder* getResponder(const Request& request);
+@@ -213,7 +214,7 @@
+         void threadTerminated(Worker* worker);
+ 
+         ////////////////////////////////////////////////////
+-        typedef std::multimap<std::string, Service*> ServicesType;
++        typedef std::multimap<cxxtools::Regex*, Service*> ServicesType;
+         ReadWriteMutex _serviceMutex;
+         ServicesType _services;
+         NotFoundService _defaultService;
+--- demo/httpserver.cpp.orig	2011-04-30 08:28:56.000000000 +0200
++++ demo/httpserver.cpp		2011-05-29 23:25:54.088500008 +0200
+@@ -33,6 +33,7 @@
+ #include <cxxtools/eventloop.h>
+ #include <cxxtools/log.h>
+ #include <cxxtools/arg.h>
++#include <cxxtools/regex.h>
+ 
+ log_define("cxxtools.demo.httpserver")
+ 
+@@ -124,7 +125,7 @@
+     if (auth)
+       service.addAuthenticator(&authenticator);
+ 
+-    server.addService("/hello", service);
++    server.addService((const cxxtools::Regex*)new cxxtools::Regex("/hello"), service);
+     loop.run();
+   }
+   catch (const std::exception& e)
+--- demo/json.cpp.orig	2011-04-30 08:28:56.000000000 +0200
++++ demo/json.cpp	2011-05-29 23:40:10.958500005 +0200
+@@ -38,6 +38,7 @@
+ #include <cxxtools/http/responder.h>
+ #include <cxxtools/http/reply.h>
+ #include <cxxtools/eventloop.h>
++#include <cxxtools/regex.h>
+ 
+ struct ProcStat
+ {
+@@ -232,8 +233,8 @@
+     cxxtools::http::Server server(loop, listenIp, listenPort);
+     MainService mainService;
+     StatService statService;
+-    server.addService("/", mainService);
+-    server.addService("/stat", statService);
++    server.addService((const cxxtools::Regex*)new cxxtools::Regex("/"), mainService);
++    server.addService((const cxxtools::Regex*)new cxxtools::Regex("/stat"), statService);
+ 
+     cxxtools::AttachedThread thread(cxxtools::callable(statThread));
+     thread.start();
+--- demo/rpcechoserver.cpp.orig	2011-04-30 08:28:56.000000000 +0200
++++ demo/rpcechoserver.cpp	2011-05-29 23:39:02.168500008 +0200
+@@ -32,6 +32,7 @@
+ #include <cxxtools/xmlrpc/service.h>
+ #include <cxxtools/http/server.h>
+ #include <cxxtools/eventloop.h>
++#include <cxxtools/regex.h>
+ 
+ ////////////////////////////////////////////////////////////////////////
+ // This defines a xmlrpc service. A xmlrpc service defines functions, which
+@@ -77,7 +78,7 @@
+     // we create an instance of the service class
+     EchoServerService service;
+     // ... and register it under a url
+-    server.addService("/myservice", service);
++    server.addService((const cxxtools::Regex*)new cxxtools::Regex("/myservice"), service);
+ 
+     // now start the server and run the event loop
+     loop.run();
+--- test/xmlrpc-test.cpp.orig	2011-04-30 08:28:50.000000000 +0200
++++ test/xmlrpc-test.cpp	2011-05-29 23:47:14.848500008 +0200
+@@ -34,6 +34,7 @@
+ #include "cxxtools/http/server.h"
+ #include "cxxtools/eventloop.h"
+ #include "cxxtools/log.h"
++#include "cxxtools/regex.h"
+ 
+ log_define("cxxtools.test.xmlrpc")
+ 
+@@ -126,7 +127,7 @@
+         {
+             cxxtools::xmlrpc::Service service;
+             service.registerMethod("multiply", *this, &XmlRpcTest::throwFault);
+-            _server->addService("/calc", service);
++            _server->addService((const cxxtools::Regex*)new cxxtools::Regex("/calc"), service);
+ 
+             cxxtools::xmlrpc::HttpClient client(*_loop, "", 8001, "/calc");
+             cxxtools::xmlrpc::RemoteProcedure<bool> multiply(client, "multiply");
+@@ -165,7 +166,7 @@
+         {
+             cxxtools::xmlrpc::Service service;
+             service.registerMethod("multiply", *this, &XmlRpcTest::throwException);
+-            _server->addService("/calc", service);
++            _server->addService((const cxxtools::Regex*)new cxxtools::Regex("/calc"), service);
+ 
+             cxxtools::xmlrpc::HttpClient client(*_loop, "", 8001, "/calc");
+             cxxtools::xmlrpc::RemoteProcedure<bool> multiply(client, "multiply");
+@@ -204,7 +205,7 @@
+         {
+             cxxtools::xmlrpc::Service service;
+             service.registerMethod("multiply", *this, &XmlRpcTest::multiplyNothing);
+-            _server->addService("/calc", service);
++            _server->addService((const cxxtools::Regex*)new cxxtools::Regex("/calc"), service);
+ 
+             cxxtools::xmlrpc::HttpClient client(*_loop, "", 8001, "/calc");
+             cxxtools::xmlrpc::RemoteProcedure<bool> multiply(client, "multiply");
+@@ -234,7 +235,7 @@
+         {
+             cxxtools::xmlrpc::Service service;
+             service.registerMethod("multiply", *this, &XmlRpcTest::multiplyNothing);
+-            _server->addService("/calc", service);
++            _server->addService((const cxxtools::Regex*)new cxxtools::Regex("/calc"), service);
+ 
+             cxxtools::xmlrpc::HttpClient client(*_loop, "", 8001, "/calc");
+             cxxtools::xmlrpc::RemoteProcedure<bool> multiply(client, "multiply");
+@@ -293,7 +294,7 @@
+         {
+             cxxtools::xmlrpc::Service service;
+             service.registerMethod("multiply", *this, &XmlRpcTest::multiplyBoolean);
+-            _server->addService("/calc", service);
++            _server->addService((const cxxtools::Regex*)new cxxtools::Regex("/calc"), service);
+ 
+             cxxtools::xmlrpc::HttpClient client(*_loop, "", 8001, "/calc");
+             cxxtools::xmlrpc::RemoteProcedure<bool, bool, bool> multiply(client, "multiply");
+@@ -325,7 +326,7 @@
+         {
+             cxxtools::xmlrpc::Service service;
+             service.registerMethod("multiply", *this, &XmlRpcTest::multiplyInt);
+-            _server->addService("/calc", service);
++            _server->addService((const cxxtools::Regex*)new cxxtools::Regex("/calc"), service);
+ 
+             cxxtools::xmlrpc::HttpClient client(*_loop, "", 8001, "/calc");
+             cxxtools::xmlrpc::RemoteProcedure<int, int, int> multiply(client, "multiply");
+@@ -355,7 +356,7 @@
+         {
+             cxxtools::xmlrpc::Service service;
+             service.registerMethod("multiply", *this, &XmlRpcTest::multiplyDouble);
+-            _server->addService("/calc", service);
++            _server->addService((const cxxtools::Regex*)new cxxtools::Regex("/calc"), service);
+ 
+             cxxtools::xmlrpc::HttpClient client(*_loop, "", 8001, "/calc");
+             cxxtools::xmlrpc::RemoteProcedure<double, double, double> multiply(client, "multiply");
+@@ -385,7 +386,7 @@
+         {
+             cxxtools::xmlrpc::Service service;
+             service.registerMethod("echoString", *this, &XmlRpcTest::echoString);
+-            _server->addService("/foo", service);
++            _server->addService((const cxxtools::Regex*)new cxxtools::Regex("/foo"), service);
+ 
+             cxxtools::xmlrpc::HttpClient client(*_loop, "", 8001, "/foo");
+             cxxtools::xmlrpc::RemoteProcedure<std::string, std::string> echo(client, "echoString");
+@@ -415,7 +416,7 @@
+         {
+             cxxtools::xmlrpc::Service service;
+             service.registerMethod("multiply", *this, &XmlRpcTest::multiplyEmpty);
+-            _server->addService("/calc", service);
++            _server->addService((const cxxtools::Regex*)new cxxtools::Regex("/calc"), service);
+ 
+             cxxtools::xmlrpc::HttpClient client(*_loop, "", 8001, "/calc");
+             cxxtools::xmlrpc::RemoteProcedure<std::string, std::string, std::string> multiply(client, "multiply");
+@@ -446,7 +447,7 @@
+         {
+             cxxtools::xmlrpc::Service service;
+             service.registerMethod("multiply", *this, &XmlRpcTest::multiplyVector);
+-            _server->addService("/calc", service);
++            _server->addService((const cxxtools::Regex*)new cxxtools::Regex("/calc"), service);
+ 
+             cxxtools::xmlrpc::HttpClient client(*_loop, "", 8001, "/calc");
+             cxxtools::xmlrpc::RemoteProcedure< std::vector<int>, std::vector<int>, std::vector<int> > multiply(client, "multiply");
+@@ -489,7 +490,7 @@
+         {
+             cxxtools::xmlrpc::Service service;
+             service.registerMethod("multiply", *this, &XmlRpcTest::multiplyVector);
+-            _server->addService("/calc", service);
++            _server->addService((const cxxtools::Regex*)new cxxtools::Regex("/calc"), service);
+ 
+             cxxtools::xmlrpc::HttpClient client(*_loop, "", 8001, "/calc");
+             cxxtools::xmlrpc::RemoteProcedure< std::vector<int>, std::vector<int>, std::vector<int> > multiply(client, "multiply");
+@@ -515,7 +516,7 @@
+         {
+             cxxtools::xmlrpc::Service service;
+             service.registerMethod("multiply", *this, &XmlRpcTest::multiplyColor);
+-            _server->addService("/calc", service);
++            _server->addService((const cxxtools::Regex*)new cxxtools::Regex("/calc"), service);
+ 
+             cxxtools::xmlrpc::HttpClient client(*_loop, "", 8001, "/calc");
+             cxxtools::xmlrpc::RemoteProcedure< Color, Color, Color > multiply(client, "multiply");
+@@ -561,7 +562,7 @@
+         {
+             cxxtools::xmlrpc::Service service;
+             service.registerMethod("multiplyset", *this, &XmlRpcTest::multiplySet);
+-            _server->addService("/test", service);
++            _server->addService((const cxxtools::Regex*)new cxxtools::Regex("/test"), service);
+ 
+             cxxtools::xmlrpc::HttpClient client(*_loop, "", 8001, "/test");
+             cxxtools::xmlrpc::RemoteProcedure<IntSet, IntSet, int> multiply(client, "multiplyset");
+@@ -604,7 +605,7 @@
+         {
+             cxxtools::xmlrpc::Service service;
+             service.registerMethod("multiplyset", *this, &XmlRpcTest::multiplyMultiset);
+-            _server->addService("/test", service);
++            _server->addService((const cxxtools::Regex*)new cxxtools::Regex("/test"), service);
+ 
+             cxxtools::xmlrpc::HttpClient client(*_loop, "", 8001, "/test");
+             cxxtools::xmlrpc::RemoteProcedure<IntMultiset, IntMultiset, int> multiply(client, "multiplyset");
+@@ -648,7 +649,7 @@
+             cxxtools::xmlrpc::Service service;
+             service.registerMethod("multiplymap", *this, &XmlRpcTest::multiplyMap);
+ 
+-            _server->addService("/test", service);
++            _server->addService((const cxxtools::Regex*)new cxxtools::Regex("/test"), service);
+ 
+             cxxtools::xmlrpc::HttpClient client(*_loop, "", 8001, "/test");
+             cxxtools::xmlrpc::RemoteProcedure<IntMap, IntMap, int> multiply(client, "multiplymap");
+@@ -697,7 +698,7 @@
+             cxxtools::xmlrpc::Service service;
+             service.registerMethod("multiplymultimap", *this, &XmlRpcTest::multiplyMultimap);
+ 
+-            _server->addService("/test", service);
++            _server->addService((const cxxtools::Regex*)new cxxtools::Regex("/test"), service);
+ 
+             cxxtools::xmlrpc::HttpClient client(*_loop, "", 8001, "/test");
+             cxxtools::xmlrpc::RemoteProcedure<IntMultimap, IntMultimap, int> multiply(client, "multiplymultimap");
+--- include/cxxtools/http/server.h.orig	2011-04-30 08:28:52.000000000 +0200
++++ include/cxxtools/http/server.h	2011-05-29 22:52:56.648500010 +0200
+@@ -32,6 +32,7 @@
+ #include <cxxtools/http/api.h>
+ #include <cxxtools/signal.h>
+ #include <cxxtools/noncopyable.h>
++#include <cxxtools/regex.h>
+ #include <string>
+ #include <cstddef>
+ 
+@@ -56,7 +57,7 @@
+ 
+         void listen(const std::string& ip, unsigned short int port, int backlog = 5);
+ 
+-        void addService(const std::string& url, Service& service);
++        void addService(const cxxtools::Regex* reg, Service& service);
+         void removeService(Service& service);
+ 
+         std::size_t readTimeout() const;

@@ -16,11 +16,9 @@
 #include <cxxtools/arg.h>
 #include <cxxtools/jsonserializer.h>
 
+#include <cxxtools/regex.h>
+
 #include <unistd.h>
-#include <vdr/tools.h>
-#include <vdr/thread.h>
-#include <vdr/recording.h>
-#include <vdr/timers.h>
 
 #include "channels.h"
 #include "events.h"
