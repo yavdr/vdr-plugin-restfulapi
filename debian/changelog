@@ -1,9 +1,3 @@
-vdr-plugin-restfulapi (0.0.1-git03aeae86~0yavdr0) natty; urgency=medium
-
-  * git snapshot
-
- -- GIT build-script <team@yavdr.org>  Sun, 29 May 2011 13:50:25 +0200
-
 vdr-plugin-restfulapi (0.0.1.git20110522.2357-3yavdr1~natty) natty; urgency=medium
 
   * Initial Release
