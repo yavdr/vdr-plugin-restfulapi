@@ -1,0 +1,5 @@
+This is a simple tool to test the web service which is provided by the plugin.
+Syntax to run the program:
+   java -jar httprequest.jar <method> <service> <http-body>
+An easy example:
+   java -jar httprequest.jar POST "/timers" file=movietitle&start=2015&stop=2230&day=1234567890 

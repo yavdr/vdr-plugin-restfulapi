@@ -16,9 +16,10 @@ See the file COPYING for more information.
 
 Description:
 
-IMPORTANT NOTE: This plugin currently needs libcxxtools >= r1217 including the following patch: patches/libcxxtools_r1217_restful.patch 
+IMPORTANT NOTE: 
+This plugin currently needs libcxxtools >= r1217 including the following patch: patches/libcxxtools_r1217_restful.patch 
 
-@TESTERS: to simply test the restfulapi you can use the following tool (works with sun-jre and open-jre):
-WizTools.org RESTClient 2.3.3
-http://code.google.com/p/rest-client/
-It's licensed under Apache Licence 2.0.
+TOOLS TO TEST THE WEB SERVICE:
+WizeTools.org RESTClient http://code.google.com/p/rest-client/
+or
+test/httprequest.jar

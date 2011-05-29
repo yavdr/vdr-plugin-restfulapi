@@ -17,14 +17,15 @@ void TimersResponder::reply(std::ostream& out, cxxtools::http::Request& request,
 
 void TimersResponder::createTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  esyslog("restfulapi: /%s/", (const char*)request.bodyStr().c_str());
-/*
-  cxxtools::QueryParams q;
+  esyslog("restfulapi: /%s/", request.bodyStr().c_str());
+  /*
   if ( request.method() != "POST" &&  request.method() != "PUT" ) {
-    reply.httpReturn(501, "ONly POST and PUT methods are supported.");
-  } else {
-    q.parse_url(request.bodyStr());
+    reply.httpReturn(501, "Only POST and PUT methods are supported.");
+    return;
   }
+
+  cxxtools::QueryParams q;
+  q.parse_url(request.bodyStr());
 
   std::string timer_id_str = q.param("timer_id");
   std::string event_id_str = q.param("event_id");
@@ -68,6 +69,7 @@ void TimersResponder::createTimer(std::ostream& out, cxxtools::http::Request& re
   if ( channel_str.length() != 0 ) { channel = atoi(channel_str.c_str()); }
   cChannel* channelInstance = getChannel(channel);
 
+  esyslog("restfulapi: %s, %i, %i, %i", file_str.c_str(), channel, start, stop);
 
   if ( timer_id != -1 ) {
      // update timer information
@@ -134,7 +136,7 @@ void TimersResponder::showTimers(std::ostream& out, cxxtools::http::Request& req
      reply.addHeader("Content-Type", "text/xml; charset=utf-8");
      timerList = (TimerList*)new XmlTimerList(&out);
   } else {
-     reply.httpReturn(404, "Resources are not available for the selected format. (Use: .json or .html)");
+     reply.httpReturn(404, "Resources are not available for the selected format. (Use: .json, .html or .xml)");
      return;
   }
 
