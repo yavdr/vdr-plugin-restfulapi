@@ -8,17 +8,17 @@ void TimersResponder::reply(std::ostream& out, cxxtools::http::Request& request,
      showTimers(out, request, reply);
   } else if ( request.method() == "DELETE" ) {
      deleteTimer(out, request, reply);
-  } else if ( request.method() == "POST" ) {
+  } else if ( request.method() == "POST" || request.method() == "PUT" ) {
      createTimer(out, request, reply);
   } else {
-    reply.httpReturn(501, "Only GET, DELETE and POST methods are supported.");
+    reply.httpReturn(501, "Only GET, DELETE, POST and PUT methods are supported.");
   }
 }
 
 void TimersResponder::createTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  esyslog("restulfapi: /%s/", request.bodyStr().c_str());
-
+  esyslog("restfulapi: /%s/", (const char*)request.bodyStr().c_str());
+/*
   cxxtools::QueryParams q;
   if ( request.method() != "POST" &&  request.method() != "PUT" ) {
     reply.httpReturn(501, "ONly POST and PUT methods are supported.");
@@ -88,7 +88,7 @@ void TimersResponder::createTimer(std::ostream& out, cxxtools::http::Request& re
            esyslog("restfulapi: successfully added timer");
         }
      }
-  }
+  }*/
 }
 
 void TimersResponder::deleteTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)

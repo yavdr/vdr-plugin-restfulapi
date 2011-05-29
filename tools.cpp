@@ -9,7 +9,9 @@ std::string UTF8Encode(cxxtools::String str)
 cxxtools::String UTF8Decode(std::string str)
 {
   static cxxtools::Utf8Codec utf8;
-  return utf8.decode(str);
+  std::string temp;
+  utf8::replace_invalid(str.begin(), str.end(), back_inserter(temp));
+  return utf8.decode(temp);
 }
 
 void write(std::ostream* out, std::string str)
@@ -45,18 +47,14 @@ std::string encodeToXml( const std::string &sSrc )
              case '\'': sRet << "&apos;"; break;
 
              default:
-              /*if ( c<32 || c>127 )
-              {
-                   sRet << "&#" << (unsigned int)c << ";";
-              }
-              else
-              {*/
                    sRet << c;
-              //}
          }
     }
 
-    return sRet.str();
+    std::string res = sRet.str();
+    std::string converted;
+    utf8::replace_invalid(res.begin(), res.end(), back_inserter(converted));
+    return converted;
 }
 
 std::string getRestParams(std::string service, std::string url)

@@ -5,6 +5,7 @@
 #include <vector>
 #include <cxxtools/string.h>
 #include <cxxtools/utf8codec.h>
+#include "utf8_checked.h"
 
 // General Helper Methods
 cxxtools::String UTF8Decode(std::string str);
