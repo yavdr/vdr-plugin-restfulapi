@@ -1,0 +1,120 @@
+diff -Naur cxxtools-2.0+r1217/debian/changelog patchedcxxtools/debian/changelog
+--- cxxtools-2.0+r1217/debian/changelog	2011-05-31 22:03:57.000000000 +0200
++++ patchedcxxtools/debian/changelog	2011-05-30 22:46:42.303496007 +0200
+@@ -1,4 +1,4 @@
+-cxxtools (2.0+r1217-1yavdr0~natty) natty; urgency=medium
++cxxtools (2.0+r1217-2yavdr0~natty) natty; urgency=medium
+ 
+   * add restful patch
+ 
+diff -Naur cxxtools-2.0+r1217/debian/patches/series patchedcxxtools/debian/patches/series
+--- cxxtools-2.0+r1217/debian/patches/series	2011-05-31 22:03:57.000000000 +0200
++++ patchedcxxtools/debian/patches/series	2011-05-30 22:47:44.893496004 +0200
+@@ -1,3 +1,2 @@
+ hdstream_stdio
+ no_shared_flag
+-restful
+diff -Naur cxxtools-2.0+r1217/include/cxxtools/http/server.h patchedcxxtools/include/cxxtools/http/server.h
+--- cxxtools-2.0+r1217/include/cxxtools/http/server.h	2011-04-30 08:28:52.000000000 +0200
++++ patchedcxxtools/include/cxxtools/http/server.h	2011-05-30 22:45:31.000000000 +0200
+@@ -56,7 +56,7 @@
+ 
+         void listen(const std::string& ip, unsigned short int port, int backlog = 5);
+ 
+-        void addService(const std::string& url, Service& service);
++        void addService(const std::string& regex, Service& service);
+         void removeService(Service& service);
+ 
+         std::size_t readTimeout() const;
+diff -Naur cxxtools-2.0+r1217/src/http/server.cpp patchedcxxtools/src/http/server.cpp
+--- cxxtools-2.0+r1217/src/http/server.cpp	2011-04-30 08:28:57.000000000 +0200
++++ patchedcxxtools/src/http/server.cpp	2011-05-30 22:45:31.000000000 +0200
+@@ -65,9 +65,9 @@
+     _impl->listen(ip, port, backlog);
+ }
+ 
+-void Server::addService(const std::string& url, Service& service)
++void Server::addService(const std::string& regex, Service& service)
+ {
+-    _impl->addService(url, service);
++    _impl->addService(regex, service);
+ }
+ 
+ void Server::removeService(Service& service)
+diff -Naur cxxtools-2.0+r1217/src/http/serverimpl.cpp patchedcxxtools/src/http/serverimpl.cpp
+--- cxxtools-2.0+r1217/src/http/serverimpl.cpp	2011-04-30 08:28:57.000000000 +0200
++++ patchedcxxtools/src/http/serverimpl.cpp	2011-05-31 21:40:23.983175999 +0200
+@@ -311,12 +311,12 @@
+     delete socket;
+ }
+ 
+-void ServerImpl::addService(const std::string& url, Service& service)
++void ServerImpl::addService(const std::string& regex, Service& service)
+ {
+-    log_debug("add service for url <" << url << '>');
++    log_debug("add service for regex <" << regex << '>');
+ 
+     WriteLock serviceLock(_serviceMutex);
+-    _services.insert(ServicesType::value_type(url, &service));
++    _services.insert(ServicesType::value_type(regex, &service));
+ }
+ 
+ void ServerImpl::removeService(Service& service)
+@@ -344,19 +344,26 @@
+ 
+     ReadLock serviceLock(_serviceMutex);
+ 
+-    for (ServicesType::const_iterator it = _services.lower_bound(request.url());
+-        it != _services.end() && it->first == request.url(); ++it)
++    for (ServicesType::const_iterator it = _services.begin(); it != _services.end(); ++it)
+     {
+-        if (!it->second->checkAuth(request))
+-        {
+-            return _noAuthService.createResponder(request, it->second->realm(), it->second->authContent());
+-        }
++        cxxtools::Regex regex(it->first);
+ 
+-        Responder* resp = it->second->doCreateResponder(request);
+-        if (resp)
+-        {
+-            log_debug("got responder");
+-            return resp;
++        if (regex.match(request.url())) {
++           regex.free();
++
++           if (!it->second->checkAuth(request))
++           {
++              return _noAuthService.createResponder(request, it->second->realm(), it->second->authContent());
++           }
++
++           Responder* resp = it->second->doCreateResponder(request);
++           if (resp)
++           {
++              log_debug("got responder");
++              return resp;
++           }
++        } else {
++           regex.free();
+         }
+     }
+ 
+diff -Naur cxxtools-2.0+r1217/src/http/serverimpl.h patchedcxxtools/src/http/serverimpl.h
+--- cxxtools-2.0+r1217/src/http/serverimpl.h	2011-04-30 08:28:57.000000000 +0200
++++ patchedcxxtools/src/http/serverimpl.h	2011-05-30 22:51:59.373496007 +0200
+@@ -37,6 +37,7 @@
+ #include <cxxtools/http/server.h>
+ #include <cxxtools/http/service.h>
+ #include <cxxtools/http/responder.h>
++#include <cxxtools/regex.h>
+ #include "socket.h"
+ #include "notfoundservice.h"
+ #include "notauthenticatedservice.h"
+@@ -130,7 +131,7 @@
+         void listen(const std::string& ip, unsigned short int port, int backlog);
+         void noWaitingThreads();
+ 
+-        void addService(const std::string& url, Service& service);
++        void addService(const std::string& regex, Service& service);
+         void removeService(Service& service);
+ 
+         Responder* getResponder(const Request& request);

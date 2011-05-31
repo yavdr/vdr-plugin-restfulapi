@@ -16,8 +16,6 @@
 #include <cxxtools/arg.h>
 #include <cxxtools/jsonserializer.h>
 
-#include <cxxtools/regex.h>
-
 #include <unistd.h>
 
 #include "channels.h"
