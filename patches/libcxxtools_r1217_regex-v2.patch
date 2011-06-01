@@ -1,19 +1,3 @@
-diff -Naur cxxtools-2.0+r1217/debian/changelog patchedcxxtools/debian/changelog
---- cxxtools-2.0+r1217/debian/changelog	2011-05-31 22:03:57.000000000 +0200
-+++ patchedcxxtools/debian/changelog	2011-05-30 22:46:42.303496007 +0200
-@@ -1,4 +1,4 @@
--cxxtools (2.0+r1217-1yavdr0~natty) natty; urgency=medium
-+cxxtools (2.0+r1217-2yavdr0~natty) natty; urgency=medium
- 
-   * add restful patch
- 
-diff -Naur cxxtools-2.0+r1217/debian/patches/series patchedcxxtools/debian/patches/series
---- cxxtools-2.0+r1217/debian/patches/series	2011-05-31 22:03:57.000000000 +0200
-+++ patchedcxxtools/debian/patches/series	2011-05-30 22:47:44.893496004 +0200
-@@ -1,3 +1,2 @@
- hdstream_stdio
- no_shared_flag
--restful
 diff -Naur cxxtools-2.0+r1217/include/cxxtools/http/server.h patchedcxxtools/include/cxxtools/http/server.h
 --- cxxtools-2.0+r1217/include/cxxtools/http/server.h	2011-04-30 08:28:52.000000000 +0200
 +++ patchedcxxtools/include/cxxtools/http/server.h	2011-05-30 22:45:31.000000000 +0200
