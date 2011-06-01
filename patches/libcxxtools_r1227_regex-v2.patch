@@ -1,6 +1,5 @@
-diff -Naur cxxtools-2.0+r1217/include/cxxtools/http/server.h patchedcxxtools/include/cxxtools/http/server.h
---- cxxtools-2.0+r1217/include/cxxtools/http/server.h	2011-04-30 08:28:52.000000000 +0200
-+++ patchedcxxtools/include/cxxtools/http/server.h	2011-05-30 22:45:31.000000000 +0200
+--- include/cxxtools/http/server.h.orig	2011-04-30 08:28:52.000000000 +0200
++++ include/cxxtools/http/server.h	2011-05-30 22:45:31.000000000 +0200
 @@ -56,7 +56,7 @@
  
          void listen(const std::string& ip, unsigned short int port, int backlog = 5);
@@ -10,9 +9,8 @@ diff -Naur cxxtools-2.0+r1217/include/cxxtools/http/server.h patchedcxxtools/inc
          void removeService(Service& service);
  
          std::size_t readTimeout() const;
-diff -Naur cxxtools-2.0+r1217/src/http/server.cpp patchedcxxtools/src/http/server.cpp
---- cxxtools-2.0+r1217/src/http/server.cpp	2011-04-30 08:28:57.000000000 +0200
-+++ patchedcxxtools/src/http/server.cpp	2011-05-30 22:45:31.000000000 +0200
+--- src/http/server.cpp.orig	2011-04-30 08:28:57.000000000 +0200
++++ src/http/server.cpp		2011-05-30 22:45:31.000000000 +0200
 @@ -65,9 +65,9 @@
      _impl->listen(ip, port, backlog);
  }
@@ -25,9 +23,8 @@ diff -Naur cxxtools-2.0+r1217/src/http/server.cpp patchedcxxtools/src/http/serve
  }
  
  void Server::removeService(Service& service)
-diff -Naur cxxtools-2.0+r1217/src/http/serverimpl.cpp patchedcxxtools/src/http/serverimpl.cpp
---- cxxtools-2.0+r1217/src/http/serverimpl.cpp	2011-04-30 08:28:57.000000000 +0200
-+++ patchedcxxtools/src/http/serverimpl.cpp	2011-05-31 21:40:23.983175999 +0200
+--- src/http/serverimpl.cpp.orig	2011-04-30 08:28:57.000000000 +0200
++++ src/http/serverimpl.cpp		2011-05-31 21:40:23.983175999 +0200
 @@ -311,12 +311,12 @@
      delete socket;
  }
@@ -82,9 +79,8 @@ diff -Naur cxxtools-2.0+r1217/src/http/serverimpl.cpp patchedcxxtools/src/http/s
          }
      }
  
-diff -Naur cxxtools-2.0+r1217/src/http/serverimpl.h patchedcxxtools/src/http/serverimpl.h
---- cxxtools-2.0+r1217/src/http/serverimpl.h	2011-04-30 08:28:57.000000000 +0200
-+++ patchedcxxtools/src/http/serverimpl.h	2011-05-30 22:51:59.373496007 +0200
+--- src/http/serverimpl.h.orig	2011-04-30 08:28:57.000000000 +0200
++++ src/http/serverimpl.h	2011-05-30 22:51:59.373496007 +0200
 @@ -37,6 +37,7 @@
  #include <cxxtools/http/server.h>
  #include <cxxtools/http/service.h>
