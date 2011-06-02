@@ -114,6 +114,30 @@ bool isFormat(std::string qparams, std::string format)
   return result == -1 ? false : true;
 }
 
+int scanForFiles(const std::string regexpath, std::vector< std::string >& images)
+{
+  int found = 0;
+  glob_t globbuf;
+  globbuf.gl_offs = 0;
+  if ( regexpath.empty() == false && glob(regexpath.c_str(), GLOB_DOOFFS, NULL, &globbuf) == 0) {
+     for (size_t i = 0; i < globbuf.gl_pathc; i++) {
+         std::string imagefile(globbuf.gl_pathv[i]);
+         size_t delimPos = imagefile.find_last_of('/');
+         images.push_back(imagefile.substr(delimPos+1));
+         found++;
+     }
+     globfree(&globbuf);   
+  }
+  return found;
+}
+
+std::string itostr(int i)
+{
+  std::stringstream str;
+  str << i;
+  return str.str();  
+}
+
 cChannel* getChannel(int number)
 {
   if( number == -1 || number >= Channels.Count() ) { return NULL; }

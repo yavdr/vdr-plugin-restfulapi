@@ -27,6 +27,8 @@ void EventsResponder::reply(std::ostream& out, cxxtools::http::Request& request,
   int channel_number = getIntParam(params, 0);
   int timespan = getIntParam(params, 1);
   int from = getIntParam(params, 2);
+
+  bool scan_images = (int)request.qparams().find("images=true") != -1 ? true : false;
   
   cChannel* channel = getChannel(channel_number);
   if ( channel == NULL ) { 
@@ -60,7 +62,7 @@ void EventsResponder::reply(std::ostream& out, cxxtools::http::Request& request,
     int ts = event->StartTime();
     int te = ts + event->Duration();
     if ( ts <= to && te >= from ) {
-       eventList->addEvent(event);
+       eventList->addEvent(event, scan_images);
     }else{
       if(ts > to) break;
     }
@@ -78,6 +80,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)
   si.addMember("description") <<= e.Description;
   si.addMember("start_time") <<= e.StartTime;
   si.addMember("duration") <<= e.Duration;
+  si.addMember("image") <<= e.Image;
 }
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerEvents& e)
@@ -92,7 +95,7 @@ void HtmlEventList::init()
   write(out, "<ul>");
 }
 
-void HtmlEventList::addEvent(cEvent* event)
+void HtmlEventList::addEvent(cEvent* event, bool scan_images = false)
 {
   write(out, "<li>");
   write(out, (char*)event->Title()); //TODO: add more infos
@@ -105,7 +108,7 @@ void HtmlEventList::finish()
   write(out, "</body></html>");
 }
 
-void JsonEventList::addEvent(cEvent* event)
+void JsonEventList::addEvent(cEvent* event, bool scan_images = false)
 {
   cxxtools::String eventTitle;
   cxxtools::String eventShortText;
@@ -123,6 +126,17 @@ void JsonEventList::addEvent(cEvent* event)
   serEvent.Description = eventDescription;
   serEvent.StartTime = event->StartTime();
   serEvent.Duration = event->Duration();
+
+  if ( scan_images ) {
+     std::string regexpath = (std::string)"/var/lib/vdr/plugins/tvm2vdr/epgimages/" + itostr(serEvent.Id) + (std::string)"_*.*";
+     esyslog("restfulapi: imagepath:/%s/", regexpath.c_str());
+     std::vector< std::string > images;
+     int found = scanForFiles(regexpath, images);
+     if ( found > 0 ) {
+        serEvent.Image = UTF8Decode(images[0]);
+     }
+  }
+
   serEvents.push_back(serEvent);
 }
 
@@ -139,7 +153,7 @@ void XmlEventList::init()
   write(out, "<events xmlns=\"http://www.domain.org/restfulapi/2011/events-xml\">\n");
 }
 
-void XmlEventList::addEvent(cEvent* event)
+void XmlEventList::addEvent(cEvent* event, bool scan_images = false)
 {
   std::string eventTitle;
   std::string eventShortText;

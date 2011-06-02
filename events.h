@@ -28,6 +28,7 @@ struct SerEvent
   cxxtools::String Description;
   int StartTime;
   int Duration;
+  cxxtools::String Image;
 };
 
 struct SerEvents
@@ -46,7 +47,7 @@ class EventList
     EventList(std::ostream* _out) { out = _out; };
     ~EventList() { };
     virtual void init() { };
-    virtual void addEvent(cEvent* event) { };
+    virtual void addEvent(cEvent* event, bool scan_images) { };
     virtual void finish() { };
 };
 
@@ -56,7 +57,7 @@ class HtmlEventList : EventList
     HtmlEventList(std::ostream* _out) : EventList(_out) { };
     ~HtmlEventList() { };
     virtual void init();
-    virtual void addEvent(cEvent* event);
+    virtual void addEvent(cEvent* event, bool scan_images);
     virtual void finish();
 };
 
@@ -67,7 +68,7 @@ class JsonEventList : EventList
   public:
     JsonEventList(std::ostream* _out) : EventList(_out) { };
     ~JsonEventList() { };
-    virtual void addEvent(cEvent* event);
+    virtual void addEvent(cEvent* event, bool scan_images);
     virtual void finish();
 };
 
@@ -77,6 +78,6 @@ class XmlEventList : EventList
     XmlEventList(std::ostream* _out) : EventList(_out) { };
     ~XmlEventList() { };
     virtual void init();
-    virtual void addEvent(cEvent* event);
+    virtual void addEvent(cEvent* event, bool scan_images);
     virtual void finish();
 };
