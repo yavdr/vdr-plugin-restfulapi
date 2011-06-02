@@ -1,3 +1,5 @@
+#include <iostream>
+#include <fstream>
 #include <cxxtools/http/request.h>
 #include <cxxtools/http/reply.h>
 #include <cxxtools/http/responder.h>
@@ -15,7 +17,9 @@ class EventsResponder : public cxxtools::http::Responder
     explicit EventsResponder(cxxtools::http::Service& service)
       : cxxtools::http::Responder(service)
       { }
-    virtual void reply(std::ostream&, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+    virtual void reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+    void replyEvents(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+    void replyImage(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
 };
 
 typedef cxxtools::http::CachedService<EventsResponder> EventsService;

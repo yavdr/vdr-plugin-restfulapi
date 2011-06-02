@@ -17,9 +17,16 @@ EVENTS/EPG:
 GET http://<ip>:<port>/events/<channel>/.<format>
 GET http://<ip>:<port>/events/<channel>/<duration>/.<format>
 GET http://<ip>:<port>/events/<channel>/<duration>/<from>/.<format>
-<channel> is the number of your channel
-<duration> duration of the time period in seconds from which you want to know the event details
-<from> start of the time period
+GET http://<ip>:<port>/events/<channel>/<duration>/<from>/.<format>?images=true
+
+<channel> is the number of your channel, the first channel has number 1
+<duration> duration of the time period in seconds from which you want to know the event details (optional, default: 3600sec)
+<from> start of the time period (optional, default is now)
+?images=true will search for images from tvm2vdr under /var/lib/vdr/plugins/tvm2vdr/epgimages/
+
+GET http://<ip>:<port>/events/image/<image_filename>
+
+the image filenames have the following syntax: <eventid>_<picturenr>.jpg/.png
 
 CHANNELS:
 GET http://<ip>:<port>/channels/.<format>

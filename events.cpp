@@ -2,13 +2,22 @@
 
 void EventsResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  std::string params = getRestParams((std::string)"/events", request.url()); 
-  EventList* eventList;
-
   if ( request.method() != "GET") {
      reply.httpReturn(403, "To retrieve information use the GET method!");
      return;
   }
+
+  if ( (int)request.url().find("/events/image/") == 0 ) {
+     replyImage(out, request, reply);
+  } else {
+     replyEvents(out, request, reply);
+  }
+}
+
+void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+{
+  std::string params = getRestParams((std::string)"/events", request.url()); 
+  EventList* eventList;
 
   if ( isFormat(params, ".json") ) {
      reply.addHeader("Content-Type", "application/json; charset=utf-8");
@@ -72,6 +81,49 @@ void EventsResponder::reply(std::ostream& out, cxxtools::http::Request& request,
   delete eventList;
 }
 
+void EventsResponder::replyImage(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+{
+  int delim = request.url().find_last_of('/');
+  std::string image_filename = request.url().substr(delim + 1);
+ 
+  cxxtools::Regex* regex1 = new cxxtools::Regex("[0-9]*_[0-9]*.jpg");
+  cxxtools::Regex* regex2 = new cxxtools::Regex("[0-9]*_[0-9]*.png");
+
+  if ( regex1->match(image_filename.c_str()) ) {
+    reply.addHeader("Content-Type", "image/jpg");  
+  } else if (regex2->match(image_filename.c_str())) {
+    reply.addHeader("Content-Type", "image/png");
+  } else {
+    delete regex1;
+    delete regex2;
+    reply.httpReturn(403, "You can only download images from the specific tvm2vdr-folder!");
+    return;
+  }
+
+  delete regex1;
+  delete regex2;
+
+  std::string absolute_path = (std::string)"/var/lib/vdr/plugins/tvm2vdr/epgimages/" + image_filename;
+
+  std::ifstream* in = new std::ifstream(absolute_path.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
+
+  if ( in->is_open() ) {
+     
+     int size = in->tellg();
+     char* memory = new char[size];
+     in->seekg(0, std::ios::beg);
+     in->read(memory, size);
+     out.write(memory, size);
+     delete[] memory;
+  } else {
+     reply.httpReturn(404, "Could not find image!");
+  }
+ 
+  in->close();
+  delete in;
+
+}
+
 void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)
 {
   si.addMember("id") <<= e.Id;
@@ -129,7 +181,6 @@ void JsonEventList::addEvent(cEvent* event, bool scan_images = false)
 
   if ( scan_images ) {
      std::string regexpath = (std::string)"/var/lib/vdr/plugins/tvm2vdr/epgimages/" + itostr(serEvent.Id) + (std::string)"_*.*";
-     esyslog("restfulapi: imagepath:/%s/", regexpath.c_str());
      std::vector< std::string > images;
      int found = scanForFiles(regexpath, images);
      if ( found > 0 ) {
@@ -170,6 +221,16 @@ void XmlEventList::addEvent(cEvent* event, bool scan_images = false)
   write(out, (const char*)cString::sprintf("  <param name=\"description\">%s</param>\n", encodeToXml(eventDescription).c_str()));
   write(out, (const char*)cString::sprintf("  <param name=\"start_time\">%i</param>\n", (int)event->StartTime()));
   write(out, (const char*)cString::sprintf("  <param name=\"duration\">%i</param>\n", event->Duration()));
+
+  if ( scan_images ) {
+     std::string regexpath = (std::string)"/var/lib/vdr/plugins/tvm2vdr/epgimages/" + itostr(event->EventID()) + (std::string)"_*.*";
+     std::vector< std::string > images;
+     int found = scanForFiles(regexpath, images);
+     if ( found > 0 ) {
+        write(out, (const char*)cString::sprintf("  <param name=\"image\">%s</param>\n", encodeToXml(images[0]).c_str())); 
+     }
+  }
+
   write(out, " </event>\n");
 }
 
