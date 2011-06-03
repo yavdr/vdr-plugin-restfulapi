@@ -17,7 +17,7 @@ void write(std::ostream* out, std::string str);
 void writeHtmlHeader(std::ostream* out);
 std::string encodeToXml( const std::string &sSrc );
 
-int scanForFiles(const std::string regexpath, std::vector< std::string >& images);
+int scanForFiles(const std::string wildcardpath, std::vector< std::string >& images);
 std::string itostr(int i);
 
 // Request Helper Methods

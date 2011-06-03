@@ -86,8 +86,8 @@ void EventsResponder::replyImage(std::ostream& out, cxxtools::http::Request& req
   int delim = request.url().find_last_of('/');
   std::string image_filename = request.url().substr(delim + 1);
  
-  cxxtools::Regex* regex1 = new cxxtools::Regex("[0-9]*_[0-9]*.jpg");
-  cxxtools::Regex* regex2 = new cxxtools::Regex("[0-9]*_[0-9]*.png");
+  cxxtools::Regex* regex1 = new cxxtools::Regex("[0-9]*_?[0-9]*.jpg");
+  cxxtools::Regex* regex2 = new cxxtools::Regex("[0-9]*_?[0-9]*.png");
 
   if ( regex1->match(image_filename.c_str()) ) {
     reply.addHeader("Content-Type", "image/jpg");  
@@ -103,7 +103,7 @@ void EventsResponder::replyImage(std::ostream& out, cxxtools::http::Request& req
   delete regex1;
   delete regex2;
 
-  std::string absolute_path = (std::string)"/var/lib/vdr/plugins/tvm2vdr/epgimages/" + image_filename;
+  std::string absolute_path = (std::string)"/var/cache/vdr/epgimages/" + image_filename;
 
   std::ifstream* in = new std::ifstream(absolute_path.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
 
@@ -132,7 +132,14 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)
   si.addMember("description") <<= e.Description;
   si.addMember("start_time") <<= e.StartTime;
   si.addMember("duration") <<= e.Duration;
-  si.addMember("image") <<= e.Image;
+  if (e.Images != NULL) {
+      std::vector< cxxtools::String > imgs;
+     for(int i=0;i<e.ImagesCount;i++) {
+        imgs.push_back(e.Images[i]);
+     }
+     si.addMember("images") <<= imgs;
+     delete[] e.Images;
+  }
 }
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerEvents& e)
@@ -179,12 +186,19 @@ void JsonEventList::addEvent(cEvent* event, bool scan_images = false)
   serEvent.StartTime = event->StartTime();
   serEvent.Duration = event->Duration();
 
+  serEvent.Images = NULL;
+  serEvent.ImagesCount = 0;
+
   if ( scan_images ) {
-     std::string regexpath = (std::string)"/var/lib/vdr/plugins/tvm2vdr/epgimages/" + itostr(serEvent.Id) + (std::string)"_*.*";
+     std::string wildcardpath = (std::string)"/var/cache/vdr/epgimages/" + itostr(serEvent.Id) + (std::string)"*.*";
      std::vector< std::string > images;
-     int found = scanForFiles(regexpath, images);
-     if ( found > 0 ) {
-        serEvent.Image = UTF8Decode(images[0]);
+     int found = scanForFiles(wildcardpath, images);
+     if (found > 0) {
+        serEvent.Images = new cxxtools::String[found];
+        serEvent.ImagesCount = found;
+        for (int i=0;i<found;i++) {
+           serEvent.Images[i] = UTF8Decode(images[i]);
+        }
      }
   }
 
@@ -223,12 +237,14 @@ void XmlEventList::addEvent(cEvent* event, bool scan_images = false)
   write(out, (const char*)cString::sprintf("  <param name=\"duration\">%i</param>\n", event->Duration()));
 
   if ( scan_images ) {
-     std::string regexpath = (std::string)"/var/lib/vdr/plugins/tvm2vdr/epgimages/" + itostr(event->EventID()) + (std::string)"_*.*";
+     std::string wildcardpath = (std::string)"/var/cache/vdr/epgimages/" + itostr(event->EventID()) + (std::string)"*.*";
      std::vector< std::string > images;
-     int found = scanForFiles(regexpath, images);
-     if ( found > 0 ) {
-        write(out, (const char*)cString::sprintf("  <param name=\"image\">%s</param>\n", encodeToXml(images[0]).c_str())); 
+     int found = scanForFiles(wildcardpath, images);
+     write(out, "  <param name=\"images\">");
+     for (int i=0;i<found;i++) {
+        write(out, (const char*)cString::sprintf("   <image>%s</image>", encodeToXml(images[i]).c_str()));
      }
+     write(out, "  </param>");
   }
 
   write(out, " </event>\n");

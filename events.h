@@ -32,7 +32,8 @@ struct SerEvent
   cxxtools::String Description;
   int StartTime;
   int Duration;
-  cxxtools::String Image;
+  cxxtools::String* Images;
+  int ImagesCount;
 };
 
 struct SerEvents
