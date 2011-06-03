@@ -122,7 +122,7 @@ int scanForFiles(const std::string wildcardpath, std::vector< std::string >& ima
   if ( wildcardpath.empty() == false && glob(wildcardpath.c_str(), GLOB_DOOFFS, NULL, &globbuf) == 0) {
      for (size_t i = 0; i < globbuf.gl_pathc; i++) {
          std::string imagefile(globbuf.gl_pathv[i]);
-         esyslog("restfulapi: imagefile:/%s/", imagefile.c_str());
+      
          size_t delimPos = imagefile.find_last_of('/');
          images.push_back(imagefile.substr(delimPos+1));
          found++;
