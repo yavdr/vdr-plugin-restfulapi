@@ -73,7 +73,7 @@ KeyPairList::KeyPairList()
   append( "user4" , 		kUser4 		);
   append( "user5" , 		kUser5 		);
   append( "user6" , 		kUser6 		);
-  append( "kuser7" , 		kUser7 		);
+  append( "user7" , 		kUser7 		);
   append( "user8" , 		kUser8 		);
   append( "user9" , 		kUser9 		);
   append( "none" , 		kNone 		);
