@@ -8,4 +8,3 @@ add hosts.conf and make paths configurable (sqlite?)
 
 NICE TO HAVE:
 support for epgsearch-plugin
-add remote.json to control vdr

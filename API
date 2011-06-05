@@ -1,4 +1,4 @@
-Details of the current API: 
+Details of the current API:
 (The plugin is currently in an early development stage, so the documenation will be improved in the future!)
 
 <ip> -> the ip address of your vdr
@@ -31,3 +31,47 @@ the image filenames must have the following syntax: <eventid>_<picturenr>{.jpg,.
 CHANNELS:
 GET http://<ip>:<port>/channels.<format>
 GET http://<ip>:<port>/channels/<number>.<format>
+
+REMOTE:
+PUT http://<ip>:<port>/remote/<key>
+possible keys:
+
+             kUp,
+             kDown,
+             kMenu,
+             kOk,
+             kBack,
+             kLeft,
+             kRight,
+             kRed,
+             kGreen,
+             kYellow,
+             kBlue,
+             k0, k1, k2, k3, k4, k5, k6, k7, k8, k9,
+             kInfo,
+             kPlay,
+             kPause,
+             kStop,
+             kRecord,
+             kFastFwd,
+             kFastRew,
+             kNext,
+             kPrev,
+             kPower,
+             kChanUp,
+             kChanDn,
+             kChanPrev,
+             kVolUp,
+             kVolDn,
+             kMute,
+             kAudio,
+             kSubtitles,
+             kSchedule,
+             kChannels,
+             kTimers,
+             kRecordings,
+             kSetup,
+             kCommands,
+             kUser0, kUser1, kUser2, kUser3, kUser4, kUser5, kUser6, kUser7, kUser8, kUser9,
+             kNone,
+             kKbd
