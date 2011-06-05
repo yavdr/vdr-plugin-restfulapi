@@ -24,13 +24,27 @@ void ChannelsResponder::reply(std::ostream& out, cxxtools::http::Request& reques
     return;
   }
 
-  channelList->init();
+  int channel_details = getIntParam(params, 0);
 
-  for (cChannel *channel = Channels.First(); channel; channel = Channels.Next(channel))
-  {
-    if (!channel->GroupSep()) {
-       channelList->addChannel(channel);
-    }
+
+  if (channel_details != -1) {
+     cChannel* channel = getChannel(channel_details);
+     if (channel == NULL || channel->GroupSep()) {
+        reply.httpReturn(403, "The requested channel is not available.");
+        delete channelList;
+        return;        
+     } else {
+        channelList->init();
+        channelList->addChannel(channel);
+     }
+  } else {
+     channelList->init();
+     for (cChannel *channel = Channels.First(); channel; channel = Channels.Next(channel))
+     {
+       if (!channel->GroupSep()) {
+          channelList->addChannel(channel);
+       }
+     }
   }
 
   channelList->finish();

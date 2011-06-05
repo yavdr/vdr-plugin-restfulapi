@@ -6,18 +6,18 @@ Details of the current API:
 <format> -> json, html or xml
 
 TIMERS:
-GET http://<ip>:<port>/timers/.<format>
-DELETE http://<ip>:<port>/timers/<number>       #the first timer has number 1
+GET http://<ip>:<port>/timers.<format>
+DELETE http://<ip>:<port>/timers<number>       #the first timer has number 1
 
 RECORDINGS:
-GET http://<ip>:<port>/recordings/.<format>
-DELETE http://<ip>:<port>/recordings/<number>	#the first recording has number 1
+GET http://<ip>:<port>/recordings.<format>
+DELETE http://<ip>:<port>/recordings<number>	#the first recording has number 1
 
 EVENTS/EPG:
-GET http://<ip>:<port>/events/<channel>/.<format>
-GET http://<ip>:<port>/events/<channel>/<duration>/.<format>
-GET http://<ip>:<port>/events/<channel>/<duration>/<from>/.<format>
-GET http://<ip>:<port>/events/<channel>/<duration>/<from>/.<format>?images=true
+GET http://<ip>:<port>/events/<channel>.<format>
+GET http://<ip>:<port>/events/<channel>/<duration>.<format>
+GET http://<ip>:<port>/events/<channel>/<duration>/<from>.<format>
+GET http://<ip>:<port>/events/<channel>/<duration>/<from>.<format>?images=true
 
 <channel> is the number of your channel, the first channel has number 1
 <duration> duration of the time period in seconds from which you want to know the event details (optional, default: 3600sec)
@@ -29,4 +29,5 @@ GET http://<ip>:<port>/events/image/<image_filename>
 the image filenames must have the following syntax: <eventid>_<picturenr>{.jpg,.png} or <eventid>{.jpg,.png}
 
 CHANNELS:
-GET http://<ip>:<port>/channels/.<format>
+GET http://<ip>:<port>/channels.<format>
+GET http://<ip>:<port>/channels/<number>.<format>
