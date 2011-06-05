@@ -17,7 +17,6 @@ class TimersResponder : public cxxtools::http::Responder
     explicit TimersResponder(cxxtools::http::Service& service)
       : cxxtools::http::Responder(service)
       { }
-     //virtual std::size_t readBody(std::istream& in);
      virtual void reply(std::ostream&, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
      void createTimer(std::ostream&, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
      void deleteTimer(std::ostream&, cxxtools::http::Request& request, cxxtools::http::Reply& reply);

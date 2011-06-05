@@ -17,7 +17,9 @@ See the file COPYING for more information.
 Description:
 
 IMPORTANT NOTE: 
-This plugin currently needs libcxxtools >= r1217 including the following patch: patches/libcxxtools_r1227_regex-v2.patch
+This plugin requires libcxxtools >= r1228, 
+older versions of the plugin need libcxxtools r1217-r1227 with the following patch: 
+patches/libcxxtools_r1227_regex-v2.patch
 
 TOOLS TO TEST THE WEB SERVICE:
 WizeTools.org RESTClient http://code.google.com/p/rest-client/

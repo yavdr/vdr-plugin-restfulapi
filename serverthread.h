@@ -15,6 +15,7 @@
 #include <cxxtools/eventloop.h>
 #include <cxxtools/arg.h>
 #include <cxxtools/jsonserializer.h>
+#include <cxxtools/regex.h>
 
 #include <unistd.h>
 

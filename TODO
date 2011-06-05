@@ -4,7 +4,8 @@ find a better way to get the duration (maybe patch videodir.* from vdr)
 
 OTHER MUST HAVE'S:
 implement unique-ids if they will be in vdr 1.7.19
-add hosts.conf
+add hosts.conf and make paths configurable (sqlite?)
 
 NICE TO HAVE:
+support for epgsearch-plugin
 add remote.json to control vdr
