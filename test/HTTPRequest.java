@@ -32,6 +32,8 @@ public class HTTPRequest {
 		
 		bufferedWriter.write(method + " " + page + " HTTP/1.1");
 		bufferedWriter.newLine();
+		bufferedWriter.write("Content-Length: "+body.length());
+		bufferedWriter.newLine();
 		bufferedWriter.write("Connection: close");
 		bufferedWriter.newLine();
 		bufferedWriter.newLine();
