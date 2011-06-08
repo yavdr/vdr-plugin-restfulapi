@@ -19,6 +19,7 @@ std::string encodeToXml( const std::string &sSrc );
 
 int scanForFiles(const std::string wildcardpath, std::vector< std::string >& images);
 std::string itostr(int i);
+std::string replace(std::string const& text, std::string const& substring, std::string const& replacement);
 
 // Request Helper Methods
 std::string getRestParams(std::string service, std::string url);

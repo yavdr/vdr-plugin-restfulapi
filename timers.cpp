@@ -8,70 +8,83 @@ void TimersResponder::reply(std::ostream& out, cxxtools::http::Request& request,
      showTimers(out, request, reply);
   } else if ( request.method() == "DELETE" ) {
      deleteTimer(out, request, reply);
-  } else if ( request.method() == "POST" || request.method() == "PUT" ) {
+  } else if ( request.method() == "POST" ) {
      createTimer(out, request, reply);
+  } else if ( request.method() == "PUT" ) {
+     updateTimer(out, request, reply);
   } else {
     reply.httpReturn(501, "Only GET, DELETE, POST and PUT methods are supported.");
   }
 }
 
+void TimersResponder::updateTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+{
+  reply.httpReturn(403, "Updating timers currently not supported. Will be added in the future.");
+}
+
 void TimersResponder::createTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  esyslog("restfulapi: /%s/", request.bodyStr().c_str());
-  /*
-  if ( request.method() != "POST" &&  request.method() != "PUT" ) {
-    reply.httpReturn(501, "Only POST and PUT methods are supported.");
-    return;
+  if ( Timers.BeingEdited() ) {
+     reply.httpReturn(502, "Timers are being edited - try again later");
+     return;
   }
 
   cxxtools::QueryParams q;
   q.parse_url(request.bodyStr());
 
-  std::string timer_id_str = q.param("timer_id");
-  std::string event_id_str = q.param("event_id");
-  std::string aux_str = q.param("aux");
-  std::string file_str = q.param("file");
-  std::string lifetime_str = q.param("lifetime");
-  std::string priority_str = q.param("priority");
-  std::string stop_str = q.param("stop");
-  std::string start_str = q.param("start");
-  std::string weekdays_str = q.param("weekdays");
-  std::string day_str = q.param("day");
-  std::string channel_str = q.param("channel"); //id/nummer
+  //std::string timer_id_str = q.param("timer_id"); only required to update timers
 
-  int flags = 1;
+  int error = false;
+  std::string error_message = "";
+  static TimerValues v;
 
-  int timer_id = -1; 
-  if ( timer_id_str.length() != 0 ) { timer_id = atoi(timer_id_str.c_str()); }
+  int flags = v.ConvertFlags(q.param("flags"));
+  std::string aux = v.ConvertAux(q.param("aux"));
+  std::string file = v.ConvertFile(q.param("file"));
+  int lifetime = v.ConvertLifetime(q.param("lifetime"));
+  int priority = v.ConvertPriority(q.param("priority"));
+  int stop = v.ConvertStop(q.param("stop"));
+  int start = v.ConvertStart(q.param("start"));
+  std::string weekdays = q.param("weekdays");
+  int day = v.ConvertDay(q.param("day"));
+  cChannel* channel = v.ConvertChannel(q.param("channel"));
+  std::string event_id = q.param("event_id");
+  cEvent* event = v.ConvertEvent(event_id, channel);
 
-  int event_id = -1;
-  if ( event_id_str.length() != 0 ) { event_id = atoi(event_id_str.c_str()); }
+  if ( !v.IsFlagsValid(flags) ) { error = true; error_message += " Flags aren't valid!"; }
+  if ( event_id.length() >0 && event == NULL ) { error = true; error_message += " EventID isn't valid!"; }
+  if ( !v.IsFileValid(file) ) { error = true; error_message += " File isn't valid!"; }
+  if ( !v.IsLifetimeValid(lifetime) ) { error = true; error_message += " Lifetime isn't valid!"; }
+  if ( !v.IsPriorityValid(priority) ) { error = true; error_message += " Priority isn't valid!"; }
+  if ( !v.IsStopValid(stop) ) { error = true; error_message += " Stop time isn't valid!"; }
+  if ( !v.IsStartValid(start) ) { error = true; error_message += " Start time isn't valid!"; }
+  if ( !v.IsWeekdaysValid(weekdays) ) { error = true; error_message += " Weekdays isn't valid!"; }
+  if ( day <= (time(NULL)-(24*3600)) ) { error = true; error_message += " Day isn't valid!"; }
+  if ( channel == NULL ) { error = true; error_message += " Channel isn't valid!"; }
 
-  int lifetime = -1;
-  if ( lifetime_str.length() != 0 ) { lifetime = atoi(lifetime_str.c_str()); }
-  
-  int priority = -1;
-  if ( priority_str.length() != 0 ) { priority = atoi(priority_str.c_str()); }
+  if (error) {
+     reply.httpReturn(403, error_message);
+     return;
+  }
 
-  int start = time(NULL) - 1;
-  if ( start_str.length() != 0 ) { start = atoi(start_str.c_str()); }
+  // create timer
+/*
 
-  int stop = time(NULL) - 1;
-  if ( stop_str.length() != 0 ) { stop = atoi(stop_str.c_str()); }
+  ostringstream builder;
+  builder << flags_str << ":"
+          << channelInstance->GetChannelID();
+	  << ( weekdays_str != "-------" ? weekdays_str : "" )
+          << ( weekdays_str == "-------" || day_str.empty() ? "" : "@" ) << day << ":"
+          << start ":"
+          << stop << ":"
+          << priority << ":"
+          << lifetime << ":"
+          << replace(file_str, ":", "|") << ":" 
+          << replace(aux_str, ":", "|");*/
 
-  int weekdays = 0;
-  if ( weekdays_str.length() != 0 ) { weekdays = atoi(weekdays_str.c_str()); }
 
-  time_t day = time(NULL) - 1;
-  if ( day_str.length() != 0 ) { day = atoi(day_str.c_str()); }
 
-  int channel = 1;
-  if ( channel_str.length() != 0 ) { channel = atoi(channel_str.c_str()); }
-  cChannel* channelInstance = getChannel(channel);
-
-  esyslog("restfulapi: %s, %i, %i, %i", file_str.c_str(), channel, start, stop);
-
-  if ( timer_id != -1 ) {
+  /*if ( timer_id != -1 ) {
      // update timer information
      cTimer* timer = Timers.Get(timer_id);
      // change the values here
@@ -95,6 +108,11 @@ void TimersResponder::createTimer(std::ostream& out, cxxtools::http::Request& re
 
 void TimersResponder::deleteTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
+  if ( Timers.BeingEdited() ) {
+     reply.httpReturn(502, "Timers are being edited - try again later");
+     return;
+  }
+
   std::string params = getRestParams((std::string)"/timers", request.url());
   int timer_number = getIntParam(params, 0);
   timer_number--; //first timer ist 0 and not 1
@@ -267,4 +285,130 @@ void XmlTimerList::addTimer(cTimer* timer)
 void XmlTimerList::finish()
 {
   write(out, "</timers>");
+}
+
+// --- TimerValues class ------------------------------------------------------------
+
+int TimerValues::ConvertNumber(std::string v)
+{
+  static cxxtools::Regex numberregex("[0-9]*");
+  if (!numberregex.match(v)) return -1;
+  return atoi(v.c_str());
+}
+
+bool TimerValues::IsFlagsValid(int v)
+{
+  if ( v == 0x0000 || v == 0x0001 || v == 0x0002 || v == 0x0004 || v == 0x0008 || v == 0xFFFF ) 
+     return true;
+  return false;
+}
+
+bool TimerValues::IsFileValid(std::string v) 
+{
+  if ( v.length() > 0 && v.length() <= 40 ) 
+     return true;
+  return false;
+}
+
+bool TimerValues::IsLifetimeValid(int v) 
+{
+  if ( v >= 0 && v <= 99 )
+     return true;
+  return false;
+}
+
+bool TimerValues::IsPriorityValid(int v)
+{
+  return IsLifetimeValid(v); //uses the same values as the lifetime
+}
+
+bool TimerValues::IsStopValid(int v)
+{
+  int minutes = v % 100;
+  int hours = (v - minutes) / 100;
+  if ( minutes >= 0 && minutes < 60 && hours >= 0 && hours < 24 )
+     return true;
+  return false;
+
+}
+
+bool TimerValues::IsStartValid(int v)
+{
+  return IsStopValid(v); //uses the syntax as start time, f.e. 2230 means half past ten in the evening
+}
+
+bool TimerValues::IsWeekdaysValid(std::string v)
+{
+  static cxxtools::Regex regex("[\\-M][\\-T][\\-W][\\-T][\\-F][\\-S][\\-S]");
+  return regex.match(v);
+}
+
+int TimerValues::ConvertFlags(std::string v)
+{
+  return ConvertNumber(v);
+}
+
+cEvent* TimerValues::ConvertEvent(std::string event_id, cChannel* channel)
+{
+  if ( channel == NULL ) return NULL;
+
+  int eventid = ConvertNumber(event_id);
+  if ( eventid == -1 ) return NULL;
+
+  cSchedulesLock MutexLock;
+  const cSchedules *Schedules = cSchedules::Schedules(MutexLock);
+  if ( !Schedules ) return NULL;
+
+  const cSchedule *Schedule = Schedules->GetSchedule(channel->GetChannelID());
+
+  if ( !Schedule ) return NULL;
+
+  return (cEvent*)Schedule->GetEvent(eventid);
+}
+
+cTimer* TimerValues::ConvertTimer(std::string v)
+{
+  int timer_id = ConvertNumber(v);
+  return Timers.Get(timer_id);
+}
+
+std::string TimerValues::ConvertFile(std::string v)
+{
+  return replace(v, ":", "|");
+}
+
+std::string TimerValues::ConvertAux(std::string v)
+{
+  return ConvertFile(v);
+}
+
+int TimerValues::ConvertLifetime(std::string v)
+{
+  return ConvertNumber(v);
+}
+
+int TimerValues::ConvertPriority(std::string v)
+{
+  return ConvertNumber(v);
+}
+
+int TimerValues::ConvertStop(std::string v)
+{
+  return ConvertNumber(v);
+}
+
+int TimerValues::ConvertStart(std::string v)
+{
+  return ConvertNumber(v);
+}
+
+int TimerValues::ConvertDay(std::string v)
+{
+  return ConvertNumber(v);
+}
+
+cChannel* TimerValues::ConvertChannel(std::string v)
+{
+  int c = ConvertNumber(v);
+  return getChannel(c);
 }

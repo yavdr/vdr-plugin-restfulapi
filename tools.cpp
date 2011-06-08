@@ -139,6 +139,17 @@ std::string itostr(int i)
   return str.str();  
 }
 
+std::string replace(std::string const& text, std::string const& substring, std::string const& replacement)
+{
+  std::string result = text;
+  std::string::size_type pos = 0;
+  while ( ( pos = result.find( substring, pos ) ) != std::string::npos ) {
+    result.replace( pos, substring.length(), replacement );
+    pos += replacement.length();
+  }
+  return result;
+}
+
 cChannel* getChannel(int number)
 {
   if( number == -1 || number >= Channels.Count() ) { return NULL; }

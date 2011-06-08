@@ -4,11 +4,15 @@
 #include <cxxtools/query_params.h>
 #include <cxxtools/arg.h>
 #include <cxxtools/jsonserializer.h>
+#include <cxxtools/regex.h>
 #include <cxxtools/serializationinfo.h>
 #include <cxxtools/utf8codec.h>
+#include <sstream>
 #include "tools.h"
 
 #include "vdr/timers.h"
+#include "vdr/channels.h"
+#include "vdr/epg.h"
 #include "vdr/menu.h"
 
 class TimersResponder : public cxxtools::http::Responder
@@ -17,10 +21,11 @@ class TimersResponder : public cxxtools::http::Responder
     explicit TimersResponder(cxxtools::http::Service& service)
       : cxxtools::http::Responder(service)
       { }
-     virtual void reply(std::ostream&, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
-     void createTimer(std::ostream&, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
-     void deleteTimer(std::ostream&, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
-     void showTimers(std::ostream&, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+     virtual void reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+     void createTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+     void updateTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+     void deleteTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+     void showTimers(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
 };
 
 typedef cxxtools::http::CachedService<TimersResponder> TimersService;
@@ -92,4 +97,32 @@ class XmlTimerList : TimerList
     virtual void init();
     virtual void addTimer(cTimer* timer);
     virtual void finish();
+};
+
+class TimerValues
+{
+  private:
+    int		ConvertNumber(std::string v);
+  public:
+    TimerValues() { };
+    ~TimerValues() { };
+    bool 	IsFlagsValid(int v);
+    bool	IsFileValid(std::string v);
+    bool	IsLifetimeValid(int v);
+    bool	IsPriorityValid(int v);
+    bool	IsStopValid(int v);
+    bool	IsStartValid(int v);
+    bool	IsWeekdaysValid(std::string v);
+
+    int		ConvertFlags(std::string v);
+    cEvent*	ConvertEvent(std::string event_id, cChannel* channel);
+    cTimer*	ConvertTimer(std::string v);
+    std::string ConvertFile(std::string v); // replaces : with | - required by parsing method of VDR
+    std::string ConvertAux(std::string v);  // replaces : with | - required by parsing method of VDR
+    int		ConvertLifetime(std::string v);
+    int		ConvertPriority(std::string v);
+    int		ConvertStop(std::string v);
+    int		ConvertStart(std::string v);
+    int		ConvertDay(std::string v);
+    cChannel*	ConvertChannel(std::string v);
 };
