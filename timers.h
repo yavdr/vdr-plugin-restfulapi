@@ -1,3 +1,7 @@
+#include <vdr/channels.h>
+#include <vdr/timers.h>
+#include <vdr/epg.h>
+#include <vdr/menu.h>
 #include <cxxtools/http/request.h>
 #include <cxxtools/http/reply.h>
 #include <cxxtools/http/responder.h>
@@ -7,13 +11,10 @@
 #include <cxxtools/regex.h>
 #include <cxxtools/serializationinfo.h>
 #include <cxxtools/utf8codec.h>
+#include <iostream>
 #include <sstream>
 #include "tools.h"
 
-#include "vdr/timers.h"
-#include "vdr/channels.h"
-#include "vdr/epg.h"
-#include "vdr/menu.h"
 
 class TimersResponder : public cxxtools::http::Responder
 {

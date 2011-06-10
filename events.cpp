@@ -16,16 +16,17 @@ void EventsResponder::reply(std::ostream& out, cxxtools::http::Request& request,
 
 void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  std::string params = getRestParams((std::string)"/events", request.url()); 
+  QueryHandler q("/events", request);
+
   EventList* eventList;
 
-  if ( isFormat(params, ".json") ) {
+  if ( q.isFormat(".json") ) {
      reply.addHeader("Content-Type", "application/json; charset=utf-8");
      eventList = (EventList*)new JsonEventList(&out);
-  } else if ( isFormat(params, ".html") ) {
+  } else if ( q.isFormat(".html") ) {
      reply.addHeader("Content-Type", "text/html; charset=utf-8");
      eventList = (EventList*)new HtmlEventList(&out);
-  } else if ( isFormat(params, ".xml") ) {
+  } else if ( q.isFormat(".xml") ) {
      reply.addHeader("Content-Type", "text/xml; charset=utf-8");
      eventList = (EventList*)new XmlEventList(&out);
   } else {
@@ -33,20 +34,20 @@ void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& re
      return;
   }
 
-  int channel_number = getIntParam(params, 0);
-  int timespan = getIntParam(params, 1);
-  int from = getIntParam(params, 2);
+  int channel_number = q.getParamAsInt(0);
+  int timespan = q.getParamAsInt(1);
+  int from = q.getParamAsInt(2);
 
-  bool scan_images = (int)request.qparams().find("images=true") != -1 ? true : false;
+  bool scan_images = q.getOptionAsString("images") == "true" ? true : false;
   
-  cChannel* channel = getChannel(channel_number);
+  cChannel* channel = VdrExtension::getChannel(channel_number);
   if ( channel == NULL ) { 
      reply.httpReturn(404, "Channel with number _xx_ not found!"); 
      return; 
   }
 
-  if ( from == -1 ) from = time(NULL); // default time is now
-  if ( timespan == -1 ) timespan = 3600; // default timespan is one hour
+  if ( from <= -1 ) from = time(NULL); // default time is now
+  if ( timespan <= -1 ) timespan = 3600; // default timespan is one hour
   int to = from + timespan;
 
   cSchedulesLock MutexLock;
@@ -172,12 +173,12 @@ void JsonEventList::addEvent(cEvent* event, bool scan_images = false)
   cxxtools::String eventTitle;
   cxxtools::String eventShortText;
   cxxtools::String eventDescription;
-  cxxtools::String empty = UTF8Decode("");
+  cxxtools::String empty = StringExtension::UTF8Decode("");
   SerEvent serEvent;
 
-  if( !event->Title() ) { eventTitle = empty; } else { eventTitle = UTF8Decode(event->Title()); }
-  if( !event->ShortText() ) { eventShortText = empty; } else { eventShortText = UTF8Decode(event->ShortText()); }
-  if( !event->Description() ) { eventDescription = empty; } else { eventDescription = UTF8Decode(event->Description()); }
+  if( !event->Title() ) { eventTitle = empty; } else { eventTitle = StringExtension::UTF8Decode(event->Title()); }
+  if( !event->ShortText() ) { eventShortText = empty; } else { eventShortText = StringExtension::UTF8Decode(event->ShortText()); }
+  if( !event->Description() ) { eventDescription = empty; } else { eventDescription = StringExtension::UTF8Decode(event->Description()); }
 
   serEvent.Id = event->EventID();
   serEvent.Title = eventTitle;
@@ -190,14 +191,14 @@ void JsonEventList::addEvent(cEvent* event, bool scan_images = false)
   serEvent.ImagesCount = 0;
 
   if ( scan_images ) {
-     std::string wildcardpath = (std::string)"/var/cache/vdr/epgimages/" + itostr(serEvent.Id) + (std::string)"*.*";
+     std::string wildcardpath = (std::string)"/var/cache/vdr/epgimages/" + StringExtension::itostr(serEvent.Id) + (std::string)"*.*";
      std::vector< std::string > images;
-     int found = scanForFiles(wildcardpath, images);
+     int found = VdrExtension::scanForFiles(wildcardpath, images);
      if (found > 0) {
         serEvent.Images = new cxxtools::String[found];
         serEvent.ImagesCount = found;
         for (int i=0;i<found;i++) {
-           serEvent.Images[i] = UTF8Decode(images[i]);
+           serEvent.Images[i] = StringExtension::UTF8Decode(images[i]);
         }
      }
   }
@@ -230,19 +231,19 @@ void XmlEventList::addEvent(cEvent* event, bool scan_images = false)
 
   write(out, " <event>\n");
   write(out, (const char*)cString::sprintf("  <param name=\"id\">%i</param>\n", event->EventID()));
-  write(out, (const char*)cString::sprintf("  <param name=\"title\">%s</param>\n", encodeToXml(eventTitle).c_str()));
-  write(out, (const char*)cString::sprintf("  <param name=\"short_text\">%s</param>\n", encodeToXml(eventShortText).c_str()));
-  write(out, (const char*)cString::sprintf("  <param name=\"description\">%s</param>\n", encodeToXml(eventDescription).c_str()));
+  write(out, (const char*)cString::sprintf("  <param name=\"title\">%s</param>\n", StringExtension::encodeToXml(eventTitle).c_str()));
+  write(out, (const char*)cString::sprintf("  <param name=\"short_text\">%s</param>\n", StringExtension::encodeToXml(eventShortText).c_str()));
+  write(out, (const char*)cString::sprintf("  <param name=\"description\">%s</param>\n", StringExtension::encodeToXml(eventDescription).c_str()));
   write(out, (const char*)cString::sprintf("  <param name=\"start_time\">%i</param>\n", (int)event->StartTime()));
   write(out, (const char*)cString::sprintf("  <param name=\"duration\">%i</param>\n", event->Duration()));
 
   if ( scan_images ) {
-     std::string wildcardpath = (std::string)"/var/cache/vdr/epgimages/" + itostr(event->EventID()) + (std::string)"*.*";
+     std::string wildcardpath = (std::string)"/var/cache/vdr/epgimages/" + StringExtension::itostr(event->EventID()) + (std::string)"*.*";
      std::vector< std::string > images;
-     int found = scanForFiles(wildcardpath, images);
+     int found = VdrExtension::scanForFiles(wildcardpath, images);
      write(out, "  <param name=\"images\">");
      for (int i=0;i<found;i++) {
-        write(out, (const char*)cString::sprintf("   <image>%s</image>", encodeToXml(images[i]).c_str()));
+        write(out, (const char*)cString::sprintf("   <image>%s</image>", StringExtension::encodeToXml(images[i]).c_str()));
      }
      write(out, "  </param>");
   }

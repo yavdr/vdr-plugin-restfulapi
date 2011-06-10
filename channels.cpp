@@ -6,17 +6,18 @@ void ChannelsResponder::reply(std::ostream& out, cxxtools::http::Request& reques
      reply.httpReturn(403, "To retrieve information use the GET method!");
      return;
   }
+ 
+  QueryHandler q("/channels", request);
 
-  std::string params = getRestParams((std::string)"/channels", request.url()); 
   ChannelList* channelList;
 
-  if ( isFormat(params, ".json") ) {
+  if ( q.isFormat(".json") ) {
     reply.addHeader("Content-Type", "application/json; charset=utf-8");
     channelList = (ChannelList*)new JsonChannelList(&out);
-  } else if ( isFormat(params, ".html") ) {
+  } else if ( q.isFormat(".html") ) {
     reply.addHeader("Content-Type", "text/html; charset=utf-8");
     channelList = (ChannelList*)new HtmlChannelList(&out);
-  } else if ( isFormat(params, ".xml") ) {
+  } else if ( q.isFormat(".xml") ) {
     reply.addHeader("Content-Type", "text/xml; charset=utf-8");
     channelList = (ChannelList*)new XmlChannelList(&out);
   } else {
@@ -24,11 +25,11 @@ void ChannelsResponder::reply(std::ostream& out, cxxtools::http::Request& reques
     return;
   }
 
-  int channel_details = getIntParam(params, 0);
+  int channel_details = q.getParamAsInt(0);
 
 
-  if (channel_details != -1) {
-     cChannel* channel = getChannel(channel_details);
+  if (channel_details > -1) {
+     cChannel* channel = VdrExtension::getChannel(channel_details);
      if (channel == NULL || channel->GroupSep()) {
         reply.httpReturn(403, "The requested channel is not available.");
         delete channelList;
@@ -93,10 +94,10 @@ void JsonChannelList::addChannel(cChannel* channel)
   std::string suffix = (std::string) ".ts";
 
   SerChannel serChannel;
-  serChannel.Name = UTF8Decode(channel->Name());
+  serChannel.Name = StringExtension::UTF8Decode(channel->Name());
   serChannel.Number = channel->Number();
   serChannel.Transponder = channel->Transponder();
-  serChannel.Stream = UTF8Decode(((std::string)channel->GetChannelID().ToString() + (std::string)suffix).c_str());
+  serChannel.Stream = StringExtension::UTF8Decode(((std::string)channel->GetChannelID().ToString() + (std::string)suffix).c_str());
   serChannel.IsAtsc = channel->IsAtsc();
   serChannel.IsCable = channel->IsCable();
   serChannel.IsSat = channel->IsSat();
@@ -122,10 +123,10 @@ void XmlChannelList::addChannel(cChannel* channel)
   std::string suffix = (std::string) ".ts";
 
   write(out, " <channel>\n");
-  write(out, (const char*)cString::sprintf("  <param name=\"name\">%s</param>\n", encodeToXml(channel->Name()).c_str()));
+  write(out, (const char*)cString::sprintf("  <param name=\"name\">%s</param>\n", StringExtension::encodeToXml(channel->Name()).c_str()));
   write(out, (const char*)cString::sprintf("  <param name=\"number\">%i</param>\n", channel->Number()));
   write(out, (const char*)cString::sprintf("  <param name=\"transponder\">%i</param>\n", channel->Transponder()));
-  write(out, (const char*)cString::sprintf("  <param name=\"stream\">%s</param>\n", encodeToXml( ((std::string)channel->GetChannelID().ToString() + (std::string)suffix).c_str()).c_str()));
+  write(out, (const char*)cString::sprintf("  <param name=\"stream\">%s</param>\n", StringExtension::encodeToXml( ((std::string)channel->GetChannelID().ToString() + (std::string)suffix).c_str()).c_str()));
   write(out, (const char*)cString::sprintf("  <param name=\"is_atsc\">%s</param>\n", channel->IsAtsc() ? "true" : "false"));
   write(out, (const char*)cString::sprintf("  <param name=\"is_cable\">%s</param>\n", channel->IsCable() ? "true" : "false"));
   write(out, (const char*)cString::sprintf("  <param name=\"is_sat\">%s</param>\n", channel->IsSat() ? "true" : "false"));

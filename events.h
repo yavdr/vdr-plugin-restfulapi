@@ -9,7 +9,7 @@
 #include <cxxtools/utf8codec.h>
 #include "tools.h"
 
-#include "vdr/epg.h"
+#include <vdr/epg.h>
 
 class EventsResponder : public cxxtools::http::Responder
 {

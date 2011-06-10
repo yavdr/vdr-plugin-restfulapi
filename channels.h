@@ -7,7 +7,7 @@
 #include <cxxtools/utf8codec.h>
 #include "tools.h"
 
-#include "vdr/channels.h"
+#include <vdr/channels.h>
 
 class ChannelsResponder : public cxxtools::http::Responder
 {

@@ -10,7 +10,7 @@
 #include <sstream>
 #include "tools.h"
 
-#include "vdr/recording.h"
+#include <vdr/recording.h>
 
 class RecordingsResponder : public cxxtools::http::Responder
 {

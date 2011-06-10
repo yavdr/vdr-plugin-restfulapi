@@ -6,9 +6,8 @@ void RemoteResponder::reply(std::ostream& out, cxxtools::http::Request& request,
      reply.httpReturn(403, "Only POST method is support by the remote control");
      return;
   }
-
-  std::string params = getRestParams((std::string)"/remote", request.url());
-  std::string key = getStringParam(params, 0);
+  QueryHandler q("/remote", request);
+  std::string key = q.getParamAsString(0);
 
   if (key.length() == 0) {
      reply.httpReturn(404, "Please add a key to the parameter list, see API-file for more details.");

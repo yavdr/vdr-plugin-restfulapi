@@ -1,18 +1,6 @@
 #include "tools.h"
 
-std::string UTF8Encode(cxxtools::String str)
-{
-  static cxxtools::Utf8Codec utf8;
-  return utf8.encode(str);
-}
-
-cxxtools::String UTF8Decode(std::string str)
-{
-  static cxxtools::Utf8Codec utf8;
-  std::string temp;
-  utf8::replace_invalid(str.begin(), str.end(), back_inserter(temp));
-  return utf8.decode(temp);
-}
+// --- stream methods ---------------------------------------------------------
 
 void write(std::ostream* out, std::string str)
 {
@@ -29,128 +17,9 @@ void writeHtmlHeader(std::ostream* out)
   write(out, "</head><body>");
 }
 
-std::string encodeToXml( const std::string &sSrc )
-{
-    //source: http://www.mdawson.net/misc/xmlescape.php
-    std::ostringstream sRet;
+// --- VdrExtension -----------------------------------------------------------
 
-    for( std::string::const_iterator iter = sSrc.begin(); iter!=sSrc.end(); iter++ )
-    {
-         unsigned char c = (unsigned char)*iter;
-
-         switch( c )
-         {
-             case '&': sRet << "&amp;"; break;
-             case '<': sRet << "&lt;"; break;
-             case '>': sRet << "&gt;"; break;
-             case '"': sRet << "&quot;"; break;
-             case '\'': sRet << "&apos;"; break;
-
-             default:
-                   sRet << c;
-         }
-    }
-
-    std::string res = sRet.str();
-    std::string converted;
-    utf8::replace_invalid(res.begin(), res.end(), back_inserter(converted));
-    return converted;
-}
-
-std::string getRestParams(std::string service, std::string url)
-{
-  return url.substr(service.length(), url.length() - 1);
-}
-
-int getIntParam(std::string qparams, int level)
-{
-  std::string param = getStringParam(qparams, level);
-  if ( param.length() > 0 )
-  {
-     int res = atoi(param.c_str());
-     if ( res == 0 ) {
-        return (int)param.find_first_of("0") > -1 ? res : -1;
-     } else {
-        return res;
-     }
-  } 
-  return -1;
-}
-
-std::string getStringParam(std::string params, int level)
-{
-  int start = -1;
-  int end = -1;
-  int on_level = 0;
-
-  for(int i=0;i<(int)params.length();i++)
-  {
-    if(params[i] == '/')
-    {
-      if(start == -1)
-      {
-        start = i;
-      } else {
-        end = i;
-        if(on_level == level)
-        {
-          return params.substr(start + 1, end -1);
-        }
-        start = end;
-        end = -1;
-        on_level++;
-      }
-    }
-  }
-  if(start != -1 && on_level == level) {
-    return params.substr(start + 1, params.length() - 1);
-  }
-  return (std::string)"";
-}
-
-bool isFormat(std::string qparams, std::string format)
-{
-  int result = qparams.find(format);
-  return result == -1 ? false : true;
-}
-
-int scanForFiles(const std::string wildcardpath, std::vector< std::string >& images)
-{
-  int found = 0;
-  glob_t globbuf;
-  globbuf.gl_offs = 0;
-  if ( wildcardpath.empty() == false && glob(wildcardpath.c_str(), GLOB_DOOFFS, NULL, &globbuf) == 0) {
-     for (size_t i = 0; i < globbuf.gl_pathc; i++) {
-         std::string imagefile(globbuf.gl_pathv[i]);
-      
-         size_t delimPos = imagefile.find_last_of('/');
-         images.push_back(imagefile.substr(delimPos+1));
-         found++;
-     }
-     globfree(&globbuf);   
-  }
-  return found;
-}
-
-std::string itostr(int i)
-{
-  std::stringstream str;
-  str << i;
-  return str.str();  
-}
-
-std::string replace(std::string const& text, std::string const& substring, std::string const& replacement)
-{
-  std::string result = text;
-  std::string::size_type pos = 0;
-  while ( ( pos = result.find( substring, pos ) ) != std::string::npos ) {
-    result.replace( pos, substring.length(), replacement );
-    pos += replacement.length();
-  }
-  return result;
-}
-
-cChannel* getChannel(int number)
+cChannel* VdrExtension::getChannel(int number)
 {
   if( number == -1 || number >= Channels.Count() ) { return NULL; }
 
@@ -170,3 +39,160 @@ cChannel* getChannel(int number)
   return result;
 }
 
+int VdrExtension::scanForFiles(const std::string wildcardpath, std::vector< std::string >& files)
+{
+  int found = 0;
+  glob_t globbuf;
+  globbuf.gl_offs = 0;
+  if ( wildcardpath.empty() == false && glob(wildcardpath.c_str(), GLOB_DOOFFS, NULL, &globbuf) == 0) {
+     for (size_t i = 0; i < globbuf.gl_pathc; i++) {
+         std::string file(globbuf.gl_pathv[i]);
+
+         size_t delimPos = file.find_last_of('/');
+         files.push_back(file.substr(delimPos+1));
+         found++;
+     }
+     globfree(&globbuf);
+  }
+  return found;
+}
+
+// --- StringExtension --------------------------------------------------------
+
+std::string StringExtension::itostr(int i)
+{
+  std::stringstream str;
+  str << i;
+  return str.str();
+}
+
+int StringExtension::strtoi(std::string str)
+{
+  static cxxtools::Regex regex("[0-9]{1,}");
+  if(!regex.match(str)) return -LOWINT; // lowest possible integer
+  return atoi(str.c_str());
+}
+
+std::string StringExtension::replace(std::string const& text, std::string const& substring, std::string const& replacement)
+{
+  std::string result = text;
+  std::string::size_type pos = 0;
+  while ( ( pos = result.find( substring, pos ) ) != std::string::npos ) {
+    result.replace( pos, substring.length(), replacement );
+    pos += replacement.length();
+  }
+  return result;
+}
+
+std::string StringExtension::encodeToXml(const std::string &str)
+{
+    //source: http://www.mdawson.net/misc/xmlescape.php
+    std::ostringstream result;
+
+    for( std::string::const_iterator iter = str.begin(); iter!=str.end(); iter++ )
+    {
+         unsigned char c = (unsigned char)*iter;
+
+         switch( c )
+         {
+             case '&': result << "&amp;"; break;
+             case '<': result << "&lt;"; break;
+             case '>': result << "&gt;"; break;
+             case '"': result << "&quot;"; break;
+             case '\'': result << "&apos;"; break;
+
+             default:
+                   result << c;
+         }
+    }
+
+    std::string res = result.str();
+    std::string converted;
+    utf8::replace_invalid(res.begin(), res.end(), back_inserter(converted));
+    return converted;
+}
+
+cxxtools::String StringExtension::UTF8Decode(std::string str)
+{
+  static cxxtools::Utf8Codec utf8;
+  std::string temp;
+  utf8::replace_invalid(str.begin(), str.end(), back_inserter(temp));
+  return utf8.decode(temp);
+}
+
+// --- QueryHandler -----------------------------------------------------------
+
+QueryHandler::QueryHandler(std::string service, cxxtools::http::Request& request)
+{
+  _url = request.url();
+  _service = service;
+  _options.parse_url(request.qparams());
+
+  std::string params = _url.substr(_service.length(), _url.length() - 1);
+  parseRestParams(params);
+}
+
+QueryHandler::~QueryHandler()
+{
+
+}
+
+void QueryHandler::parseRestParams(std::string params)
+{
+  esyslog("restfulapi, param: \"%s\"", params.c_str());
+
+  int start = -1;
+
+  for(int i=0;i<(int)params.length();i++)
+  {
+    if(params[i] == '/')
+    {
+      if(start == -1)
+      {
+        start = i;
+      } else {
+        std::string p = params.substr(start+1, (i-1)-(start));
+        _params.push_back(p);
+        esyslog("restfulapi, param: /%s/, start:%i, end:%i", p.c_str(), start+1,(i-1)-(start+1));
+        start = i;
+      }
+    }
+  }
+
+  if(start != -1 && start != (int)params.length() - 1) {
+    _params.push_back(params.substr(start + 1, params.length() - 1));
+    esyslog("restfulapi, param: /%s/", params.substr(start + 1, params.length() -1).c_str());
+  }
+}
+
+std::string QueryHandler::getParamAsString(int level)
+{
+  if ( level >= (int)_params.size() )
+     return "";
+  return _params[level];
+}
+
+std::string QueryHandler::getOptionAsString(std::string name)
+{
+  return _options.param(name);
+}
+
+int QueryHandler::getParamAsInt(int level)
+{
+  return StringExtension::strtoi(getParamAsString(level));  
+}
+
+int QueryHandler::getOptionAsInt(std::string name)
+{
+  return StringExtension::strtoi(getOptionAsString(name));
+}
+
+bool QueryHandler::isFormat(std::string format)
+{
+  if (_params.size() > 0 ) {
+     if (_params[_params.size() - 1].find(format) != -1 ) {
+        return true;
+     }
+  }
+  return false;
+} 

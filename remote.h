@@ -4,8 +4,8 @@
 #include "tools.h"
 #include <vector>
 
-#include "vdr/keys.h"
-#include "vdr/remote.h"
+#include <vdr/keys.h>
+#include <vdr/remote.h>
 
 struct eKeyPair
 {

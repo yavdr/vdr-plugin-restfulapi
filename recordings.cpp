@@ -13,8 +13,8 @@ void RecordingsResponder::reply(std::ostream& out, cxxtools::http::Request& requ
 
 void RecordingsResponder::deleteRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  std::string params = getRestParams((std::string)"/recordings", request.url());
-  int recording_number = getIntParam(params, 0);
+  QueryHandler q("/recordings", request);
+  int recording_number = q.getParamAsInt(0);
   if ( recording_number <= 0 || recording_number > Recordings.Count() ) { 
      reply.httpReturn(404, "Wrong recording number!");
   } else {
@@ -28,16 +28,16 @@ void RecordingsResponder::deleteRecording(std::ostream& out, cxxtools::http::Req
 
 void RecordingsResponder::showRecordings(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  std::string params = getRestParams((std::string)"/recordings", request.url()); 
+  QueryHandler q("/recordings", request);
   RecordingList* recordingList;
 
-  if ( isFormat(params, ".json") ) {
+  if ( q.isFormat(".json") ) {
      reply.addHeader("Content-Type", "application/json; charset=utf-8");
      recordingList = (RecordingList*)new JsonRecordingList(&out);
-  } else if ( isFormat(params, ".html") ) {
+  } else if ( q.isFormat(".html") ) {
      reply.addHeader("Content-Type", "text/html; charset=utf-8");
      recordingList = (RecordingList*)new HtmlRecordingList(&out);
-  } else if ( isFormat(params, ".xml") ) {
+  } else if ( q.isFormat(".xml") )  {
      reply.addHeader("Content-Type", "text/xml; charset=utf-8");
      recordingList = (RecordingList*)new XmlRecordingList(&out);
   } else {
@@ -109,7 +109,7 @@ void HtmlRecordingList::finish()
 
 void JsonRecordingList::addRecording(cRecording* recording)
 {
-  cxxtools::String empty = UTF8Decode("");
+  cxxtools::String empty = StringExtension::UTF8Decode("");
   cxxtools::String eventTitle = empty;
   cxxtools::String eventShortText = empty;
   cxxtools::String eventDescription = empty;
@@ -120,16 +120,16 @@ void JsonRecordingList::addRecording(cRecording* recording)
 
   if ( event != NULL )
   {
-     if ( event->Title() ) { eventTitle = UTF8Decode(event->Title()); }
-     if ( event->ShortText() ) { eventShortText = UTF8Decode(event->ShortText()); }
-     if ( event->Description() ) { eventDescription = UTF8Decode(event->Description()); }
+     if ( event->Title() ) { eventTitle = StringExtension::UTF8Decode(event->Title()); }
+     if ( event->ShortText() ) { eventShortText = StringExtension::UTF8Decode(event->ShortText()); }
+     if ( event->Description() ) { eventDescription = StringExtension::UTF8Decode(event->Description()); }
      if ( event->StartTime() > 0 ) { eventStartTime = event->StartTime(); }
      if ( event->Duration() > 0 ) { eventDuration = event->Duration(); }
   }
 
   SerRecording serRecording;
-  serRecording.Name = UTF8Decode(recording->Name());
-  serRecording.FileName = UTF8Decode(recording->FileName());
+  serRecording.Name = StringExtension::UTF8Decode(recording->Name());
+  serRecording.FileName = StringExtension::UTF8Decode(recording->FileName());
   serRecording.IsNew = recording->IsNew();
   serRecording.IsEdited = recording->IsEdited();
   serRecording.IsPesRecording = recording->IsPesRecording();
@@ -178,15 +178,15 @@ void XmlRecordingList::addRecording(cRecording* recording)
   }
 
   write(out, " <recording>\n");
-  write(out, (const char*)cString::sprintf("  <param name=\"name\">%s</param>\n", encodeToXml(recording->Name()).c_str()) );
-  write(out, (const char*)cString::sprintf("  <param name=\"filename\">%s</param>\n", encodeToXml(recording->Name()).c_str()) );
+  write(out, (const char*)cString::sprintf("  <param name=\"name\">%s</param>\n", StringExtension::encodeToXml(recording->Name()).c_str()) );
+  write(out, (const char*)cString::sprintf("  <param name=\"filename\">%s</param>\n", StringExtension::encodeToXml(recording->Name()).c_str()) );
   write(out, (const char*)cString::sprintf("  <param name=\"is_new\">%s</param>\n", recording->IsNew() ? "true" : "false" ));
   write(out, (const char*)cString::sprintf("  <param name=\"is_edited\">%s</param>\n", recording->IsEdited() ? "true" : "false" ));
   write(out, (const char*)cString::sprintf("  <param name=\"is_pes_recording\">%s</param>\n", recording->IsPesRecording() ? "true" : "false" ));
   write(out, (const char*)cString::sprintf("  <param name=\"duration\">%i</param>\n", -1)); //getRecordingDuration(recording);
-  write(out, (const char*)cString::sprintf("  <param name=\"event_title\">%s</param>\n", encodeToXml(eventTitle).c_str()) );
-  write(out, (const char*)cString::sprintf("  <param name=\"event_short_text\">%s</param>\n", encodeToXml(eventShortText).c_str()) );
-  write(out, (const char*)cString::sprintf("  <param name=\"event_description\">%s</param>\n", encodeToXml(eventDescription).c_str()) );
+  write(out, (const char*)cString::sprintf("  <param name=\"event_title\">%s</param>\n", StringExtension::encodeToXml(eventTitle).c_str()) );
+  write(out, (const char*)cString::sprintf("  <param name=\"event_short_text\">%s</param>\n", StringExtension::encodeToXml(eventShortText).c_str()) );
+  write(out, (const char*)cString::sprintf("  <param name=\"event_description\">%s</param>\n", StringExtension::encodeToXml(eventDescription).c_str()) );
   write(out, (const char*)cString::sprintf("  <param name=\"event_start_time\">%i</param>\n", eventStartTime));
   write(out, (const char*)cString::sprintf("  <param name=\"event_duration\">%i</param>\n", eventDuration));
   write(out, " </recording>\n");
