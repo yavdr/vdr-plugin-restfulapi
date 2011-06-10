@@ -47,7 +47,6 @@ class QueryHandler
     std::vector< std::string > _params;
     cxxtools::QueryParams _options;
     void parseRestParams(std::string params);
-    int convertToInt(std::string value);
   public:
     QueryHandler(std::string service, cxxtools::http::Request& request);
     ~QueryHandler();
