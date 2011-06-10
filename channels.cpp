@@ -27,7 +27,6 @@ void ChannelsResponder::reply(std::ostream& out, cxxtools::http::Request& reques
 
   int channel_details = q.getParamAsInt(0);
 
-
   if (channel_details > -1) {
      cChannel* channel = VdrExtension::getChannel(channel_details);
      if (channel == NULL || channel->GroupSep()) {

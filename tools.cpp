@@ -139,8 +139,6 @@ QueryHandler::~QueryHandler()
 
 void QueryHandler::parseRestParams(std::string params)
 {
-  esyslog("restfulapi, param: \"%s\"", params.c_str());
-
   int start = -1;
 
   for(int i=0;i<(int)params.length();i++)
@@ -153,15 +151,13 @@ void QueryHandler::parseRestParams(std::string params)
       } else {
         std::string p = params.substr(start+1, (i-1)-(start));
         _params.push_back(p);
-        esyslog("restfulapi, param: /%s/, start:%i, end:%i", p.c_str(), start+1,(i-1)-(start+1));
         start = i;
       }
     }
   }
 
-  if(start != -1 && start != (int)params.length() - 1) {
+  if(start != (int)params.length() - 1) {
     _params.push_back(params.substr(start + 1, params.length() - 1));
-    esyslog("restfulapi, param: /%s/", params.substr(start + 1, params.length() -1).c_str());
   }
 }
 
@@ -189,10 +185,7 @@ int QueryHandler::getOptionAsInt(std::string name)
 
 bool QueryHandler::isFormat(std::string format)
 {
-  if (_params.size() > 0 ) {
-     if (_params[_params.size() - 1].find(format) != -1 ) {
-        return true;
-     }
-  }
+  if ((int)_url.find(format) != -1)
+     return true;
   return false;
 } 
