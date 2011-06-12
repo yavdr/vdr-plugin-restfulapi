@@ -1,20 +1,35 @@
 #include "tools.h"
 
-// --- stream methods ---------------------------------------------------------
+// --- StreamExtension ---------------------------------------------------------
 
-void write(std::ostream* out, std::string str)
+StreamExtension::StreamExtension(std::ostream *out)
 {
-  out->write(str.c_str(), str.length());
+  _out = out;
 }
 
-void writeHtmlHeader(std::ostream* out)
+std::ostream* StreamExtension::getBasicStream()
 {
-  write(out, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
-  write(out, "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n");
-  write(out, "<html xml:lang=\"en\" lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\">\n");
-  write(out, "<head>\n");
-  write(out, "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />");
-  write(out, "</head><body>");
+  return _out;
+}
+
+void StreamExtension::write(std::string str)
+{
+  _out->write(str.c_str(), str.length());
+}
+
+void StreamExtension::writeHtmlHeader()
+{
+  write("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
+  write("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n");
+  write("<html xml:lang=\"en\" lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\">\n");
+  write("<head>\n");
+  write("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />");
+  write("</head><body>");
+}
+
+void StreamExtension::writeXmlHeader()
+{
+  write("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n");
 }
 
 // --- VdrExtension -----------------------------------------------------------

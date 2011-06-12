@@ -60,10 +60,10 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerTimers& t);
 class TimerList
 {
   protected:
-    std::ostream* out;
+    StreamExtension *s;
   public:
-    TimerList(std::ostream* _out) { out = _out; };
-    ~TimerList() { };
+    TimerList(std::ostream* _out);
+    ~TimerList();
     virtual void init() { };
     virtual void addTimer(cTimer* timer) { };
     virtual void finish() { };

@@ -148,24 +148,32 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerEvents& e)
   si.addMember("rows") <<= e.event;
 }
 
+EventList::EventList(std::ostream *_out) {
+  s = new StreamExtension(_out);
+}
+
+EventList::~EventList()
+{
+  delete s;
+}
+
 void HtmlEventList::init()
 {
-  writeHtmlHeader(out);
-  
-  write(out, "<ul>");
+  s->writeHtmlHeader();
+  s->write("<ul>");
 }
 
 void HtmlEventList::addEvent(cEvent* event, bool scan_images = false)
 {
-  write(out, "<li>");
-  write(out, (char*)event->Title()); //TODO: add more infos
-  write(out, "\n");
+  s->write("<li>");
+  s->write((char*)event->Title()); //TODO: add more infos
+  s->write("\n");
 }
 
 void HtmlEventList::finish()
 {
-  write(out, "</ul>");
-  write(out, "</body></html>");
+  s->write("</ul>");
+  s->write("</body></html>");
 }
 
 void JsonEventList::addEvent(cEvent* event, bool scan_images = false)
@@ -210,15 +218,15 @@ void JsonEventList::addEvent(cEvent* event, bool scan_images = false)
 
 void JsonEventList::finish()
 {
-  cxxtools::JsonSerializer serializer(*out);
+  cxxtools::JsonSerializer serializer(*s->getBasicStream());
   serializer.serialize(serEvents, "events");
   serializer.finish();
 }
 
 void XmlEventList::init()
 {
-  write(out, "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n");
-  write(out, "<events xmlns=\"http://www.domain.org/restfulapi/2011/events-xml\">\n");
+  s->writeXmlHeader();  
+  s->write("<events xmlns=\"http://www.domain.org/restfulapi/2011/events-xml\">\n");
 }
 
 void XmlEventList::addEvent(cEvent* event, bool scan_images = false)
@@ -231,13 +239,13 @@ void XmlEventList::addEvent(cEvent* event, bool scan_images = false)
   if ( event->ShortText() == NULL ) { eventShortText = ""; } else { eventShortText = event->ShortText(); }
   if ( event->Description() == NULL ) { eventDescription = ""; } else { eventDescription = event->Description(); }
 
-  write(out, " <event>\n");
-  write(out, (const char*)cString::sprintf("  <param name=\"id\">%i</param>\n", event->EventID()));
-  write(out, (const char*)cString::sprintf("  <param name=\"title\">%s</param>\n", StringExtension::encodeToXml(eventTitle).c_str()));
-  write(out, (const char*)cString::sprintf("  <param name=\"short_text\">%s</param>\n", StringExtension::encodeToXml(eventShortText).c_str()));
-  write(out, (const char*)cString::sprintf("  <param name=\"description\">%s</param>\n", StringExtension::encodeToXml(eventDescription).c_str()));
-  write(out, (const char*)cString::sprintf("  <param name=\"start_time\">%i</param>\n", (int)event->StartTime()));
-  write(out, (const char*)cString::sprintf("  <param name=\"duration\">%i</param>\n", event->Duration()));
+  s->write(" <event>\n");
+  s->write((const char*)cString::sprintf("  <param name=\"id\">%i</param>\n", event->EventID()));
+  s->write((const char*)cString::sprintf("  <param name=\"title\">%s</param>\n", StringExtension::encodeToXml(eventTitle).c_str()));
+  s->write((const char*)cString::sprintf("  <param name=\"short_text\">%s</param>\n", StringExtension::encodeToXml(eventShortText).c_str()));
+  s->write((const char*)cString::sprintf("  <param name=\"description\">%s</param>\n", StringExtension::encodeToXml(eventDescription).c_str()));
+  s->write((const char*)cString::sprintf("  <param name=\"start_time\">%i</param>\n", (int)event->StartTime()));
+  s->write((const char*)cString::sprintf("  <param name=\"duration\">%i</param>\n", event->Duration()));
 
   if ( scan_images ) {
      std::vector< std::string > images;
@@ -245,17 +253,17 @@ void XmlEventList::addEvent(cEvent* event, bool scan_images = false)
      int found = VdrExtension::scanForFiles(wildcardpath, images);
      wildcardpath = (std::string)"/var/cache/vdr/epgimages/" + StringExtension::itostr(event->EventID()) + (std::string)".*";
      found += VdrExtension::scanForFiles(wildcardpath, images);
-     write(out, "  <param name=\"images\">");
+     s->write("  <param name=\"images\">");
      for (int i=0;i<found;i++) {
-        write(out, (const char*)cString::sprintf("   <image>%s</image>", StringExtension::encodeToXml(images[i]).c_str()));
+        s->write((const char*)cString::sprintf("   <image>%s</image>", StringExtension::encodeToXml(images[i]).c_str()));
      }
-     write(out, "  </param>");
+     s->write("  </param>");
   }
 
-  write(out, " </event>\n");
+  s->write(" </event>\n");
 }
 
 void XmlEventList::finish()
 {
-  write(out, "</events>");
+  s->write("</events>");
 }

@@ -16,11 +16,21 @@
 
 #define LOWINT 2147483648;
 
-void write(std::ostream* out, std::string str);
-void writeHtmlHeader(std::ostream* out);
-
 #ifndef RESTFULAPI_EXTENSIONS
 #define RESTFULAPI_EXTENSIONS
+
+class StreamExtension
+{
+  private:
+    std::ostream *_out;
+  public:
+    StreamExtension(std::ostream *out);
+    ~StreamExtension() { };
+    std::ostream* getBasicStream();
+    void write(std::string str);
+    void writeHtmlHeader();
+    void writeXmlHeader();
+};
 
 class VdrExtension
 {

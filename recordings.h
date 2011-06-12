@@ -54,10 +54,10 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerRecordings& p);
 class RecordingList
 {
   protected:
-    std::ostream* out;
+    StreamExtension *s;
   public:
-    RecordingList(std::ostream* _out) { out = _out; };
-    ~RecordingList() { };
+    RecordingList(std::ostream* _out);
+    ~RecordingList();
     virtual void init() { };
     virtual void addRecording(cRecording* recording) { };
     virtual void finish() { };

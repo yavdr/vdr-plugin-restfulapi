@@ -87,24 +87,33 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerRecordings& p)
   si.addMember("rows") <<= p.recording;
 }
 
+RecordingList::RecordingList(std::ostream *out)
+{
+  s = new StreamExtension(out);
+}
+
+RecordingList::~RecordingList()
+{
+  delete s;
+}
+
 void HtmlRecordingList::init()
 {
-  writeHtmlHeader(out);
-  
-  write(out, "<ul>");
+  s->writeHtmlHeader();
+  s->write("<ul>");
 }
 
 void HtmlRecordingList::addRecording(cRecording* recording)
 {
-  write(out, "<li>");
-  write(out, (char*)recording->Name());
-  write(out, "</body></html>");
+  s->write("<li>");
+  s->write((char*)recording->Name());
+  s->write("</body></html>");
 }
 
 void HtmlRecordingList::finish()
 {
-  write(out, "</ul>");
-  write(out, "</body></html>");
+  s->write("</ul>");
+  s->write("</body></html>");
 }
 
 void JsonRecordingList::addRecording(cRecording* recording)
@@ -147,15 +156,15 @@ void JsonRecordingList::addRecording(cRecording* recording)
 
 void JsonRecordingList::finish()
 {
-  cxxtools::JsonSerializer serializer(*out);
+  cxxtools::JsonSerializer serializer(*s->getBasicStream());
   serializer.serialize(serRecordings, "recordings");
   serializer.finish();
 }
 
 void XmlRecordingList::init()
 {
-  write(out, "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n");
-  write(out, "<recordings xmlns=\"http://www.domain.org/restfulapi/2011/recordings-xml\">\n");
+  s->writeXmlHeader();
+  s->write("<recordings xmlns=\"http://www.domain.org/restfulapi/2011/recordings-xml\">\n");
 }
 
 void XmlRecordingList::addRecording(cRecording* recording)
@@ -177,22 +186,22 @@ void XmlRecordingList::addRecording(cRecording* recording)
      if ( event->Duration() > 0 ) { eventDuration = event->Duration(); }
   }
 
-  write(out, " <recording>\n");
-  write(out, (const char*)cString::sprintf("  <param name=\"name\">%s</param>\n", StringExtension::encodeToXml(recording->Name()).c_str()) );
-  write(out, (const char*)cString::sprintf("  <param name=\"filename\">%s</param>\n", StringExtension::encodeToXml(recording->Name()).c_str()) );
-  write(out, (const char*)cString::sprintf("  <param name=\"is_new\">%s</param>\n", recording->IsNew() ? "true" : "false" ));
-  write(out, (const char*)cString::sprintf("  <param name=\"is_edited\">%s</param>\n", recording->IsEdited() ? "true" : "false" ));
-  write(out, (const char*)cString::sprintf("  <param name=\"is_pes_recording\">%s</param>\n", recording->IsPesRecording() ? "true" : "false" ));
-  write(out, (const char*)cString::sprintf("  <param name=\"duration\">%i</param>\n", -1)); //getRecordingDuration(recording);
-  write(out, (const char*)cString::sprintf("  <param name=\"event_title\">%s</param>\n", StringExtension::encodeToXml(eventTitle).c_str()) );
-  write(out, (const char*)cString::sprintf("  <param name=\"event_short_text\">%s</param>\n", StringExtension::encodeToXml(eventShortText).c_str()) );
-  write(out, (const char*)cString::sprintf("  <param name=\"event_description\">%s</param>\n", StringExtension::encodeToXml(eventDescription).c_str()) );
-  write(out, (const char*)cString::sprintf("  <param name=\"event_start_time\">%i</param>\n", eventStartTime));
-  write(out, (const char*)cString::sprintf("  <param name=\"event_duration\">%i</param>\n", eventDuration));
-  write(out, " </recording>\n");
+  s->write(" <recording>\n");
+  s->write((const char*)cString::sprintf("  <param name=\"name\">%s</param>\n", StringExtension::encodeToXml(recording->Name()).c_str()) );
+  s->write((const char*)cString::sprintf("  <param name=\"filename\">%s</param>\n", StringExtension::encodeToXml(recording->Name()).c_str()) );
+  s->write((const char*)cString::sprintf("  <param name=\"is_new\">%s</param>\n", recording->IsNew() ? "true" : "false" ));
+  s->write((const char*)cString::sprintf("  <param name=\"is_edited\">%s</param>\n", recording->IsEdited() ? "true" : "false" ));
+  s->write((const char*)cString::sprintf("  <param name=\"is_pes_recording\">%s</param>\n", recording->IsPesRecording() ? "true" : "false" ));
+  s->write((const char*)cString::sprintf("  <param name=\"duration\">%i</param>\n", -1)); //getRecordingDuration(recording);
+  s->write((const char*)cString::sprintf("  <param name=\"event_title\">%s</param>\n", StringExtension::encodeToXml(eventTitle).c_str()) );
+  s->write((const char*)cString::sprintf("  <param name=\"event_short_text\">%s</param>\n", StringExtension::encodeToXml(eventShortText).c_str()) );
+  s->write((const char*)cString::sprintf("  <param name=\"event_description\">%s</param>\n", StringExtension::encodeToXml(eventDescription).c_str()) );
+  s->write((const char*)cString::sprintf("  <param name=\"event_start_time\">%i</param>\n", eventStartTime));
+  s->write((const char*)cString::sprintf("  <param name=\"event_duration\">%i</param>\n", eventDuration));
+  s->write(" </recording>\n");
 }
 
 void XmlRecordingList::finish()
 {
-  write(out, "</recordings>");
+  s->write("</recordings>");
 }

@@ -43,10 +43,10 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerChannels& c);
 class ChannelList
 {
   protected:
-    std::ostream* out;
+    StreamExtension *s;
   public:
-    ChannelList(std::ostream* _out) { out = _out; };
-    ~ChannelList() { };
+    ChannelList(std::ostream* _out);
+    ~ChannelList();
     virtual void init() { };
     virtual void addChannel(cChannel* channel) { };
     virtual void finish() { };

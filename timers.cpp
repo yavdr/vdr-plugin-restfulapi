@@ -195,80 +195,89 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerTimers& t)
   si.addMember("rows") <<= t.timer;
 }
 
+TimerList::TimerList(std::ostream *out)
+{
+  s = new StreamExtension(out);
+}
+
+TimerList::~TimerList()
+{
+  delete s;
+}
+
 void HtmlTimerList::init()
 {
-  writeHtmlHeader(out); 
-
-  write(out, "<ul>");
+  s->writeHtmlHeader(); 
+  s->write("<ul>");
 }
 
 void HtmlTimerList::addTimer(cTimer* timer)
 {
-  write(out, "<li>");
-  write(out, (char*)timer->File()); //TODO: add date, time and duration
-  write(out, "\n");
+  s->write("<li>");
+  s->write((char*)timer->File()); //TODO: add date, time and duration
+  s->write("\n");
 }
 
 void HtmlTimerList::finish()
 {
-  write(out, "</ul>");
-  write(out, "</body></html>");
+  s->write("</ul>");
+  s->write("</body></html>");
 }
 
 void JsonTimerList::addTimer(cTimer* timer)
 {
-    SerTimer serTimer;
-    serTimer.Start = timer->Start();
-    serTimer.Stop = timer->Stop();
-    serTimer.Priority = timer->Priority();
-    serTimer.Lifetime = timer->Lifetime();
-    serTimer.EventID = timer->Event() != NULL ? timer->Event()->EventID() : -1;
-    serTimer.WeekDays = timer->WeekDays();
-    serTimer.Day = timer->Day();
-    serTimer.Channel = timer->Channel()->Number();
-    serTimer.IsRecording = timer->Recording();
-    serTimer.IsPending = timer->Pending();
-    serTimer.FileName = StringExtension::UTF8Decode(timer->File());
-    serTimer.ChannelName = StringExtension::UTF8Decode(timer->Channel()->Name());
-    serTimer.IsActive = timer->Flags() & 0x01 == 0x01 ? true : false;
-    serTimers.push_back(serTimer);
+  SerTimer serTimer;
+  serTimer.Start = timer->Start();
+  serTimer.Stop = timer->Stop();
+  serTimer.Priority = timer->Priority();
+  serTimer.Lifetime = timer->Lifetime();
+  serTimer.EventID = timer->Event() != NULL ? timer->Event()->EventID() : -1;
+  serTimer.WeekDays = timer->WeekDays();
+  serTimer.Day = timer->Day();
+  serTimer.Channel = timer->Channel()->Number();
+  serTimer.IsRecording = timer->Recording();
+  serTimer.IsPending = timer->Pending();
+  serTimer.FileName = StringExtension::UTF8Decode(timer->File());
+  serTimer.ChannelName = StringExtension::UTF8Decode(timer->Channel()->Name());
+  serTimer.IsActive = timer->Flags() & 0x01 == 0x01 ? true : false;
+  serTimers.push_back(serTimer);
 }
 
 void JsonTimerList::finish()
 {
-  cxxtools::JsonSerializer serializer(*out);
+  cxxtools::JsonSerializer serializer(*s->getBasicStream());
   serializer.serialize(serTimers, "timers");
   serializer.finish();
 }
 
 void XmlTimerList::init()
 {
-  write(out, "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n");
-  write(out, "<timers xmlns=\"http://www.domain.org/restfulapi/2011/timers-xml\">\n");
+  s->writeXmlHeader();
+  s->write("<timers xmlns=\"http://www.domain.org/restfulapi/2011/timers-xml\">\n");
 }
 
 void XmlTimerList::addTimer(cTimer* timer)
 {
-  write(out, " <timer>\n");
-  write(out, (const char*)cString::sprintf("  <param name=\"start\">%i</param>\n", timer->Start()) );
-  write(out, (const char*)cString::sprintf("  <param name=\"stop\">%i</param>\n", timer->Stop()) );
-  write(out, (const char*)cString::sprintf("  <param name=\"priority\">%i</param>\n", timer->Priority()) );
-  write(out, (const char*)cString::sprintf("  <param name=\"lifetime\">%i</param>\n", timer->Lifetime()) );
-  write(out, (const char*)cString::sprintf("  <param name=\"event_id\">%i</param>\n", timer->Event() != NULL ? timer->Event()->EventID() : -1) );
-  write(out, (const char*)cString::sprintf("  <param name=\"weekdays\">%i</param>\n", timer->WeekDays()) );
-  write(out, (const char*)cString::sprintf("  <param name=\"day\">%i</param>\n", (int)timer->Day()));
-  write(out, (const char*)cString::sprintf("  <param name=\"channel\">%i</param>\n", timer->Channel()->Number()) );
-  write(out, (const char*)cString::sprintf("  <param name=\"is_recording\">%s</param>\n", timer->Recording() ? "true" : "false" ) );
-  write(out, (const char*)cString::sprintf("  <param name=\"is_pending\">%s</param>\n", timer->Pending() ? "true" : "false" ));
-  write(out, (const char*)cString::sprintf("  <param name=\"filename\">%s</param>\n", StringExtension::encodeToXml(timer->File()).c_str()) );
-  write(out, (const char*)cString::sprintf("  <param name=\"channelname\">%s</param>\n", StringExtension::encodeToXml(timer->Channel()->Name()).c_str()));
-  write(out, (const char*)cString::sprintf("  <param name=\"is_active\">%s</param>\n", timer->Flags() & 0x01 == 0x01 ? "true" : "false" ));
-  write(out, " </timer>\n");
+  s->write(" <timer>\n");
+  s->write((const char*)cString::sprintf("  <param name=\"start\">%i</param>\n", timer->Start()) );
+  s->write((const char*)cString::sprintf("  <param name=\"stop\">%i</param>\n", timer->Stop()) );
+  s->write((const char*)cString::sprintf("  <param name=\"priority\">%i</param>\n", timer->Priority()) );
+  s->write((const char*)cString::sprintf("  <param name=\"lifetime\">%i</param>\n", timer->Lifetime()) );
+  s->write((const char*)cString::sprintf("  <param name=\"event_id\">%i</param>\n", timer->Event() != NULL ? timer->Event()->EventID() : -1) );
+  s->write((const char*)cString::sprintf("  <param name=\"weekdays\">%i</param>\n", timer->WeekDays()) );
+  s->write((const char*)cString::sprintf("  <param name=\"day\">%i</param>\n", (int)timer->Day()));
+  s->write((const char*)cString::sprintf("  <param name=\"channel\">%i</param>\n", timer->Channel()->Number()) );
+  s->write((const char*)cString::sprintf("  <param name=\"is_recording\">%s</param>\n", timer->Recording() ? "true" : "false" ) );
+  s->write((const char*)cString::sprintf("  <param name=\"is_pending\">%s</param>\n", timer->Pending() ? "true" : "false" ));
+  s->write((const char*)cString::sprintf("  <param name=\"filename\">%s</param>\n", StringExtension::encodeToXml(timer->File()).c_str()) );
+  s->write((const char*)cString::sprintf("  <param name=\"channelname\">%s</param>\n", StringExtension::encodeToXml(timer->Channel()->Name()).c_str()));
+  s->write((const char*)cString::sprintf("  <param name=\"is_active\">%s</param>\n", timer->Flags() & 0x01 == 0x01 ? "true" : "false" ));
+  s->write(" </timer>\n");
 }
 
 void XmlTimerList::finish()
 {
-  write(out, "</timers>");
+  s->write("</timers>");
 }
 
 // --- TimerValues class ------------------------------------------------------------

@@ -47,10 +47,10 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerEvents& e);
 class EventList
 {
   protected:
-    std::ostream* out;
+    StreamExtension *s;
   public:
-    EventList(std::ostream* _out) { out = _out; };
-    ~EventList() { };
+    EventList(std::ostream* _out);
+    ~EventList();
     virtual void init() { };
     virtual void addEvent(cEvent* event, bool scan_images) { };
     virtual void finish() { };

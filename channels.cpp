@@ -68,24 +68,33 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerChannels& c)
   si.addMember("rows") <<= c.channel;
 }
 
+ChannelList::ChannelList(std::ostream* _out)
+{
+  s = new StreamExtension(_out);
+}
+
+ChannelList::~ChannelList()
+{
+  delete s;
+}
+
 void HtmlChannelList::init()
 {
-  writeHtmlHeader(out);
-
-  write(out, "<ul>");
+  s->writeHtmlHeader();
+  s->write("<ul>");
 }
 
 void HtmlChannelList::addChannel(cChannel* channel)
 {
-  write(out, "<li>");
-  write(out, (char*)channel->Name());
-  write(out, "\n");
+  s->write("<li>");
+  s->write((char*)channel->Name());
+  s->write("\n");
 }
 
 void HtmlChannelList::finish()
 {
-  write(out, "</ul>");
-  write(out, "</body></html>");
+  s->write("</ul>");
+  s->write("</body></html>");
 }
 
 void JsonChannelList::addChannel(cChannel* channel)
@@ -106,34 +115,34 @@ void JsonChannelList::addChannel(cChannel* channel)
 
 void JsonChannelList::finish()
 {
-  cxxtools::JsonSerializer serializer(*out);
+  cxxtools::JsonSerializer serializer(*s->getBasicStream());
   serializer.serialize(serChannels, "channels");
   serializer.finish();
 }
 
 void XmlChannelList::init()
 {
-  write(out, "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n");
-  write(out, "<channels xmlns=\"http://www.domain.org/restfulapi/2011/channels-xml\">\n");
+  s->writeXmlHeader();
+  s->write("<channels xmlns=\"http://www.domain.org/restfulapi/2011/channels-xml\">\n");
 }
 
 void XmlChannelList::addChannel(cChannel* channel)
 {
   std::string suffix = (std::string) ".ts";
 
-  write(out, " <channel>\n");
-  write(out, (const char*)cString::sprintf("  <param name=\"name\">%s</param>\n", StringExtension::encodeToXml(channel->Name()).c_str()));
-  write(out, (const char*)cString::sprintf("  <param name=\"number\">%i</param>\n", channel->Number()));
-  write(out, (const char*)cString::sprintf("  <param name=\"transponder\">%i</param>\n", channel->Transponder()));
-  write(out, (const char*)cString::sprintf("  <param name=\"stream\">%s</param>\n", StringExtension::encodeToXml( ((std::string)channel->GetChannelID().ToString() + (std::string)suffix).c_str()).c_str()));
-  write(out, (const char*)cString::sprintf("  <param name=\"is_atsc\">%s</param>\n", channel->IsAtsc() ? "true" : "false"));
-  write(out, (const char*)cString::sprintf("  <param name=\"is_cable\">%s</param>\n", channel->IsCable() ? "true" : "false"));
-  write(out, (const char*)cString::sprintf("  <param name=\"is_sat\">%s</param>\n", channel->IsSat() ? "true" : "false"));
-  write(out, (const char*)cString::sprintf("  <param name=\"is_terr\">%s</param>\n", channel->IsTerr() ? "true" : "false"));
-  write(out, " </channel>\n");
+  s->write(" <channel>\n");
+  s->write((const char*)cString::sprintf("  <param name=\"name\">%s</param>\n", StringExtension::encodeToXml(channel->Name()).c_str()));
+  s->write((const char*)cString::sprintf("  <param name=\"number\">%i</param>\n", channel->Number()));
+  s->write((const char*)cString::sprintf("  <param name=\"transponder\">%i</param>\n", channel->Transponder()));
+  s->write((const char*)cString::sprintf("  <param name=\"stream\">%s</param>\n", StringExtension::encodeToXml( ((std::string)channel->GetChannelID().ToString() + (std::string)suffix).c_str()).c_str()));
+  s->write((const char*)cString::sprintf("  <param name=\"is_atsc\">%s</param>\n", channel->IsAtsc() ? "true" : "false"));
+  s->write((const char*)cString::sprintf("  <param name=\"is_cable\">%s</param>\n", channel->IsCable() ? "true" : "false"));
+  s->write((const char*)cString::sprintf("  <param name=\"is_sat\">%s</param>\n", channel->IsSat() ? "true" : "false"));
+  s->write((const char*)cString::sprintf("  <param name=\"is_terr\">%s</param>\n", channel->IsTerr() ? "true" : "false"));
+  s->write(" </channel>\n");
 }
 
 void XmlChannelList::finish()
 {
-  write(out, "</channels>");
+  s->write("</channels>");
 }
