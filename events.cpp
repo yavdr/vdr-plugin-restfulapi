@@ -191,9 +191,11 @@ void JsonEventList::addEvent(cEvent* event, bool scan_images = false)
   serEvent.ImagesCount = 0;
 
   if ( scan_images ) {
-     std::string wildcardpath = (std::string)"/var/cache/vdr/epgimages/" + StringExtension::itostr(serEvent.Id) + (std::string)"*.*";
+     std::string wildcardpath = (std::string)"/var/cache/vdr/epgimages/" + StringExtension::itostr(serEvent.Id) + (std::string)"_*.*";
      std::vector< std::string > images;
      int found = VdrExtension::scanForFiles(wildcardpath, images);
+     wildcardpath = (std::string)"/var/cache/vdr/epgimages/" + StringExtension::itostr(serEvent.Id) + (std::string)".*";
+     found += VdrExtension::scanForFiles(wildcardpath, images);
      if (found > 0) {
         serEvent.Images = new cxxtools::String[found];
         serEvent.ImagesCount = found;
