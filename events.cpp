@@ -238,9 +238,11 @@ void XmlEventList::addEvent(cEvent* event, bool scan_images = false)
   write(out, (const char*)cString::sprintf("  <param name=\"duration\">%i</param>\n", event->Duration()));
 
   if ( scan_images ) {
-     std::string wildcardpath = (std::string)"/var/cache/vdr/epgimages/" + StringExtension::itostr(event->EventID()) + (std::string)"*.*";
      std::vector< std::string > images;
+     std::string wildcardpath = (std::string)"/var/cache/vdr/epgimages/" + StringExtension::itostr(event->EventID()) + (std::string)"_*.*";
      int found = VdrExtension::scanForFiles(wildcardpath, images);
+     wildcardpath = (std::string)"/var/cache/vdr/epgimages/" + StringExtension::itostr(event->EventID()) + (std::string)".*";
+     found += VdrExtension::scanForFiles(wildcardpath, images);
      write(out, "  <param name=\"images\">");
      for (int i=0;i<found;i++) {
         write(out, (const char*)cString::sprintf("   <image>%s</image>", StringExtension::encodeToXml(images[i]).c_str()));
