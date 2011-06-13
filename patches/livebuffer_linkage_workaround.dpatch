@@ -1,8 +1,7 @@
 #! /bin/sh /usr/share/dpatch/dpatch-run
 ## livebufferfix.dpatch by Thomas Schmidt <tschmidt@debian.org>
 ##
-## Thomas Günther <tom@toms-cafe.de>:
-##   - adapted to VDR-1.5.7
+## Michael Eiler <eiler.mike@gmail.com>
 ##
 ## All lines beginning with `## DP:' are a description of the patch.
 ## DP: Patch for the newplugin-script, to not require a normal vdr-source-dir
