@@ -1,5 +1,5 @@
 #! /bin/sh /usr/share/dpatch/dpatch-run
-## livebufferfix.dpatch by Thomas Schmidt <tschmidt@debian.org>
+## livebufferfix.dpatch
 ##
 ## Michael Eiler <eiler.mike@gmail.com>
 ##
