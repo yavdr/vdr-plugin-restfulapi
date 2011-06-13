@@ -6,57 +6,50 @@ void TimersResponder::reply(std::ostream& out, cxxtools::http::Request& request,
      showTimers(out, request, reply);
   } else if ( request.method() == "DELETE" ) {
      deleteTimer(out, request, reply);
-  } else if ( request.method() == "POST" ) {
-     createTimer(out, request, reply);
-  } else if ( request.method() == "PUT" ) {
-     updateTimer(out, request, reply);
+  } else if ( request.method() == "POST" || request.method() == "PUT" ) {
+     createOrUpdateTimer(out, request, reply);
   } else {
     reply.httpReturn(501, "Only GET, DELETE, POST and PUT methods are supported.");
   }
 }
 
-void TimersResponder::updateTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
-{
-  reply.httpReturn(403, "Updating timers currently not supported. Will be added in the future.");
-}
-
-void TimersResponder::createTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+void TimersResponder::createOrUpdateTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   if ( Timers.BeingEdited() ) {
      reply.httpReturn(502, "Timers are being edited - try again later");
      return;
   }
 
-  QueryHandler q("/timers", request);
-
-  //std::string timer_id_str = q.param("timer_id"); only required to update timers
+  HtmlRequestParser p(request);
 
   int error = false;
   std::string error_values = "";
   static TimerValues v;
 
-  int flags = v.ConvertFlags(q.getOptionAsString("flags"));
-  std::string aux = v.ConvertAux(q.getOptionAsString("aux"));
-  std::string file = v.ConvertFile(q.getOptionAsString("file"));
-  int lifetime = v.ConvertLifetime(q.getOptionAsString("lifetime"));
-  int priority = v.ConvertPriority(q.getOptionAsString("priority"));
-  int stop = v.ConvertStop(q.getOptionAsString("stop"));
-  int start = v.ConvertStart(q.getOptionAsString("start"));
-  std::string weekdays = q.getOptionAsString("weekdays");
-  int day = v.ConvertDay(q.getOptionAsString("day"));
-  cChannel* chan = v.ConvertChannel(q.getOptionAsString("channel"));
-  std::string event_id = q.getOptionAsString("event_id");
+  int flags = v.ConvertFlags(p.getValueAsString("flags"));
+  std::string aux = v.ConvertAux(p.getValueAsString("aux"));
+  std::string file = v.ConvertFile(p.getValueAsString("file"));
+  int lifetime = v.ConvertLifetime(p.getValueAsString("lifetime"));
+  int priority = v.ConvertPriority(p.getValueAsString("priority"));
+  int stop = v.ConvertStop(p.getValueAsString("stop"));
+  int start = v.ConvertStart(p.getValueAsString("start"));
+  std::string weekdays = p.getValueAsString("weekdays");
+  std::string day = p.getValueAsString("day");
+  cChannel* chan = v.ConvertChannel(p.getValueAsString("channel"));
+  std::string event_id = p.getValueAsString("event_id");
   cEvent* event = v.ConvertEvent(event_id, chan);
+  cTimer* timer_orig = v.ConvertTimer(p.getValueAsString("timer_id"));
 
+  // implement value handling if timer should be updated instead of being created
   if ( !v.IsFlagsValid(flags) ) { error = true; error_values += "flags, "; }
   if ( event_id.length() > 0 && event == NULL ) { error = true; error_values += "event_id, "; }
   if ( !v.IsFileValid(file) ) { error = true; error_values += "file, "; }
-  if ( !v.IsLifetimeValid(lifetime) ) { error = true; error_values += "lifetime, "; }
-  if ( !v.IsPriorityValid(priority) ) { error = true; error_values += "priority, "; }
+  if ( !v.IsLifetimeValid(lifetime) ) { lifetime = 50; }
+  if ( !v.IsPriorityValid(priority) ) { priority = 99; }
   if ( !v.IsStopValid(stop) ) { error = true; error_values += "stop, "; }
   if ( !v.IsStartValid(start) ) { error = true; error_values += "start, "; }
   if ( !v.IsWeekdaysValid(weekdays) ) { error = true; error_values += "weekdays, "; }
-  //if ( day <= (time(NULL)-(24*3600)) ) { error = true; error_values += "day, "; }
+  if ( !v.IsDayValid(day) ) { error = true; error_values += "day, "; }
   if ( chan == NULL ) { error = true; error_values += "channel, "; }
 
   if (error) {
@@ -64,13 +57,12 @@ void TimersResponder::createTimer(std::ostream& out, cxxtools::http::Request& re
      reply.httpReturn(403, error_message);
      return;
   }
-
-
+ 
   std::ostringstream builder;
   builder << flags << ":"
-          << (const char*)chan->GetChannelID().ToString()
+          << (const char*)chan->GetChannelID().ToString() << ":"
 	  << ( weekdays != "-------" ? weekdays : "" )
-          << ( weekdays == "-------" || day == -1 ? "" : "@" ) << day << ":"
+          << ( weekdays == "-------" || day.empty() ? "" : "@" ) << day << ":"
           << start << ":"
           << stop << ":"
           << priority << ":"
@@ -78,15 +70,34 @@ void TimersResponder::createTimer(std::ostream& out, cxxtools::http::Request& re
           << file << ":" 
           << aux;
 
-  esyslog("restfulapi: /%s/ ", builder.str().c_str());
+  dsyslog("restfulapi: /%s/ ", builder.str().c_str());
   chan = NULL;
-
-
-  /*cTimer* timer = new cTimer();
-  if ( timer->Parse(builder.str().c_str()) ) { 
-     Timers.Add(timer);
-     Timers.SetModified();
-  }*/
+  if ( timer_orig == NULL ) { // create timer
+     cTimer* timer = new cTimer();
+     if ( timer->Parse(builder.str().c_str()) ) { 
+        cTimer* checkTimer = Timers.GetTimer(timer);
+        if ( checkTimer != NULL ) {
+           delete timer;
+           reply.httpReturn(403, "Timer already defined!"); 
+           esyslog("restfulapi: Timer already defined!");
+        }
+        if ( event != NULL ) timer->SetEvent(event);
+        Timers.Add(timer);
+        Timers.SetModified();
+        esyslog("restfulapi: timer created!");
+     } else {
+        esyslog("restfulapi: timer creation failed!");
+     }
+  } else {
+     if ( timer_orig->Parse(builder.str().c_str()) ) {
+        if ( event != NULL ) timer_orig->SetEvent(event);
+        Timers.SetModified();
+        esyslog("restfulapi: updating timer successful!");
+     } else { 
+        reply.httpReturn(403, "updating timer failed!");
+        esyslog("restfulapi: updating timer failed!");
+     }
+  }
 }
 
 void TimersResponder::deleteTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
@@ -282,6 +293,12 @@ void XmlTimerList::finish()
 
 // --- TimerValues class ------------------------------------------------------------
 
+bool TimerValues::IsDayValid(std::string v)
+{
+  static cxxtools::Regex regex("[0-9]{4,4}-[0-9]{1,2}-[0-9]{1,2}");
+  return regex.match(v);
+}
+
 bool TimerValues::IsFlagsValid(int v)
 {
   if ( v == 0x0000 || v == 0x0001 || v == 0x0002 || v == 0x0004 || v == 0x0008 || v == 0xFFFF ) 
@@ -325,8 +342,18 @@ bool TimerValues::IsStartValid(int v)
 
 bool TimerValues::IsWeekdaysValid(std::string v)
 {
-  static cxxtools::Regex regex("[\\-M][\\-T][\\-W][\\-T][\\-F][\\-S][\\-S]");
-  return regex.match(v);
+  /*static cxxtools::Regex regex("[\\-M][\\-T][\\-W][\\-T][\\-F][\\-S][\\-S]");
+  return regex.match(v);*/
+  if ( v.length() != 7 ) return false;
+  const char* va = v.c_str();
+  if ( va[0] != '-' && va[0] != 'M' ) return false;
+  if ( va[1] != '-' && va[1] != 'T' ) return false;
+  if ( va[2] != '-' && va[2] != 'W' ) return false;
+  if ( va[3] != '-' && va[3] != 'T' ) return false;
+  if ( va[4] != '-' && va[4] != 'F' ) return false;
+  if ( va[5] != '-' && va[5] != 'S' ) return false;
+  if ( va[6] != '-' && va[6] != 'S' ) return false;
+  return true;
 }
 
 int TimerValues::ConvertFlags(std::string v)
@@ -350,12 +377,6 @@ cEvent* TimerValues::ConvertEvent(std::string event_id, cChannel* channel)
   if ( !Schedule ) return NULL;
 
   return (cEvent*)Schedule->GetEvent(eventid);
-}
-
-cTimer* TimerValues::ConvertTimer(std::string v)
-{
-  int timer_id = StringExtension::strtoi(v);
-  return Timers.Get(timer_id);
 }
 
 std::string TimerValues::ConvertFile(std::string v)
@@ -397,4 +418,13 @@ cChannel* TimerValues::ConvertChannel(std::string v)
 {
   int c = StringExtension::strtoi(v);
   return VdrExtension::getChannel(c);
+}
+
+cTimer* TimerValues::ConvertTimer(std::string v)
+{
+  int t = StringExtension::strtoi(v);
+  if ( t >= 0 ) {
+     return Timers.Get(t);
+  }
+  return NULL;
 }

@@ -23,8 +23,7 @@ class TimersResponder : public cxxtools::http::Responder
       : cxxtools::http::Responder(service)
       { }
      virtual void reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
-     void createTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
-     void updateTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+     void createOrUpdateTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
      void deleteTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
      void showTimers(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
 };
@@ -107,6 +106,7 @@ class TimerValues
   public:
     TimerValues() { };
     ~TimerValues() { };
+    bool	IsDayValid(std::string v);
     bool 	IsFlagsValid(int v);
     bool	IsFileValid(std::string v);
     bool	IsLifetimeValid(int v);
@@ -117,7 +117,6 @@ class TimerValues
 
     int		ConvertFlags(std::string v);
     cEvent*	ConvertEvent(std::string event_id, cChannel* channel);
-    cTimer*	ConvertTimer(std::string v);
     std::string ConvertFile(std::string v); // replaces : with | - required by parsing method of VDR
     std::string ConvertAux(std::string v);  // replaces : with | - required by parsing method of VDR
     int		ConvertLifetime(std::string v);
@@ -126,4 +125,5 @@ class TimerValues
     int		ConvertStart(std::string v);
     int		ConvertDay(std::string v);
     cChannel*	ConvertChannel(std::string v);
+    cTimer*	ConvertTimer(std::string v);
 };

@@ -203,4 +203,26 @@ bool QueryHandler::isFormat(std::string format)
   if ((int)_url.find(format) != -1)
      return true;
   return false;
-} 
+}
+
+// --- HtmlRequestParser ------------------------------------------------------
+
+HtmlRequestParser::HtmlRequestParser(cxxtools::http::Request& request)
+{
+  query.parse_url(request.bodyStr());
+}
+
+HtmlRequestParser::~HtmlRequestParser()
+{
+
+}
+
+std::string HtmlRequestParser::getValueAsString(std::string name)
+{
+  return query.param(name);
+}
+
+int HtmlRequestParser::getValueAsInt(std::string name)
+{
+  return StringExtension::strtoi(getValueAsString(name));
+}

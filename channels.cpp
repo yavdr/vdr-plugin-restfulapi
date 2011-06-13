@@ -55,6 +55,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerChannel& c)
 {
   si.addMember("name") <<= c.Name;
   si.addMember("number") <<= c.Number;
+  si.addMember("channel_id") <<= c.ChannelId;
   si.addMember("transponder") <<= c.Transponder;
   si.addMember("stream") <<= c.Stream;
   si.addMember("is_atsc") <<= c.IsAtsc;
@@ -104,6 +105,7 @@ void JsonChannelList::addChannel(cChannel* channel)
   SerChannel serChannel;
   serChannel.Name = StringExtension::UTF8Decode(channel->Name());
   serChannel.Number = channel->Number();
+  serChannel.ChannelId = StringExtension::UTF8Decode((std::string)channel->GetChannelID().ToString());
   serChannel.Transponder = channel->Transponder();
   serChannel.Stream = StringExtension::UTF8Decode(((std::string)channel->GetChannelID().ToString() + (std::string)suffix).c_str());
   serChannel.IsAtsc = channel->IsAtsc();
@@ -133,6 +135,7 @@ void XmlChannelList::addChannel(cChannel* channel)
   s->write(" <channel>\n");
   s->write((const char*)cString::sprintf("  <param name=\"name\">%s</param>\n", StringExtension::encodeToXml(channel->Name()).c_str()));
   s->write((const char*)cString::sprintf("  <param name=\"number\">%i</param>\n", channel->Number()));
+  s->write((const char*)cString::sprintf("  <param name=\"channel_id\">%s</param>\n",  StringExtension::encodeToXml( (std::string)channel->GetChannelID().ToString()).c_str()));
   s->write((const char*)cString::sprintf("  <param name=\"transponder\">%i</param>\n", channel->Transponder()));
   s->write((const char*)cString::sprintf("  <param name=\"stream\">%s</param>\n", StringExtension::encodeToXml( ((std::string)channel->GetChannelID().ToString() + (std::string)suffix).c_str()).c_str()));
   s->write((const char*)cString::sprintf("  <param name=\"is_atsc\">%s</param>\n", channel->IsAtsc() ? "true" : "false"));

@@ -5,10 +5,6 @@ Details of the current API:
 <port> -> currently 8002
 <format> -> json, html or xml
 
-TIMERS:
-GET http://<ip>:<port>/timers.<format>
-DELETE http://<ip>:<port>/timers<number>       #the first timer has number 1
-
 RECORDINGS:
 GET http://<ip>:<port>/recordings.<format>
 DELETE http://<ip>:<port>/recordings<number>	#the first recording has number 1
@@ -39,3 +35,34 @@ possible keys:
 Up, Down, Menu, Ok, Back, Left, Right, Red, Green, Yellow, Blue, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, Info, Play, Pause, Stop, Record, FastFwd, FastRew, Next, Prev, Power, ChanUp, ChanDn, ChanPrev, VolUp, VolDn, Mute, Audio, Subtitles, Schedule, Channels, Timers, Recordings, Setup, Commands, User0, User1, User2, User3, User4, User5, User6, User7, User8, User9, None, Kbd
 
 keys are not case sensitive
+
+TIMERS:
+GET http://<ip>:<port>/timers.<format>
+DELETE http://<ip>:<port>/timers/<number>       #the first timer has number 1
+POST http://<ip>:<port>/timers			#to create a timer
+
+all the values must be encoded by a url-encoder!
+
+required values to create a timer:
+flags		integer, active = 1
+file		name of the recording (max. 40 characters)
+lifetime	integer, default = 50
+priority	integer, default = 99
+stop		integer, 24h stop time -> f.e. 22:30 means half past ten in the night
+start		integer, 24h start time
+weekdays	days on which the timer should be repeated -> f.e. MTWTF--
+day		first day on which the timer should be startet -> f.e. 2011-12-24 (<year>-<month>-<day>)
+channel		number of channel // will be changed to channel-unique-id in the future
+
+optional values:
+aux		string in which you can store additional data
+event_id	integer, the event of the program which should be recorded -> will save epg data to the recording
+
+PUT http://<ip>:<port>/timers			#to update a timer
+
+all the values must be encoded by a url-encoder!
+
+reqired values to update a timer:
+timer_id	integer, id of the timer you want to change
+
+all other values are optional

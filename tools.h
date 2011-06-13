@@ -66,4 +66,15 @@ class QueryHandler
     int getOptionAsInt(std::string name);
     bool isFormat(std::string format);
 };
+
+class HtmlRequestParser
+{
+  private:
+    cxxtools::QueryParams query;
+  public:
+    HtmlRequestParser(cxxtools::http::Request& request);
+    ~HtmlRequestParser();
+    std::string getValueAsString(std::string name);
+    int getValueAsInt(std::string name);
+};
 #endif

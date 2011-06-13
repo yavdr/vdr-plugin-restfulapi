@@ -24,6 +24,7 @@ struct SerChannel
 {
   cxxtools::String Name;
   int Number;
+  cxxtools::String ChannelId;
   int Transponder;
   cxxtools::String Stream;
   bool IsAtsc;
