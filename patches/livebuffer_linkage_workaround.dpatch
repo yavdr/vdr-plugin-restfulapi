@@ -1,0 +1,85 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## livebufferfix.dpatch by Thomas Schmidt <tschmidt@debian.org>
+##
+## Thomas Günther <tom@toms-cafe.de>:
+##   - adapted to VDR-1.5.7
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: Patch for the newplugin-script, to not require a normal vdr-source-dir
+
+@DPATCH@
+--- vdr/timers.h.bak	2011-06-13 13:05:15.468120002 +0200
++++ vdr/timers.h	2011-06-13 13:05:57.058120001 +0200
+@@ -44,10 +44,9 @@
+   const cEvent *event;
+ public:
+ #ifdef USE_LIVEBUFFER
+-  cTimer(bool Instant = false, bool Pause = false, cChannel *Channel = NULL, int Forerun = 0);
+-#else
+-  cTimer(bool Instant = false, bool Pause = false, cChannel *Channel = NULL);
++  cTimer(bool Instant, bool Pause, cChannel *Channel, int Forerun);
+ #endif /*USE_LIVEBUFFER*/
++  cTimer(bool Instant = false, bool Pause = false, cChannel *Channel = NULL);
+   cTimer(const cEvent *Event);
+   cTimer(const cTimer &Timer);
+   virtual ~cTimer();
+--- vdr/timers.c.bak	2011-06-13 13:05:19.618119998 +0200
++++ vdr/timers.c	2011-06-13 13:07:04.688120000 +0200
+@@ -26,10 +26,8 @@
+ // --- cTimer ----------------------------------------------------------------
+ 
+ #ifdef USE_LIVEBUFFER
++
+ cTimer::cTimer(bool Instant, bool Pause, cChannel *Channel, int Forerun)
+-#else
+-cTimer::cTimer(bool Instant, bool Pause, cChannel *Channel)
+-#endif /*USE_LIVEBUFFER*/
+ {
+   startTime = stopTime = 0;
+   lastSetEvent = 0;
+@@ -38,11 +36,42 @@
+   if (Instant)
+      SetFlags(tfActive | tfInstant);
+   channel = Channel ? Channel : Channels.GetByNumber(cDevice::CurrentChannel());
+-#ifdef USE_LIVEBUFFER
+   time_t t = time(NULL) - Forerun;
+-#else
+-  time_t t = time(NULL);
++  struct tm tm_r;
++  struct tm *now = localtime_r(&t, &tm_r);
++  day = SetTime(t, 0);
++  weekdays = 0;
++  start = now->tm_hour * 100 + now->tm_min;
++  stop = now->tm_hour * 60 + now->tm_min + Setup.InstantRecordTime;
++  stop = (stop / 60) * 100 + (stop % 60);
++  if (stop >= 2400)
++     stop -= 2400;
++  priority = Pause ? Setup.PausePriority : Setup.DefaultPriority;
++  lifetime = Pause ? Setup.PauseLifetime : Setup.DefaultLifetime;
++  fskProtection = 0;                                        // PIN PATCH
++  *file = 0;
++  aux = NULL;
++  event = NULL;
++  if (Instant && channel)
++     snprintf(file, sizeof(file), "%s%s", Setup.MarkInstantRecord ? "@" : "", *Setup.NameInstantRecord ? Setup.NameInstantRecord : channel->Name());
++  if (VfatFileSystem && (Utf8StrLen(file) > VFAT_MAX_FILENAME)) {
++     dsyslog("timer file name too long for VFAT file system: '%s'", file);
++     file[Utf8SymChars(file, VFAT_MAX_FILENAME)] = 0;
++     dsyslog("timer file name truncated to '%s'", file);
++     }
++}
+ #endif /*USE_LIVEBUFFER*/
++
++cTimer::cTimer(bool Instant, bool Pause, cChannel *Channel)
++{
++  startTime = stopTime = 0;
++  lastSetEvent = 0;
++  recording = pending = inVpsMargin = false;
++  flags = tfNone;
++  if (Instant)
++     SetFlags(tfActive | tfInstant);
++  channel = Channel ? Channel : Channels.GetByNumber(cDevice::CurrentChannel());
++  time_t t = time(NULL);
+   struct tm tm_r;
+   struct tm *now = localtime_r(&t, &tm_r);
+   day = SetTime(t, 0);
