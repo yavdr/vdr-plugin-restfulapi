@@ -39,18 +39,29 @@ void TimersResponder::createOrUpdateTimer(std::ostream& out, cxxtools::http::Req
   std::string event_id = p.getValueAsString("event_id");
   cEvent* event = v.ConvertEvent(event_id, chan);
   cTimer* timer_orig = v.ConvertTimer(p.getValueAsString("timer_id"));
-
-  // implement value handling if timer should be updated instead of being created
-  if ( !v.IsFlagsValid(flags) ) { error = true; error_values += "flags, "; }
-  if ( event_id.length() > 0 && event == NULL ) { error = true; error_values += "event_id, "; }
-  if ( !v.IsFileValid(file) ) { error = true; error_values += "file, "; }
-  if ( !v.IsLifetimeValid(lifetime) ) { lifetime = 50; }
-  if ( !v.IsPriorityValid(priority) ) { priority = 99; }
-  if ( !v.IsStopValid(stop) ) { error = true; error_values += "stop, "; }
-  if ( !v.IsStartValid(start) ) { error = true; error_values += "start, "; }
-  if ( !v.IsWeekdaysValid(weekdays) ) { error = true; error_values += "weekdays, "; }
-  if ( !v.IsDayValid(day) ) { error = true; error_values += "day, "; }
-  if ( chan == NULL ) { error = true; error_values += "channel, "; }
+  
+  if ( timer_orig == NULL ) { //create
+     if ( !v.IsFlagsValid(flags) ) { error = true; error_values += "flags, "; }
+     if ( event_id.length() > 0 && event == NULL ) { error = true; error_values += "event_id, "; }
+     if ( !v.IsFileValid(file) ) { error = true; error_values += "file, "; }
+     if ( !v.IsLifetimeValid(lifetime) ) { lifetime = 50; }
+     if ( !v.IsPriorityValid(priority) ) { priority = 99; }
+     if ( !v.IsStopValid(stop) ) { error = true; error_values += "stop, "; }
+     if ( !v.IsStartValid(start) ) { error = true; error_values += "start, "; }
+     if ( !v.IsWeekdaysValid(weekdays) ) { error = true; error_values += "weekdays, "; }
+     if ( !v.IsDayValid(day) ) { error = true; error_values += "day, "; }
+     if ( chan == NULL ) { error = true; error_values += "channel, "; }
+  } else { //update
+     if ( !v.IsFlagsValid(flags) ) { flags = 1; }
+     if ( !v.IsFileValid(file) ) { file = (std::string)timer_orig->File(); }
+     if ( !v.IsLifetimeValid(lifetime) ) { lifetime = timer_orig->Lifetime(); }
+     if ( !v.IsPriorityValid(priority) ) { priority = timer_orig->Priority(); }
+     if ( !v.IsStopValid(stop) ) { stop = timer_orig->Stop(); }
+     if ( !v.IsStartValid(start) ) { start = timer_orig->Start(); }
+     if ( !v.IsWeekdaysValid(weekdays) ) { weekdays = v.ConvertWeekdays(timer_orig->WeekDays()); }
+     if ( !v.IsDayValid(day) ) { day = v.ConvertDay(timer_orig->Day()); }
+     if ( chan == NULL ) { chan = (cChannel*)timer_orig->Channel(); }
+  }
 
   if (error) {
      std::string error_message = (std::string)"The following parameters aren't valid: " + error_values.substr(0, error_values.length()-2) + (std::string)"!";
@@ -293,6 +304,19 @@ void XmlTimerList::finish()
 
 // --- TimerValues class ------------------------------------------------------------
 
+std::stack<int> TimerValues::ConvertToBinary(int v)
+{
+   int b;
+   std::stack <int> res;
+
+   while ( v != 0) {
+     b = v % 2;
+     res.push(b);
+     v = (v-b) / 2;
+   }
+   return res;
+}
+
 bool TimerValues::IsDayValid(std::string v)
 {
   static cxxtools::Regex regex("[0-9]{4,4}-[0-9]{1,2}-[0-9]{1,2}");
@@ -414,6 +438,15 @@ int TimerValues::ConvertDay(std::string v)
   return StringExtension::strtoi(v);
 }
 
+std::string TimerValues::ConvertDay(time_t v)
+{
+  struct tm *timeinfo = localtime(&v);
+  std::ostringstream str;
+  str << timeinfo->tm_year << "-" << (timeinfo->tm_mon + 1) << "-" << timeinfo->tm_mday;
+  delete timeinfo;
+  return str.str();;
+}
+
 cChannel* TimerValues::ConvertChannel(std::string v)
 {
   int c = StringExtension::strtoi(v);
@@ -427,4 +460,40 @@ cTimer* TimerValues::ConvertTimer(std::string v)
      return Timers.Get(t);
   }
   return NULL;
+}
+
+std::string TimerValues::ConvertWeekdays(int v)
+{
+  std::stack<int> b = ConvertToBinary(v);
+  int counter = 0;
+  std::ostringstream res;
+  while ( !b.empty() && counter < 7 ) {
+     int val = b.top();
+     switch(counter) {
+       case 0: res << (val == 1 ? 'M' : '-'); break;
+       case 1: res << (val == 1 ? 'T' : '-'); break;
+       case 2: res << (val == 1 ? 'W' : '-'); break;
+       case 3: res << (val == 1 ? 'T' : '-'); break;
+       case 4: res << (val == 1 ? 'F' : '-'); break;
+       case 5: res << (val == 1 ? 'S' : '-'); break;
+       case 6: res << (val == 1 ? 'S' : '-'); break;
+     }
+     b.pop();
+     counter++;
+  }
+  return res.str();
+}
+
+int TimerValues::ConvertWeekdays(std::string v)
+{
+ const char* str = v.c_str();
+ int res = 0;
+ if ( str[0] == 'M' ) res += 64;
+ if ( str[1] == 'T' ) res += 32;
+ if ( str[2] == 'W' ) res += 16;
+ if ( str[3] == 'T' ) res += 8;
+ if ( str[4] == 'F' ) res += 4;
+ if ( str[5] == 'S' ) res += 2;
+ if ( str[6] == 'S' ) res += 1;
+ return res;
 }

@@ -39,7 +39,7 @@ keys are not case sensitive
 TIMERS:
 GET http://<ip>:<port>/timers.<format>
 DELETE http://<ip>:<port>/timers/<number>       #the first timer has number 1
-POST http://<ip>:<port>/timers			#to create a timer
+POST http://<ip>:<port>/timers			#to create a timer, you can also use PUT if you don't set the event_id
 
 all the values must be encoded by a url-encoder!
 
@@ -58,7 +58,7 @@ optional values:
 aux		string in which you can store additional data
 event_id	integer, the event of the program which should be recorded -> will save epg data to the recording
 
-PUT http://<ip>:<port>/timers			#to update a timer
+PUT http://<ip>:<port>/timers			#to update a timer, you can also use POST; but set the event_id, otherwise it will create a _NEW_ timer
 
 all the values must be encoded by a url-encoder!
 

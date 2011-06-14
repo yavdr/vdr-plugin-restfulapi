@@ -13,6 +13,8 @@
 #include <cxxtools/utf8codec.h>
 #include <iostream>
 #include <sstream>
+#include <stack>
+#include <time.h>
 #include "tools.h"
 
 
@@ -102,7 +104,7 @@ class XmlTimerList : TimerList
 class TimerValues
 {
   private:
-    int		ConvertNumber(std::string v);
+    std::stack<int>  ConvertToBinary(int v);
   public:
     TimerValues() { };
     ~TimerValues() { };
@@ -124,6 +126,9 @@ class TimerValues
     int		ConvertStop(std::string v);
     int		ConvertStart(std::string v);
     int		ConvertDay(std::string v);
+    std::string ConvertDay(time_t v);
+    std::string ConvertWeekdays(int v);
+    int		ConvertWeekdays(std::string v);
     cChannel*	ConvertChannel(std::string v);
     cTimer*	ConvertTimer(std::string v);
 };
