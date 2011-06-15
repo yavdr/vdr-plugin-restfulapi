@@ -25,7 +25,7 @@ class TimersResponder : public cxxtools::http::Responder
       : cxxtools::http::Responder(service)
       { }
      virtual void reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
-     void createOrUpdateTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+     void createOrUpdateTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply, bool update);
      void deleteTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
      void showTimers(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
 };
@@ -34,6 +34,7 @@ typedef cxxtools::http::CachedService<TimersResponder> TimersService;
 
 struct SerTimer
 {
+  int Id;
   int Start;
   int Stop;
   int Priority;
@@ -66,7 +67,7 @@ class TimerList
     TimerList(std::ostream* _out);
     ~TimerList();
     virtual void init() { };
-    virtual void addTimer(cTimer* timer) { };
+    virtual void addTimer(cTimer* timer, int nr) { };
     virtual void finish() { };
 };
 
@@ -76,7 +77,7 @@ class HtmlTimerList : TimerList
     HtmlTimerList(std::ostream* _out) : TimerList(_out) { };
     ~HtmlTimerList() { };
     virtual void init();
-    virtual void addTimer(cTimer* timer);
+    virtual void addTimer(cTimer* timer, int nr);
     virtual void finish();
 };
 
@@ -87,7 +88,7 @@ class JsonTimerList : TimerList
   public:
     JsonTimerList(std::ostream* _out) : TimerList(_out) { };
     ~JsonTimerList() { };
-    virtual void addTimer(cTimer* timer);
+    virtual void addTimer(cTimer* timer, int nr);
     virtual void finish();
 };
 
@@ -97,7 +98,7 @@ class XmlTimerList : TimerList
     XmlTimerList(std::ostream* _out) : TimerList(_out) { };
     ~XmlTimerList() { };
     virtual void init();
-    virtual void addTimer(cTimer* timer);
+    virtual void addTimer(cTimer* timer, int nr);
     virtual void finish();
 };
 

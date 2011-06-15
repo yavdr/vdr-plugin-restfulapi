@@ -6,14 +6,16 @@ void TimersResponder::reply(std::ostream& out, cxxtools::http::Request& request,
      showTimers(out, request, reply);
   } else if ( request.method() == "DELETE" ) {
      deleteTimer(out, request, reply);
-  } else if ( request.method() == "POST" || request.method() == "PUT" ) {
-     createOrUpdateTimer(out, request, reply);
+  } else if ( request.method() == "POST" ) {
+     createOrUpdateTimer(out, request, reply, false);
+  } else if ( request.method() == "PUT" ) {
+     createOrUpdateTimer(out, request, reply, true);
   } else {
     reply.httpReturn(501, "Only GET, DELETE, POST and PUT methods are supported.");
   }
 }
 
-void TimersResponder::createOrUpdateTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+void TimersResponder::createOrUpdateTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply, bool update)
 {
   if ( Timers.BeingEdited() ) {
      reply.httpReturn(502, "Timers are being edited - try again later");
@@ -40,7 +42,7 @@ void TimersResponder::createOrUpdateTimer(std::ostream& out, cxxtools::http::Req
   cEvent* event = v.ConvertEvent(event_id, chan);
   cTimer* timer_orig = v.ConvertTimer(p.getValueAsString("timer_id"));
   
-  if ( timer_orig == NULL ) { //create
+  if ( update == false ) { //create
      if ( !v.IsFlagsValid(flags) ) { error = true; error_values += "flags, "; }
      if ( event_id.length() > 0 && event == NULL ) { error = true; error_values += "event_id, "; }
      if ( !v.IsFileValid(file) ) { error = true; error_values += "file, "; }
@@ -52,15 +54,28 @@ void TimersResponder::createOrUpdateTimer(std::ostream& out, cxxtools::http::Req
      if ( !v.IsDayValid(day) ) { error = true; error_values += "day, "; }
      if ( chan == NULL ) { error = true; error_values += "channel, "; }
   } else { //update
-     if ( !v.IsFlagsValid(flags) ) { flags = 1; }
-     if ( !v.IsFileValid(file) ) { file = (std::string)timer_orig->File(); }
-     if ( !v.IsLifetimeValid(lifetime) ) { lifetime = timer_orig->Lifetime(); }
-     if ( !v.IsPriorityValid(priority) ) { priority = timer_orig->Priority(); }
-     if ( !v.IsStopValid(stop) ) { stop = timer_orig->Stop(); }
-     if ( !v.IsStartValid(start) ) { start = timer_orig->Start(); }
-     if ( !v.IsWeekdaysValid(weekdays) ) { weekdays = v.ConvertWeekdays(timer_orig->WeekDays()); }
-     if ( !v.IsDayValid(day) ) { day = v.ConvertDay(timer_orig->Day()); }
-     if ( chan == NULL ) { chan = (cChannel*)timer_orig->Channel(); }
+     if ( timer_orig == NULL ) { error = true; error_values += "timer_id, "; }
+     if ( !error ) {
+        esyslog("restfulapi: flags: /%i/", timer_orig->Flags() );
+        if ( !v.IsFlagsValid(flags) ) { flags = timer_orig->Flags(); }
+        esyslog("restfulapi: 2");
+        if ( !v.IsFileValid(file) ) { file = (std::string)timer_orig->File(); }
+        esyslog("restfulapi: 3");
+        if ( !v.IsLifetimeValid(lifetime) ) { lifetime = timer_orig->Lifetime(); }
+        esyslog("restfulapi: 4");
+        if ( !v.IsPriorityValid(priority) ) { priority = timer_orig->Priority(); }
+        esyslog("restfulapi: 5");
+        if ( !v.IsStopValid(stop) ) { stop = timer_orig->Stop(); }
+        esyslog("restfulapi: 6");
+        if ( !v.IsStartValid(start) ) { start = timer_orig->Start(); }
+        esyslog("restfulapi: 7");
+        if ( !v.IsWeekdaysValid(weekdays) ) { weekdays = v.ConvertWeekdays(timer_orig->WeekDays()); }
+        esyslog("restfulapi: 8");
+        if ( !v.IsDayValid(day) ) { day = v.ConvertDay(timer_orig->Day()); }
+        esyslog("restfulapi: 9");
+        if ( chan == NULL ) { chan = (cChannel*)timer_orig->Channel(); }
+        esyslog("restfulapi: 10");
+     }
   }
 
   if (error) {
@@ -83,7 +98,7 @@ void TimersResponder::createOrUpdateTimer(std::ostream& out, cxxtools::http::Req
 
   dsyslog("restfulapi: /%s/ ", builder.str().c_str());
   chan = NULL;
-  if ( timer_orig == NULL ) { // create timer
+  if ( update == false ) { // create timer
      cTimer* timer = new cTimer();
      if ( timer->Parse(builder.str().c_str()) ) { 
         cTimer* checkTimer = Timers.GetTimer(timer);
@@ -171,7 +186,7 @@ void TimersResponder::showTimers(std::ostream& out, cxxtools::http::Request& req
   for (int i=0;i<timer_count;i++)
   {
      timer = Timers.Get(i);
-     timerList->addTimer(timer);   
+     timerList->addTimer(timer, i);   
   }
 
   timerList->finish();
@@ -180,6 +195,7 @@ void TimersResponder::showTimers(std::ostream& out, cxxtools::http::Request& req
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerTimer& t)
 {
+  si.addMember("id") <<= t.Id;
   si.addMember("start") <<= t.Start;
   si.addMember("stop") <<= t.Stop;
   si.addMember("priority") <<= t.Priority;
@@ -197,6 +213,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerTimer& t)
 
 void operator>>= (const cxxtools::SerializationInfo& si, SerTimer& t)
 {
+  si.getMember("start") >>= t.Id;
   si.getMember("start") >>= t.Start;
   si.getMember("stop") >>= t.Stop;
   si.getMember("priority") >>= t.Priority;
@@ -233,7 +250,7 @@ void HtmlTimerList::init()
   s->write("<ul>");
 }
 
-void HtmlTimerList::addTimer(cTimer* timer)
+void HtmlTimerList::addTimer(cTimer* timer, int nr)
 {
   s->write("<li>");
   s->write((char*)timer->File()); //TODO: add date, time and duration
@@ -246,9 +263,10 @@ void HtmlTimerList::finish()
   s->write("</body></html>");
 }
 
-void JsonTimerList::addTimer(cTimer* timer)
+void JsonTimerList::addTimer(cTimer* timer, int nr)
 {
   SerTimer serTimer;
+  serTimer.Id = nr + 1;
   serTimer.Start = timer->Start();
   serTimer.Stop = timer->Stop();
   serTimer.Priority = timer->Priority();
@@ -278,9 +296,10 @@ void XmlTimerList::init()
   s->write("<timers xmlns=\"http://www.domain.org/restfulapi/2011/timers-xml\">\n");
 }
 
-void XmlTimerList::addTimer(cTimer* timer)
+void XmlTimerList::addTimer(cTimer* timer, int nr)
 {
   s->write(" <timer>\n");
+  s->write((const char*)cString::sprintf("  <param name=\"id\">%i</param>\n", (nr+1)));
   s->write((const char*)cString::sprintf("  <param name=\"start\">%i</param>\n", timer->Start()) );
   s->write((const char*)cString::sprintf("  <param name=\"stop\">%i</param>\n", timer->Stop()) );
   s->write((const char*)cString::sprintf("  <param name=\"priority\">%i</param>\n", timer->Priority()) );
@@ -455,7 +474,7 @@ cChannel* TimerValues::ConvertChannel(std::string v)
 
 cTimer* TimerValues::ConvertTimer(std::string v)
 {
-  int t = StringExtension::strtoi(v);
+  int t = StringExtension::strtoi(v) - 1;
   if ( t >= 0 ) {
      return Timers.Get(t);
   }
