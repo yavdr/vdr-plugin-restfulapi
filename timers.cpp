@@ -50,31 +50,21 @@ void TimersResponder::createOrUpdateTimer(std::ostream& out, cxxtools::http::Req
      if ( !v.IsPriorityValid(priority) ) { priority = 99; }
      if ( !v.IsStopValid(stop) ) { error = true; error_values += "stop, "; }
      if ( !v.IsStartValid(start) ) { error = true; error_values += "start, "; }
-     if ( !v.IsWeekdaysValid(weekdays) ) { error = true; error_values += "weekdays, "; }
-     if ( !v.IsDayValid(day) ) { error = true; error_values += "day, "; }
+     if ( !v.IsWeekdaysValid(weekdays) && !weekdays.empty() ) { error = true; error_values += "weekdays, "; }
+     if ( !v.IsDayValid(day)&& !day.empty() ) { error = true; error_values += "day, "; }
      if ( chan == NULL ) { error = true; error_values += "channel, "; }
   } else { //update
      if ( timer_orig == NULL ) { error = true; error_values += "timer_id, "; }
      if ( !error ) {
-        esyslog("restfulapi: flags: /%i/", timer_orig->Flags() );
         if ( !v.IsFlagsValid(flags) ) { flags = timer_orig->Flags(); }
-        esyslog("restfulapi: 2");
         if ( !v.IsFileValid(file) ) { file = (std::string)timer_orig->File(); }
-        esyslog("restfulapi: 3");
         if ( !v.IsLifetimeValid(lifetime) ) { lifetime = timer_orig->Lifetime(); }
-        esyslog("restfulapi: 4");
         if ( !v.IsPriorityValid(priority) ) { priority = timer_orig->Priority(); }
-        esyslog("restfulapi: 5");
         if ( !v.IsStopValid(stop) ) { stop = timer_orig->Stop(); }
-        esyslog("restfulapi: 6");
         if ( !v.IsStartValid(start) ) { start = timer_orig->Start(); }
-        esyslog("restfulapi: 7");
         if ( !v.IsWeekdaysValid(weekdays) ) { weekdays = v.ConvertWeekdays(timer_orig->WeekDays()); }
-        esyslog("restfulapi: 8");
         if ( !v.IsDayValid(day) ) { day = v.ConvertDay(timer_orig->Day()); }
-        esyslog("restfulapi: 9");
         if ( chan == NULL ) { chan = (cChannel*)timer_orig->Channel(); }
-        esyslog("restfulapi: 10");
      }
   }
 
@@ -454,16 +444,18 @@ int TimerValues::ConvertStart(std::string v)
 
 int TimerValues::ConvertDay(std::string v)
 {
-  return StringExtension::strtoi(v);
+  int res =  StringExtension::strtoi(v);
+  return res >= 0 ? res : 0;
 }
 
 std::string TimerValues::ConvertDay(time_t v)
 {
+  if (v==0) return "";
   struct tm *timeinfo = localtime(&v);
   std::ostringstream str;
   str << timeinfo->tm_year << "-" << (timeinfo->tm_mon + 1) << "-" << timeinfo->tm_mday;
   delete timeinfo;
-  return str.str();;
+  return str.str();
 }
 
 cChannel* TimerValues::ConvertChannel(std::string v)
@@ -500,19 +492,23 @@ std::string TimerValues::ConvertWeekdays(int v)
      b.pop();
      counter++;
   }
+  while ( counter < 7 ) {
+     res << '-';
+     counter++;
+  }
   return res.str();
 }
 
 int TimerValues::ConvertWeekdays(std::string v)
 {
- const char* str = v.c_str();
- int res = 0;
- if ( str[0] == 'M' ) res += 64;
- if ( str[1] == 'T' ) res += 32;
- if ( str[2] == 'W' ) res += 16;
- if ( str[3] == 'T' ) res += 8;
- if ( str[4] == 'F' ) res += 4;
- if ( str[5] == 'S' ) res += 2;
- if ( str[6] == 'S' ) res += 1;
- return res;
+  const char* str = v.c_str();
+  int res = 0;
+  if ( str[0] == 'M' ) res += 64;
+  if ( str[1] == 'T' ) res += 32;
+  if ( str[2] == 'W' ) res += 16;
+  if ( str[3] == 'T' ) res += 8;
+  if ( str[4] == 'F' ) res += 4;
+  if ( str[5] == 'S' ) res += 2;
+  if ( str[6] == 'S' ) res += 1;
+  return res;
 }
