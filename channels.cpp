@@ -28,7 +28,6 @@ void ChannelsResponder::reply(std::ostream& out, cxxtools::http::Request& reques
   int channel_details = q.getParamAsInt(0);
   int start_filter = q.getOptionAsInt("start");
   int limit_filter = q.getOptionAsInt("limit");
-  esyslog("restfulapi: start:/%i/, limit:/%i/", start_filter, limit_filter);
 
   if (channel_details > -1) {
      cChannel* channel = VdrExtension::getChannel(channel_details);
