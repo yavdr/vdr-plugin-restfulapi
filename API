@@ -71,3 +71,4 @@ all other values are optional
 --------------------------------------------------------
 
 to filter output lists use ?start=1&limit=50 where the first item ist 1 and not 0!
+you can also use the group=<groupname> filter on the channels-list

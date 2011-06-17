@@ -28,6 +28,7 @@ void ChannelsResponder::reply(std::ostream& out, cxxtools::http::Request& reques
   int channel_details = q.getParamAsInt(0);
   int start_filter = q.getOptionAsInt("start");
   int limit_filter = q.getOptionAsInt("limit");
+  std::string group_filter = q.getOptionAsString("group");
 
   if (channel_details > -1) {
      cChannel* channel = VdrExtension::getChannel(channel_details);
@@ -37,24 +38,36 @@ void ChannelsResponder::reply(std::ostream& out, cxxtools::http::Request& reques
         return;        
      } else {
         channelList->init();
-        channelList->addChannel(channel);
+        
+        std::string group = "";
+        int total = 0;
+        for (cChannel *channelIt = Channels.First(); channelIt; channelIt = Channels.Next(channelIt))
+        { 
+           if (!channelIt->GroupSep()) 
+              total++; 
+           else
+              if ( total < channel->Number())
+                 group = channelIt->Name();
+        }
+        channelList->setTotal(total);
+        channelList->addChannel(channel, group);
      }
-     //channelList->setTotal(-1);
-     int total = 0;
-     for (cChannel *channel = Channels.First(); channel; channel = Channels.Next(channel))
-     { if (!channel->GroupSep()) total++; }
-     channelList->setTotal(total);
   } else {
      if ( start_filter > 0 && limit_filter > 0 ) {
         channelList->activateLimit(start_filter, limit_filter);
      }
      channelList->init();
      int total = 0;
+     std::string group = "";
      for (cChannel *channel = Channels.First(); channel; channel = Channels.Next(channel))
      {
        if (!channel->GroupSep()) {
-          channelList->addChannel(channel);
-          total++;
+          if ( group == group_filter ) {
+             channelList->addChannel(channel, group);
+             total++;
+          }
+       } else {
+         group = channel->Name();
        }
      }
      channelList->setTotal(total);
@@ -69,6 +82,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerChannel& c)
   si.addMember("name") <<= c.Name;
   si.addMember("number") <<= c.Number;
   si.addMember("channel_id") <<= c.ChannelId;
+  si.addMember("group") <<= c.Group;
   si.addMember("transponder") <<= c.Transponder;
   si.addMember("stream") <<= c.Stream;
   si.addMember("is_atsc") <<= c.IsAtsc;
@@ -98,7 +112,7 @@ void HtmlChannelList::init()
   s->write("<ul>");
 }
 
-void HtmlChannelList::addChannel(cChannel* channel)
+void HtmlChannelList::addChannel(cChannel* channel, std::string group)
 {
   if ( filtered() ) return;
 
@@ -113,7 +127,7 @@ void HtmlChannelList::finish()
   s->write("</body></html>");
 }
 
-void JsonChannelList::addChannel(cChannel* channel)
+void JsonChannelList::addChannel(cChannel* channel, std::string group)
 {
   if ( filtered() ) return;
 
@@ -123,6 +137,7 @@ void JsonChannelList::addChannel(cChannel* channel)
   serChannel.Name = StringExtension::UTF8Decode(channel->Name());
   serChannel.Number = channel->Number();
   serChannel.ChannelId = StringExtension::UTF8Decode((std::string)channel->GetChannelID().ToString());
+  serChannel.Group = StringExtension::UTF8Decode(group);
   serChannel.Transponder = channel->Transponder();
   serChannel.Stream = StringExtension::UTF8Decode(((std::string)channel->GetChannelID().ToString() + (std::string)suffix).c_str());
   serChannel.IsAtsc = channel->IsAtsc();
@@ -148,7 +163,7 @@ void XmlChannelList::init()
   s->write("<channels xmlns=\"http://www.domain.org/restfulapi/2011/channels-xml\">\n");
 }
 
-void XmlChannelList::addChannel(cChannel* channel)
+void XmlChannelList::addChannel(cChannel* channel, std::string group)
 {
   if ( filtered() ) return;
 
@@ -158,6 +173,7 @@ void XmlChannelList::addChannel(cChannel* channel)
   s->write((const char*)cString::sprintf("  <param name=\"name\">%s</param>\n", StringExtension::encodeToXml(channel->Name()).c_str()));
   s->write((const char*)cString::sprintf("  <param name=\"number\">%i</param>\n", channel->Number()));
   s->write((const char*)cString::sprintf("  <param name=\"channel_id\">%s</param>\n",  StringExtension::encodeToXml( (std::string)channel->GetChannelID().ToString()).c_str()));
+  s->write((const char*)cString::sprintf("  <param name=\"group\">%s</param>\n", StringExtension::encodeToXml( group ).c_str()));
   s->write((const char*)cString::sprintf("  <param name=\"transponder\">%i</param>\n", channel->Transponder()));
   s->write((const char*)cString::sprintf("  <param name=\"stream\">%s</param>\n", StringExtension::encodeToXml( ((std::string)channel->GetChannelID().ToString() + (std::string)suffix).c_str()).c_str()));
   s->write((const char*)cString::sprintf("  <param name=\"is_atsc\">%s</param>\n", channel->IsAtsc() ? "true" : "false"));
