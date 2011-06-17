@@ -77,4 +77,5 @@ class HtmlRequestParser
     std::string getValueAsString(std::string name);
     int getValueAsInt(std::string name);
 };
+
 #endif

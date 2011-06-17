@@ -54,6 +54,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerRecordings& p);
 class RecordingList
 {
   protected:
+    int total;
     StreamExtension *s;
   public:
     RecordingList(std::ostream* _out);
@@ -61,6 +62,7 @@ class RecordingList
     virtual void init() { };
     virtual void addRecording(cRecording* recording) { };
     virtual void finish() { };
+    virtual void setTotal(int _total) { total = _total; }
 };
 
 class HtmlRecordingList : RecordingList
@@ -86,6 +88,8 @@ class JsonRecordingList : RecordingList
 
 class XmlRecordingList : RecordingList
 {
+  private:
+    int counter;
   public:
     XmlRecordingList(std::ostream* _out) : RecordingList(_out) { };
     ~XmlRecordingList() { };

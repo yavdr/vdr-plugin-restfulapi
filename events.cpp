@@ -66,7 +66,7 @@ void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& re
   }
 
   eventList->init();
-
+  eventList->setTotal(Schedule->Events()->Count());
   for(cEvent* event = Schedule->Events()->First(); event; event = Schedule->Events()->Next(event))
   {
     int ts = event->StartTime();
@@ -145,7 +145,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerEvents& e)
 {
-  si.addMember("rows") <<= e.event;
+  si.addMember("events") <<= e.event;
 }
 
 EventList::EventList(std::ostream *_out) {
@@ -220,11 +220,14 @@ void JsonEventList::finish()
 {
   cxxtools::JsonSerializer serializer(*s->getBasicStream());
   serializer.serialize(serEvents, "events");
+  serializer.serialize(serEvents.size(), "count");
+  serializer.serialize(total, "total");
   serializer.finish();
 }
 
 void XmlEventList::init()
 {
+  counter = 0;
   s->writeXmlHeader();  
   s->write("<events xmlns=\"http://www.domain.org/restfulapi/2011/events-xml\">\n");
 }
@@ -261,9 +264,11 @@ void XmlEventList::addEvent(cEvent* event, bool scan_images = false)
   }
 
   s->write(" </event>\n");
+  counter++;
 }
 
 void XmlEventList::finish()
 {
+  s->write((const char*)cString::sprintf(" <count>%i</count><total>%i</total>", counter, total));
   s->write("</events>");
 }

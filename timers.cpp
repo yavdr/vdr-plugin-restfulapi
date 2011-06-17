@@ -178,6 +178,7 @@ void TimersResponder::showTimers(std::ostream& out, cxxtools::http::Request& req
      timer = Timers.Get(i);
      timerList->addTimer(timer, i);   
   }
+  timerList->setTotal(timer_count);
 
   timerList->finish();
   delete timerList;   
@@ -277,11 +278,14 @@ void JsonTimerList::finish()
 {
   cxxtools::JsonSerializer serializer(*s->getBasicStream());
   serializer.serialize(serTimers, "timers");
+  serializer.serialize(serTimers.size(), "count");
+  serializer.serialize(total, "total");
   serializer.finish();
 }
 
 void XmlTimerList::init()
 {
+  counter = 0;
   s->writeXmlHeader();
   s->write("<timers xmlns=\"http://www.domain.org/restfulapi/2011/timers-xml\">\n");
 }
@@ -304,10 +308,12 @@ void XmlTimerList::addTimer(cTimer* timer, int nr)
   s->write((const char*)cString::sprintf("  <param name=\"channelname\">%s</param>\n", StringExtension::encodeToXml(timer->Channel()->Name()).c_str()));
   s->write((const char*)cString::sprintf("  <param name=\"is_active\">%s</param>\n", timer->Flags() & 0x01 == 0x01 ? "true" : "false" ));
   s->write(" </timer>\n");
+  counter++;
 }
 
 void XmlTimerList::finish()
 {
+  s->write((const char*)cString::sprintf(" <count>%i</count><total>%i</total>", counter, total));
   s->write("</timers>");
 }
 

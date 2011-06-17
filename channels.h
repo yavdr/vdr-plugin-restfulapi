@@ -45,12 +45,14 @@ class ChannelList
 {
   protected:
     StreamExtension *s;
+    int total;
   public:
     ChannelList(std::ostream* _out);
     ~ChannelList();
     virtual void init() { };
     virtual void addChannel(cChannel* channel) { };
     virtual void finish() { };
+    virtual void setTotal(int _total) { total = _total; }
 };
 
 class HtmlChannelList : ChannelList
@@ -76,6 +78,8 @@ class JsonChannelList : ChannelList
 
 class XmlChannelList : ChannelList
 {
+  private:
+    int counter;
   public:
     XmlChannelList(std::ostream* _out) : ChannelList(_out) { };
     ~XmlChannelList() { };

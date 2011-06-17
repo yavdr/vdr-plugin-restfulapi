@@ -37,14 +37,22 @@ void ChannelsResponder::reply(std::ostream& out, cxxtools::http::Request& reques
         channelList->init();
         channelList->addChannel(channel);
      }
+     //channelList->setTotal(-1);
+     int total = 0;
+     for (cChannel *channel = Channels.First(); channel; channel = Channels.Next(channel))
+     { if (!channel->GroupSep()) total++; }
+     channelList->setTotal(total);
   } else {
      channelList->init();
+     int total = 0;
      for (cChannel *channel = Channels.First(); channel; channel = Channels.Next(channel))
      {
        if (!channel->GroupSep()) {
           channelList->addChannel(channel);
+          total++;
        }
      }
+     channelList->setTotal(total);
   }
 
   channelList->finish();
@@ -66,7 +74,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerChannel& c)
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerChannels& c)
 {
-  si.addMember("rows") <<= c.channel;
+  si.addMember("channels") <<= c.channel;
 }
 
 ChannelList::ChannelList(std::ostream* _out)
@@ -119,11 +127,14 @@ void JsonChannelList::finish()
 {
   cxxtools::JsonSerializer serializer(*s->getBasicStream());
   serializer.serialize(serChannels, "channels");
+  serializer.serialize(serChannels.size(), "count");
+  serializer.serialize(total, "total");
   serializer.finish();
 }
 
 void XmlChannelList::init()
 {
+  counter = 0;
   s->writeXmlHeader();
   s->write("<channels xmlns=\"http://www.domain.org/restfulapi/2011/channels-xml\">\n");
 }
@@ -143,9 +154,11 @@ void XmlChannelList::addChannel(cChannel* channel)
   s->write((const char*)cString::sprintf("  <param name=\"is_sat\">%s</param>\n", channel->IsSat() ? "true" : "false"));
   s->write((const char*)cString::sprintf("  <param name=\"is_terr\">%s</param>\n", channel->IsTerr() ? "true" : "false"));
   s->write(" </channel>\n");
+  counter++;
 }
 
 void XmlChannelList::finish()
 {
+  s->write((const char*)cString::sprintf(" <count>%i</count><total>%i</total>", counter, total));
   s->write("</channels>");
 }

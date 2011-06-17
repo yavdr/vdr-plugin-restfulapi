@@ -48,12 +48,14 @@ class EventList
 {
   protected:
     StreamExtension *s;
+    int total;
   public:
     EventList(std::ostream* _out);
     ~EventList();
     virtual void init() { };
     virtual void addEvent(cEvent* event, bool scan_images) { };
     virtual void finish() { };
+    virtual void setTotal(int _total) { total = _total; }
 };
 
 class HtmlEventList : EventList
@@ -79,6 +81,8 @@ class JsonEventList : EventList
 
 class XmlEventList : EventList
 {
+  private:
+    int counter;
   public:
     XmlEventList(std::ostream* _out) : EventList(_out) { };
     ~XmlEventList() { };

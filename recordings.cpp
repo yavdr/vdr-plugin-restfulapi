@@ -46,10 +46,11 @@ void RecordingsResponder::showRecordings(std::ostream& out, cxxtools::http::Requ
   }
 
   recordingList->init();
-
+  
   for (cRecording* recording = Recordings.First(); recording; recording = Recordings.Next(recording)) {
      recordingList->addRecording(recording); 
   }
+  recordingList->setTotal(Recordings.Count());
 
   recordingList->finish();
   delete recordingList; 
@@ -158,11 +159,14 @@ void JsonRecordingList::finish()
 {
   cxxtools::JsonSerializer serializer(*s->getBasicStream());
   serializer.serialize(serRecordings, "recordings");
+  serializer.serialize(serRecordings.size(), "count");
+  serializer.serialize(total, "total");
   serializer.finish();
 }
 
 void XmlRecordingList::init()
 {
+  counter = 0;
   s->writeXmlHeader();
   s->write("<recordings xmlns=\"http://www.domain.org/restfulapi/2011/recordings-xml\">\n");
 }
@@ -199,9 +203,11 @@ void XmlRecordingList::addRecording(cRecording* recording)
   s->write((const char*)cString::sprintf("  <param name=\"event_start_time\">%i</param>\n", eventStartTime));
   s->write((const char*)cString::sprintf("  <param name=\"event_duration\">%i</param>\n", eventDuration));
   s->write(" </recording>\n");
+  counter++;
 }
 
 void XmlRecordingList::finish()
 {
+  s->write((const char*)cString::sprintf(" <count>%i</count><total>%i</total>", counter, total));
   s->write("</recordings>");
 }

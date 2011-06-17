@@ -63,12 +63,14 @@ class TimerList
 {
   protected:
     StreamExtension *s;
+    int total;
   public:
     TimerList(std::ostream* _out);
     ~TimerList();
     virtual void init() { };
     virtual void addTimer(cTimer* timer, int nr) { };
     virtual void finish() { };
+    virtual void setTotal(int _total) { total = _total; }
 };
 
 class HtmlTimerList : TimerList
@@ -94,6 +96,8 @@ class JsonTimerList : TimerList
 
 class XmlTimerList : TimerList
 {
+  private:
+    int counter;
   public:
     XmlTimerList(std::ostream* _out) : TimerList(_out) { };
     ~XmlTimerList() { };
