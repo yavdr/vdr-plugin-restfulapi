@@ -59,7 +59,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerTimer& t);
 void operator>>= (const cxxtools::SerializationInfo& si, SerTimer& t);
 void operator<<= (cxxtools::SerializationInfo& si, const SerTimers& t);
 
-class TimerList
+class TimerList : public BaseList
 {
   protected:
     StreamExtension *s;
@@ -96,8 +96,6 @@ class JsonTimerList : TimerList
 
 class XmlTimerList : TimerList
 {
-  private:
-    int counter;
   public:
     XmlTimerList(std::ostream* _out) : TimerList(_out) { };
     ~XmlTimerList() { };

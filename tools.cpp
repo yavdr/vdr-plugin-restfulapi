@@ -226,3 +226,36 @@ int HtmlRequestParser::getValueAsInt(std::string name)
 {
   return StringExtension::strtoi(getValueAsString(name));
 }
+
+// --- BaseList ---------------------------------------------------------------
+
+BaseList::BaseList()
+{
+  iterator = 0;
+  counter = 0;
+  start = -1;
+  limit = -1;
+}
+
+void BaseList::activateLimit(int _start, int _limit)
+{
+  if ( _start >= 1 && _limit >= 1 ) {
+     start = _start;
+     limit = _limit;
+  }
+}
+
+bool BaseList::filtered()
+{
+  if ( start != -1 && limit != -1 ) {
+     iterator++;
+     if (iterator >= start && iterator < (start+limit)) {
+        counter++;
+        return false;
+     }
+     return true;
+  } else { 
+     counter++;
+     return false;
+  }
+}

@@ -38,6 +38,9 @@ void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& re
   int timespan = q.getParamAsInt(1);
   int from = q.getParamAsInt(2);
 
+  int start_filter = q.getOptionAsInt("start");
+  int limit_filter = q.getOptionAsInt("limit");
+
   bool scan_images = q.getOptionAsString("images") == "true" ? true : false;
   
   cChannel* channel = VdrExtension::getChannel(channel_number);
@@ -63,6 +66,10 @@ void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& re
   if ( !Schedule ) {
      reply.httpReturn(404, "Could not find schedule!");
      return;
+  }
+  
+  if ( start_filter >= 1 && limit_filter >= 1 ) {
+     eventList->activateLimit(start_filter, limit_filter);
   }
 
   eventList->init();
@@ -165,6 +172,7 @@ void HtmlEventList::init()
 
 void HtmlEventList::addEvent(cEvent* event, bool scan_images = false)
 {
+  if ( filtered() ) return;
   s->write("<li>");
   s->write((char*)event->Title()); //TODO: add more infos
   s->write("\n");
@@ -178,6 +186,8 @@ void HtmlEventList::finish()
 
 void JsonEventList::addEvent(cEvent* event, bool scan_images = false)
 {
+  if ( filtered() ) return;
+
   cxxtools::String eventTitle;
   cxxtools::String eventShortText;
   cxxtools::String eventDescription;
@@ -227,13 +237,14 @@ void JsonEventList::finish()
 
 void XmlEventList::init()
 {
-  counter = 0;
   s->writeXmlHeader();  
   s->write("<events xmlns=\"http://www.domain.org/restfulapi/2011/events-xml\">\n");
 }
 
 void XmlEventList::addEvent(cEvent* event, bool scan_images = false)
 {
+  if ( filtered() ) return;
+
   std::string eventTitle;
   std::string eventShortText;
   std::string eventDescription;
@@ -264,11 +275,10 @@ void XmlEventList::addEvent(cEvent* event, bool scan_images = false)
   }
 
   s->write(" </event>\n");
-  counter++;
 }
 
 void XmlEventList::finish()
 {
-  s->write((const char*)cString::sprintf(" <count>%i</count><total>%i</total>", counter, total));
+  s->write((const char*)cString::sprintf(" <count>%i</count><total>%i</total>", Count(), total));
   s->write("</events>");
 }

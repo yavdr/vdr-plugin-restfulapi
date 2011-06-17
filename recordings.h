@@ -51,7 +51,7 @@ struct SerRecordings
 void operator<<= (cxxtools::SerializationInfo& si, const SerRecording& p);
 void operator<<= (cxxtools::SerializationInfo& si, const SerRecordings& p);
 
-class RecordingList
+class RecordingList : public BaseList
 {
   protected:
     int total;
@@ -88,8 +88,6 @@ class JsonRecordingList : RecordingList
 
 class XmlRecordingList : RecordingList
 {
-  private:
-    int counter;
   public:
     XmlRecordingList(std::ostream* _out) : RecordingList(_out) { };
     ~XmlRecordingList() { };

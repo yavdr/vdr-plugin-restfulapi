@@ -66,3 +66,8 @@ reqired values to update a timer:
 timer_id	integer, id of the timer you want to change
 
 all other values are optional
+
+
+--------------------------------------------------------
+
+to filter output lists use ?start=1&limit=50 where the first item ist 1 and not 0!

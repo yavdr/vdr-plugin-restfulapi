@@ -78,4 +78,19 @@ class HtmlRequestParser
     int getValueAsInt(std::string name);
 };
 
+class BaseList
+{
+  protected:
+    int iterator;
+    int counter;
+    int start;
+    int limit;
+  public:
+    BaseList();
+    ~BaseList() { };
+    virtual void activateLimit(int _start, int _limit);
+    virtual bool filtered();
+    virtual int Count() { return counter; }
+};
+
 #endif

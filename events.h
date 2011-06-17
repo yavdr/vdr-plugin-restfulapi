@@ -44,7 +44,7 @@ struct SerEvents
 void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e);
 void operator<<= (cxxtools::SerializationInfo& si, const SerEvents& e);
 
-class EventList
+class EventList : public BaseList
 {
   protected:
     StreamExtension *s;
@@ -81,8 +81,6 @@ class JsonEventList : EventList
 
 class XmlEventList : EventList
 {
-  private:
-    int counter;
   public:
     XmlEventList(std::ostream* _out) : EventList(_out) { };
     ~XmlEventList() { };

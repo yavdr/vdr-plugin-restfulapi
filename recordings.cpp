@@ -45,6 +45,13 @@ void RecordingsResponder::showRecordings(std::ostream& out, cxxtools::http::Requ
      return;
   }
 
+  int start_filter = q.getOptionAsInt("start");
+  int limit_filter = q.getOptionAsInt("limit");
+
+  if ( start_filter >= 1 && limit_filter >= 1 ) {
+     recordingList->activateLimit(start_filter, limit_filter);
+  }
+
   recordingList->init();
   
   for (cRecording* recording = Recordings.First(); recording; recording = Recordings.Next(recording)) {
@@ -106,6 +113,7 @@ void HtmlRecordingList::init()
 
 void HtmlRecordingList::addRecording(cRecording* recording)
 {
+  if ( filtered() ) return;
   s->write("<li>");
   s->write((char*)recording->Name());
   s->write("</body></html>");
@@ -119,6 +127,8 @@ void HtmlRecordingList::finish()
 
 void JsonRecordingList::addRecording(cRecording* recording)
 {
+  if ( filtered() ) return;
+
   cxxtools::String empty = StringExtension::UTF8Decode("");
   cxxtools::String eventTitle = empty;
   cxxtools::String eventShortText = empty;
@@ -166,13 +176,14 @@ void JsonRecordingList::finish()
 
 void XmlRecordingList::init()
 {
-  counter = 0;
   s->writeXmlHeader();
   s->write("<recordings xmlns=\"http://www.domain.org/restfulapi/2011/recordings-xml\">\n");
 }
 
 void XmlRecordingList::addRecording(cRecording* recording)
 {
+  if ( filtered() ) return;
+
   std::string eventTitle = "";
   std::string eventShortText = "";
   std::string eventDescription = "";
@@ -203,11 +214,10 @@ void XmlRecordingList::addRecording(cRecording* recording)
   s->write((const char*)cString::sprintf("  <param name=\"event_start_time\">%i</param>\n", eventStartTime));
   s->write((const char*)cString::sprintf("  <param name=\"event_duration\">%i</param>\n", eventDuration));
   s->write(" </recording>\n");
-  counter++;
 }
 
 void XmlRecordingList::finish()
 {
-  s->write((const char*)cString::sprintf(" <count>%i</count><total>%i</total>", counter, total));
+  s->write((const char*)cString::sprintf(" <count>%i</count><total>%i</total>", Count(), total));
   s->write("</recordings>");
 }

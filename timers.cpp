@@ -169,6 +169,13 @@ void TimersResponder::showTimers(std::ostream& out, cxxtools::http::Request& req
      return;
   }
 
+  int start_filter = q.getOptionAsInt("start");
+  int limit_filter = q.getOptionAsInt("limit");
+
+  if ( start_filter >= 1 && limit_filter >= 1 ) {
+     timerList->activateLimit(start_filter, limit_filter);
+  }
+
   timerList->init();
 
   int timer_count = Timers.Count();
@@ -243,6 +250,7 @@ void HtmlTimerList::init()
 
 void HtmlTimerList::addTimer(cTimer* timer, int nr)
 {
+  if ( filtered() ) return;
   s->write("<li>");
   s->write((char*)timer->File()); //TODO: add date, time and duration
   s->write("\n");
@@ -256,6 +264,8 @@ void HtmlTimerList::finish()
 
 void JsonTimerList::addTimer(cTimer* timer, int nr)
 {
+  if ( filtered() ) return;
+
   SerTimer serTimer;
   serTimer.Id = nr + 1;
   serTimer.Start = timer->Start();
@@ -292,6 +302,7 @@ void XmlTimerList::init()
 
 void XmlTimerList::addTimer(cTimer* timer, int nr)
 {
+  if ( filtered() ) return;
   s->write(" <timer>\n");
   s->write((const char*)cString::sprintf("  <param name=\"id\">%i</param>\n", (nr+1)));
   s->write((const char*)cString::sprintf("  <param name=\"start\">%i</param>\n", timer->Start()) );
@@ -308,12 +319,11 @@ void XmlTimerList::addTimer(cTimer* timer, int nr)
   s->write((const char*)cString::sprintf("  <param name=\"channelname\">%s</param>\n", StringExtension::encodeToXml(timer->Channel()->Name()).c_str()));
   s->write((const char*)cString::sprintf("  <param name=\"is_active\">%s</param>\n", timer->Flags() & 0x01 == 0x01 ? "true" : "false" ));
   s->write(" </timer>\n");
-  counter++;
 }
 
 void XmlTimerList::finish()
 {
-  s->write((const char*)cString::sprintf(" <count>%i</count><total>%i</total>", counter, total));
+  s->write((const char*)cString::sprintf(" <count>%i</count><total>%i</total>", Count(), total));
   s->write("</timers>");
 }
 

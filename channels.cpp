@@ -26,6 +26,9 @@ void ChannelsResponder::reply(std::ostream& out, cxxtools::http::Request& reques
   }
 
   int channel_details = q.getParamAsInt(0);
+  int start_filter = q.getOptionAsInt("start");
+  int limit_filter = q.getOptionAsInt("limit");
+  esyslog("restfulapi: start:/%i/, limit:/%i/", start_filter, limit_filter);
 
   if (channel_details > -1) {
      cChannel* channel = VdrExtension::getChannel(channel_details);
@@ -43,6 +46,9 @@ void ChannelsResponder::reply(std::ostream& out, cxxtools::http::Request& reques
      { if (!channel->GroupSep()) total++; }
      channelList->setTotal(total);
   } else {
+     if ( start_filter > 0 && limit_filter > 0 ) {
+        channelList->activateLimit(start_filter, limit_filter);
+     }
      channelList->init();
      int total = 0;
      for (cChannel *channel = Channels.First(); channel; channel = Channels.Next(channel))
@@ -95,6 +101,8 @@ void HtmlChannelList::init()
 
 void HtmlChannelList::addChannel(cChannel* channel)
 {
+  if ( filtered() ) return;
+
   s->write("<li>");
   s->write((char*)channel->Name());
   s->write("\n");
@@ -108,6 +116,8 @@ void HtmlChannelList::finish()
 
 void JsonChannelList::addChannel(cChannel* channel)
 {
+  if ( filtered() ) return;
+
   std::string suffix = (std::string) ".ts";
 
   SerChannel serChannel;
@@ -141,6 +151,8 @@ void XmlChannelList::init()
 
 void XmlChannelList::addChannel(cChannel* channel)
 {
+  if ( filtered() ) return;
+
   std::string suffix = (std::string) ".ts";
 
   s->write(" <channel>\n");
@@ -154,11 +166,10 @@ void XmlChannelList::addChannel(cChannel* channel)
   s->write((const char*)cString::sprintf("  <param name=\"is_sat\">%s</param>\n", channel->IsSat() ? "true" : "false"));
   s->write((const char*)cString::sprintf("  <param name=\"is_terr\">%s</param>\n", channel->IsTerr() ? "true" : "false"));
   s->write(" </channel>\n");
-  counter++;
 }
 
 void XmlChannelList::finish()
 {
-  s->write((const char*)cString::sprintf(" <count>%i</count><total>%i</total>", counter, total));
+  s->write((const char*)cString::sprintf(" <count>%i</count><total>%i</total>", Count(), total));
   s->write("</channels>");
 }

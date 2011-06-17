@@ -41,7 +41,7 @@ struct SerChannels
 void operator<<= (cxxtools::SerializationInfo& si, const SerChannel& c);
 void operator<<= (cxxtools::SerializationInfo& si, const SerChannels& c);
 
-class ChannelList
+class ChannelList : public BaseList
 {
   protected:
     StreamExtension *s;
@@ -78,8 +78,6 @@ class JsonChannelList : ChannelList
 
 class XmlChannelList : ChannelList
 {
-  private:
-    int counter;
   public:
     XmlChannelList(std::ostream* _out) : ChannelList(_out) { };
     ~XmlChannelList() { };
