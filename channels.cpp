@@ -62,7 +62,7 @@ void ChannelsResponder::reply(std::ostream& out, cxxtools::http::Request& reques
      for (cChannel *channel = Channels.First(); channel; channel = Channels.Next(channel))
      {
        if (!channel->GroupSep()) {
-          if ( group.length() == 0 || group == group_filter ) {
+          if ( group_filter.length() == 0 || group == group_filter ) {
              channelList->addChannel(channel, group);
              total++;
           }
