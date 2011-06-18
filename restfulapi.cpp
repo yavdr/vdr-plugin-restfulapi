@@ -10,7 +10,7 @@
 #include "serverthread.h"
 
 static const char *VERSION        = "0.0.1";
-static const char *DESCRIPTION    = "Offers an RESTful-API to retrieve json formatted data form the VDR";
+static const char *DESCRIPTION    = "Offers a RESTful-API to retrieve json formatted data form the VDR";
 static const char *MAINMENUENTRY  = NULL;//"Restfulapi";
 
 class cPluginRestfulapi : public cPlugin {

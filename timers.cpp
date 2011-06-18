@@ -36,7 +36,9 @@ void TimersResponder::createOrUpdateTimer(std::ostream& out, cxxtools::http::Req
   int stop = v.ConvertStop(p.getValueAsString("stop"));
   int start = v.ConvertStart(p.getValueAsString("start"));
   std::string weekdays = p.getValueAsString("weekdays");
-  std::string day = p.getValueAsString("day");
+  std::string day = v.ConvertDay(p.getValueAsString("day"));
+  esyslog("restfulapi: day:/%s/", p.getValueAsString("day").c_str());
+  esyslog("restfulapi: day:/%s/", day.c_str());
   cChannel* chan = v.ConvertChannel(p.getValueAsString("channel"));
   std::string event_id = p.getValueAsString("event_id");
   cEvent* event = v.ConvertEvent(event_id, chan);
@@ -102,6 +104,7 @@ void TimersResponder::createOrUpdateTimer(std::ostream& out, cxxtools::http::Req
         Timers.SetModified();
         esyslog("restfulapi: timer created!");
      } else {
+        reply.httpReturn(403, "Creating timer failed!");
         esyslog("restfulapi: timer creation failed!");
      }
   } else {
@@ -265,6 +268,7 @@ void HtmlTimerList::finish()
 void JsonTimerList::addTimer(cTimer* timer, int nr)
 {
   if ( filtered() ) return;
+  static TimerValues v;
 
   SerTimer serTimer;
   serTimer.Id = nr + 1;
@@ -273,8 +277,8 @@ void JsonTimerList::addTimer(cTimer* timer, int nr)
   serTimer.Priority = timer->Priority();
   serTimer.Lifetime = timer->Lifetime();
   serTimer.EventID = timer->Event() != NULL ? timer->Event()->EventID() : -1;
-  serTimer.WeekDays = timer->WeekDays();
-  serTimer.Day = timer->Day();
+  serTimer.WeekDays = StringExtension::UTF8Decode(v.ConvertWeekdays(timer->WeekDays()));
+  serTimer.Day = StringExtension::UTF8Decode(v.ConvertDay(timer->Day()));
   serTimer.Channel = timer->Channel()->Number();
   serTimer.IsRecording = timer->Recording();
   serTimer.IsPending = timer->Pending();
@@ -303,6 +307,8 @@ void XmlTimerList::init()
 void XmlTimerList::addTimer(cTimer* timer, int nr)
 {
   if ( filtered() ) return;
+  static TimerValues v;
+
   s->write(" <timer>\n");
   s->write((const char*)cString::sprintf("  <param name=\"id\">%i</param>\n", (nr+1)));
   s->write((const char*)cString::sprintf("  <param name=\"start\">%i</param>\n", timer->Start()) );
@@ -310,8 +316,8 @@ void XmlTimerList::addTimer(cTimer* timer, int nr)
   s->write((const char*)cString::sprintf("  <param name=\"priority\">%i</param>\n", timer->Priority()) );
   s->write((const char*)cString::sprintf("  <param name=\"lifetime\">%i</param>\n", timer->Lifetime()) );
   s->write((const char*)cString::sprintf("  <param name=\"event_id\">%i</param>\n", timer->Event() != NULL ? timer->Event()->EventID() : -1) );
-  s->write((const char*)cString::sprintf("  <param name=\"weekdays\">%i</param>\n", timer->WeekDays()) );
-  s->write((const char*)cString::sprintf("  <param name=\"day\">%i</param>\n", (int)timer->Day()));
+  s->write((const char*)cString::sprintf("  <param name=\"weekdays\">%s</param>\n", StringExtension::encodeToXml(v.ConvertWeekdays(timer->WeekDays())).c_str()));
+  s->write((const char*)cString::sprintf("  <param name=\"day\">%s</param>\n", StringExtension::encodeToXml(v.ConvertDay(timer->Day())).c_str()));
   s->write((const char*)cString::sprintf("  <param name=\"channel\">%i</param>\n", timer->Channel()->Number()) );
   s->write((const char*)cString::sprintf("  <param name=\"is_recording\">%s</param>\n", timer->Recording() ? "true" : "false" ) );
   s->write((const char*)cString::sprintf("  <param name=\"is_pending\">%s</param>\n", timer->Pending() ? "true" : "false" ));
@@ -458,20 +464,38 @@ int TimerValues::ConvertStart(std::string v)
   return StringExtension::strtoi(v);
 }
 
-int TimerValues::ConvertDay(std::string v)
-{
-  int res =  StringExtension::strtoi(v);
-  return res >= 0 ? res : 0;
-}
-
 std::string TimerValues::ConvertDay(time_t v)
 {
   if (v==0) return "";
-  struct tm *timeinfo = localtime(&v);
+  struct tm *timeinfo = localtime(&v); //must not be deleted because it's statically allocated by localtime
   std::ostringstream str;
-  str << timeinfo->tm_year << "-" << (timeinfo->tm_mon + 1) << "-" << timeinfo->tm_mday;
-  delete timeinfo;
+  int year = timeinfo->tm_year + 1900;
+  int month = timeinfo->tm_mon + 1; //append 0, vdr wants two digits!
+  int day = timeinfo->tm_mday; //append 0, vdr wants two digits!
+  str << year << "-" 
+      << (month < 10 ? "0" : "") << month << "-" 
+      << (day < 10 ? "0" : "") << day;
   return str.str();
+}
+
+std::string TimerValues::ConvertDay(std::string v)
+{
+  if ( !IsDayValid(v) ) return "wrong format";
+  //now append 0 (required by vdr) if month/day don't already have two digits
+  int a = v.find_first_of('-');
+  int b = v.find_last_of('-');
+
+  std::string year = v.substr(0, a);
+  std::string month = v.substr(a+1, b-a-1);
+  std::string day = v.substr(b+1);
+
+  esyslog("restfulapi: /%s/%s/%s/", year.c_str(), month.c_str(), day.c_str());
+
+  std::ostringstream res;
+  res << year << "-"
+      << (month.length() == 1 ? "0" : "") << month << "-"
+      << (day.length() == 1 ? "0" : "") << day;
+  return res.str();
 }
 
 cChannel* TimerValues::ConvertChannel(std::string v)

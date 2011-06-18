@@ -273,7 +273,8 @@ bool QueryHandler::isFormat(std::string format)
 
 HtmlRequestParser::HtmlRequestParser(cxxtools::http::Request& request)
 {
-  query.parse_url(request.bodyStr());
+  //workaround for current cxxtools which always appends ascii character #012 at the end? AFAIK!
+  query.parse_url(request.bodyStr().substr(0,request.bodyStr().length()-1));
 }
 
 HtmlRequestParser::~HtmlRequestParser()

@@ -40,8 +40,8 @@ struct SerTimer
   int Priority;
   int Lifetime;
   int EventID;
-  int WeekDays;
-  int Day;
+  cxxtools::String WeekDays;
+  cxxtools::String Day;
   int Channel;
   bool IsRecording;
   bool IsPending;
@@ -128,7 +128,7 @@ class TimerValues
     int		ConvertPriority(std::string v);
     int		ConvertStop(std::string v);
     int		ConvertStart(std::string v);
-    int		ConvertDay(std::string v);
+    std::string ConvertDay(std::string v); // appends 0 to day/month because vdr requires two digits
     std::string ConvertDay(time_t v);
     std::string ConvertWeekdays(int v);
     int		ConvertWeekdays(std::string v);
