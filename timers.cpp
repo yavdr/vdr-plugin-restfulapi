@@ -37,8 +37,6 @@ void TimersResponder::createOrUpdateTimer(std::ostream& out, cxxtools::http::Req
   int start = v.ConvertStart(p.getValueAsString("start"));
   std::string weekdays = p.getValueAsString("weekdays");
   std::string day = v.ConvertDay(p.getValueAsString("day"));
-  esyslog("restfulapi: day:/%s/", p.getValueAsString("day").c_str());
-  esyslog("restfulapi: day:/%s/", day.c_str());
   cChannel* chan = v.ConvertChannel(p.getValueAsString("channel"));
   std::string event_id = p.getValueAsString("event_id");
   cEvent* event = v.ConvertEvent(event_id, chan);
@@ -228,11 +226,6 @@ void operator>>= (const cxxtools::SerializationInfo& si, SerTimer& t)
   si.getMember("is_pending") >>= t.IsPending;
   si.getMember("is_recording") >>= t.IsRecording;
   si.getMember("is_active") >>= t.IsActive;
-}
-
-void operator<<= (cxxtools::SerializationInfo& si, const SerTimers& t)
-{
-  si.addMember("rows") <<= t.timer;
 }
 
 TimerList::TimerList(std::ostream *out)
@@ -488,8 +481,6 @@ std::string TimerValues::ConvertDay(std::string v)
   std::string year = v.substr(0, a);
   std::string month = v.substr(a+1, b-a-1);
   std::string day = v.substr(b+1);
-
-  esyslog("restfulapi: /%s/%s/%s/", year.c_str(), month.c_str(), day.c_str());
 
   std::ostringstream res;
   res << year << "-"

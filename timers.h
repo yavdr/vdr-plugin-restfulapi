@@ -50,14 +50,8 @@ struct SerTimer
   cxxtools::String ChannelName;
 };
 
-struct SerTimers
-{
-  std::vector < struct SerTimer > timer;
-};
-
 void operator<<= (cxxtools::SerializationInfo& si, const SerTimer& t);
 void operator>>= (const cxxtools::SerializationInfo& si, SerTimer& t);
-void operator<<= (cxxtools::SerializationInfo& si, const SerTimers& t);
 
 class TimerList : public BaseList
 {

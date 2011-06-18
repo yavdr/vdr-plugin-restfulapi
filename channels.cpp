@@ -178,11 +178,6 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerChannel& c)
   si.addMember("is_sat") <<= c.IsSat;
 }
 
-void operator<<= (cxxtools::SerializationInfo& si, const SerChannels& c)
-{
-  si.addMember("channels") <<= c.channel;
-}
-
 ChannelList::ChannelList(std::ostream* _out)
 {
   s = new StreamExtension(_out);

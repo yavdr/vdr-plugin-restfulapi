@@ -34,13 +34,7 @@ struct SerEvent
   int ImagesCount;
 };
 
-struct SerEvents
-{
-  std::vector < struct SerEvent > event;
-};
-
 void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e);
-void operator<<= (cxxtools::SerializationInfo& si, const SerEvents& e);
 
 class EventList : public BaseList
 {

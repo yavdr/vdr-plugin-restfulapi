@@ -136,11 +136,6 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)
   }
 }
 
-void operator<<= (cxxtools::SerializationInfo& si, const SerEvents& e)
-{
-  si.addMember("events") <<= e.event;
-}
-
 EventList::EventList(std::ostream *_out) {
   s = new StreamExtension(_out);
 }

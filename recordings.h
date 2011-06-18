@@ -43,13 +43,7 @@ struct SerRecording
   int EventDuration;
 };
 
-struct SerRecordings
-{
-  std::vector < struct SerRecording > recording;
-};
-
 void operator<<= (cxxtools::SerializationInfo& si, const SerRecording& p);
-void operator<<= (cxxtools::SerializationInfo& si, const SerRecordings& p);
 
 class RecordingList : public BaseList
 {

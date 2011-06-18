@@ -38,13 +38,7 @@ struct SerChannel
   bool IsSat;
 };
 
-struct SerChannels
-{
-  std::vector < struct SerChannel > channel;
-};
-
 void operator<<= (cxxtools::SerializationInfo& si, const SerChannel& c);
-void operator<<= (cxxtools::SerializationInfo& si, const SerChannels& c);
 
 class ChannelList : public BaseList
 {

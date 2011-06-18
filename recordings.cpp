@@ -90,11 +90,6 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerRecording& p)
   si.addMember("event_duration") <<= p.EventDuration;
 }
 
-void operator<<= (cxxtools::SerializationInfo& si, const SerRecordings& p)
-{
-  si.addMember("rows") <<= p.recording;
-}
-
 RecordingList::RecordingList(std::ostream *out)
 {
   s = new StreamExtension(out);
