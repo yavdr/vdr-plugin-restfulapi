@@ -48,7 +48,7 @@ void RecordingsResponder::showRecordings(std::ostream& out, cxxtools::http::Requ
   int start_filter = q.getOptionAsInt("start");
   int limit_filter = q.getOptionAsInt("limit");
 
-  if ( start_filter >= 1 && limit_filter >= 1 ) {
+  if ( start_filter >= 0 && limit_filter >= 1 ) {
      recordingList->activateLimit(start_filter, limit_filter);
   }
 

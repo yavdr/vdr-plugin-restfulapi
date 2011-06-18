@@ -68,7 +68,7 @@ void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& re
      return;
   }
   
-  if ( start_filter >= 1 && limit_filter >= 1 ) {
+  if ( start_filter >= 0 && limit_filter >= 1 ) {
      eventList->activateLimit(start_filter, limit_filter);
   }
 

@@ -127,7 +127,6 @@ void TimersResponder::deleteTimer(std::ostream& out, cxxtools::http::Request& re
   QueryHandler q("/timers", request);
 
   int timer_number = q.getParamAsInt(0);
-  timer_number--; //first timer ist 0 and not 1
 
   int timer_count = Timers.Count();
 
@@ -173,7 +172,7 @@ void TimersResponder::showTimers(std::ostream& out, cxxtools::http::Request& req
   int start_filter = q.getOptionAsInt("start");
   int limit_filter = q.getOptionAsInt("limit");
 
-  if ( start_filter >= 1 && limit_filter >= 1 ) {
+  if ( start_filter >= 0 && limit_filter >= 1 ) {
      timerList->activateLimit(start_filter, limit_filter);
   }
 
@@ -264,7 +263,7 @@ void JsonTimerList::addTimer(cTimer* timer, int nr)
   static TimerValues v;
 
   SerTimer serTimer;
-  serTimer.Id = nr + 1;
+  serTimer.Id = nr;
   serTimer.Start = timer->Start();
   serTimer.Stop = timer->Stop();
   serTimer.Priority = timer->Priority();
@@ -303,7 +302,7 @@ void XmlTimerList::addTimer(cTimer* timer, int nr)
   static TimerValues v;
 
   s->write(" <timer>\n");
-  s->write((const char*)cString::sprintf("  <param name=\"id\">%i</param>\n", (nr+1)));
+  s->write((const char*)cString::sprintf("  <param name=\"id\">%i</param>\n", nr));
   s->write((const char*)cString::sprintf("  <param name=\"start\">%i</param>\n", timer->Start()) );
   s->write((const char*)cString::sprintf("  <param name=\"stop\">%i</param>\n", timer->Stop()) );
   s->write((const char*)cString::sprintf("  <param name=\"priority\">%i</param>\n", timer->Priority()) );

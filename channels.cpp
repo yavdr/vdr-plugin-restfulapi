@@ -72,7 +72,7 @@ void ChannelsResponder::replyChannels(std::ostream& out, cxxtools::http::Request
         channelList->addChannel(channel, group, image);
      }
   } else {
-     if ( start_filter > 0 && limit_filter > 0 ) {
+     if ( start_filter >= 0 && limit_filter >= 1 ) {
         channelList->activateLimit(start_filter, limit_filter);
      }
      channelList->init();
@@ -142,7 +142,7 @@ void ChannelsResponder::replyGroups(std::ostream& out, cxxtools::http::Request& 
 
   int start_filter = q.getOptionAsInt("start");
   int limit_filter = q.getOptionAsInt("limit");
-  if ( start_filter >= 1 && limit_filter >= 1 ) {
+  if ( start_filter >= 0 && limit_filter >= 1 ) {
      channelGroupList->activateLimit(start_filter, limit_filter);
   }
 

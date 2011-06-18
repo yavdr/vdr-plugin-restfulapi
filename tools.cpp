@@ -304,7 +304,7 @@ BaseList::BaseList()
 
 void BaseList::activateLimit(int _start, int _limit)
 {
-  if ( _start >= 1 && _limit >= 1 ) {
+  if ( _start >= 0 && _limit >= 1 ) {
      start = _start;
      limit = _limit;
   }
@@ -313,11 +313,12 @@ void BaseList::activateLimit(int _start, int _limit)
 bool BaseList::filtered()
 {
   if ( start != -1 && limit != -1 ) {
-     iterator++;
      if (iterator >= start && iterator < (start+limit)) {
         counter++;
+        iterator++;
         return false;
      }
+     iterator++;
      return true;
   } else { 
      counter++;
