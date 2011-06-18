@@ -78,7 +78,7 @@ void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& re
   {
     int ts = event->StartTime();
     int te = ts + event->Duration();
-    if ( ts <= to && te >= from ) {
+    if ( ts <= to && te > from ) {
        eventList->addEvent(event, scan_images);
     }else{
       if(ts > to) break;
