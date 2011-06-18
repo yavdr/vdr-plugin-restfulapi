@@ -6,9 +6,13 @@ void ChannelsResponder::reply(std::ostream& out, cxxtools::http::Request& reques
      reply.httpReturn(403, "To retrieve information use the GET method!");
      return;
   }
-  cxxtools::Regex imageRegex("/channels/image/*");
+  static cxxtools::Regex imageRegex("/channels/image/*");
+  static cxxtools::Regex groupsRegex("/channels/groups/*");
+
   if ( imageRegex.match(request.url()) ) {
      replyImage(out, request, reply);
+  } else if (groupsRegex.match(request.url()) ){
+     replyGroups(out, request, reply);
   } else {
      replyChannels(out, request, reply);
   }
@@ -117,11 +121,54 @@ void ChannelsResponder::replyImage(std::ostream& out, cxxtools::http::Request& r
 
 }
 
+void ChannelsResponder::replyGroups(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+{ 
+  QueryHandler q("/channels/groups", request);
+  ChannelGroupList* channelGroupList;
+  
+  if ( q.isFormat(".json") ) {
+    reply.addHeader("Content-Type", "application/json; charset=utf-8");
+    channelGroupList = (ChannelGroupList*)new JsonChannelGroupList(&out);
+  } else if ( q.isFormat(".html") ) {
+    reply.addHeader("Content-Type", "text/html; charset=utf-8");
+    channelGroupList = (ChannelGroupList*)new HtmlChannelGroupList(&out);
+  } else if ( q.isFormat(".xml") ) {
+    reply.addHeader("Content-Type", "text/xml; charset=utf-8");
+    channelGroupList = (ChannelGroupList*)new XmlChannelGroupList(&out);
+  } else {
+    reply.httpReturn(403, "Resources are not available for the selected format. (Use: .json, .html or .xml)");
+    return;
+  }
+
+  int start_filter = q.getOptionAsInt("start");
+  int limit_filter = q.getOptionAsInt("limit");
+  if ( start_filter >= 1 && limit_filter >= 1 ) {
+     channelGroupList->activateLimit(start_filter, limit_filter);
+  }
+
+  channelGroupList->init();
+  int total = 0;
+  
+  for (cChannel *channel = Channels.First(); channel; channel = Channels.Next(channel))
+  {
+      if (channel->GroupSep()) {
+         channelGroupList->addGroup((std::string)channel->Name());
+         total++;
+      }
+  }
+
+  channelGroupList->setTotal(total);
+  channelGroupList->finish();
+
+  delete channelGroupList;
+}
+
 void operator<<= (cxxtools::SerializationInfo& si, const SerChannel& c)
 {
   si.addMember("name") <<= c.Name;
   si.addMember("number") <<= c.Number;
   si.addMember("channel_id") <<= c.ChannelId;
+  si.addMember("image") <<= c.Image;
   si.addMember("group") <<= c.Group;
   si.addMember("transponder") <<= c.Transponder;
   si.addMember("stream") <<= c.Stream;
@@ -168,7 +215,7 @@ void HtmlChannelList::finish()
 }
 
 void JsonChannelList::addChannel(cChannel* channel, std::string group, std::string image)
-{
+{  
   if ( filtered() ) return;
 
   std::string suffix = (std::string) ".ts";
@@ -192,14 +239,13 @@ void JsonChannelList::finish()
 {
   cxxtools::JsonSerializer serializer(*s->getBasicStream());
   serializer.serialize(serChannels, "channels");
-  serializer.serialize(serChannels.size(), "count");
+  serializer.serialize(Count(), "count");
   serializer.serialize(total, "total");
   serializer.finish();
 }
 
 void XmlChannelList::init()
 {
-  counter = 0;
   s->writeXmlHeader();
   s->write("<channels xmlns=\"http://www.domain.org/restfulapi/2011/channels-xml\">\n");
 }
@@ -229,4 +275,68 @@ void XmlChannelList::finish()
 {
   s->write((const char*)cString::sprintf(" <count>%i</count><total>%i</total>", Count(), total));
   s->write("</channels>");
+}
+
+ChannelGroupList::ChannelGroupList(std::ostream* _out) 
+{
+  s = new StreamExtension(_out);
+}
+
+ChannelGroupList::~ChannelGroupList()
+{
+  delete s;
+}
+
+void HtmlChannelGroupList::init()
+{
+  s->writeHtmlHeader();
+  s->write("<ul>");
+}
+
+void HtmlChannelGroupList::addGroup(std::string group)
+{
+  if ( filtered() ) return;
+
+  s->write("<li>");
+  s->write(group.c_str());
+  s->write("\n");
+}
+
+void HtmlChannelGroupList::finish()
+{
+  s->write("</ul>");
+  s->write("</body></html>");
+}
+
+void JsonChannelGroupList::addGroup(std::string group)
+{
+  if ( filtered() ) return;
+  groups.push_back(StringExtension::UTF8Decode(group));
+}
+
+void JsonChannelGroupList::finish()
+{  
+  cxxtools::JsonSerializer serializer(*s->getBasicStream());
+  serializer.serialize(groups, "groups");
+  serializer.serialize(Count(), "count");
+  serializer.serialize(total, "total");
+  serializer.finish();
+}
+
+void XmlChannelGroupList::init()
+{
+  s->writeXmlHeader();
+  s->write("<groups xmlns=\"http://www.domain.org/restfulapi/2011/groups-xml\">\n");
+}
+
+void XmlChannelGroupList::addGroup(std::string group)
+{
+  if ( filtered() ) return;
+  s->write((const char*)cString::sprintf(" <group>%s</group>\n", group.c_str()));
+}
+
+void XmlChannelGroupList::finish()
+{
+  s->write((const char*)cString::sprintf(" <count>%i</count><total>%i</total>", Count(), total));
+  s->write("</groups>");
 }

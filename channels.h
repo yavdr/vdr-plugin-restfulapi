@@ -18,6 +18,7 @@ class ChannelsResponder : public cxxtools::http::Responder
     virtual void reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     virtual void replyChannels(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     virtual void replyImage(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& replay);
+    virtual void replyGroups(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
 };
 
 typedef cxxtools::http::CachedService<ChannelsResponder> ChannelsService;
@@ -87,5 +88,51 @@ class XmlChannelList : ChannelList
     ~XmlChannelList() { };
     virtual void init();
     virtual void addChannel(cChannel* channel, std::string group, std::string image);
+    virtual void finish();
+};
+
+class ChannelGroupList : public BaseList
+{
+  protected:
+    StreamExtension *s;
+    int total;
+  public:
+    ChannelGroupList(std::ostream* _out);
+    ~ChannelGroupList();
+    virtual void init() { };
+    virtual void addGroup(std::string group) { };
+    virtual void finish() { };
+    virtual void setTotal(int _total) { total = _total; }
+};
+
+class HtmlChannelGroupList : ChannelGroupList
+{
+  public:
+    HtmlChannelGroupList(std::ostream* _out) : ChannelGroupList(_out) { };
+    ~HtmlChannelGroupList() { };
+    virtual void init();
+    virtual void addGroup(std::string group);
+    virtual void finish();
+};
+
+class JsonChannelGroupList : ChannelGroupList
+{
+  private:
+    std::vector< cxxtools::String > groups;
+  public:
+    JsonChannelGroupList(std::ostream* _out) : ChannelGroupList(_out) { };
+    ~JsonChannelGroupList() { };
+    virtual void init() { };
+    virtual void addGroup(std::string group);
+    virtual void finish();
+};
+
+class XmlChannelGroupList : ChannelGroupList
+{
+  public:
+    XmlChannelGroupList(std::ostream* _out) : ChannelGroupList(_out) { };
+    ~XmlChannelGroupList() { };
+    virtual void init();
+    virtual void addGroup(std::string group);
     virtual void finish();
 };
