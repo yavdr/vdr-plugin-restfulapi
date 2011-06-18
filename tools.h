@@ -4,6 +4,8 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <iostream>
+#include <fstream>
 #include <cxxtools/regex.h>
 #include <cxxtools/string.h>
 #include <cxxtools/utf8codec.h>
@@ -30,13 +32,16 @@ class StreamExtension
     void write(std::string str);
     void writeHtmlHeader();
     void writeXmlHeader();
+    bool writeBinary(std::string path);
 };
 
 class VdrExtension
 {
   public:
     static cChannel* getChannel(int number);
+    static std::string getChannelImage(cChannel* channel);
     static int scanForFiles(const std::string wildcardpath, std::vector< std::string >& files);
+    static bool doesFileExistInFolder(std::string wildcardpath, std::string filename);
 };
 
 class StringExtension
@@ -47,6 +52,7 @@ class StringExtension
     static std::string replace(std::string const& text, std::string const& substring, std::string const& replacement);
     static std::string encodeToXml(const std::string &str);
     static cxxtools::String UTF8Decode(std::string str);
+    static std::string toLowerCase(std::string str);
 };
 
 class QueryHandler

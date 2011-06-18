@@ -16,6 +16,8 @@ class ChannelsResponder : public cxxtools::http::Responder
       : cxxtools::http::Responder(service)
       { }
     virtual void reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+    virtual void replyChannels(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+    virtual void replyImage(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& replay);
 };
 
 typedef cxxtools::http::CachedService<ChannelsResponder> ChannelsService;
@@ -26,6 +28,7 @@ struct SerChannel
   int Number;
   cxxtools::String ChannelId;
   int Transponder;
+  cxxtools::String Image;
   cxxtools::String Stream;
   cxxtools::String Group;
   bool IsAtsc;
@@ -51,7 +54,7 @@ class ChannelList : public BaseList
     ChannelList(std::ostream* _out);
     ~ChannelList();
     virtual void init() { };
-    virtual void addChannel(cChannel* channel, std::string group) { };
+    virtual void addChannel(cChannel* channel, std::string group, std::string image) { };
     virtual void finish() { };
     virtual void setTotal(int _total) { total = _total; }
 };
@@ -62,7 +65,7 @@ class HtmlChannelList : ChannelList
     HtmlChannelList(std::ostream* _out) : ChannelList(_out) { };
     ~HtmlChannelList() { };
     virtual void init();
-    virtual void addChannel(cChannel* channel, std::string group);
+    virtual void addChannel(cChannel* channel, std::string group, std::string image);
     virtual void finish();
 };
 
@@ -73,7 +76,7 @@ class JsonChannelList : ChannelList
   public:
     JsonChannelList(std::ostream* _out) : ChannelList(_out) { };
     ~JsonChannelList() { };
-    virtual void addChannel(cChannel* channel, std::string group);
+    virtual void addChannel(cChannel* channel, std::string group, std::string image);
     virtual void finish();
 };
 
@@ -83,6 +86,6 @@ class XmlChannelList : ChannelList
     XmlChannelList(std::ostream* _out) : ChannelList(_out) { };
     ~XmlChannelList() { };
     virtual void init();
-    virtual void addChannel(cChannel* channel, std::string group);
+    virtual void addChannel(cChannel* channel, std::string group, std::string image);
     virtual void finish();
 };

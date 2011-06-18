@@ -28,6 +28,12 @@ CHANNELS:
 GET http://<ip>:<port>/channels.<format>
 GET http://<ip>:<port>/channels/<number>.<format>
 
+available filters. groupe=<groupname>, images=true
+
+GET http://<ip>:<port>/channels/image/<imagefile>
+the restfulapi-plugin finds the images if they have the following syntax: <channel>.<format> with a few exceptions:
+It's not case sensitive and it replaces spaces with an underscore.
+
 REMOTE:
 POST http://<ip>:<port>/remote/<key>
 possible keys:

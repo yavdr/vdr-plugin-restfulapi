@@ -32,6 +32,25 @@ void StreamExtension::writeXmlHeader()
   write("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n");
 }
 
+bool StreamExtension::writeBinary(std::string path)
+{
+  std::ifstream* in = new std::ifstream(path.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
+  bool result = false;
+  if ( in->is_open() ) {
+
+     int size = in->tellg();
+     char* memory = new char[size];
+     in->seekg(0, std::ios::beg);
+     in->read(memory, size);
+     _out->write(memory, size);
+     delete[] memory;
+     result = true;
+  } 
+  in->close();
+  delete in;
+  return result;
+}
+
 // --- VdrExtension -----------------------------------------------------------
 
 cChannel* VdrExtension::getChannel(int number)
@@ -54,6 +73,24 @@ cChannel* VdrExtension::getChannel(int number)
   return result;
 }
 
+std::string VdrExtension::getChannelImage(cChannel* channel)
+{
+  std::string wildcard = (std::string)"/usr/share/vdr/channel-logos/" + (std::string)"*.*";
+  std::string namereg = StringExtension::replace(StringExtension::toLowerCase((std::string)channel->Name()), " ", "_") + (std::string)".*";
+  cxxtools::Regex nameRegex(namereg);
+
+  std::vector< std::string > files;
+  VdrExtension::scanForFiles(wildcard, files);
+
+  for (int i=0;i<(int)files.size();i++) {
+      if (nameRegex.match( StringExtension::replace(StringExtension::toLowerCase(files[i]), " ", "_") ) ) {
+         return files[i];
+      }
+  }
+  
+  return "";
+}
+
 int VdrExtension::scanForFiles(const std::string wildcardpath, std::vector< std::string >& files)
 {
   int found = 0;
@@ -62,7 +99,6 @@ int VdrExtension::scanForFiles(const std::string wildcardpath, std::vector< std:
   if ( wildcardpath.empty() == false && glob(wildcardpath.c_str(), GLOB_DOOFFS, NULL, &globbuf) == 0) {
      for (size_t i = 0; i < globbuf.gl_pathc; i++) {
          std::string file(globbuf.gl_pathv[i]);
-
          size_t delimPos = file.find_last_of('/');
          files.push_back(file.substr(delimPos+1));
          found++;
@@ -70,6 +106,24 @@ int VdrExtension::scanForFiles(const std::string wildcardpath, std::vector< std:
      globfree(&globbuf);
   }
   return found;
+}
+
+bool VdrExtension::doesFileExistInFolder(std::string wildcardpath, std::string filename)
+{
+  glob_t globbuf;
+  globbuf.gl_offs = 0;
+  if ( wildcardpath.empty() == false && glob(wildcardpath.c_str(), GLOB_DOOFFS, NULL, &globbuf) == 0) {
+     for (size_t i = 0; i < globbuf.gl_pathc; i++) {
+         std::string file(globbuf.gl_pathv[i]);
+         size_t delimPos = file.find_last_of('/');
+         if (file.substr(delimPos+1) == filename) {
+            globfree(&globbuf);
+            return true;
+         }
+     }
+     globfree(&globbuf);
+  } 
+  return false;  
 }
 
 // --- StringExtension --------------------------------------------------------
@@ -133,6 +187,16 @@ cxxtools::String StringExtension::UTF8Decode(std::string str)
   std::string temp;
   utf8::replace_invalid(str.begin(), str.end(), back_inserter(temp));
   return utf8.decode(temp);
+}
+
+std::string StringExtension::toLowerCase(std::string str)
+{
+  std::ostringstream res;
+  for (int i=0;i<(int)str.length();i++)
+  {
+      res << (char)std::tolower(str[i]);
+  }
+  return res.str();
 }
 
 // --- QueryHandler -----------------------------------------------------------

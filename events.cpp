@@ -91,6 +91,7 @@ void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& re
 
 void EventsResponder::replyImage(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
+  StreamExtension se(&out);
   int delim = request.url().find_last_of('/');
   std::string image_filename = request.url().substr(delim + 1);
  
@@ -112,24 +113,9 @@ void EventsResponder::replyImage(std::ostream& out, cxxtools::http::Request& req
   delete regex2;
 
   std::string absolute_path = (std::string)"/var/cache/vdr/epgimages/" + image_filename;
-
-  std::ifstream* in = new std::ifstream(absolute_path.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
-
-  if ( in->is_open() ) {
-     
-     int size = in->tellg();
-     char* memory = new char[size];
-     in->seekg(0, std::ios::beg);
-     in->read(memory, size);
-     out.write(memory, size);
-     delete[] memory;
-  } else {
+  if ( !se.writeBinary(absolute_path) ) {
      reply.httpReturn(404, "Could not find image!");
   }
- 
-  in->close();
-  delete in;
-
 }
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)

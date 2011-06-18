@@ -1,5 +1,3 @@
-#include <iostream>
-#include <fstream>
 #include <cxxtools/http/request.h>
 #include <cxxtools/http/reply.h>
 #include <cxxtools/http/responder.h>
