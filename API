@@ -10,12 +10,12 @@ GET http://<ip>:<port>/recordings.<format>
 DELETE http://<ip>:<port>/recordings<number>	#the first recording has number 1
 
 EVENTS/EPG:
-GET http://<ip>:<port>/events/<channel>.<format>
-GET http://<ip>:<port>/events/<channel>/<duration>.<format>
-GET http://<ip>:<port>/events/<channel>/<duration>/<from>.<format>
-GET http://<ip>:<port>/events/<channel>/<duration>/<from>.<format>?images=true
+GET http://<ip>:<port>/events/<channelid>.<format>
+GET http://<ip>:<port>/events/<channelid>/<duration>.<format>
+GET http://<ip>:<port>/events/<channelid>/<duration>/<from>.<format>
+GET http://<ip>:<port>/events/<channelid>/<duration>/<from>.<format>?images=true
 
-<channel> is the number of your channel, the first channel has number 1
+<channelid> is the id of your channel
 <duration> duration of the time period in seconds from which you want to know the event details (optional, default: 3600sec) // if set to 0 it will add all events after <from> to the list
 <from> start of the time period (optional, default is now)
 ?images=true will search for epg-images in /var/cache/vdr/epgimages

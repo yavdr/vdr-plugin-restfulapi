@@ -34,7 +34,7 @@ void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& re
      return;
   }
 
-  int channel_number = q.getParamAsInt(0);
+  std::string channel_id = q.getParamAsString(0);
   int timespan = q.getParamAsInt(1);
   int from = q.getParamAsInt(2);
 
@@ -43,7 +43,7 @@ void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& re
 
   bool scan_images = q.getOptionAsString("images") == "true" ? true : false;
   
-  cChannel* channel = VdrExtension::getChannel(channel_number);
+  cChannel* channel = VdrExtension::getChannel(channel_id);
   if ( channel == NULL ) { 
      reply.httpReturn(404, "Channel with number _xx_ not found!"); 
      return; 
@@ -194,7 +194,7 @@ void JsonEventList::addEvent(cEvent* event, bool scan_images = false)
   serEvent.ImagesCount = 0;
 
   if ( scan_images ) {
-     cxxtools::Regex regex( StringExtension::itostr(serEvent.Id) + (std::string)"[_.]*");
+     cxxtools::Regex regex( StringExtension::itostr(serEvent.Id) + (std::string)"[_.]{1}*");
      std::string wildcardpath = (std::string)"/var/cache/vdr/epgimages/" + StringExtension::itostr(serEvent.Id) + (std::string)"*";
      std::vector< std::string > images;
      int found = VdrExtension::scanForFiles(wildcardpath, images, regex);
@@ -246,15 +246,15 @@ void XmlEventList::addEvent(cEvent* event, bool scan_images = false)
   s->write((const char*)cString::sprintf("  <param name=\"duration\">%i</param>\n", event->Duration()));
 
   if ( scan_images ) {
-     cxxtools::Regex regex( StringExtension::itostr(event->EventID()) + (std::string)"[_.]*");
+     cxxtools::Regex regex( StringExtension::itostr(event->EventID()) + (std::string)"[_.]{1}*");
      std::string wildcardpath = (std::string)"/var/cache/vdr/epgimages/" + StringExtension::itostr(event->EventID()) + (std::string)"*";
      std::vector< std::string > images;
      int found = VdrExtension::scanForFiles(wildcardpath, images, regex);
-     s->write("  <param name=\"images\">");
+     s->write("  <param name=\"images\">\n");
      for (int i=0;i<found;i++) {
-        s->write((const char*)cString::sprintf("   <image>%s</image>", StringExtension::encodeToXml(images[i]).c_str()));
+        s->write((const char*)cString::sprintf("   <image>%s</image>\n", StringExtension::encodeToXml(images[i]).c_str()));
      }
-     s->write("  </param>");
+     s->write("  </param>\n");
   }
 
   s->write(" </event>\n");

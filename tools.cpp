@@ -152,7 +152,7 @@ int VdrExtension::scanForFiles(const std::string wildcardpath, std::vector< std:
   {
      if (regex.match(all[i])) {
         files.push_back(all[i]);
-        counter ++;
+        counter++;
      }
   } 
   return counter;
