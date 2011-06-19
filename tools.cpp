@@ -73,6 +73,19 @@ cChannel* VdrExtension::getChannel(int number)
   return result;
 }
 
+cChannel* VdrExtension::getChannel(std::string id)
+{
+  if ( id.length() == 0 ) return NULL;
+ 
+  for (cChannel* channel = Channels.First(); channel; channel= Channels.Next(channel))
+  {
+      if ( id == (std::string)channel->GetChannelID().ToString() ) {
+         return channel;
+      }
+  }
+  return NULL;
+}
+
 std::string VdrExtension::getChannelImage(cChannel* channel)
 {
   std::string wildcard = (std::string)"/usr/share/vdr/channel-logos/" + (std::string)"*.*";
@@ -89,6 +102,28 @@ std::string VdrExtension::getChannelImage(cChannel* channel)
   }
   
   return "";
+}
+
+cTimer* VdrExtension::getTimer(std::string id)
+{
+  cTimer* timer;
+  int tc = Timers.Count();
+  for (int i=0;i<tc;i++) {
+      timer = Timers.Get(i);
+      if ( VdrExtension::getTimerID(timer) == id ) {
+         return timer;
+      }  
+  }
+  return NULL;
+}
+
+std::string VdrExtension::getTimerID(cTimer* timer)
+{
+  std::ostringstream str;
+  str << (const char*)timer->Channel()->GetChannelID().ToString() << ":"
+      << (int)timer->Day() << ":"
+      << timer->Start() << ":" << timer->Stop();
+  return str.str();
 }
 
 int VdrExtension::scanForFiles(const std::string wildcardpath, std::vector< std::string >& files)
@@ -207,8 +242,13 @@ QueryHandler::QueryHandler(std::string service, cxxtools::http::Request& request
   _service = service;
   _options.parse_url(request.qparams());
 
-  std::string params = _url.substr(_service.length(), _url.length() - 1);
+  std::string params = _url.substr(_service.length()/*, _url.length() - 1*/);
   parseRestParams(params);
+
+  _format = "";
+  if ( (int)_url.find(".xml") != -1 ) { _format = ".xml"; }
+  if ( (int)_url.find(".json") != -1 ) { _format = ".json"; }
+  if ( (int)_url.find(".html") != -1 ) { _format = ".html"; }
 }
 
 QueryHandler::~QueryHandler()
@@ -236,7 +276,7 @@ void QueryHandler::parseRestParams(std::string params)
   }
 
   if(start != (int)params.length() - 1) {
-    _params.push_back(params.substr(start + 1, params.length() - 1));
+    _params.push_back(params.substr(start + 1/*, params.length() - 1*/));
   }
 }
 
@@ -244,7 +284,15 @@ std::string QueryHandler::getParamAsString(int level)
 {
   if ( level >= (int)_params.size() )
      return "";
-  return _params[level];
+
+  std::string param = _params[level];
+  if ( level == ((int)_params.size() -1) && _format != "" && param.length() > _format.length() ) {
+     int f = param.find(_format);
+     if ( f > 0 ) {
+        return param.substr(0, f);
+     } 
+  }
+  return param;
 }
 
 std::string QueryHandler::getOptionAsString(std::string name)

@@ -43,12 +43,12 @@ void ChannelsResponder::replyChannels(std::ostream& out, cxxtools::http::Request
      scan_images = true;
   }
 
-  int channel_details = q.getParamAsInt(0);
+  std::string channel_details = q.getParamAsString(0);
   int start_filter = q.getOptionAsInt("start");
   int limit_filter = q.getOptionAsInt("limit");
   std::string group_filter = q.getOptionAsString("group");
 
-  if (channel_details > -1) {
+  if (channel_details.length() > 0 && channel_details != q.getFormat()) {
      cChannel* channel = VdrExtension::getChannel(channel_details);
      if (channel == NULL || channel->GroupSep()) {
         reply.httpReturn(403, "The requested channel is not available.");

@@ -39,7 +39,10 @@ class VdrExtension
 {
   public:
     static cChannel* getChannel(int number);
+    static cChannel* getChannel(std::string id);
     static std::string getChannelImage(cChannel* channel);
+    static cTimer* getTimer(std::string id);
+    static std::string getTimerID(cTimer* timer);
     static int scanForFiles(const std::string wildcardpath, std::vector< std::string >& files);
     static bool doesFileExistInFolder(std::string wildcardpath, std::string filename);
 };
@@ -63,6 +66,7 @@ class QueryHandler
     std::vector< std::string > _params;
     cxxtools::QueryParams _options;
     void parseRestParams(std::string params);
+    std::string _format;
   public:
     QueryHandler(std::string service, cxxtools::http::Request& request);
     ~QueryHandler();
@@ -71,6 +75,7 @@ class QueryHandler
     int getParamAsInt(int level);
     int getOptionAsInt(std::string name);
     bool isFormat(std::string format);
+    std::string getFormat() { return _format; }
 };
 
 class HtmlRequestParser

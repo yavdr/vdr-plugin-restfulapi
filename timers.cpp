@@ -125,26 +125,19 @@ void TimersResponder::deleteTimer(std::ostream& out, cxxtools::http::Request& re
   }
 
   QueryHandler q("/timers", request);
+  TimerValues v;
 
-  int timer_number = q.getParamAsInt(0);
-
-  int timer_count = Timers.Count();
-
-  if ( timer_number < 0 || timer_number >= timer_count) {
-     reply.httpReturn(404, "Timer number invalid!");
+  cTimer* timer = v.ConvertTimer(q.getParamAsString(0));
+ 
+  if ( timer == NULL) {
+     reply.httpReturn(404, "Timer id invalid!");
   } else {
-     cTimer* timer = Timers.Get(timer_number);
-     if ( timer ) {
-        if ( !Timers.BeingEdited())
-        {
-           if ( timer->Recording() ) {
-              timer->Skip();
-              cRecordControls::Process(time(NULL));
-           }
-           Timers.Del(timer);
-           Timers.SetModified();
-        }
+     if ( timer->Recording() ) {
+        timer->Skip();
+        cRecordControls::Process(time(NULL));
      }
+     Timers.Del(timer);
+     Timers.SetModified();
   }
 }
 
@@ -183,7 +176,7 @@ void TimersResponder::showTimers(std::ostream& out, cxxtools::http::Request& req
   for (int i=0;i<timer_count;i++)
   {
      timer = Timers.Get(i);
-     timerList->addTimer(timer, i);   
+     timerList->addTimer(timer);   
   }
   timerList->setTotal(timer_count);
 
@@ -243,7 +236,7 @@ void HtmlTimerList::init()
   s->write("<ul>");
 }
 
-void HtmlTimerList::addTimer(cTimer* timer, int nr)
+void HtmlTimerList::addTimer(cTimer* timer)
 {
   if ( filtered() ) return;
   s->write("<li>");
@@ -257,13 +250,13 @@ void HtmlTimerList::finish()
   s->write("</body></html>");
 }
 
-void JsonTimerList::addTimer(cTimer* timer, int nr)
+void JsonTimerList::addTimer(cTimer* timer)
 {
   if ( filtered() ) return;
   static TimerValues v;
 
   SerTimer serTimer;
-  serTimer.Id = nr;
+  serTimer.Id = StringExtension::UTF8Decode(VdrExtension::getTimerID(timer));
   serTimer.Start = timer->Start();
   serTimer.Stop = timer->Stop();
   serTimer.Priority = timer->Priority();
@@ -296,13 +289,13 @@ void XmlTimerList::init()
   s->write("<timers xmlns=\"http://www.domain.org/restfulapi/2011/timers-xml\">\n");
 }
 
-void XmlTimerList::addTimer(cTimer* timer, int nr)
+void XmlTimerList::addTimer(cTimer* timer)
 {
   if ( filtered() ) return;
   static TimerValues v;
 
   s->write(" <timer>\n");
-  s->write((const char*)cString::sprintf("  <param name=\"id\">%i</param>\n", nr));
+  s->write((const char*)cString::sprintf("  <param name=\"id\">%s</param>\n", StringExtension::encodeToXml(VdrExtension::getTimerID(timer)).c_str()));
   s->write((const char*)cString::sprintf("  <param name=\"start\">%i</param>\n", timer->Start()) );
   s->write((const char*)cString::sprintf("  <param name=\"stop\">%i</param>\n", timer->Stop()) );
   s->write((const char*)cString::sprintf("  <param name=\"priority\">%i</param>\n", timer->Priority()) );
@@ -496,11 +489,7 @@ cChannel* TimerValues::ConvertChannel(std::string v)
 
 cTimer* TimerValues::ConvertTimer(std::string v)
 {
-  int t = StringExtension::strtoi(v) - 1;
-  if ( t >= 0 ) {
-     return Timers.Get(t);
-  }
-  return NULL;
+  return VdrExtension::getTimer(v);
 }
 
 std::string TimerValues::ConvertWeekdays(int v)

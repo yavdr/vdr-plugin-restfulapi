@@ -34,7 +34,7 @@ typedef cxxtools::http::CachedService<TimersResponder> TimersService;
 
 struct SerTimer
 {
-  int Id;
+  cxxtools::String Id;
   int Start;
   int Stop;
   int Priority;
@@ -62,7 +62,7 @@ class TimerList : public BaseList
     TimerList(std::ostream* _out);
     ~TimerList();
     virtual void init() { };
-    virtual void addTimer(cTimer* timer, int nr) { };
+    virtual void addTimer(cTimer* timer) { };
     virtual void finish() { };
     virtual void setTotal(int _total) { total = _total; }
 };
@@ -73,7 +73,7 @@ class HtmlTimerList : TimerList
     HtmlTimerList(std::ostream* _out) : TimerList(_out) { };
     ~HtmlTimerList() { };
     virtual void init();
-    virtual void addTimer(cTimer* timer, int nr);
+    virtual void addTimer(cTimer* timer);
     virtual void finish();
 };
 
@@ -84,7 +84,7 @@ class JsonTimerList : TimerList
   public:
     JsonTimerList(std::ostream* _out) : TimerList(_out) { };
     ~JsonTimerList() { };
-    virtual void addTimer(cTimer* timer, int nr);
+    virtual void addTimer(cTimer* timer);
     virtual void finish();
 };
 
@@ -94,7 +94,7 @@ class XmlTimerList : TimerList
     XmlTimerList(std::ostream* _out) : TimerList(_out) { };
     ~XmlTimerList() { };
     virtual void init();
-    virtual void addTimer(cTimer* timer, int nr);
+    virtual void addTimer(cTimer* timer);
     virtual void finish();
 };
 
