@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xml:lang="en" lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>RESTFULAPI Documentation</title>
+
+<style type="text/css">
+html, body {
+    background-color: white;
+}
+.blurb {
+    font-style: italic;
+    font-weight: bold;
+    text-align: center;
+}
+.center {
+    text-align: center;
+}
+.code {
+    background-color: #F0F0F0;
+}
+.modified {
+    background-color: #FFDDDD;
+}
+</style>
+</head>
+<body>
+
+<div class="center">
+<h1>RESTFULAPI-Plugin for VDR</h1><br />
+<b>Version 0.1.0 (still in development)</b><br />
+Copyright &copy; 2011 yavdr-Team, Michael Eiler<br /><br />
+Organization/Community: <a href="mailto:team@yavdr.org">team@yavdr.org</a><br />
+Developer: <a href="mailto:eiler.mike@gmail.com">eiler.mike@gmail.com</a> or <a href="mailto:aelo@yavdr.org">aelo@yavdr.org</a><br />
+<a href="http://www.yavdr.org">www.yavdr.org</a><br />
+<a href="http://github.com/yavdr/vdr-plugin-restfulapi">www.github.com/yavdr/vdr-plugin-restfulapi</a><br />
+</div>
+<br />
+<hr />
+
+<h1>Table Of Contents</h1>
+<ul>
+<li><a href="#Preface">Preface</a>
+<li><a href="#Requirements">Requirements</a>
+<li><a href="#Configuration">Configuration</a>
+<li><a href="#Channels">Channels</a>
+<ul><li><a href="#ChannelGroups">Groups</a>
+    <li><a href="#ChannelImages">Images / Channel-Logos</a></ul>
+<li><a href="#Events">Events / EPG</a>
+<ul><li><a href="#EventImages">Images</a></ul>
+<li><a href="#Recordings">Recordings</a>
+<li><a href="#Remote">Remote</a>
+<li><a href="#Timers">Timers</a>
+</ul>
+
+<hr />
+<h1 class="center"><a name="Preface">Preface</a></h1>
+<hr />
+<br />
+
+This plugin has been developed to offer a modern API for other developers to communicate with the VDR. <br />
+It would not exist without the help of the following people:<br />
+
+<ul>
+<li>Klaus Schmidinger: Of course because of the VDR itself. Thank you also for the nice and clean layout for the API-Documentation which I "borrowed" from your PLUGINS.html.
+<li>Gerald Dachs: Thank you for the intial idea and the initial jsonapi-Plugin.
+<li>Volker Richert: Thank you for fixing the UTF8-Support.
+<li>Tommi Mäkitalo: Thank you for implementing the Regex-Support in cxxtools which allows RESTful web services.
+<li>The developers of the live and vnsisserver Plugins which helper me to lear a lot about the API of VDR.
+</ul>
+
+
+<hr />
+<h1 class="center"><a name="Requirements">Requirements</a></h1>
+<hr />
+<br />
+
+Someone who wants to install the plugin on his/her VDR needs following applications and libraries:
+<br />
+<ul>
+<li>VDR 1.7.18 - There won't be support for VDR 1.6!
+<li>libcxxtools Rev. &gt;= 1231, which is available as package for Ubuntu in the yavdr-PPA's
+</ul>
+
+Someone who wants to develop an application which uses this API:
+<br/>
+<ul>
+<li>XML or JSON Parser (Depends on which format you want to use!)
+<li>URL Decoder
+</ul>
+
+<hr />
+<h1 class="center"><a name="Configuration">Configuration</a></h1>
+<hr />
+<br />
+
+//will be implemented in future version :-)<br />
+Currently EPG Images have to be stored in /var/cache/vdr/epgimages/<br />
+and channel-logos have to be stored in /usr/share/vdr/channel-logos/<br />
+The port ist 8002 and the plugins listens on 0.0.0.0 (every incoming request on every interface)<br /><br />
+
+<hr />
+<h1 class="center"><a name="Channels">Channels</a></h1>
+<hr />
+<br />
+
+This API-Call returns a list of channels.<br />
+Supported formats: json, xml and html.<br />
+<br />
+
+<b>The Request:</b>
+<br />
+<br />
+Method: <b>GET</b><br />
+<br />
+Examples: <br/>
+<br />
+<div class="code"><code>
+GET http://&lt;ip&gt;:&lt;port&gt;/channels/.&lt;format&gt;<br />
+GET http://&lt;ip&gt;:&lt;port&gt;/channels/&lt;channelid&gt;.&lt;format&gt;<br />
+GET http://&lt;ip&gt;:&lt;port&gt;/channels/.&lt;format&gt;?start=&lt;int&gt;&amp;limit=&lt;int&gt;<br />
+GET http://&lt;ip&gt;:&lt;port&gt;/channels/.&lt;format&gt;?images=true<br />
+</code></div>
+<br />
+<br />
+<b>Description of the Parameters:</b>
+<br />
+<br />
+
+<ul>
+<li>&lt;format&gt; - The requested format: json, xml or html.
+<li>&lt;channelid&gt; - Id of the requested channel.
+<li>images=true - Searches for channel-logos on the harddisc. It is disabled by default to protect your system drive.
+<li>start, limit - These values are used to control the whole list. Start ist the first element you want to retrieve. Limit...
+</ul>
+
+<br />
+<br />
+
+<b>Example result:</b>
+<br />
+<br />
+
+<div class="code"><code>
+GET http://127.0.0.1:8002/channels/1/.xml?images=true<br /><br />
+&lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;<br />
+&lt;channels xmlns="http://www.domain.org/restfulapi/2011/channels-xml"&gt;<br />
+ &lt;channel&gt;<br />
+  &lt;param name="name"&lt;ORF1 HD&lt;/param&gt;<br />
+  &lt;param name="number"&gt;1&lt;/param&gt;<br />
+  &lt;param name="channel_id"C-71-71-61920&lt;/param&lt;<br />
+  &lt;param name="image"&gt;orf1_hd.jpg&lt;/param&gt;<br />
+  &lt;param name="group"&gt;hd&lt;/param&gt;<br />
+  &lt;param name="transponder"&gt;330&lt;/param&gt;<br />
+  &lt;param name="stream"&gt;C-71-71-61920.ts&lt;/param&gt;<br />
+  &lt;param name="is_atsc"&gt;false&lt;/param&gt;<br />
+  &lt;param name="is_cable"&gt;true&lt;/param&gt;<br />
+  &lt;param name="is_sat"&gt;false&lt;/param&gt;<br />
+  &lt;param name="is_terr"&gt;false&lt;/param&gt;<br />
+ &lt;/channel&gt;<br />
+ &lt;count&gt;1&lt;/count&gt;<br />
+ &lt;total&gt;259&lt;/total&gt;<br />
+&lt;/channels&gt;
+</code></div>
+<br />
+
+<div class="code"><code>
+GET http://127.0.0.1:8002/channels/1/.json?images=true<br /><br />
+{ "channels": [<br />
+{<br />
+"name":"ORF1 HD",<br />
+"number":1,<br />
+"channel_id":"C-71-71-61920",<br />
+"image":"orf1_hd.jpg",<br />
+"group":"hd",<br />
+"transponder":330,<br />
+"stream":"C-71-71-61920.ts",<br />
+"is_atsc":false,<br />
+"is_cable":true,<br />
+"is_terr":false,<br />
+"is_sat":false<br />
+}],<br />
+"count":1,<br />
+"total":259<br />
+}
+</code></div>
+
+<h2><a name="ChannelGroups">Groups</a></h2>
+<br />
+
+
+<h2><a name="ChannelImages">Images / Channel-Logos</a></h2>
+<br />
+
+
+<hr />
+<h1 class="center"><a name="Events">Events / EPG</a></h1>
+<hr />
+<br />
+
+
+<h2><a name="EventImages">Images</a></h2>
+<br />
+
+
+<hr />
+<h1 class="center"><a name="Recordings">Recordings</a></h1>
+<hr />
+<br />
+
+
+<hr />
+<h1 class="center"><a name="Remote">Remote</a></h1>
+<hr />
+<br />
+
+
+<hr />
+<h1 class="center"><a name="Timers">Timers</a></h1>
+<hr />
+<br />
+
+
+</body>
+</html>
