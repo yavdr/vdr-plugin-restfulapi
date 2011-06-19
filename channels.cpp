@@ -48,7 +48,7 @@ void ChannelsResponder::replyChannels(std::ostream& out, cxxtools::http::Request
   int limit_filter = q.getOptionAsInt("limit");
   std::string group_filter = q.getOptionAsString("group");
 
-  if (channel_details.length() > 0 && channel_details != q.getFormat()) {
+  if (channel_details.length() > 0) {
      cChannel* channel = VdrExtension::getChannel(channel_details);
      if (channel == NULL || channel->GroupSep()) {
         reply.httpReturn(403, "The requested channel is not available.");

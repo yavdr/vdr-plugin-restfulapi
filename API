@@ -16,7 +16,7 @@ GET http://<ip>:<port>/events/<channel>/<duration>/<from>.<format>
 GET http://<ip>:<port>/events/<channel>/<duration>/<from>.<format>?images=true
 
 <channel> is the number of your channel, the first channel has number 1
-<duration> duration of the time period in seconds from which you want to know the event details (optional, default: 3600sec)
+<duration> duration of the time period in seconds from which you want to know the event details (optional, default: 3600sec) // if set to 0 it will add all events after <from> to the list
 <from> start of the time period (optional, default is now)
 ?images=true will search for epg-images in /var/cache/vdr/epgimages
 
@@ -26,7 +26,7 @@ the image filenames must have the following syntax: <eventid>_<picturenr>{.jpg,.
 
 CHANNELS:
 GET http://<ip>:<port>/channels.<format>
-GET http://<ip>:<port>/channels/<number>.<format>
+GET http://<ip>:<port>/channels/<channelid>.<format>
 
 available filters. groupe=<groupname>, images=true
 
@@ -47,7 +47,7 @@ keys are not case sensitive
 
 TIMERS:
 GET http://<ip>:<port>/timers.<format>
-DELETE http://<ip>:<port>/timers/<number>       #the first timer has number 1
+DELETE http://<ip>:<port>/timers/<timerid>
 POST http://<ip>:<port>/timers			#to create a timer
 
 all the values must be encoded by a url-encoder!
@@ -72,7 +72,7 @@ PUT http://<ip>:<port>/timers			#to update a timer
 all the values must be encoded by a url-encoder!
 
 reqired values to update a timer:
-timer_id	integer, id of the timer you want to change
+timer_id	id of the timer you want to change
 
 all other values are optional
 

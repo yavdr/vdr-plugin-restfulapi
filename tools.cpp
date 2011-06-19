@@ -143,6 +143,21 @@ int VdrExtension::scanForFiles(const std::string wildcardpath, std::vector< std:
   return found;
 }
 
+int VdrExtension::scanForFiles(const std::string wildcardpath, std::vector< std::string >& files, cxxtools::Regex& regex)
+{
+  std::vector< std::string > all;
+  scanForFiles(wildcardpath, all);
+  int counter = 0;
+  for(int i=0;i<(int)all.size();i++)
+  {
+     if (regex.match(all[i])) {
+        files.push_back(all[i]);
+        counter ++;
+     }
+  } 
+  return counter;
+}
+
 bool VdrExtension::doesFileExistInFolder(std::string wildcardpath, std::string filename)
 {
   glob_t globbuf;
@@ -286,6 +301,7 @@ std::string QueryHandler::getParamAsString(int level)
      return "";
 
   std::string param = _params[level];
+  if ( param == _format ) return "";
   if ( level == ((int)_params.size() -1) && _format != "" && param.length() > _format.length() ) {
      int f = param.find(_format);
      if ( f > 0 ) {

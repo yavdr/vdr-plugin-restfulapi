@@ -44,6 +44,7 @@ class VdrExtension
     static cTimer* getTimer(std::string id);
     static std::string getTimerID(cTimer* timer);
     static int scanForFiles(const std::string wildcardpath, std::vector< std::string >& files);
+    static int scanForFiles(const std::string wildcardpath, std::vector< std::string >& files, cxxtools::Regex& regex);
     static bool doesFileExistInFolder(std::string wildcardpath, std::string filename);
 };
 
