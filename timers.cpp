@@ -38,8 +38,6 @@ void TimersResponder::createOrUpdateTimer(std::ostream& out, cxxtools::http::Req
   std::string weekdays = p.getValueAsString("weekdays");
   std::string day = v.ConvertDay(p.getValueAsString("day"));
   cChannel* chan = v.ConvertChannel(p.getValueAsString("channel"));
-  std::string event_id = p.getValueAsString("event_id");
-  cEvent* event = v.ConvertEvent(event_id, chan);
   cTimer* timer_orig = v.ConvertTimer(p.getValueAsString("timer_id"));
   
   if ( update == false ) { //create
@@ -97,7 +95,7 @@ void TimersResponder::createOrUpdateTimer(std::ostream& out, cxxtools::http::Req
            reply.httpReturn(403, "Timer already defined!"); 
            esyslog("restfulapi: Timer already defined!");
         }
-        if ( event != NULL ) timer->SetEvent(event);
+        timer->SetEventFromSchedule();
         Timers.Add(timer);
         Timers.SetModified();
         esyslog("restfulapi: timer created!");
@@ -107,7 +105,7 @@ void TimersResponder::createOrUpdateTimer(std::ostream& out, cxxtools::http::Req
      }
   } else {
      if ( timer_orig->Parse(builder.str().c_str()) ) {
-        if ( event != NULL ) timer_orig->SetEvent(event);
+        timer_orig->SetEventFromSchedule();
         Timers.SetModified();
         esyslog("restfulapi: updating timer successful!");
      } else { 
@@ -483,8 +481,7 @@ std::string TimerValues::ConvertDay(std::string v)
 
 cChannel* TimerValues::ConvertChannel(std::string v)
 {
-  int c = StringExtension::strtoi(v);
-  return VdrExtension::getChannel(c);
+  return VdrExtension::getChannel(v);
 }
 
 cTimer* TimerValues::ConvertTimer(std::string v)

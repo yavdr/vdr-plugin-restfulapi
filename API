@@ -61,7 +61,7 @@ stop		integer, 24h stop time -> f.e. 22:30 means half past ten in the night
 start		integer, 24h start time
 weekdays	days on which the timer should be repeated -> f.e. MTWTF--
 day		first day on which the timer should be startet -> f.e. 2011-12-24 (<year>-<month>-<day>)
-channel		number of channel // will be changed to channel-unique-id in the future
+channel		channelid
 
 optional values:
 aux		string in which you can store additional data

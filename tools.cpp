@@ -120,8 +120,8 @@ cTimer* VdrExtension::getTimer(std::string id)
 std::string VdrExtension::getTimerID(cTimer* timer)
 {
   std::ostringstream str;
-  str << (const char*)timer->Channel()->GetChannelID().ToString() << ":"
-      << (int)timer->Day() << ":"
+  str << (const char*)timer->Channel()->GetChannelID().ToString() << ":" << timer->WeekDays() << ":"
+      << timer->Day() << ":"
       << timer->Start() << ":" << timer->Stop();
   return str.str();
 }
