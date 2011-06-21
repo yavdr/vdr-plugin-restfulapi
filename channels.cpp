@@ -100,9 +100,9 @@ void ChannelsResponder::replyChannels(std::ostream& out, cxxtools::http::Request
 void ChannelsResponder::replyImage(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   StreamExtension se(&out);
-  QueryHandler q("/events/image/", request);
+  QueryHandler q("/channels/image/", request);
   
-  std::string imageName = StringExtension::replace(StringExtension::toLowerCase(q.getParamAsString(0)), " ", "_");
+  std::string imageName = q.getParamAsString(0); //StringExtension::replace(StringExtension::toLowerCase(q.getParamAsString(0)), " ", "_");
   std::string imageFolder = "/usr/share/vdr/channel-logos/";
   std::string folderWildcard = imageFolder + (std::string)"*";
  
