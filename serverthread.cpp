@@ -9,7 +9,9 @@
 
 cServerThread::cServerThread ()
 {
-  active = false;
+  FileCache::get(); //cache files
+
+  active = false; 
 
   listenIp = "0.0.0.0";
   listenPort = 8002;

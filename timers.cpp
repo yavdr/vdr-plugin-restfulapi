@@ -42,7 +42,6 @@ void TimersResponder::createOrUpdateTimer(std::ostream& out, cxxtools::http::Req
   
   if ( update == false ) { //create
      if ( !v.IsFlagsValid(flags) ) { error = true; error_values += "flags, "; }
-     //if ( event_id.length() > 0 && event == NULL ) { error = true; error_values += "event_id, "; }
      if ( !v.IsFileValid(file) ) { error = true; error_values += "file, "; }
      if ( !v.IsLifetimeValid(lifetime) ) { lifetime = 50; }
      if ( !v.IsPriorityValid(priority) ) { priority = 99; }

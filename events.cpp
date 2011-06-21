@@ -194,14 +194,12 @@ void JsonEventList::addEvent(cEvent* event, bool scan_images = false)
   serEvent.ImagesCount = 0;
 
   if ( scan_images ) {
-     cxxtools::Regex regex( StringExtension::itostr(serEvent.Id) + (std::string)"(_[0-9]+)?\.[a-z]{3,4}");
-     std::string wildcardpath = (std::string)"/var/cache/vdr/epgimages/" + StringExtension::itostr(serEvent.Id) + (std::string)"*";
      std::vector< std::string > images;
-     int found = VdrExtension::scanForFiles(wildcardpath, images, regex);
-     if (found > 0) {
-        serEvent.Images = new cxxtools::String[found];
-        serEvent.ImagesCount = found;
-        for (int i=0;i<found;i++) {
+     FileCaches::get()->searchEventImage(event, images);
+     if (images.size() > 0) {
+        serEvent.Images = new cxxtools::String[images.size()];
+        serEvent.ImagesCount = images.size();
+        for (int i=0;i<(int)images.size();i++) {
            serEvent.Images[i] = StringExtension::UTF8Decode(images[i]);
         }
      }
@@ -246,12 +244,10 @@ void XmlEventList::addEvent(cEvent* event, bool scan_images = false)
   s->write((const char*)cString::sprintf("  <param name=\"duration\">%i</param>\n", event->Duration()));
 
   if ( scan_images ) {
-     cxxtools::Regex regex( StringExtension::itostr(event->EventID()) + (std::string)"(_[0-9]+)?\.[a-z]{3,4}");
-     std::string wildcardpath = (std::string)"/var/cache/vdr/epgimages/" + StringExtension::itostr(event->EventID()) + (std::string)"*";
      std::vector< std::string > images;
-     int found = VdrExtension::scanForFiles(wildcardpath, images, regex);
+     FileCaches::get()->searchEventImage(event, images);
      s->write("  <param name=\"images\">\n");
-     for (int i=0;i<found;i++) {
+     for (int i=0;i<(int)images.size();i++) {
         s->write((const char*)cString::sprintf("   <image>%s</image>\n", StringExtension::encodeToXml(images[i]).c_str()));
      }
      s->write("  </param>\n");

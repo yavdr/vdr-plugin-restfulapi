@@ -68,7 +68,7 @@ void ChannelsResponder::replyChannels(std::ostream& out, cxxtools::http::Request
                  group = channelIt->Name();
         }
         channelList->setTotal(total);
-        std::string image = scan_images ? VdrExtension::getChannelImage(channel) : "";
+        std::string image = scan_images ? FileCaches::get()->searchChannelLogo(channel) : "";
         channelList->addChannel(channel, group, image);
      }
   } else {
@@ -82,7 +82,7 @@ void ChannelsResponder::replyChannels(std::ostream& out, cxxtools::http::Request
      {
        if (!channel->GroupSep()) {
           if ( group_filter.length() == 0 || group == group_filter ) {
-             std::string image = scan_images ? VdrExtension::getChannelImage(channel) : "";
+             std::string image = scan_images ? FileCaches::get()->searchChannelLogo(channel) : "";
              channelList->addChannel(channel, group, image);
              total++;
           }
@@ -219,6 +219,7 @@ void JsonChannelList::addChannel(cChannel* channel, std::string group, std::stri
   serChannel.Name = StringExtension::UTF8Decode(channel->Name());
   serChannel.Number = channel->Number();
   serChannel.ChannelId = StringExtension::UTF8Decode((std::string)channel->GetChannelID().ToString());
+  if ( image.length() == 0 ) image = "null";
   serChannel.Image = StringExtension::UTF8Decode(image);
   serChannel.Group = StringExtension::UTF8Decode(group);
   serChannel.Transponder = channel->Transponder();
@@ -255,6 +256,7 @@ void XmlChannelList::addChannel(cChannel* channel, std::string group, std::strin
   s->write((const char*)cString::sprintf("  <param name=\"name\">%s</param>\n", StringExtension::encodeToXml(channel->Name()).c_str()));
   s->write((const char*)cString::sprintf("  <param name=\"number\">%i</param>\n", channel->Number()));
   s->write((const char*)cString::sprintf("  <param name=\"channel_id\">%s</param>\n",  StringExtension::encodeToXml( (std::string)channel->GetChannelID().ToString()).c_str()));
+  if ( image.length() == 0 ) image = "null";
   s->write((const char*)cString::sprintf("  <param name=\"image\">%s</param>\n", StringExtension::encodeToXml( image ).c_str()));
   s->write((const char*)cString::sprintf("  <param name=\"group\">%s</param>\n", StringExtension::encodeToXml( group ).c_str()));
   s->write((const char*)cString::sprintf("  <param name=\"transponder\">%i</param>\n", channel->Transponder()));

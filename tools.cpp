@@ -51,6 +51,52 @@ bool StreamExtension::writeBinary(std::string path)
   return result;
 }
 
+// --- FileCaches -------------------------------------------------------------
+
+FileCaches* FileCaches::get()
+{
+  static FileCaches instance;
+  return &instance;
+}
+
+void FileCaches::cacheEventImages()
+{
+  std::string imageFolder = "/var/cache/vdr/epgimages/";
+  std::string folderWildcard = imageFolder + (std::string)"*";
+  VdrExtension::scanForFiles(folderWildcard, eventImages);
+}
+
+void FileCaches::cacheChannelLogos()
+{
+  std::string imageFolder = "/usr/share/vdr/channel-logos/";
+  std::string folderWildcard = imageFolder + (std::string)"*";
+  VdrExtension::scanForFiles(folderWildcard, channelLogos);
+}
+
+int FileCaches::searchEventImage(cEvent* event, std::vector< std::string >& files)
+{
+  cxxtools::Regex regex( StringExtension::itostr(event->EventID()) + (std::string)"(_[0-9]+)?.[a-z]{3,4}" );
+  int counter = 0;
+  for ( int i=0; i < (int)eventImages.size(); i++ ) {
+      if ( regex.match(eventImages[i]) ) {
+         files.push_back(eventImages[i]);
+      }
+      counter++;
+  }
+  return counter;
+}
+
+std::string FileCaches::searchChannelLogo(cChannel *channel)
+{
+  cxxtools::Regex regex((std::string)channel->Name() + ".*");
+  for ( int i=0; i < (int)channelLogos.size(); i++ ) {
+      if ( regex.match(channelLogos[i]) ) {
+         return channelLogos[i];
+      }
+  }
+  return "";
+}
+
 // --- VdrExtension -----------------------------------------------------------
 
 cChannel* VdrExtension::getChannel(int number)
@@ -84,26 +130,6 @@ cChannel* VdrExtension::getChannel(std::string id)
       }
   }
   return NULL;
-}
-
-std::string VdrExtension::getChannelImage(cChannel* channel)
-{
-  std::string wildcard = (std::string)"/usr/share/vdr/channel-logos/" + (std::string)"*.*";
-  //std::string namereg = StringExtension::replace(StringExtension::toLowerCase((std::string)channel->Name()), " ", "_") + (std::string)".*";
-  std::string namereg = (std::string)channel->Name() + (std::string)".*";
-  cxxtools::Regex nameRegex(namereg);
-
-  std::vector< std::string > files;
-  VdrExtension::scanForFiles(wildcard, files);
-
-  for (int i=0;i<(int)files.size();i++) {
-      //if (nameRegex.match( StringExtension::replace(StringExtension::toLowerCase(files[i]), " ", "_") ) ) {
-	  if (nameRegex.match( files[i] ) ) {
-         return files[i];
-      }
-  }
-  
-  return "";
 }
 
 cTimer* VdrExtension::getTimer(std::string id)
@@ -143,21 +169,6 @@ int VdrExtension::scanForFiles(const std::string wildcardpath, std::vector< std:
      globfree(&globbuf);
   }
   return found;
-}
-
-int VdrExtension::scanForFiles(const std::string wildcardpath, std::vector< std::string >& files, cxxtools::Regex& regex)
-{
-  std::vector< std::string > all;
-  scanForFiles(wildcardpath, all);
-  int counter = 0;
-  for(int i=0;i<(int)all.size();i++)
-  {
-     if (regex.match(all[i])) {
-        files.push_back(all[i]);
-        counter++;
-     }
-  } 
-  return counter;
 }
 
 bool VdrExtension::doesFileExistInFolder(std::string wildcardpath, std::string filename)
