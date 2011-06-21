@@ -9,7 +9,7 @@
 
 cServerThread::cServerThread ()
 {
-  FileCache::get(); //cache files
+  FileCaches::get(); //cache files
 
   active = false; 
 
