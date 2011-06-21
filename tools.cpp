@@ -89,14 +89,16 @@ cChannel* VdrExtension::getChannel(std::string id)
 std::string VdrExtension::getChannelImage(cChannel* channel)
 {
   std::string wildcard = (std::string)"/usr/share/vdr/channel-logos/" + (std::string)"*.*";
-  std::string namereg = StringExtension::replace(StringExtension::toLowerCase((std::string)channel->Name()), " ", "_") + (std::string)".*";
+  //std::string namereg = StringExtension::replace(StringExtension::toLowerCase((std::string)channel->Name()), " ", "_") + (std::string)".*";
+  std::string namereg = (std::string)channel->Name() + (std::string)".*";
   cxxtools::Regex nameRegex(namereg);
 
   std::vector< std::string > files;
   VdrExtension::scanForFiles(wildcard, files);
 
   for (int i=0;i<(int)files.size();i++) {
-      if (nameRegex.match( StringExtension::replace(StringExtension::toLowerCase(files[i]), " ", "_") ) ) {
+      //if (nameRegex.match( StringExtension::replace(StringExtension::toLowerCase(files[i]), " ", "_") ) ) {
+	  if (nameRegex.match( files[i] ) ) {
          return files[i];
       }
   }
