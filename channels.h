@@ -36,6 +36,7 @@ struct SerChannel
   bool IsCable;
   bool IsTerr;
   bool IsSat;
+  bool IsRadio;
 };
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerChannel& c);

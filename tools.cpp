@@ -189,6 +189,14 @@ bool VdrExtension::doesFileExistInFolder(std::string wildcardpath, std::string f
   return false;  
 }
 
+bool VdrExtension::IsRadio(cChannel* channel)
+{
+  if ((channel->Vpid() == 0 && channel->Apid(0) != 0) || channel->Vpid() == 1 ) {
+     return true;
+  }
+  return false;
+}
+
 // --- StringExtension --------------------------------------------------------
 
 std::string StringExtension::itostr(int i)

@@ -171,6 +171,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerChannel& c)
   si.addMember("is_cable") <<= c.IsCable;
   si.addMember("is_terr") <<= c.IsTerr;
   si.addMember("is_sat") <<= c.IsSat;
+  si.addMember("is_radio") <<= c.IsRadio;
 }
 
 ChannelList::ChannelList(std::ostream* _out)
@@ -223,6 +224,7 @@ void JsonChannelList::addChannel(cChannel* channel, std::string group, std::stri
   serChannel.IsCable = channel->IsCable();
   serChannel.IsSat = channel->IsSat();
   serChannel.IsTerr = channel->IsTerr();
+  serChannel.IsRadio = VdrExtension::IsRadio(channel);
   serChannels.push_back(serChannel);
 }
 
@@ -260,6 +262,8 @@ void XmlChannelList::addChannel(cChannel* channel, std::string group, std::strin
   s->write((const char*)cString::sprintf("  <param name=\"is_cable\">%s</param>\n", channel->IsCable() ? "true" : "false"));
   s->write((const char*)cString::sprintf("  <param name=\"is_sat\">%s</param>\n", channel->IsSat() ? "true" : "false"));
   s->write((const char*)cString::sprintf("  <param name=\"is_terr\">%s</param>\n", channel->IsTerr() ? "true" : "false"));
+  bool is_radio = VdrExtension::IsRadio(channel);
+  s->write((const char*)cString::sprintf("  <param name=\"is_radio\">%s</param>\n", is_radio ? "true" : "false"));
   s->write(" </channel>\n");
 }
 
