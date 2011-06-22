@@ -32,7 +32,7 @@ html, body {
 
 <div class="center">
 <h1>RESTFULAPI-Plugin for VDR</h1><br />
-<b>Version 0.1.0 (still in development)</b><br />
+<b>Version 0.0.1 (still in development)</b><br />
 Copyright &copy; 2011 yavdr-Team, Michael Eiler<br /><br />
 Organization/Community: <a href="mailto:team@yavdr.org">team@yavdr.org</a><br />
 Developer: <a href="mailto:eiler.mike@gmail.com">eiler.mike@gmail.com</a> or <a href="mailto:aelo@yavdr.org">aelo@yavdr.org</a><br />
@@ -140,7 +140,7 @@ GET http://&lt;ip&gt;:&lt;port&gt;/channels/.&lt;format&gt;?start=&lt;int&gt;&am
 <br />
 <br />
 
-<b>Example result:</b>
+<b>Example Result:</b>
 <br />
 <br />
 
@@ -191,10 +191,68 @@ GET http://127.0.0.1:8002/channels.json?start=0&amp;limit=1<br /><br />
 <h2><a name="ChannelGroups">Groups</a></h2>
 <br />
 
+This service will return a list containing all channel groups.<br />
+<br />
+<b>The Request:</b><br />
+<br />
+
+Method: <b>GET</b><br />
+<br />
+Examples: <br />
+<br />
+<div class="code"><code>
+GET http://&lt;ip&gt;:&lt;port&gt;/channels/groups<br />
+GET http://&lt;ip&gt;:&lt;port&gt;/channels/groups?start=&lt;int&gt;&amp;limit=&lt;int&gt;
+</code></div>
+<br />
+<br />
+
+<b>Example Result:</b><br />
+<br />
+
+<div class="code"><code>
+GET http://&lt;ip&gt;:&lt;port&gt;/channels/groups?start=0&amp;limit=3<br />
+<br />
+&lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;<br />
+&lt;groups xmlns="http://www.domain.org/restfulapi/2011/groups-xml"&gt;<br />
+ &lt;group&gt;hd&lt;/group&gt;<br />
+ &lt;group&gt;main&lt;/group&gt;<br />
+ &lt;group&gt;stuff&lt;/group&gt;<br />
+ &lt;count&gt;3&lt;/count&gt;<br />
+ &lt;total&gt;3&lt;/total&gt;<br />
+&lt;/groups&gt;
+</code></div>
+<br />
+
+
+<div class="code"><code>
+GET http://&lt;ip&gt;:&lt;port&gt;/channels/groups?start=0&amp;limit=3<br />
+<br />
+{<br />
+"groups":<br />
+[<br />
+"hd",<br />
+"main",<br />
+"stuff"<br />
+],<br />
+"count":3,<br />
+"total":3<br (>
+}
+</code></div>
 
 <h2><a name="ChannelImages">Images / Channel-Logos</a></h2>
 <br />
 
+This service will return the requested channel-logo.<br />
+<br />
+Method: <b>GET</b><br />
+<br />
+Examples: <br />
+<br />
+<div class="code"><code>
+GET http://<ip>:<port>/channels/image/<imagefile>
+</code></div>
+<br />
 
 <hr />
 <h1 class="center"><a name="Events">Events / EPG</a></h1>
