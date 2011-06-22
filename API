@@ -13,12 +13,10 @@ EVENTS/EPG:
 GET http://<ip>:<port>/events/<channelid>.<format>
 GET http://<ip>:<port>/events/<channelid>/<duration>.<format>
 GET http://<ip>:<port>/events/<channelid>/<duration>/<from>.<format>
-GET http://<ip>:<port>/events/<channelid>/<duration>/<from>.<format>?images=true
 
 <channelid> is the id of your channel
 <duration> duration of the time period in seconds from which you want to know the event details (optional, default: 3600sec) // if set to 0 it will add all events after <from> to the list
 <from> start of the time period (optional, default is now)
-?images=true will search for epg-images in /var/cache/vdr/epgimages
 
 GET http://<ip>:<port>/events/image/<image_filename>
 
@@ -28,7 +26,7 @@ CHANNELS:
 GET http://<ip>:<port>/channels.<format>
 GET http://<ip>:<port>/channels/<channelid>.<format>
 
-available filters. groupe=<groupname>, images=true
+available filters: groupe=<groupname>
 
 GET http://<ip>:<port>/channels/image/<imagefile>
 the restfulapi-plugin finds the images if they have the following syntax: <channel>.<format> with a few exceptions:

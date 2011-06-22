@@ -124,7 +124,6 @@ Examples: <br/>
 GET http://&lt;ip&gt;:&lt;port&gt;/channels/.&lt;format&gt;<br />
 GET http://&lt;ip&gt;:&lt;port&gt;/channels/&lt;channelid&gt;.&lt;format&gt;<br />
 GET http://&lt;ip&gt;:&lt;port&gt;/channels/.&lt;format&gt;?start=&lt;int&gt;&amp;limit=&lt;int&gt;<br />
-GET http://&lt;ip&gt;:&lt;port&gt;/channels/.&lt;format&gt;?images=true<br />
 </code></div>
 <br />
 <br />
@@ -135,7 +134,6 @@ GET http://&lt;ip&gt;:&lt;port&gt;/channels/.&lt;format&gt;?images=true<br />
 <ul>
 <li>&lt;format&gt; - The requested format: json, xml or html.
 <li>&lt;channelid&gt; - Id of the requested channel.
-<li>images=true - Searches for channel-logos on the harddisc. It is disabled by default to protect your system drive.
 <li>start, limit - These values are used to control the whole list. Start ist the first element you want to retrieve. Limit...
 </ul>
 
@@ -147,7 +145,7 @@ GET http://&lt;ip&gt;:&lt;port&gt;/channels/.&lt;format&gt;?images=true<br />
 <br />
 
 <div class="code"><code>
-GET http://127.0.0.1:8002/channels/1/.xml?images=true<br /><br />
+GET http://127.0.0.1:8002/channels.xml?start=0&amp;limit=1<br /><br />
 &lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;<br />
 &lt;channels xmlns="http://www.domain.org/restfulapi/2011/channels-xml"&gt;<br />
  &lt;channel&gt;<br />
@@ -170,13 +168,13 @@ GET http://127.0.0.1:8002/channels/1/.xml?images=true<br /><br />
 <br />
 
 <div class="code"><code>
-GET http://127.0.0.1:8002/channels/1/.json?images=true<br /><br />
+GET http://127.0.0.1:8002/channels.json?start=0&amp;limit=1<br /><br />
 { "channels": [<br />
 {<br />
 "name":"ORF1 HD",<br />
 "number":1,<br />
 "channel_id":"C-71-71-61920",<br />
-"image":"orf1_hd.jpg",<br />
+"image":"ORF1 HD.jpg",<br />
 "group":"hd",<br />
 "transponder":330,<br />
 "stream":"C-71-71-61920.ts",<br />

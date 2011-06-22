@@ -38,11 +38,6 @@ void ChannelsResponder::replyChannels(std::ostream& out, cxxtools::http::Request
     return;
   }
 
-  bool scan_images = false; 
-  if ( q.getOptionAsString("images") == "true" ) {
-     scan_images = true;
-  }
-
   std::string channel_details = q.getParamAsString(0);
   int start_filter = q.getOptionAsInt("start");
   int limit_filter = q.getOptionAsInt("limit");
@@ -68,7 +63,7 @@ void ChannelsResponder::replyChannels(std::ostream& out, cxxtools::http::Request
                  group = channelIt->Name();
         }
         channelList->setTotal(total);
-        std::string image = scan_images ? FileCaches::get()->searchChannelLogo(channel) : "";
+        std::string image = FileCaches::get()->searchChannelLogo(channel);
         channelList->addChannel(channel, group, image);
      }
   } else {
@@ -82,7 +77,7 @@ void ChannelsResponder::replyChannels(std::ostream& out, cxxtools::http::Request
      {
        if (!channel->GroupSep()) {
           if ( group_filter.length() == 0 || group == group_filter ) {
-             std::string image = scan_images ? FileCaches::get()->searchChannelLogo(channel) : "";
+             std::string image = FileCaches::get()->searchChannelLogo(channel);
              channelList->addChannel(channel, group, image);
              total++;
           }

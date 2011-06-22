@@ -41,8 +41,6 @@ void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& re
   int start_filter = q.getOptionAsInt("start");
   int limit_filter = q.getOptionAsInt("limit");
 
-  bool scan_images = q.getOptionAsString("images") == "true" ? true : false;
-  
   cChannel* channel = VdrExtension::getChannel(channel_id);
   if ( channel == NULL ) { 
      reply.httpReturn(404, "Channel with number _xx_ not found!"); 
@@ -79,7 +77,7 @@ void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& re
     int ts = event->StartTime();
     int te = ts + event->Duration();
     if ( (ts <= to && te > from) || (te > from && timespan == 0) ) {
-       eventList->addEvent(event, scan_images);
+       eventList->addEvent(event);
     }else{
       if(ts > to) break;
       if(te <= from) {
@@ -154,7 +152,7 @@ void HtmlEventList::init()
   s->write("<ul>");
 }
 
-void HtmlEventList::addEvent(cEvent* event, bool scan_images = false)
+void HtmlEventList::addEvent(cEvent* event)
 {
   if ( filtered() ) return;
   s->write("<li>");
@@ -168,7 +166,7 @@ void HtmlEventList::finish()
   s->write("</body></html>");
 }
 
-void JsonEventList::addEvent(cEvent* event, bool scan_images = false)
+void JsonEventList::addEvent(cEvent* event)
 {
   if ( filtered() ) return;
   
@@ -193,15 +191,13 @@ void JsonEventList::addEvent(cEvent* event, bool scan_images = false)
   serEvent.Images = NULL;
   serEvent.ImagesCount = 0;
 
-  if ( scan_images ) {
-     std::vector< std::string > images;
-     FileCaches::get()->searchEventImage(event, images);
-     if (images.size() > 0) {
-        serEvent.Images = new cxxtools::String[images.size()];
-        serEvent.ImagesCount = images.size();
-        for (int i=0;i<(int)images.size();i++) {
-           serEvent.Images[i] = StringExtension::UTF8Decode(images[i]);
-        }
+  std::vector< std::string > images;
+  FileCaches::get()->searchEventImage(event, images);
+  if (images.size() > 0) {
+     serEvent.Images = new cxxtools::String[images.size()];
+     serEvent.ImagesCount = images.size();
+     for (int i=0;i<(int)images.size();i++) {
+        serEvent.Images[i] = StringExtension::UTF8Decode(images[i]);
      }
   }
 
@@ -223,7 +219,7 @@ void XmlEventList::init()
   s->write("<events xmlns=\"http://www.domain.org/restfulapi/2011/events-xml\">\n");
 }
 
-void XmlEventList::addEvent(cEvent* event, bool scan_images = false)
+void XmlEventList::addEvent(cEvent* event)
 {
   if ( filtered() ) return;
 
@@ -243,15 +239,13 @@ void XmlEventList::addEvent(cEvent* event, bool scan_images = false)
   s->write((const char*)cString::sprintf("  <param name=\"start_time\">%i</param>\n", (int)event->StartTime()));
   s->write((const char*)cString::sprintf("  <param name=\"duration\">%i</param>\n", event->Duration()));
 
-  if ( scan_images ) {
-     std::vector< std::string > images;
-     FileCaches::get()->searchEventImage(event, images);
-     s->write("  <param name=\"images\">\n");
-     for (int i=0;i<(int)images.size();i++) {
-        s->write((const char*)cString::sprintf("   <image>%s</image>\n", StringExtension::encodeToXml(images[i]).c_str()));
-     }
-     s->write("  </param>\n");
+  std::vector< std::string > images;
+  FileCaches::get()->searchEventImage(event, images);
+  s->write("  <param name=\"images\">\n");
+  for (int i=0;i<(int)images.size();i++) {
+     s->write((const char*)cString::sprintf("   <image>%s</image>\n", StringExtension::encodeToXml(images[i]).c_str()));
   }
+  s->write("  </param>\n");
 
   s->write(" </event>\n");
 }
