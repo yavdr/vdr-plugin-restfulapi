@@ -4,6 +4,7 @@
 #include "tools.h"
 #include <vector>
 
+#include <vdr/channels.h>
 #include <vdr/keys.h>
 #include <vdr/remote.h>
 

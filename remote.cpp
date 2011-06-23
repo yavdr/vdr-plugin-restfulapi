@@ -6,6 +6,18 @@ void RemoteResponder::reply(std::ostream& out, cxxtools::http::Request& request,
      reply.httpReturn(403, "Only POST method is support by the remote control");
      return;
   }
+
+  if ( (int)request.url().find("/remote/switch") != -1 ) {
+     QueryHandler q("/remote/switch", request);
+     cChannel* channel = VdrExtension::getChannel(q.getParamAsString(0));
+     if ( channel == NULL ) {
+        reply.httpReturn(404, "Channel-Id is now valid.");
+     } else if ( !Channels.SwitchTo( channel->Number() ) ) {
+        reply.httpReturn(404, "Couldn't switch to channel.");
+     }
+     return;
+  } 
+
   QueryHandler q("/remote", request);
   std::string key = q.getParamAsString(0);
 
