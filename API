@@ -1,47 +1,6 @@
-Details of the current API:
-(The plugin is currently in an early development stage, so the documenation will be improved in the future!)
-
-<ip> -> the ip address of your vdr
-<port> -> currently 8002
-<format> -> json, html or xml
-
 RECORDINGS:
 GET http://<ip>:<port>/recordings.<format>
 DELETE http://<ip>:<port>/recordings<number>	#the first recording has number 1
-
-EVENTS/EPG:
-GET http://<ip>:<port>/events/<channelid>.<format>
-GET http://<ip>:<port>/events/<channelid>/<duration>.<format>
-GET http://<ip>:<port>/events/<channelid>/<duration>/<from>.<format>
-
-<channelid> is the id of your channel
-<duration> duration of the time period in seconds from which you want to know the event details (optional, default: 3600sec) // if set to 0 it will add all events after <from> to the list
-<from> start of the time period (optional, default is now)
-
-GET http://<ip>:<port>/events/image/<image_filename>
-
-the image filenames must have the following syntax: <eventid>_<picturenr>{.jpg,.png} or <eventid>{.jpg,.png}
-
-CHANNELS:
-GET http://<ip>:<port>/channels.<format>
-GET http://<ip>:<port>/channels/<channelid>.<format>
-
-available filters: groupe=<groupname>
-
-GET http://<ip>:<port>/channels/image/<imagefile>
-the restfulapi-plugin finds the images if they have the following syntax: <channel>.<format> with a few exceptions:
-It's not case sensitive and it replaces spaces with an underscore.
-
-GET http://<ip>:<port>/channels/groups/.<format>
-returns a list of all channelgroups
-
-REMOTE:
-POST http://<ip>:<port>/remote/<key>
-possible keys:
-
-Up, Down, Menu, Ok, Back, Left, Right, Red, Green, Yellow, Blue, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, Info, Play, Pause, Stop, Record, FastFwd, FastRew, Next, Prev, Power, ChanUp, ChanDn, ChanPrev, VolUp, VolDn, Mute, Audio, Subtitles, Schedule, Channels, Timers, Recordings, Setup, Commands, User0, User1, User2, User3, User4, User5, User6, User7, User8, User9, None, Kbd
-
-keys are not case sensitive
 
 TIMERS:
 GET http://<ip>:<port>/timers.<format>
@@ -73,9 +32,3 @@ reqired values to update a timer:
 timer_id	id of the timer you want to change
 
 all other values are optional
-
-
---------------------------------------------------------
-
-to filter output lists use ?start=1&limit=50 where the first item ist 1 and not 0!
-you can also use the group=<groupname> filter on the channels-list

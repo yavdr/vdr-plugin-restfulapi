@@ -63,6 +63,8 @@ Developer: <a href="mailto:eiler.mike@gmail.com">eiler.mike@gmail.com</a> or <a 
 <br />
 
 This plugin has been developed to offer a modern API for other developers to communicate with the VDR. <br />
+The plugin supports the following outputs formats: xml, json and html.<br />
+<br />
 It would not exist without the help of the following people:<br />
 
 <ul>
@@ -110,7 +112,6 @@ The port ist 8002 and the plugins listens on 0.0.0.0 (every incoming request on 
 <br />
 
 This API-Call returns a list of channels.<br />
-Supported formats: json, xml and html.<br />
 <br />
 
 <b>The Request:</b>
@@ -202,8 +203,17 @@ Examples: <br />
 <br />
 <div class="code"><code>
 GET http://&lt;ip&gt;:&lt;port&gt;/channels/groups<br />
-GET http://&lt;ip&gt;:&lt;port&gt;/channels/groups?start=&lt;int&gt;&amp;limit=&lt;int&gt;
+GET http://&lt;ip&gt;:&lt;port&gt;/channels/groups?start=&lt;int&gt;&amp;limit=&lt;int&gt;<br />
+GET http://&lt;ip&gt;:&lt;port&gt;/channels.&lt;format&gt;?group=&lt;group&gt;
 </code></div>
+<br />
+<br />
+
+<b>Description of the Parameters</b></br>
+<br />
+<ul>
+ <li>&lt;group&gt; - returns the channels of the requested group
+</ul>
 <br />
 <br />
 
@@ -243,26 +253,101 @@ GET http://&lt;ip&gt;:&lt;port&gt;/channels/groups?start=0&amp;limit=3<br />
 <h2><a name="ChannelImages">Images / Channel-Logos</a></h2>
 <br />
 
-This service will return the requested channel-logo.<br />
+This service returns the requested channel-logo.<br />
 <br />
 Method: <b>GET</b><br />
 <br />
 Examples: <br />
 <br />
 <div class="code"><code>
-GET http://<ip>:<port>/channels/image/<imagefile>
+GET http://&lt;ip&gt;:&lt;port&gt;/channels/image/&lt;imagefile&gt;
 </code></div>
 <br />
+<br />
+
 
 <hr />
 <h1 class="center"><a name="Events">Events / EPG</a></h1>
 <hr />
 <br />
 
+This service returns the epg information.<br />
+<br />
+Method: <b>GET</b><br />
+<br />
+Examples: <br />
+<br />
+<div class="code"><code>
+GET http://&lt;ip&gt;:&lt;port&gt;/events/&lt;channelid&gt;/&lt;timespan&gt;.&lt;format&gt;<br />
+GET http://&lt;ip&gt;:&lt;port&gt;/events/&lt;channelid&gt;/&lt;timespan&gt;/&lt;from&gt;.&lt;format&gt;<br />
+GET http://&lt;ip&gt;:&lt;port&gt;/events/&lt;channelid&gt;/&lt;timespan&gt;/&lt;from&gt;.&lt;format&gt;?start=&lt;int&gt;&amp;limit=&lt;int&gt;
+</code></div>
+<br />
+<br />
+<b>Description of the Parameters:</b><br />
+<br />
+<ul>
+ <li>&lt;channelid&gt; - id of the channel
+ <li>&lt;timespan&gt; - the timespan from which you want to know the event-details, if set to 0 - all events in the future will be returned
+ <li>&lt;from&gt; - (optional) time in the future when the requested events should end/start (default-value: now)
+</ul>
+
+<br />
+<br />
+<b>Example Result:</b><br />
+<br />
+
+<div class="code"><code>
+GET http://&lt;ip&gt;:&lt;port&gt;/events/C-1-1011-11110/3600.xml?start=0&amp;limit=1<br />
+<br />
+&lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;<br />
+&lt;events xmlns="http://www.domain.org/restfulapi/2011/events-xml"&gt;<br />
+ &lt;event&gt;<br />
+  &lt;param name="id"&gt;51514&lt;/param&gt;<br />
+  &lt;param name="title"&gt;Eine Serie&lt;/param&gt;<br />
+  &lt;param name="short_text"&gt;Der Episodentitel&lt;/param&gt;<br />
+  &lt;param name="description"&gt;Die Beschreibung&lt;/param&gt;<br />
+  &lt;param name="start_time"&gt;1308845100&lt;/param&gt;<br />
+  &lt;param name="duration"&gt;3300&lt;/param&gt;<br />
+  &lt;param name="images"&gt;<br />
+   &lt;image&gt;51514.png&lt;/image&gt;<br />
+  &lt;/param&gt;<br />
+ &lt;/event&gt;<br />
+ &lt;count&gt;1&lt;/count&gt;<br />
+ &lt;total&gt;236&lt;/total&gt;<br />
+&lt;/events&gt;
+</code></div>
+<br />
+<div class="code"><code>
+GET http://&lt;ip&gt;:&lt;port&gt;/events/C-1-1011-11110/3600.json?start=0&amp;limit=1<br />
+<br />
+{"events":[{<br />
+"id":51514,<br />
+"title":"Eine Serie",<br />
+"short_text":"Der Episodentitel",<br />
+"description":"Die Beschreibung",<br />
+"start_time":1308845100,<br />
+"duration":3300, <br />
+"images":["51514.jpg"]<br />
+}],<br />
+"count":1,<br />
+"total":236}
+</code></div>
+<br />
 
 <h2><a name="EventImages">Images</a></h2>
 <br />
 
+This service returns the requested epg image.<br />
+<br />
+Method: <b>GET</b><br />
+<br />
+Examples: <br />
+<br />
+<div class="code"><code>
+GET http://&lt;ip&gt;:&lt;port&gt;/events/&lt;imagefile&gt;
+</code></div>
+<br />
 
 <hr />
 <h1 class="center"><a name="Recordings">Recordings</a></h1>
