@@ -11,7 +11,7 @@ void RemoteResponder::reply(std::ostream& out, cxxtools::http::Request& request,
      QueryHandler q("/remote/switch", request);
      cChannel* channel = VdrExtension::getChannel(q.getParamAsString(0));
      if ( channel == NULL ) {
-        reply.httpReturn(404, "Channel-Id is now valid.");
+        reply.httpReturn(404, "Channel-Id is not valid.");
      } else if ( !Channels.SwitchTo( channel->Number() ) ) {
         reply.httpReturn(404, "Couldn't switch to channel.");
      }
