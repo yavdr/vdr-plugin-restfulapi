@@ -6,6 +6,9 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/stat.h>
 #include <cxxtools/regex.h>
 #include <cxxtools/string.h>
 #include <cxxtools/utf8codec.h>
@@ -14,12 +17,38 @@
 #include <cxxtools/regex.h>
 #include <vdr/channels.h>
 #include <vdr/timers.h>
+#include <vdr/plugin.h>
 #include "utf8_checked.h"
 
 #define LOWINT 2147483648;
 
 #ifndef RESTFULAPI_EXTENSIONS
 #define RESTFULAPI_EXTENSIONS
+
+class Settings
+{
+  private:
+    int port;
+    std::string ip;
+    std::string epgimage_dir;
+    std::string channellogo_dir;
+    std::string cutComment(std::string str);
+    bool parseLine(std::string str);
+    bool SetPort(std::string v);
+    bool SetIp(std::string v);
+    bool SetEpgImageDirectory(std::string v);
+    bool SetChannelLogoDirectory(std::string v);
+  public:
+    Settings() { init(); }
+    ~Settings() { };
+    static Settings* get();
+    void init();
+    void initDefault();
+    int Port() { return port; }
+    std::string Ip() { return ip; }
+    std::string EpgImageDirectory() { return epgimage_dir; }
+    std::string ChannelLogoDirectory() { return channellogo_dir; }
+};
 
 class StreamExtension
 {
@@ -74,6 +103,8 @@ class StringExtension
     static std::string encodeToXml(const std::string &str);
     static cxxtools::String UTF8Decode(std::string str);
     static std::string toLowerCase(std::string str);
+    static std::string trim(std::string str);
+    static std::vector< std::string > split(std::string str, std::string s);
 };
 
 class QueryHandler

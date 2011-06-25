@@ -41,7 +41,7 @@ public:
     ~cServerThread();
     void StartUpdate();
     bool isActive() { return active; };
-    void Stop() { active = false; };
+    void Stop();
 };
 
 #endif //__SERVERTHREAD_H

@@ -10,7 +10,7 @@
 #include "serverthread.h"
 
 static const char *VERSION        = "0.0.1";
-static const char *DESCRIPTION    = "Offers a RESTful-API to retrieve json formatted data form the VDR";
+static const char *DESCRIPTION    = "Offers a RESTful-API to retrieve data from VDR";
 static const char *MAINMENUENTRY  = NULL;//"Restfulapi";
 
 class cPluginRestfulapi : public cPlugin {
@@ -73,13 +73,17 @@ bool cPluginRestfulapi::Initialize(void)
 bool cPluginRestfulapi::Start(void)
 {
   // Start any background activities the plugin shall perform.
+  Settings::get(); //parse config-file
+  FileCaches::get(); //cache files
+
   serverThread.Start();
   return true;
 }
 
 void cPluginRestfulapi::Stop(void)
 {
-  // Stop any background activities the plugin is performing.
+  // Stop any background activities the plugin is performing. 
+  serverThread.Stop();
 }
 
 void cPluginRestfulapi::Housekeeping(void)

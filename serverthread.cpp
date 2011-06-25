@@ -9,8 +9,6 @@
 
 cServerThread::cServerThread ()
 {
-  FileCaches::get(); //cache files
-
   active = false; 
 
   listenIp = "0.0.0.0";
@@ -18,18 +16,17 @@ cServerThread::cServerThread ()
 
   isyslog("create server");
   server = new cxxtools::http::Server(loop, listenIp, listenPort);
+}
 
-  Start ();
+void cServerThread::Stop() {
+  active = false;
+  loop.exit();
+  delete server;
 }
 
 cServerThread::~cServerThread ()
 {
-  if (active)
-  {
-    active = false;
-    Cancel (3);
-  }
-  delete server;
+  Cancel(0);
 }
 
 void cServerThread::Action(void)
@@ -54,7 +51,11 @@ void cServerThread::Action(void)
   server->addService(remoteRegex, remoteService);
   server->addService(timersRegex, timersService);
 
-  loop.run();
+  try {
+    loop.run();
+  } catch ( const std::exception& e) {
+    esyslog("restfulapi: starting services failed: /%s/", e.what());
+  }
 
   dsyslog("restfulapi: server thread ended (pid=%d)", getpid());
 }

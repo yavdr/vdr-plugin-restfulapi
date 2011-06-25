@@ -1,4 +1,162 @@
 #include "tools.h"
+// --- Settings ----------------------------------------------------------------
+
+std::string Settings::cutComment(std::string str)
+{
+  bool esc = false;
+  char c;
+  int counter = 0;
+  while ( counter < (int)str.length() ) {
+    c = str[counter];
+    switch(c) {
+      case '\\':  if (!esc) esc = true; else esc = false;
+                  break;
+      case '#':   if (!esc) return str.substr(0, counter);
+                  break;
+      default:    esc = false;
+                  break;
+    }
+    counter++;
+  }
+  return str;
+}
+
+bool Settings::SetPort(std::string v)
+{
+  int p = StringExtension::strtoi(v);
+  if ( p > 1024 && p <= 65535 ) {
+     port = p;
+     return true;
+  }
+  return false;
+}
+
+bool Settings::SetIp(std::string v)
+{
+  std::vector< std::string> parts = StringExtension::split(v, ".");
+  if ( parts.size() != 4 ) {
+     return false;
+  }
+
+  for (int i=0;i<(int)parts.size();i++) {
+      int val = StringExtension::strtoi(parts[i]);
+      if ( val < 0 || val > 255 ) {
+         return false;
+      }
+  }
+  ip = v;
+  return true;
+}
+
+bool Settings::SetEpgImageDirectory(std::string v)
+{
+  struct stat stat_info;
+  if ( stat(v.c_str(), &stat_info) == 0) {
+     epgimage_dir = v;
+     return true;
+  }
+  return false;
+}
+
+bool Settings::SetChannelLogoDirectory(std::string v)
+{
+  struct stat stat_info;
+  if ( stat(v.c_str(), &stat_info) == 0) {
+     channellogo_dir = v;
+     return true;
+  }
+  return false;
+}
+
+bool Settings::parseLine(std::string str)
+{
+  str = cutComment(str);
+  int found = -1;
+  std::string value, name;
+  found = str.find_first_of('=');
+  if ( found != -1 ) {
+     value = StringExtension::trim(str.substr(found+1));
+     name = str.substr(0, found);
+
+     if ( (int)name.find("port") != -1 ) {
+        if ( SetPort(value) ) {
+           esyslog("restfulapi: Port has been set to %i!", port);
+           return true;
+        } else {
+           return false;
+        }
+     }
+
+     if ( (int)name.find("ip") != -1 ) {
+        if ( SetIp(value) ) {
+           esyslog("restfulapi: Ip has been set to %s!", ip.c_str());
+           return true;
+        } else {
+           return false;
+        }
+     }
+
+     if ( (int)name.find("epgimages") != -1 ) {
+        if ( SetEpgImageDirectory(value) ) {
+           esyslog("restfulapi: The EPG-Images will be loaded from %s!", epgimage_dir.c_str());
+           return true;
+        } else {
+           return false;
+        }
+     } 
+
+     if ( (int)name.find("channellogos") != -1 ) {
+        if ( SetChannelLogoDirectory(value) ) {
+           esyslog("restfulapi: The Channel-Logos will be loaded from %s!", channellogo_dir.c_str());
+           return true;
+        } else {
+           return false;
+        }
+     }
+  }
+  return false;
+}
+
+Settings* Settings::get() 
+{
+  static Settings settings;
+  return &settings;
+}
+
+void Settings::init()
+{
+  initDefault();
+  std::string configDir = cPlugin::ConfigDirectory() + (std::string)"/restfulapi.conf";
+  esyslog("restfulapi: settings file: /%s/", configDir.c_str());
+ 
+  FILE* f = fopen(configDir.c_str(), "r");
+  if ( f != NULL ) {
+     std::ostringstream data;
+     char c;
+     while ( !feof(f) ) {
+       c = fgetc(f);
+       if ( c == '\n' ) {
+          parseLine(data.str());
+          data.str(""); //.clear() is inherited from std::ios and does only clear the error state
+       } else {
+          if (!feof(f)) //don't add EOF-char to string
+             data << c;
+       }     
+     }
+     parseLine(data.str());
+     fclose(f);
+  }
+
+  esyslog("restfulapi settings: port: %i, ip: %s, eimgs: %s, cimgs: %s", port, ip.c_str(), epgimage_dir.c_str(), channellogo_dir.c_str());
+}
+
+void Settings::initDefault()
+{
+  port = 8002;
+  ip = "0.0.0.0";
+  epgimage_dir = "/var/cache/vdr/epgimages";
+  channellogo_dir = "/usr/share/vdr/channel-logos";
+}
 
 // --- StreamExtension ---------------------------------------------------------
 
@@ -268,6 +426,32 @@ std::string StringExtension::toLowerCase(std::string str)
       res << (char)std::tolower(str[i]);
   }
   return res.str();
+}
+
+std::string StringExtension::trim(std::string str)
+{
+  int a = str.find_first_not_of(" \t");
+  int b = str.find_last_not_of(" \t");
+  if ( a == -1 ) a = 0;
+  if ( b == -1 ) b = str.length() - 1;
+  return str.substr(a, (b-a)+1);
+}
+
+std::vector< std::string > StringExtension::split(std::string str, std::string s)
+{
+  std::vector< std::string > result;
+  if ( str.length() <= 1 ) return result;
+
+  int found = 0;
+  int previous = -1;
+  while((found = str.find_first_of(s.c_str(), found+1)) != -1 ) {
+    result.push_back(str.substr(previous+1, (found+(-previous-1))));
+    previous = found;
+  }
+  found++;
+  result.push_back(str.substr(previous+1));
+
+  return result;
 }
 
 // --- QueryHandler -----------------------------------------------------------
