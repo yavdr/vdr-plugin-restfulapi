@@ -78,7 +78,7 @@ class FileCaches
     static FileCaches* get();
     void cacheEventImages();
     void cacheChannelLogos();
-    int searchEventImage(cEvent* event, std::vector< std::string >& files);
+    void searchEventImages(int eventid, std::vector< std::string >& files);
     std::string searchChannelLogo(cChannel *channel);
 };
 

@@ -97,23 +97,29 @@ void ChannelsResponder::replyImage(std::ostream& out, cxxtools::http::Request& r
   StreamExtension se(&out);
   QueryHandler q("/channels/image/", request);
   
-  std::string imageName = q.getParamAsString(0); //StringExtension::replace(StringExtension::toLowerCase(q.getParamAsString(0)), " ", "_");
-  std::string imageFolder = "/usr/share/vdr/channel-logos/";
-  std::string folderWildcard = imageFolder + (std::string)"*";
- 
-  //check if requestes imagepath points to a file in the imageFolder directory - security check
-  if ( VdrExtension::doesFileExistInFolder(folderWildcard, imageName) ) {
-    std::string absolute_path = imageFolder + imageName;
-    std::string contenttype = (std::string)"image/" + imageName.substr( imageName.find_last_of('.') + 1 );
-    if ( se.writeBinary(absolute_path) ) {
-       reply.addHeader("Content-Type", contenttype.c_str());
-    } else {
-       reply.httpReturn(502, "Binary Output failed");
-    }
-  } else {
-    reply.httpReturn(403, "Please learn to crack before using useless tools on my absolutely secure web service. You can only retrieve channel-logos, trying to retrieve files like the ones of passwd is a waste of time - it won't work!");
+  std::string channelid = q.getParamAsString(0);
+  cChannel* channel = VdrExtension::getChannel(channelid);
+  std::string imageFolder = Settings::get()->ChannelLogoDirectory() + (std::string)"/";
+  
+  if (channel == NULL) {
+     reply.httpReturn(502, "Channel not found!");
+     return;
   }
 
+  std::string imageName = FileCaches::get()->searchChannelLogo(channel);
+
+  if (imageName.length() == 0 ) {
+     reply.httpReturn(502, "No image found!");
+     return;
+  }
+  
+  std::string absolute_path = imageFolder + imageName;
+  std::string contenttype = (std::string)"image/" + imageName.substr( imageName.find_last_of('.') + 1 );
+  if ( se.writeBinary(absolute_path) ) {
+     reply.addHeader("Content-Type", contenttype.c_str());
+  } else {
+    reply.httpReturn(502, "Binary Output failed");
+  }
 }
 
 void ChannelsResponder::replyGroups(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
@@ -215,7 +221,7 @@ void JsonChannelList::addChannel(cChannel* channel, std::string group, std::stri
   serChannel.Name = StringExtension::UTF8Decode(channel->Name());
   serChannel.Number = channel->Number();
   serChannel.ChannelId = StringExtension::UTF8Decode((std::string)channel->GetChannelID().ToString());
-  if ( image.length() == 0 ) image = "null";
+  if ( image.length() == 0 ) image = "false"; else image = "true";
   serChannel.Image = StringExtension::UTF8Decode(image);
   serChannel.Group = StringExtension::UTF8Decode(group);
   serChannel.Transponder = channel->Transponder();
@@ -253,8 +259,8 @@ void XmlChannelList::addChannel(cChannel* channel, std::string group, std::strin
   s->write((const char*)cString::sprintf("  <param name=\"name\">%s</param>\n", StringExtension::encodeToXml(channel->Name()).c_str()));
   s->write((const char*)cString::sprintf("  <param name=\"number\">%i</param>\n", channel->Number()));
   s->write((const char*)cString::sprintf("  <param name=\"channel_id\">%s</param>\n",  StringExtension::encodeToXml( (std::string)channel->GetChannelID().ToString()).c_str()));
-  if ( image.length() == 0 ) image = "null";
-  s->write((const char*)cString::sprintf("  <param name=\"image\">%s</param>\n", StringExtension::encodeToXml( image ).c_str()));
+  if ( image.length() == 0 ) image = "false"; else image = "true";
+  s->write((const char*)cString::sprintf("  <param name=\"image\">%s</param>\n", image.c_str()));
   s->write((const char*)cString::sprintf("  <param name=\"group\">%s</param>\n", StringExtension::encodeToXml( group ).c_str()));
   s->write((const char*)cString::sprintf("  <param name=\"transponder\">%i</param>\n", channel->Transponder()));
   s->write((const char*)cString::sprintf("  <param name=\"stream\">%s</param>\n", StringExtension::encodeToXml( ((std::string)channel->GetChannelID().ToString() + (std::string)suffix).c_str()).c_str()));

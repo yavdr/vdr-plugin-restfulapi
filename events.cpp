@@ -43,7 +43,8 @@ void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& re
 
   cChannel* channel = VdrExtension::getChannel(channel_id);
   if ( channel == NULL ) { 
-     reply.httpReturn(404, "Channel with number _xx_ not found!"); 
+     std::string error_message = (std::string)"Could not find channel with id: " + channel_id + (std::string)"!";
+     reply.httpReturn(404, error_message); 
      return; 
   }
 
@@ -93,28 +94,27 @@ void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& re
 void EventsResponder::replyImage(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   StreamExtension se(&out);
-  int delim = request.url().find_last_of('/');
-  std::string image_filename = request.url().substr(delim + 1);
- 
-  cxxtools::Regex* regex1 = new cxxtools::Regex("[0-9]*_?[0-9]*.jpg");
-  cxxtools::Regex* regex2 = new cxxtools::Regex("[0-9]*_?[0-9]*.png");
+  QueryHandler q("/events/image", request);
+  int eventid = q.getParamAsInt(0);
+  int number = q.getParamAsInt(1);
+  
+  std::vector< std::string > images;
+  
+  FileCaches::get()->searchEventImages(eventid, images);
 
-  if ( regex1->match(image_filename.c_str()) ) {
-    reply.addHeader("Content-Type", "image/jpg");  
-  } else if (regex2->match(image_filename.c_str())) {
-    reply.addHeader("Content-Type", "image/png");
-  } else {
-    delete regex1;
-    delete regex2;
-    reply.httpReturn(403, "You can only download images from the specific tvm2vdr-folder!");
-    return;
+  if (number < 0 || number >= (int)images.size()) {
+     reply.httpReturn(404, "Could not find image because of invalid image number!");
+     return;
   }
 
-  delete regex1;
-  delete regex2;
-
-  std::string absolute_path = (std::string)"/var/cache/vdr/epgimages/" + image_filename;
-  if ( !se.writeBinary(absolute_path) ) {
+  std::string image = images[number];
+  std::string type = image.substr(image.find_last_of(".")+1);
+  std::string contenttype = (std::string)"image/" + type;
+  std::string path = Settings::get()->EpgImageDirectory() + (std::string)"/" + image;
+ 
+  if ( se.writeBinary(path) ) {
+     reply.addHeader("Content-Type", contenttype.c_str());
+  } else {
      reply.httpReturn(404, "Could not find image!");
   }
 }
@@ -127,14 +127,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)
   si.addMember("description") <<= e.Description;
   si.addMember("start_time") <<= e.StartTime;
   si.addMember("duration") <<= e.Duration;
-  if (e.Images != NULL) {
-      std::vector< cxxtools::String > imgs;
-     for(int i=0;i<e.ImagesCount;i++) {
-        imgs.push_back(e.Images[i]);
-     }
-     si.addMember("images") <<= imgs;
-     delete[] e.Images;
-  }
+  si.addMember("images") <<= e.Images;
 }
 
 EventList::EventList(std::ostream *_out) {
@@ -188,18 +181,9 @@ void JsonEventList::addEvent(cEvent* event)
   serEvent.StartTime = event->StartTime();
   serEvent.Duration = event->Duration();
 
-  serEvent.Images = NULL;
-  serEvent.ImagesCount = 0;
-
   std::vector< std::string > images;
-  FileCaches::get()->searchEventImage(event, images);
-  if (images.size() > 0) {
-     serEvent.Images = new cxxtools::String[images.size()];
-     serEvent.ImagesCount = images.size();
-     for (int i=0;i<(int)images.size();i++) {
-        serEvent.Images[i] = StringExtension::UTF8Decode(images[i]);
-     }
-  }
+  FileCaches::get()->searchEventImages((int)event->EventID(), images);
+  serEvent.Images = images.size();
 
   serEvents.push_back(serEvent);
 }
@@ -240,12 +224,8 @@ void XmlEventList::addEvent(cEvent* event)
   s->write((const char*)cString::sprintf("  <param name=\"duration\">%i</param>\n", event->Duration()));
 
   std::vector< std::string > images;
-  FileCaches::get()->searchEventImage(event, images);
-  s->write("  <param name=\"images\">\n");
-  for (int i=0;i<(int)images.size();i++) {
-     s->write((const char*)cString::sprintf("   <image>%s</image>\n", StringExtension::encodeToXml(images[i]).c_str()));
-  }
-  s->write("  </param>\n");
+  FileCaches::get()->searchEventImages((int)event->EventID(), images);
+  s->write((const char*)cString::sprintf("  <param name=\"images\">%i</param>\n", (int)images.size()));
 
   s->write(" </event>\n");
 }

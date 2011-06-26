@@ -1,7 +1,3 @@
-RECORDINGS:
-GET http://<ip>:<port>/recordings.<format>
-DELETE http://<ip>:<port>/recordings<number>	#the first recording has number 1
-
 TIMERS:
 GET http://<ip>:<port>/timers.<format>
 DELETE http://<ip>:<port>/timers/<timerid>

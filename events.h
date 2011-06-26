@@ -30,8 +30,7 @@ struct SerEvent
   cxxtools::String Description;
   int StartTime;
   int Duration;
-  cxxtools::String* Images;
-  int ImagesCount;
+  int Images;
 };
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e);

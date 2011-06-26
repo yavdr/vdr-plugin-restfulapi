@@ -52,7 +52,10 @@ bool Settings::SetEpgImageDirectory(std::string v)
 {
   struct stat stat_info;
   if ( stat(v.c_str(), &stat_info) == 0) {
-     epgimage_dir = v;
+     if (v[v.length()-1] == '/')
+        epgimage_dir = v.substr(0, v.length()-1);
+     else
+        epgimage_dir = v;
      return true;
   }
   return false;
@@ -62,7 +65,10 @@ bool Settings::SetChannelLogoDirectory(std::string v)
 {
   struct stat stat_info;
   if ( stat(v.c_str(), &stat_info) == 0) {
-     channellogo_dir = v;
+     if (v[v.length()-1] == '/')
+        channellogo_dir = v.substr(0, v.length()-1);
+     else
+        channellogo_dir = v;
      return true;
   }
   return false;
@@ -219,29 +225,26 @@ FileCaches* FileCaches::get()
 
 void FileCaches::cacheEventImages()
 {
-  std::string imageFolder = "/var/cache/vdr/epgimages/";
-  std::string folderWildcard = imageFolder + (std::string)"*";
+  std::string imageFolder = Settings::get()->EpgImageDirectory();
+  std::string folderWildcard = imageFolder + (std::string)"/*";
   VdrExtension::scanForFiles(folderWildcard, eventImages);
 }
 
 void FileCaches::cacheChannelLogos()
 {
-  std::string imageFolder = "/usr/share/vdr/channel-logos/";
-  std::string folderWildcard = imageFolder + (std::string)"*";
+  std::string imageFolder = Settings::get()->ChannelLogoDirectory();
+  std::string folderWildcard = imageFolder + (std::string)"/*";
   VdrExtension::scanForFiles(folderWildcard, channelLogos);
 }
 
-int FileCaches::searchEventImage(cEvent* event, std::vector< std::string >& files)
+void FileCaches::searchEventImages(int eventid, std::vector< std::string >& files)
 {
-  cxxtools::Regex regex( StringExtension::itostr(event->EventID()) + (std::string)"(_[0-9]+)?.[a-z]{3,4}" );
-  int counter = 0;
+  cxxtools::Regex regex( StringExtension::itostr(eventid) + (std::string)"(_[0-9]+)?.[a-z]{3,4}" );
   for ( int i=0; i < (int)eventImages.size(); i++ ) {
       if ( regex.match(eventImages[i]) ) {
          files.push_back(eventImages[i]);
       }
-      counter++;
   }
-  return counter;
 }
 
 std::string FileCaches::searchChannelLogo(cChannel *channel)

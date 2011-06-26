@@ -15,10 +15,9 @@ void RecordingsResponder::deleteRecording(std::ostream& out, cxxtools::http::Req
 {
   QueryHandler q("/recordings", request);
   int recording_number = q.getParamAsInt(0);
-  if ( recording_number <= 0 || recording_number > Recordings.Count() ) { 
+  if ( recording_number < 0 || recording_number >= Recordings.Count() ) { 
      reply.httpReturn(404, "Wrong recording number!");
   } else {
-     recording_number--; // first recording is 0 and not 1 like in param
      cRecording* delRecording = Recordings.Get(recording_number);
      if ( delRecording->Delete() ) {
         Recordings.DelByName(delRecording->FileName());
@@ -198,7 +197,7 @@ void XmlRecordingList::addRecording(cRecording* recording)
 
   s->write(" <recording>\n");
   s->write((const char*)cString::sprintf("  <param name=\"name\">%s</param>\n", StringExtension::encodeToXml(recording->Name()).c_str()) );
-  s->write((const char*)cString::sprintf("  <param name=\"filename\">%s</param>\n", StringExtension::encodeToXml(recording->Name()).c_str()) );
+  s->write((const char*)cString::sprintf("  <param name=\"filename\">%s</param>\n", StringExtension::encodeToXml(recording->FileName()).c_str()) );
   s->write((const char*)cString::sprintf("  <param name=\"is_new\">%s</param>\n", recording->IsNew() ? "true" : "false" ));
   s->write((const char*)cString::sprintf("  <param name=\"is_edited\">%s</param>\n", recording->IsEdited() ? "true" : "false" ));
   s->write((const char*)cString::sprintf("  <param name=\"is_pes_recording\">%s</param>\n", recording->IsPesRecording() ? "true" : "false" ));
