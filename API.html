@@ -55,6 +55,10 @@ Developer: <a href="mailto:eiler.mike@gmail.com">eiler.mike@gmail.com</a> or <a 
 <li><a href="#Recordings">Recordings</a>
 <li><a href="#Remote">Remote</a>
 <li><a href="#Timers">Timers</a>
+<ul><li><a href="#ReadingTimers">Reading Timers</a>
+    <li><a href="#CreatingTimers">Creating Timers</a>
+    <li><a href="#UpdatingTimers">Updating Timers</a>
+    <li><a href="#DeletingTimers">Deleting Timers</a></ul>
 </ul>
 
 <hr />
@@ -101,10 +105,21 @@ Someone who wants to develop an application which uses this API:
 <hr />
 <br />
 
-Create a new file called restfulapi.conf in your plugins-config-directory.<br />
+Create a new file called plugin.restfulapi.conf in /etc/vdr/plugins/.<br />
 <br />
-The following example code contains the default values which are also used if the config-file is m
-alformed or doesn't exist.y<br />
+<div class="code"><code>
+#
+# Command line parameters for vdr-plugin-restfulapi
+#
+
+--port=8002
+--ip=0.0.0.0
+--epgimages=/var/cache/vdr/epgimages
+--channellogos=/usr/share/vdr/channel-logos
+</code></div>
+<br />
+If you don't use a DEBIAN based distribution, you can also use the following configuration method.<br />
+Simply create a file called restfulapi.conf in your plugin-configuration-folder. (f.e.: /var/lib/vdr/plugins/)<br />
 <br />
 <div class="code"><code>
 # This is an example configuration file for the restfulapi-plugin.<br />
@@ -114,8 +129,8 @@ ip = 0.0.0.0<br />
 epgimages = /var/cache/vdr/epgimages<br />
 channellogos = /usr/share/vdr/channel-logos
 </code></div>
-<br />
 
+<br />
 <hr />
 <h1 class="center"><a name="Channels">Channels</a></h1>
 <hr />
@@ -472,6 +487,16 @@ The second address allows to directly switch to a specific channel.
 <hr />
 <br />
 
+<h2><a name="ReadingTimers">Reading Timers</a></h2>
+<br />
 
+<h2><a name="CreatingTimers">Creating Timers</a></h2>
+<br />
+
+<h2><a name="UpdatingTimers">Updating Timers</a></h2>
+<br />
+
+<h2><a name="DeletingTimers">Deleting Timers</a></h2>
+<br />
 </body>
 </html>

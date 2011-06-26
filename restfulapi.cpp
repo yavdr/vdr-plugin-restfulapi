@@ -6,6 +6,7 @@
  * $Id$
  */
 
+#include <getopt.h>
 #include <vdr/plugin.h>
 #include "serverthread.h"
 
@@ -54,13 +55,41 @@ cPluginRestfulapi::~cPluginRestfulapi()
 
 const char *cPluginRestfulapi::CommandLineHelp(void)
 {
-  // Return a string that describes all known command line options.
-  return NULL;
+  return "  -i 0.0.0.0,      --ip=0.0.0.0             ip of the interface on which the services should listen\n"
+         "  -p 8002,         --port=8002              tcp port\n"
+         "  -e ABC,          --epgimages=ABC          folder which stores the epg-images\n"
+         "  -c DEF,          --channellogos=DEF       folder which stores the channel-logos\n";
 }
 
 bool cPluginRestfulapi::ProcessArgs(int argc, char *argv[])
 {
-  // Implement command line argument processing here if applicable.
+  Settings* settings = Settings::get();
+  esyslog("restfulapi: trying to parse command line arguments");
+
+  static struct option long_options[] = {
+       { "port",         required_argument,  NULL,  'p' },
+       { "ip",           required_argument,  NULL,  'i' },
+       { "epgimages",    required_argument,  NULL,  'e' },
+       { "channellogos", required_argument,  NULL,  'c' }
+     };
+
+  int optchar, optind = 0;
+
+  while ( ( optchar = getopt_long( argc, argv, "p:i:e:c:", long_options, &optind ) ) != -1 ) {
+     switch ( optchar ) {
+        case 'p': settings->SetPort((std::string)optarg); break;
+        case 'i': settings->SetIp((std::string)optarg); break;
+        case 'e': settings->SetEpgImageDirectory((std::string)optarg);  break;
+        case 'c': settings->SetChannelLogoDirectory((std::string)optarg); break;
+     };
+  }
+
+  esyslog("RESTful-API Settings: port: %i, ip: %s, eimgs: %s, cimgs: %s", 
+          settings->Port(),
+          settings->Ip().c_str(),
+          settings->EpgImageDirectory().c_str(),
+          settings->ChannelLogoDirectory().c_str());
+
   return true;
 }
 
@@ -73,7 +102,16 @@ bool cPluginRestfulapi::Initialize(void)
 bool cPluginRestfulapi::Start(void)
 {
   // Start any background activities the plugin shall perform.
-  Settings::get(); //parse config-file
+  Settings* settings = Settings::get();
+
+  settings->init(); //load settings from non-debian-secific config-file
+
+  esyslog("restfulapi: Used settings: port: %i, ip: %s, eimgs: %s, cimgs: %s", 
+          settings->Port(),
+          settings->Ip().c_str(),
+          settings->EpgImageDirectory().c_str(),
+          settings->ChannelLogoDirectory().c_str());
+
   FileCaches::get(); //cache files
   serverThread.Initialize();
   serverThread.Start();

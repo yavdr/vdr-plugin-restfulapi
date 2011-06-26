@@ -34,12 +34,8 @@ class Settings
     std::string channellogo_dir;
     std::string cutComment(std::string str);
     bool parseLine(std::string str);
-    bool SetPort(std::string v);
-    bool SetIp(std::string v);
-    bool SetEpgImageDirectory(std::string v);
-    bool SetChannelLogoDirectory(std::string v);
   public:
-    Settings() { init(); }
+    Settings() { initDefault(); }
     ~Settings() { };
     static Settings* get();
     void init();
@@ -48,6 +44,10 @@ class Settings
     std::string Ip() { return ip; }
     std::string EpgImageDirectory() { return epgimage_dir; }
     std::string ChannelLogoDirectory() { return channellogo_dir; }
+    bool SetPort(std::string v);
+    bool SetIp(std::string v);
+    bool SetEpgImageDirectory(std::string v);
+    bool SetChannelLogoDirectory(std::string v);
 };
 
 class StreamExtension

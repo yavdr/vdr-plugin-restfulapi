@@ -9,11 +9,11 @@ std::string Settings::cutComment(std::string str)
   while ( counter < (int)str.length() ) {
     c = str[counter];
     switch(c) {
-      case '\\':  if (!esc) esc = true; else esc = false;
+      case '\\': if (!esc) esc = true; else esc = false;
                   break;
-      case '#':   if (!esc) return str.substr(0, counter);
+      case '#': if (!esc) return str.substr(0, counter);
                   break;
-      default:    esc = false;
+      default: esc = false;
                   break;
     }
     counter++;
@@ -26,6 +26,7 @@ bool Settings::SetPort(std::string v)
   int p = StringExtension::strtoi(v);
   if ( p > 1024 && p <= 65535 ) {
      port = p;
+     esyslog("restfulapi: Port has been set to %i!", port);
      return true;
   }
   return false;
@@ -45,6 +46,7 @@ bool Settings::SetIp(std::string v)
       }
   }
   ip = v;
+  esyslog("restfulapi: Ip has been set to %s!", ip.c_str());
   return true;
 }
 
@@ -56,6 +58,7 @@ bool Settings::SetEpgImageDirectory(std::string v)
         epgimage_dir = v.substr(0, v.length()-1);
      else
         epgimage_dir = v;
+     esyslog("restfulapi: The EPG-Images will be loaded from %s!", epgimage_dir.c_str());
      return true;
   }
   return false;
@@ -69,6 +72,7 @@ bool Settings::SetChannelLogoDirectory(std::string v)
         channellogo_dir = v.substr(0, v.length()-1);
      else
         channellogo_dir = v;
+     esyslog("restfulapi: The Channel-Logos will be loaded from %s!", channellogo_dir.c_str());
      return true;
   }
   return false;
@@ -86,7 +90,6 @@ bool Settings::parseLine(std::string str)
 
      if ( (int)name.find("port") != -1 ) {
         if ( SetPort(value) ) {
-           esyslog("restfulapi: Port has been set to %i!", port);
            return true;
         } else {
            return false;
@@ -95,7 +98,6 @@ bool Settings::parseLine(std::string str)
 
      if ( (int)name.find("ip") != -1 ) {
         if ( SetIp(value) ) {
-           esyslog("restfulapi: Ip has been set to %s!", ip.c_str());
            return true;
         } else {
            return false;
@@ -104,16 +106,14 @@ bool Settings::parseLine(std::string str)
 
      if ( (int)name.find("epgimages") != -1 ) {
         if ( SetEpgImageDirectory(value) ) {
-           esyslog("restfulapi: The EPG-Images will be loaded from %s!", epgimage_dir.c_str());
            return true;
         } else {
            return false;
         }
-     } 
+     }
 
      if ( (int)name.find("channellogos") != -1 ) {
         if ( SetChannelLogoDirectory(value) ) {
-           esyslog("restfulapi: The Channel-Logos will be loaded from %s!", channellogo_dir.c_str());
            return true;
         } else {
            return false;
@@ -131,12 +131,11 @@ Settings* Settings::get()
 
 void Settings::init()
 {
-  initDefault();
   std::string configDir = cPlugin::ConfigDirectory() + (std::string)"/restfulapi.conf";
-  esyslog("restfulapi: settings file: /%s/", configDir.c_str());
  
   FILE* f = fopen(configDir.c_str(), "r");
   if ( f != NULL ) {
+     esyslog("restfulapi: trying to parse \"non debian specific\" restfulapi.conf");
      std::ostringstream data;
      char c;
      while ( !feof(f) ) {
@@ -147,21 +146,21 @@ void Settings::init()
        } else {
           if (!feof(f)) //don't add EOF-char to string
              data << c;
-       }     
+       }
      }
      parseLine(data.str());
      fclose(f);
   }
-
-  esyslog("restfulapi settings: port: %i, ip: %s, eimgs: %s, cimgs: %s", port, ip.c_str(), epgimage_dir.c_str(), channellogo_dir.c_str());
 }
 
 void Settings::initDefault()
 {
-  port = 8002;
-  ip = "0.0.0.0";
-  epgimage_dir = "/var/cache/vdr/epgimages";
-  channellogo_dir = "/usr/share/vdr/channel-logos";
+  esyslog("restfulapi: loading default settings");
+
+  SetPort((std::string)"8002");
+  SetIp((std::string)"0.0.0.0");
+  SetEpgImageDirectory((std::string)"/var/cache/vdr/epgimages");
+  SetChannelLogoDirectory((std::string)"/usr/share/vdr/channel-logos");
 }
 
 // --- StreamExtension ---------------------------------------------------------
