@@ -7,12 +7,12 @@
 
 #include "serverthread.h"
 
-cServerThread::cServerThread ()
+void cServerThread::Initialize()
 {
   active = false; 
 
-  listenIp = "0.0.0.0";
-  listenPort = 8002;
+  listenIp = Settings::get()->Ip();
+  listenPort = Settings::get()->Port();
 
   isyslog("create server");
   server = new cxxtools::http::Server(loop, listenIp, listenPort);
@@ -24,7 +24,7 @@ void cServerThread::Stop() {
   delete server;
 }
 
-cServerThread::~cServerThread ()
+cServerThread::~cServerThread()
 {
   Cancel(0);
 }

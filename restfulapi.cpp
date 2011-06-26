@@ -75,7 +75,7 @@ bool cPluginRestfulapi::Start(void)
   // Start any background activities the plugin shall perform.
   Settings::get(); //parse config-file
   FileCaches::get(); //cache files
-
+  serverThread.Initialize();
   serverThread.Start();
   return true;
 }

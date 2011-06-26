@@ -37,8 +37,9 @@ private:
     void Action(void);
 
 public:
-    cServerThread();
+    cServerThread() { };
     ~cServerThread();
+    void Initialize();
     void StartUpdate();
     bool isActive() { return active; };
     void Stop();
