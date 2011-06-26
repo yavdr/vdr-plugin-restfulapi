@@ -55,10 +55,9 @@ Developer: <a href="mailto:eiler.mike@gmail.com">eiler.mike@gmail.com</a> or <a 
 <li><a href="#Recordings">Recordings</a>
 <li><a href="#Remote">Remote</a>
 <li><a href="#Timers">Timers</a>
-<ul><li><a href="#ReadingTimers">Reading Timers</a>
+<ul><li><a href="#ReadingTimers">Reading/Deleting Timers</a>
     <li><a href="#CreatingTimers">Creating Timers</a>
-    <li><a href="#UpdatingTimers">Updating Timers</a>
-    <li><a href="#DeletingTimers">Deleting Timers</a></ul>
+    <li><a href="#UpdatingTimers">Updating Timers</a></ul>
 </ul>
 
 <hr />
@@ -174,21 +173,21 @@ GET http://&lt;ip&gt;:&lt;port&gt;/channels/.&lt;format&gt;?start=&lt;int&gt;&am
 GET http://127.0.0.1:8002/channels.xml?start=0&amp;limit=1<br /><br />
 &lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;<br />
 &lt;channels xmlns="http://www.domain.org/restfulapi/2011/channels-xml"&gt;<br />
- &lt;channel&gt;<br />
-  &lt;param name="name"&lt;ORF1 HD&lt;/param&gt;<br />
-  &lt;param name="number"&gt;1&lt;/param&gt;<br />
-  &lt;param name="channel_id"&gt;C-71-71-61920&lt;/param&lt;<br />
-  &lt;param name="image"&gt;true&lt;/param&gt;<br />
-  &lt;param name="group"&gt;hd&lt;/param&gt;<br />
-  &lt;param name="transponder"&gt;330&lt;/param&gt;<br />
-  &lt;param name="stream"&gt;C-71-71-61920.ts&lt;/param&gt;<br />
-  &lt;param name="is_atsc"&gt;false&lt;/param&gt;<br />
-  &lt;param name="is_cable"&gt;true&lt;/param&gt;<br />
-  &lt;param name="is_sat"&gt;false&lt;/param&gt;<br />
-  &lt;param name="is_terr"&gt;false&lt;/param&gt;<br />
- &lt;/channel&gt;<br />
- &lt;count&gt;1&lt;/count&gt;<br />
- &lt;total&gt;259&lt;/total&gt;<br />
+&nbsp;&lt;channel&gt;<br />
+&nbsp;&nbsp;&lt;param name="name"&lt;ORF1 HD&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="number"&gt;1&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="channel_id"&gt;C-71-71-61920&lt;/param&lt;<br />
+&nbsp;&nbsp;&lt;param name="image"&gt;true&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="group"&gt;hd&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="transponder"&gt;330&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="stream"&gt;C-71-71-61920.ts&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="is_atsc"&gt;false&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="is_cable"&gt;true&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="is_sat"&gt;false&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="is_terr"&gt;false&lt;/param&gt;<br />
+&nbsp;&lt;/channel&gt;<br />
+&nbsp;&lt;count&gt;1&lt;/count&gt;<br />
+&nbsp;&lt;total&gt;259&lt;/total&gt;<br />
 &lt;/channels&gt;
 </code></div>
 <br />
@@ -200,7 +199,7 @@ GET http://127.0.0.1:8002/channels.json?start=0&amp;limit=1<br /><br />
 "name":"ORF1 HD",<br />
 "number":1,<br />
 "channel_id":"C-71-71-61920",<br />
-"image":"true",<br />
+"image":true,<br />
 "group":"hd",<br />
 "transponder":330,<br />
 "stream":"C-71-71-61920.ts",<br />
@@ -250,11 +249,11 @@ GET http://&lt;ip&gt;:&lt;port&gt;/channels/groups?start=0&amp;limit=3<br />
 <br />
 &lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;<br />
 &lt;groups xmlns="http://www.domain.org/restfulapi/2011/groups-xml"&gt;<br />
- &lt;group&gt;hd&lt;/group&gt;<br />
- &lt;group&gt;main&lt;/group&gt;<br />
- &lt;group&gt;stuff&lt;/group&gt;<br />
- &lt;count&gt;3&lt;/count&gt;<br />
- &lt;total&gt;3&lt;/total&gt;<br />
+&nbsp;&lt;group&gt;hd&lt;/group&gt;<br />
+&nbsp;&lt;group&gt;main&lt;/group&gt;<br />
+&nbsp;&lt;group&gt;stuff&lt;/group&gt;<br />
+&nbsp;&lt;count&gt;3&lt;/count&gt;<br />
+&nbsp;&lt;total&gt;3&lt;/total&gt;<br />
 &lt;/groups&gt;
 </code></div>
 <br />
@@ -329,17 +328,17 @@ GET http://&lt;ip&gt;:&lt;port&gt;/events/C-1-1011-11110/3600.xml?start=0&amp;li
 <br />
 &lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;<br />
 &lt;events xmlns="http://www.domain.org/restfulapi/2011/events-xml"&gt;<br />
- &lt;event&gt;<br />
-  &lt;param name="id"&gt;51514&lt;/param&gt;<br />
-  &lt;param name="title"&gt;Eine Serie&lt;/param&gt;<br />
-  &lt;param name="short_text"&gt;Der Episodentitel&lt;/param&gt;<br />
-  &lt;param name="description"&gt;Die Beschreibung&lt;/param&gt;<br />
-  &lt;param name="start_time"&gt;1308845100&lt;/param&gt;<br />
-  &lt;param name="duration"&gt;3300&lt;/param&gt;<br />
-  &lt;param name="images"&gt;1&lt;/param&gt;<br />
- &lt;/event&gt;<br />
- &lt;count&gt;1&lt;/count&gt;<br />
- &lt;total&gt;236&lt;/total&gt;<br />
+&nbsp;&lt;event&gt;<br />
+&nbsp;&nbsp;&lt;param name="id"&gt;51514&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="title"&gt;Eine Serie&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="short_text"&gt;Der Episodentitel&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="description"&gt;Die Beschreibung&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="start_time"&gt;1308845100&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="duration"&gt;3300&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="images"&gt;1&lt;/param&gt;<br />
+&nbsp;&lt;/event&gt;<br />
+&nbsp;&lt;count&gt;1&lt;/count&gt;<br />
+&nbsp;&lt;total&gt;236&lt;/total&gt;<br />
 &lt;/events&gt;
 </code></div>
 <br />
@@ -394,7 +393,7 @@ This service can delete recordings and can also return all the recordings as a l
 <b>The Request:</b>
 <br />
 <br />
-Method: <b>GET</b><br />
+Method: <b>GET, DELETE</b><br />
 <br />
 Examples: <br/>
 <br />
@@ -423,27 +422,31 @@ DELETE http://&lt;ip&gt;:&lt;port&gt;/recordings/&lt;number&gt;
 <br />
 
 <div class="code"><code>
+GET http://127.0.0.1:8002/recordings.xml?start=0&amp;limit=1<br />
+<br />
 &lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;<br />
 &lt;recordings xmlns="http://www.domain.org/restfulapi/2011/recordings-xml"&gt;<br />
- &lt;recording&gt;<br />
-  &lt;param name="name"&gt;Asterix in Amerika&lt;/param&gt;<br />
-  &lt;param name="filename"&gt;/var/lib/video.00/Asterix_in_Amerika/2011-06-19.12.40.1-0.rec&lt;/param&gt;<br />
-  &lt;param name="is_new"&gt;false&lt;/param&gt;<br />
-  &lt;param name="is_edited"&gt;false&lt;/param&gt;<br />
-  &lt;param name="is_pes_recording"&gt;false&lt;/param&gt;<br />
-  &lt;param name="duration"&gt;-1&lt;/param&gt;<br />
-  &lt;param name="event_title"&gt;Asterix in Amerika&lt;/param&gt;<br />
-  &lt;param name="event_short_text"&gt;&lt;/param&gt;<br />
-  &lt;param name="event_description"&gt;(Zeichentrickfilm, DEU 1994)&lt;/param&gt;<br />
-  &lt;param name="event_start_time"&gt;1308480705&lt;/param&gt;<br />
-  &lt;param name="event_duration"&gt;4611&lt;/param&gt;<br />
- &lt;/recording&gt;<br />
- &lt;count&gt;2&lt;/count&gt;&lt;total&gt;2&lt;/total&gt;<br />
+&nbsp;&lt;recording&gt;<br />
+&nbsp;&nbsp;&lt;param name="name"&gt;Asterix in Amerika&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="filename"&gt;/var/lib/video.00/Asterix_in_Amerika/2011-06-19.12.40.1-0.rec&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="is_new"&gt;false&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="is_edited"&gt;false&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="is_pes_recording"&gt;false&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="duration"&gt;-1&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="event_title"&gt;Asterix in Amerika&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="event_short_text"&gt;&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="event_description"&gt;(Zeichentrickfilm, DEU 1994)&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="event_start_time"&gt;1308480705&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="event_duration"&gt;4611&lt;/param&gt;<br />
+&nbsp;&lt;/recording&gt;<br />
+&nbsp;&lt;count&gt;2&lt;/count&gt;&lt;total&gt;2&lt;/total&gt;<br />
 &lt;/recordings&gt;
 </code></div>
 <br />
 
 <div class="code"><code>
+GET http://127.0.0.1:8002/recordings.json?start=0&amp;limit=1<br />
+<br />
 {"recordings":[{<br />
 "name":"Asterix in Amerika",<br />
 "file_name":"\/var\/lib\/video.00\/Asterix_in_Amerika\/2011-06-19.12.40.1-0.rec",<br />
@@ -467,6 +470,8 @@ DELETE http://&lt;ip&gt;:&lt;port&gt;/recordings/&lt;number&gt;
 
 This service retrieves remote commands and sends them to VDR:<br />
 <br />
+Method: <b>POST</b><br />
+<br />
 <b>Syntax:</b><br />
 <br />
 <div class="code"><code>
@@ -474,7 +479,7 @@ POST http://&lt;ip&gt;:&lt;port&gt;/remote/&lt;key&gt;<br />
 POST http://&lt;ip&gt;:&lt;port&gt;/remot/switch/&lt;channelid&gt;
 </code></div>
 <br />
-They parameter &lt;key&gt; can be set to the following remote control commands:<br /><br />
+The parameter &lt;key&gt; can be set to the following remote control commands:<br /><br />
 Up, Down, Menu, Ok, Back, Left, Right, Red, Green, Yellow, Blue, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, Info, Play, Pause, Stop, Record, FastFwd, FastRew, Next, Prev, Power, ChanUp, ChanDn, ChanPrev, VolUp, VolDn, Mute, Audio, Subtitles, Schedule, Channels, Timers, Recordings, Setup, Commands, User0, User1, User2, User3, User4, User5, User6, User7, User8, User9, None, Kbd<br />
 <br />
 The second address allows to directly switch to a specific channel.
@@ -487,16 +492,166 @@ The second address allows to directly switch to a specific channel.
 <hr />
 <br />
 
-<h2><a name="ReadingTimers">Reading Timers</a></h2>
+<h2><a name="ReadingTimers">Reading/Deleting Timers</a></h2>
+<br />
+
+This service returns a list of timers.<br />
+<br />
+
+<b>The Request:</b>
+<br />
+<br />
+Method: <b>GET, DELETE</b><br />
+<br />
+Examples: <br/>
+<br />
+<div class="code"><code>
+GET http://&lt;ip&gt;:&lt;port&gt;/timers.&lt;format&gt;<br />
+GET http://&lt;ip&gt;:&lt;port&gt;/timers.&lt;format&gt;?start=&lt;int&gt;&amp;limit=&lt;int&gt;<br />
+DELETE http://&lt;ip&gt;:&lt;port&gt;/timers/&lt;timerid&gt;
+</code></div>
+<br />
+<br />
+<b>Description of the Parameters:</b>
+<br />
+<br />
+
+<ul>
+<li>&lt;format&gt; - The requested format: json, xml or html.
+<li>&lt;timerid&gt; - Id of the timer if you want to delete one.
+<li>start, limit - These values are used to control the whole list. Start ist the first element you want to retrieve. Limit...
+</ul>
+
+<br />
+<br />
+
+<b>Example Result:</b>
+<br />
+<br />
+
+<div class="code"><code>
+GET http://127.0.0.1:8002/timers.xml?start=0&amp;limit=1<br />
+<br />
+&lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;<br />
+&lt;timers xmlns="http://www.domain.org/restfulapi/2011/timers-xml"&gt;<br />
+&nbsp;&lt;timer&gt;<br />
+&nbsp;&nbsp;&lt;param name="id"&gt;C-71-71-61920:0:1309039200:2013:2200&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="start"&gt;2013&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="stop"&gt;2200&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="priority"&gt;50&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="lifetime"&gt;99&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="event_id"&gt;27312&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="weekdays"&gt;-------&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="day"&gt;2011-06-26&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="channel"&gt;1&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="is_recording"&gt;false&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="is_pending"&gt;false&gt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="filename"&gt;Mad Money&gt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="channelname"&gt;ORF1 HD&gt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="is_active"&gt;true&gt;/param&gt;<br />
+&nbsp;&lt;/timer&gt;<br />
+&nbsp;&lt;count&gt;1&lt;/count&gt;&lt;total&gt;2&lt;/total&gt;<br />
+&lt;/timers&gt;
+</code></div>
+<br />
+<div class="code"><code>
+GET http://127.0.0.1:8002/timers.json?start=0&amp;limit=1<br />
+<br />
+
+</code></div>
 <br />
 
 <h2><a name="CreatingTimers">Creating Timers</a></h2>
 <br />
 
+This service can create new timers.<br />
+<br />
+Method: <b>POST</b><br />
+<br />
+
+Example:<br />
+<br />
+<div class="code"><code>
+POST http:/&lt;ip&gt;:&lt;ip&gt;/timers
+</code></div>
+<br />
+<b>Required Body Parameters:</b><br />
+
+<ul>
+<li>flags - set it to 1 for an active timer
+<li>file - name of the recording
+<li>stop - the time when the recording should be start - in the 24 hour system, f.e. 2015 means quarter past ten in the evening
+<li>start - the time when the recording sholud be stoped, f.e. 2230 (half past ten in the evening)
+<li>day - YYYY-MM-DD, f.e. 2011-12-24 -&gt; christmas :-)
+<li>channel - ID of the channel
+<li>weekdays - MTWTFSS, used for repeating timers -&gt; just use '-' if you don't want the timer to run on the specific day
+</ul>
+<br />
+<b>Example Request (including HTTP-Header):</b><br />
+<br />
+<div class="code"><code>
+POST /timers HTTP/1.1<br />
+Content-Length: 98<br />
+Connection: close<br />
+<br />
+file=Ein%20Film&amp;flags=1&amp;start=1400&amp;stop=1615&amp;day=2011-12-24&amp;channel=C-71-71-61920&amp;weekdays=-------
+</code></div>
+<br />
+<b>Example Response (including HTTP-Header):</b><br />
+<br />
+<div class="code"><code>
+HTTP/1.1 200 OK<br />
+Content-Length: 0<br />
+Server: cxxtools-Http-Server 2.0<br />
+Connection: close<br />
+Date: Sun, 26 Jun 2011 19:03:48 GMT
+</code></div>
+<br />
+
 <h2><a name="UpdatingTimers">Updating Timers</a></h2>
 <br />
 
-<h2><a name="DeletingTimers">Deleting Timers</a></h2>
+This service can update the previously created timers.<br />
 <br />
+Method: <b>PUT</b><br />
+<br />
+Example:<br />
+<br />
+<div class="code"><code>
+PUT http://&lt;ip&gt;:&lt;port&gt;/timers
+</code></div>
+<br />
+
+<b>Required Body Parameters:</b><br />
+
+<ul>
+<li>timer_id - the id of the timer
+</ul>
+<br />
+
+<b>Optional Body Parameters are the ones you use to create the timer and now want to update.</b><br />
+<br />
+
+<b>Example Request (including HTTP-Header):</b><br />
+<br />
+<div class="code"><code>
+PUT /timers HTTP/1.1<br />
+Content-Length: 81<br />
+Connection: close<br />
+<br />
+timer_id=C-71-71-61920:0:1324681200:1400:1615&amp;start=2015&amp;stop=2230
+</code></div>
+<br />
+<b>Example Response (including HTTP-Header):</b><br />
+<br />
+<div class="code"><code>
+HTTP/1.1 200 OK<br />
+Content-Length: 0<br />
+Server: cxxtools-Http-Server 2.0<br />
+Connection: close<br />
+Date: Sun, 26 Jun 2011 19:20:03 GMT<br />
+</code></div>
+<br /><br /><br /><br />
+
 </body>
 </html>

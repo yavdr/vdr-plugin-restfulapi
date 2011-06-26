@@ -47,7 +47,7 @@ void TimersResponder::createOrUpdateTimer(std::ostream& out, cxxtools::http::Req
      if ( !v.IsPriorityValid(priority) ) { priority = 99; }
      if ( !v.IsStopValid(stop) ) { error = true; error_values += "stop, "; }
      if ( !v.IsStartValid(start) ) { error = true; error_values += "start, "; }
-     if ( !v.IsWeekdaysValid(weekdays) && !weekdays.empty() ) { error = true; error_values += "weekdays, "; }
+     if ( !v.IsWeekdaysValid(weekdays) ) { error = true; error_values += "weekdays, "; }
      if ( !v.IsDayValid(day)&& !day.empty() ) { error = true; error_values += "day, "; }
      if ( chan == NULL ) { error = true; error_values += "channel, "; }
   } else { //update

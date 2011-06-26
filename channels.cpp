@@ -64,7 +64,7 @@ void ChannelsResponder::replyChannels(std::ostream& out, cxxtools::http::Request
         }
         channelList->setTotal(total);
         std::string image = FileCaches::get()->searchChannelLogo(channel);
-        channelList->addChannel(channel, group, image);
+        channelList->addChannel(channel, group, image.length() == 0);
      }
   } else {
      if ( start_filter >= 0 && limit_filter >= 1 ) {
@@ -78,7 +78,7 @@ void ChannelsResponder::replyChannels(std::ostream& out, cxxtools::http::Request
        if (!channel->GroupSep()) {
           if ( group_filter.length() == 0 || group == group_filter ) {
              std::string image = FileCaches::get()->searchChannelLogo(channel);
-             channelList->addChannel(channel, group, image);
+             channelList->addChannel(channel, group, image.length() == 0);
              total++;
           }
        } else {
@@ -196,7 +196,7 @@ void HtmlChannelList::init()
   s->write("<ul>");
 }
 
-void HtmlChannelList::addChannel(cChannel* channel, std::string group, std::string image)
+void HtmlChannelList::addChannel(cChannel* channel, std::string group, bool image)
 {
   if ( filtered() ) return;
 
@@ -211,7 +211,7 @@ void HtmlChannelList::finish()
   s->write("</body></html>");
 }
 
-void JsonChannelList::addChannel(cChannel* channel, std::string group, std::string image)
+void JsonChannelList::addChannel(cChannel* channel, std::string group, bool image)
 {  
   if ( filtered() ) return;
 
@@ -221,8 +221,7 @@ void JsonChannelList::addChannel(cChannel* channel, std::string group, std::stri
   serChannel.Name = StringExtension::UTF8Decode(channel->Name());
   serChannel.Number = channel->Number();
   serChannel.ChannelId = StringExtension::UTF8Decode((std::string)channel->GetChannelID().ToString());
-  if ( image.length() == 0 ) image = "false"; else image = "true";
-  serChannel.Image = StringExtension::UTF8Decode(image);
+  serChannel.Image = image;
   serChannel.Group = StringExtension::UTF8Decode(group);
   serChannel.Transponder = channel->Transponder();
   serChannel.Stream = StringExtension::UTF8Decode(((std::string)channel->GetChannelID().ToString() + (std::string)suffix).c_str());
@@ -249,7 +248,7 @@ void XmlChannelList::init()
   s->write("<channels xmlns=\"http://www.domain.org/restfulapi/2011/channels-xml\">\n");
 }
 
-void XmlChannelList::addChannel(cChannel* channel, std::string group, std::string image)
+void XmlChannelList::addChannel(cChannel* channel, std::string group, bool image)
 {
   if ( filtered() ) return;
 
@@ -259,8 +258,7 @@ void XmlChannelList::addChannel(cChannel* channel, std::string group, std::strin
   s->write((const char*)cString::sprintf("  <param name=\"name\">%s</param>\n", StringExtension::encodeToXml(channel->Name()).c_str()));
   s->write((const char*)cString::sprintf("  <param name=\"number\">%i</param>\n", channel->Number()));
   s->write((const char*)cString::sprintf("  <param name=\"channel_id\">%s</param>\n",  StringExtension::encodeToXml( (std::string)channel->GetChannelID().ToString()).c_str()));
-  if ( image.length() == 0 ) image = "false"; else image = "true";
-  s->write((const char*)cString::sprintf("  <param name=\"image\">%s</param>\n", image.c_str()));
+  s->write((const char*)cString::sprintf("  <param name=\"image\">%s</param>\n", (image ? "true" : "false")));
   s->write((const char*)cString::sprintf("  <param name=\"group\">%s</param>\n", StringExtension::encodeToXml( group ).c_str()));
   s->write((const char*)cString::sprintf("  <param name=\"transponder\">%i</param>\n", channel->Transponder()));
   s->write((const char*)cString::sprintf("  <param name=\"stream\">%s</param>\n", StringExtension::encodeToXml( ((std::string)channel->GetChannelID().ToString() + (std::string)suffix).c_str()).c_str()));
