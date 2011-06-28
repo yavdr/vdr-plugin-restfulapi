@@ -48,7 +48,20 @@ void InfoResponder::replyJson(StreamExtension& se)
      services.push_back(s);
   }
 
+  struct SerPluginList pl;
+
+  cPlugin* p = NULL;
+  int counter = 0;
+  while ( (p = cPluginManager::GetPlugin(counter)) != NULL ) {
+     struct SerPlugin sp;
+     sp.Name = StringExtension::UTF8Decode(p->Name());
+     sp.Version = StringExtension::UTF8Decode(p->Version());
+     pl.plugins.push_back(sp);
+     counter++;
+  }
+
   serializer.serialize(services, "services");
+  serializer.serialize(pl, "vdr");
   serializer.finish();  
 }
 
@@ -69,8 +82,21 @@ void InfoResponder::replyXml(StreamExtension& se)
               restful_services[i]->Version(),
               restful_services[i]->Internal() ? "true" : "false"));
   }
-
   se.write(" </services>\n");
+
+  se.write(" <vdr>\n");
+  se.write("  <plugins>\n");
+ 
+  cPlugin* p = NULL; 
+  int counter = 0;
+  while ( (p = cPluginManager::GetPlugin(counter) ) != NULL ) {
+     se.write((const char*)cString::sprintf("   <plugin name=\"%s\" version=\"%s\" />\n", p->Name(), p->Version()));
+     counter++;
+  }
+
+  se.write("  </plugins>\n");
+  se.write(" </vdr>\n");
+
   se.write("</info>");
 }
 
@@ -79,3 +105,15 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerService& s)
   si.addMember("path") <<= s.Path;
   si.addMember("version") <<= s.Version;
 }
+
+void operator<<= (cxxtools::SerializationInfo& si, const SerPlugin& p)
+{
+  si.addMember("name") <<= p.Name;
+  si.addMember("version") <<= p.Version;
+}
+
+void operator<<= (cxxtools::SerializationInfo& si, const SerPluginList& pl)
+{
+  si.addMember("plugins") <<= pl.plugins;
+}
+

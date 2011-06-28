@@ -14,7 +14,20 @@ struct SerService
   bool Internal;
 };
 
+struct SerPlugin
+{
+  cxxtools::String Name;
+  cxxtools::String Version;
+};
+
+struct SerPluginList
+{
+  std::vector< struct SerPlugin > plugins;
+};
+
 void operator<<= (cxxtools::SerializationInfo& si, const SerService& s);
+void operator<<= (cxxtools::SerializationInfo& si, const SerPlugin& p);
+void operator<<= (cxxtools::SerializationInfo& si, const SerPluginList& pl);
 
 class InfoResponder : public cxxtools::http::Responder
 {
