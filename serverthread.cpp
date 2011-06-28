@@ -39,20 +39,36 @@ void cServerThread::Action(void)
   RecordingsService recordingsService;
   RemoteService remoteService;
   TimersService timersService;
+  
+  RestfulServices* services = RestfulServices::get();
+  
+  RestfulService* info = new RestfulService("/info", true, 1);
+  RestfulService* channels = new RestfulService("/channels", true, 1);
+  RestfulService* channelGroups = new RestfulService("/channels/groups", true, 1, channels);
+  RestfulService* channelImage = new RestfulService("/channels/image", true, 1, channels);
+  RestfulService* events = new RestfulService("/events", true, 1);
+  RestfulService* eventsImage = new RestfulService("/events/image", true, 1, events);
+  RestfulService* recordings = new RestfulService("/recordings", true, 1);
+  RestfulService* remote = new RestfulService("/remote", true, 1);
+  RestfulService* timers = new RestfulService("/timers", true, 1);
+  
+  services->appendService(info);
+  services->appendService(channels);
+  services->appendService(channelGroups);
+  services->appendService(channelImage);
+  services->appendService(events);
+  services->appendService(eventsImage);
+  services->appendService(recordings);
+  services->appendService(remote);
+  services->appendService(timers);
 
-  cxxtools::Regex infoRegex("/info*");
-  cxxtools::Regex channelsRegex("/channels*");
-  cxxtools::Regex eventsRegex("/events*");
-  cxxtools::Regex recordingsRegex("/recordings*");
-  cxxtools::Regex remoteRegex("/remote*");
-  cxxtools::Regex timersRegex("/timers*");
 
-  server->addService(infoRegex, infoService);
-  server->addService(channelsRegex, channelsService);
-  server->addService(eventsRegex, eventsService);
-  server->addService(recordingsRegex, recordingsService);
-  server->addService(remoteRegex, remoteService);
-  server->addService(timersRegex, timersService);
+  server->addService(*info->Regex(), infoService);
+  server->addService(*channels->Regex(), channelsService);
+  server->addService(*events->Regex(), eventsService);
+  server->addService(*recordings->Regex(), recordingsService);
+  server->addService(*remote->Regex(), remoteService);
+  server->addService(*timers->Regex(), timersService);
 
   try {
     loop.run();

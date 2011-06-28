@@ -114,28 +114,20 @@ class QueryHandler
     std::string _service;
     std::vector< std::string > _params;
     cxxtools::QueryParams _options;
+    cxxtools::QueryParams _body;
     void parseRestParams(std::string params);
     std::string _format;
   public:
     QueryHandler(std::string service, cxxtools::http::Request& request);
     ~QueryHandler();
-    std::string getParamAsString(int level);
-    std::string getOptionAsString(std::string name);
+    std::string getParamAsString(int level);              //Parameters are part of the url (the rest after you cut away the service path)
+    std::string getOptionAsString(std::string name);      //Options are the normal url query parameters after the question mark
+    std::string getBodyAsString(std::string name);        //Are variables in the body of the http-request -> for now only html is supported!!!
     int getParamAsInt(int level);
     int getOptionAsInt(std::string name);
+    int getBodyAsInt(std::string name);
     bool isFormat(std::string format);
     std::string getFormat() { return _format; }
-};
-
-class HtmlRequestParser
-{
-  private:
-    cxxtools::QueryParams query;
-  public:
-    HtmlRequestParser(cxxtools::http::Request& request);
-    ~HtmlRequestParser();
-    std::string getValueAsString(std::string name);
-    int getValueAsInt(std::string name);
 };
 
 class BaseList
@@ -152,5 +144,37 @@ class BaseList
     virtual bool filtered();
     virtual int Count() { return counter; }
 };
+
+class RestfulService
+{
+  protected:
+    cxxtools::Regex* _regex;
+    RestfulService* _parent;
+    std::string _path;
+    bool _internal;
+    int _version;
+  public:
+    RestfulService(std::string path, bool internal = false, int version = 1, RestfulService* parent = NULL);
+    ~RestfulService();
+    RestfulService* Parent() { return _parent; }
+    cxxtools::Regex* Regex() { return _regex; }
+    std::string Path() { return _path; }
+    bool Internal() { return _internal; }
+    int Version() { return _version; }
+};
+
+class RestfulServices
+{
+  protected:
+    std::vector< RestfulService* > services;
+  public:
+    RestfulServices() { };
+    ~RestfulServices();
+    static RestfulServices* get();
+    void appendService(std::string path, bool internal = false, int version = 1, RestfulService* parent = NULL);
+    void appendService(RestfulService* service);
+    std::vector< RestfulService* > Services(bool internal = false, bool children = false);
+};
+
 #endif
 

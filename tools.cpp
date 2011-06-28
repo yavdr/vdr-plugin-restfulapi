@@ -463,6 +463,8 @@ QueryHandler::QueryHandler(std::string service, cxxtools::http::Request& request
   _url = request.url();
   _service = service;
   _options.parse_url(request.qparams());
+  //workaround for current cxxtools which always appends ascii character #012 at the end? AFAIK!
+  _body.parse_url(request.bodyStr().substr(0,request.bodyStr().length()-1));
 
   std::string params = _url.substr(_service.length()/*, _url.length() - 1*/);
   parseRestParams(params);
@@ -523,6 +525,11 @@ std::string QueryHandler::getOptionAsString(std::string name)
   return _options.param(name);
 }
 
+std::string QueryHandler::getBodyAsString(std::string name)
+{
+  return _body.param(name);
+}
+
 int QueryHandler::getParamAsInt(int level)
 {
   return StringExtension::strtoi(getParamAsString(level));  
@@ -533,34 +540,16 @@ int QueryHandler::getOptionAsInt(std::string name)
   return StringExtension::strtoi(getOptionAsString(name));
 }
 
+int QueryHandler::getBodyAsInt(std::string name)
+{
+  return StringExtension::strtoi(getOptionAsString(name));
+}
+
 bool QueryHandler::isFormat(std::string format)
 {
   if ((int)_url.find(format) != -1)
      return true;
   return false;
-}
-
-// --- HtmlRequestParser ------------------------------------------------------
-
-HtmlRequestParser::HtmlRequestParser(cxxtools::http::Request& request)
-{
-  //workaround for current cxxtools which always appends ascii character #012 at the end? AFAIK!
-  query.parse_url(request.bodyStr().substr(0,request.bodyStr().length()-1));
-}
-
-HtmlRequestParser::~HtmlRequestParser()
-{
-
-}
-
-std::string HtmlRequestParser::getValueAsString(std::string name)
-{
-  return query.param(name);
-}
-
-int HtmlRequestParser::getValueAsInt(std::string name)
-{
-  return StringExtension::strtoi(getValueAsString(name));
 }
 
 // --- BaseList ---------------------------------------------------------------
@@ -595,4 +584,58 @@ bool BaseList::filtered()
      counter++;
      return false;
   }
+}
+
+// --- RestfulService ---------------------------------------------------------
+
+RestfulService::RestfulService(std::string path, bool internal, int version, RestfulService* parent)
+{
+  _path = path;
+  _internal = internal;
+  _regex = new cxxtools::Regex(path + (std::string)"*");
+  _version = version;
+  _parent = parent;
+}
+
+RestfulService::~RestfulService()
+{
+  delete _regex;
+}
+
+// --- RestfulServices --------------------------------------------------------
+
+RestfulServices::~RestfulServices()
+{
+  while( (int)services.size() != 0 ) {
+    RestfulService* s = services.back();
+    services.pop_back();
+    delete s;
+  }
+}
+
+RestfulServices* RestfulServices::get()
+{
+  static RestfulServices rs;
+  return &rs;
+}
+
+void RestfulServices::appendService(std::string path, bool internal, int version, RestfulService* parent)
+{
+  appendService(new RestfulService(path, internal, version, parent));
+}
+
+void RestfulServices::appendService(RestfulService* service)
+{
+  services.push_back(service);
+}
+
+std::vector< RestfulService* > RestfulServices::Services(bool internal, bool children)
+{
+  std::vector< RestfulService* > result;
+  for (size_t i = 0; i < services.size(); i++) {
+    if (((services[i]->Internal() && internal) || !internal) || (children || (!children && services[i]->Parent() == NULL))) {
+       result.push_back(services[i]);
+    }
+  }
+  return result;
 }

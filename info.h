@@ -9,8 +9,9 @@
 
 struct SerService
 {
-  const char* Path;
+  cxxtools::String Path;
   int Version;
+  bool Internal;
 };
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerService& s);

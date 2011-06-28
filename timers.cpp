@@ -22,23 +22,23 @@ void TimersResponder::createOrUpdateTimer(std::ostream& out, cxxtools::http::Req
      return;
   }
 
-  HtmlRequestParser p(request);
+  QueryHandler q("/timers", request);
 
   int error = false;
   std::string error_values = "";
   static TimerValues v;
 
-  int flags = v.ConvertFlags(p.getValueAsString("flags"));
-  std::string aux = v.ConvertAux(p.getValueAsString("aux"));
-  std::string file = v.ConvertFile(p.getValueAsString("file"));
-  int lifetime = v.ConvertLifetime(p.getValueAsString("lifetime"));
-  int priority = v.ConvertPriority(p.getValueAsString("priority"));
-  int stop = v.ConvertStop(p.getValueAsString("stop"));
-  int start = v.ConvertStart(p.getValueAsString("start"));
-  std::string weekdays = p.getValueAsString("weekdays");
-  std::string day = v.ConvertDay(p.getValueAsString("day"));
-  cChannel* chan = v.ConvertChannel(p.getValueAsString("channel"));
-  cTimer* timer_orig = v.ConvertTimer(p.getValueAsString("timer_id"));
+  int flags = v.ConvertFlags(q.getBodyAsString("flags"));
+  std::string aux = v.ConvertAux(q.getBodyAsString("aux"));
+  std::string file = v.ConvertFile(q.getBodyAsString("file"));
+  int lifetime = v.ConvertLifetime(q.getBodyAsString("lifetime"));
+  int priority = v.ConvertPriority(q.getBodyAsString("priority"));
+  int stop = v.ConvertStop(q.getBodyAsString("stop"));
+  int start = v.ConvertStart(q.getBodyAsString("start"));
+  std::string weekdays = q.getBodyAsString("weekdays");
+  std::string day = v.ConvertDay(q.getBodyAsString("day"));
+  cChannel* chan = v.ConvertChannel(q.getBodyAsString("channel"));
+  cTimer* timer_orig = v.ConvertTimer(q.getBodyAsString("timer_id"));
   
   if ( update == false ) { //create
      if ( !v.IsFlagsValid(flags) ) { error = true; error_values += "flags, "; }

@@ -37,19 +37,14 @@ void InfoResponder::replyJson(StreamExtension& se)
   serializer.serialize((int)now, "time");
   
   std::vector< struct SerService > services;
+  std::vector< RestfulService* > restful_services = RestfulServices::get()->Services(true, true);
   struct SerService s;
-  s.Path = "/about"; s.Version = 1;
-  services.push_back(s);
-  s.Path = "/channels"; s.Version = 1;
-  services.push_back(s);
-  s.Path = "/events"; s.Version = 1;
-  services.push_back(s);
-  s.Path = "/recordings"; s.Version = 1;
-  services.push_back(s);
-  s.Path = "/remote"; s.Version = 1;
-  services.push_back(s);
-  s.Path = "/timers"; s.Version = 1;
-  services.push_back(s);
+  for (size_t i = 0; i < restful_services.size(); i++) {
+     s.Path = StringExtension::UTF8Decode(restful_services[i]->Path());
+     s.Version = restful_services[i]->Version();
+     s.Internal = restful_services[i]->Internal();
+     services.push_back(s);
+  }
 
   serializer.serialize(services, "services");
   serializer.finish();  
@@ -64,12 +59,15 @@ void InfoResponder::replyXml(StreamExtension& se)
   se.write(" <version>0.0.1</version>\n");
   se.write((const char*)cString::sprintf(" <time>%i</time>\n", (int)now)); 
   se.write(" <services>\n");
-  se.write((const char*)cString::sprintf("  <service path=\"/about\" version=\"%i\" />\n", 1));
-  se.write((const char*)cString::sprintf("  <service path=\"/channels\" version=\"%i\" />\n", 1));
-  se.write((const char*)cString::sprintf("  <service path=\"/events\" version=\"%i\" />\n", 1));
-  se.write((const char*)cString::sprintf("  <service path=\"/recordings\" version=\"%i\" />\n", 1));
-  se.write((const char*)cString::sprintf("  <service path=\"/remote\" version=\"%i\" />\n", 1));
-  se.write((const char*)cString::sprintf("  <service path=\"/timers\" version=\"%i\" />\n", 1));
+  
+  std::vector< RestfulService* > restful_services = RestfulServices::get()->Services(true, true);
+  for (size_t i = 0; i < restful_services.size(); i++) {
+    se.write((const char*)cString::sprintf("  <service path=\"%s\"  version=\"%i\" internal=\"%s\" />\n", 
+              restful_services[i]->Path().c_str(),
+              restful_services[i]->Version(),
+              restful_services[i]->Internal() ? "true" : "false"));
+  }
+
   se.write(" </services>\n");
   se.write("</info>");
 }
