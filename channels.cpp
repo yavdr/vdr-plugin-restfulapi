@@ -78,7 +78,7 @@ void ChannelsResponder::replyChannels(std::ostream& out, cxxtools::http::Request
        if (!channel->GroupSep()) {
           if ( group_filter.length() == 0 || group == group_filter ) {
              std::string image = FileCaches::get()->searchChannelLogo(channel);
-             channelList->addChannel(channel, group, image.length() == 0);
+             channelList->addChannel(channel, group, image.length() != 0);
              total++;
           }
        } else {
