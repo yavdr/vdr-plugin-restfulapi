@@ -1,1 +1,2 @@
 libvdr-restfulapi.so.*    usr/lib/vdr/plugins/
+API.html		  var/lib/vdr/plugins/restfulapi/

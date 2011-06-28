@@ -12,6 +12,5 @@ do
     then
       echo "Failed!"
     fi
-  sleep 5 
   fi
 done

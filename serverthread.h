@@ -19,6 +19,7 @@
 
 #include <unistd.h>
 
+#include "info.h"
 #include "channels.h"
 #include "events.h"
 #include "recordings.h"

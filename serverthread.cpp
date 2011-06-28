@@ -33,18 +33,21 @@ void cServerThread::Action(void)
 {
   active = true;
 
+  InfoService infoService;
   ChannelsService channelsService;
   EventsService eventsService;
   RecordingsService recordingsService;
   RemoteService remoteService;
   TimersService timersService;
 
+  cxxtools::Regex infoRegex("/info*");
   cxxtools::Regex channelsRegex("/channels*");
   cxxtools::Regex eventsRegex("/events*");
   cxxtools::Regex recordingsRegex("/recordings*");
   cxxtools::Regex remoteRegex("/remote*");
   cxxtools::Regex timersRegex("/timers*");
 
+  server->addService(infoRegex, infoService);
   server->addService(channelsRegex, channelsService);
   server->addService(eventsRegex, eventsService);
   server->addService(recordingsRegex, recordingsService);
