@@ -1,26 +1,22 @@
-This is a "plugin" for the Video Disk Recorder (VDR).
+yaVDR - vdr-plugin-restfulapi
+---------------------------------------
 
-Written by:                  Michael Eiler <aelo@yavdr.org>
+"yet another VDR" (yaVDR) is a Linux distribution focussed on Klaus Schmidingers Video Disk Recorder and based on Ubuntu.
 
-Initiator of the project:    Gerald Dachs <gda@dachsweb.de>
+yaVDR tries to let you:
 
-Project's homepage:          http://github.com/yavdr/vdr-plugin-restfulapi
+ * Watch and record TV easily and enjoy your media in a smart way: Quickly set up a digital video recorder (PVR) on your HTPC, receive SD and HD channels, manage it simply with a remote control. Furthermore, take advantage of the full blown media center software XBMC to listen to music, watch videos, check the weather.
 
-Latest version available at: http://github.com/yavdr/vdr-plugin-restfulapi
+ * Enjoy High Definition without high CPU load: HDTV normally needs a strong CPU to be displayed flawlessly. If you own a Nvidia ION based nettop or a HTPC with a Nvidia GPU that supports VDPAU, your CPU will remain cool and your energy bill won't hurt you. yaVDR relies on VDPAU which is currently the only simple way to get GPU based HD video decoding on Linux.
 
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-See the file COPYING for more information.
+ * Start immediately after turning on the HTPC: yaVDR wants to compete with other living room devices as much as possible using upstart to speed up the boot. Besides that, the shutdown method S3 (Suspend to RAM) is enabled by default to bypass cold boot. It is possible to let the system automatically wake up on timers and go to sleep after a configurable timeout.
 
-Description:
+Links:
 
-IMPORTANT NOTE: 
-This plugin requires libcxxtools >= r1231 
-
-TOOLS TO TEST THE WEB SERVICE:
-WizeTools.org RESTClient http://code.google.com/p/rest-client/
-or
-test/httprequest.jar
+Installation: http://www.yavdr.org/installation/
+Configuration: http://www.yavdr.org/configuration/
+Features: http://www.yavdr.org/features/
+Issue tracker: https://bugs.yavdr.com/projects/yavdr/issues/new
+Package source: https://github.com/yavdr/vdr-plugin-restfulapi
+Team members: http://www.yavdr.org/developer-zone/team-members/
 
