@@ -18,6 +18,8 @@ void InfoResponder::reply(std::ostream& out, cxxtools::http::Request& request, c
   } else if (q.isFormat(".html")) { 
     reply.addHeader("Content-Type", "text/html; charset=utf-8");
     replyHtml(se);
+  }else {
+    reply.httpReturn(403, "Support formats: xml, json and html!");
   }
 }
 

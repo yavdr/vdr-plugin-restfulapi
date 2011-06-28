@@ -248,9 +248,14 @@ void FileCaches::searchEventImages(int eventid, std::vector< std::string >& file
 
 std::string FileCaches::searchChannelLogo(cChannel *channel)
 {
-  cxxtools::Regex regex((std::string)channel->Name() + ".*");
+  std::string cname = (std::string)channel->Name();
+  
   for ( int i=0; i < (int)channelLogos.size(); i++ ) {
-      if ( regex.match(channelLogos[i]) ) {
+      std::string name = channelLogos[i];
+      int delim = name.find_last_of(".");
+      if ( delim != -1 ) { name = name.substr(0, delim); }
+
+      if ( name == cname ) {
          return channelLogos[i];
       }
   }
