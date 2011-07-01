@@ -11,6 +11,7 @@ void StatusResponder::reply(std::ostream& out,
 	}
 
 	reply.addHeader("Content-Type", "text/plain; charset=utf-8");
+
 	reply.addHeader("Transfer-Encoding", "chunked");
 
 	chunked(out, "Volkers test für chuncked transfer - 1");
