@@ -221,39 +221,35 @@ FileNotifier::~FileNotifier()
   if (active != false) {
     Stop();
   }
-  Cancel(1); //???
+  Cancel(0);
 }
 
-void FileNotifier::Initialize()
+void FileNotifier::Initialize(int mode)
 {
-  std::string dir_epg = Settings::get()->EpgImageDirectory().c_str();
-  std::string dir_channels = Settings::get()->ChannelLogoDirectory().c_str();
-  
-  fdepg = inotify_init();
-  fdchannel = inotify_init();
-  wdepg = -1;
-  wdchannel = -1;
+  _mode = mode;
+  std::string dir;
 
-  if ( dir_epg.length() == 0 ) {
-     esyslog("restfulapi: Initializing inotify for epgimages failed!");
-     wdepg = -1;
+  if ( _mode == FileNotifier::EVENTS) {
+     dir = Settings::get()->EpgImageDirectory().c_str();
   } else {
-     wdepg = inotify_add_watch( fdepg, dir_epg.c_str(), IN_CREATE | IN_DELETE );
-     if ( wdepg < 0 )
+     dir = Settings::get()->ChannelLogoDirectory().c_str();
+  }
+  
+  _filedescriptor = inotify_init();
+  _wd = -1;
+
+  if ( dir.length() == 0 ) {
+     esyslog("restfulapi: Initializing inotify for epgimages failed! (Check restfulapi-settings!)");
+     _wd = -1;
+  } else {
+     _wd = inotify_add_watch( _filedescriptor, dir.c_str(), IN_CREATE | IN_DELETE );
+     if ( _wd < 0 )
         esyslog("restfulapi: Initializing inotify for epgimages failed!");
   }
  
-  if ( dir_channels.length() == 0 ) {
-     esyslog("restfulapi: Initializing inotify for channel-logos failed!");
-     wdchannel = -1;
-  } else {
-     wdchannel = inotify_add_watch( fdchannel, dir_channels.c_str(), IN_CREATE | IN_DELETE );
-     if ( wdchannel < 0 )
-        esyslog("restfulapi: Initializing inotify for channel-logos failed!");
-  }
 
 
-  if (wdepg >= 0 || wdchannel >= 0) {
+  if (_wd >= 0) {
     active = true;
     Start();
   }
@@ -261,68 +257,46 @@ void FileNotifier::Initialize()
 
 void FileNotifier::Action(void)
 {
-  int length, i, l;
+  int length, i;
   char buffer[BUF_LEN];
 
   while(active) {
     i = 0;
-    l = 0;
-    if ( wdepg >= 0 ) {
-       length = read( fdepg, buffer, BUF_LEN );
+    length = read( _filedescriptor, buffer, BUF_LEN );
     
-       if ( length > 0 ) {
-          l += length;
-          while ( i < length ) {
-             esyslog("restfulapi: inotify, length: %i, i: %i", length, i);
-             struct inotify_event *event = ( struct inotify_event * ) &buffer[ i ];
-             if ( event->len > 0 ) {
-                if ( event->mask & IN_CREATE ) {
-                   if ( !(event->mask & IN_ISDIR) ) {
-                      esyslog("restfulapi: inotify: found new epgimage: %s", event->name);
-                      FileCaches::get()->addEventImage((std::string)event->name);
-                   }
-                }
-                i += EVENT_SIZE + event->len;
-             }
-          }
-       }
-     }
-    
-     i = 0;     
+    if ( length > 0 ) {
+       while ( i < length ) {
+          struct inotify_event *event = ( struct inotify_event * ) &buffer[ i ];
+          if ( event->len > 0 && !(event->mask & IN_ISDIR) ) {
 
-     if ( wdchannel >= 0 ) {
-       length = read( fdchannel, buffer, BUF_LEN );
-       
-       if (length > 0) {
-          l += length;
-          while ( i < length ) {
-             struct inotify_event *event = ( struct inotify_event * ) &buffer[ i ];
-             if ( event->len > 0 ) {
-                if ( event->mask & IN_CREATE ) {
-                   if ( !(event->mask & IN_ISDIR) ) {
-                      esyslog("restfulapi: inotify: found new channel-logo: %s", event->name);
-                      FileCaches::get()->addChannelLogo((std::string)event->name);
-                   }
-                }
+             if (event->mask & IN_CREATE) {
+                esyslog("restfulapi: inotify: found new image: %s", event->name);
+                if ( _mode == FileNotifier::EVENTS )
+                   FileCaches::get()->addEventImage((std::string)event->name);
+                else
+                   FileCaches::get()->addChannelLogo((std::string)event->name);
              }
+             
+             if (event->mask & IN_DELETE)  {
+                esyslog("restfulapi: inotify: image %s has been removed", event->name);
+                if ( _mode == FileNotifier::EVENTS )
+                   FileCaches::get()->removeEventImage((std::string)event->name);
+                else
+                   FileCaches::get()->removeChannelLogo((std::string)event->name);
+             }
+            
              i += EVENT_SIZE + event->len;
           }
        }
-     }
-     
-     if ( l == 0 ) {
-        sleep(1); // sleep for one second to safe cpu usage if now events are available
-     }
+    }
   }
 }
 
 void FileNotifier::Stop()
 {
   active = false;
-  ( void ) inotify_rm_watch( fdchannel, wdchannel );
-  ( void ) inotify_rm_watch( fdepg, wdepg );
-  ( void ) close( fdchannel );
-  ( void ) close( fdepg );
+  ( void ) inotify_rm_watch( _filedescriptor, _wd );
+  ( void ) close( _filedescriptor );
 }
 
 // --- FileCaches -------------------------------------------------------------
@@ -338,11 +312,6 @@ void FileCaches::cacheEventImages()
   std::string imageFolder = Settings::get()->EpgImageDirectory();
   std::string folderWildcard = imageFolder + (std::string)"/*";
   VdrExtension::scanForFiles(folderWildcard, eventImages);
-
-  //inotfy
-  if (Settings::get()->EpgImageDirectory().length() > 0) {
-     notifier.Initialize();
-  }
 }
 
 void FileCaches::cacheChannelLogos()
@@ -386,6 +355,26 @@ void FileCaches::addEventImage(std::string file)
 void FileCaches::addChannelLogo(std::string file)
 {
   channelLogos.push_back(file);
+}
+
+void FileCaches::removeEventImage(std::string file)
+{
+  for (size_t i = 0; i < eventImages.size(); i++) {
+      if ( eventImages[i] == file ) {
+         eventImages[i] = "";
+         break;
+      }
+  }
+}
+
+void FileCaches::removeChannelLogo(std::string file)
+{
+  for (size_t i = 0; i < channelLogos.size(); i++) {
+      if ( channelLogos[i] == file ) {
+         eventImages[i] = "";
+         break;
+      }
+  }
 }
 
 // --- VdrExtension -----------------------------------------------------------

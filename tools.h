@@ -74,16 +74,17 @@ class StreamExtension
 class FileNotifier : public cThread
 {
   private:
-    int fdepg;
-    int fdchannel;
-    int wdepg;
-    int wdchannel;
+    int _filedescriptor;
+    int _wd;
+    int _mode;
     bool active;
     void Action(void);
   public:
+    static const int EVENTS = 0x01;
+    static const int CHANNELS = 0x02;
     FileNotifier() { };
     ~FileNotifier();
-    void Initialize();
+    void Initialize(int mode);
     void Stop();
     bool isActive() { return active; }
 };
@@ -93,11 +94,14 @@ class FileCaches
   private:
     std::vector< std::string > eventImages;
     std::vector< std::string > channelLogos;
-    FileNotifier notifier;
+    FileNotifier notifierEvents;
+    FileNotifier notifierChannels;
   public:
     FileCaches() {
          cacheEventImages();
          cacheChannelLogos();
+         notifierEvents.Initialize(FileNotifier::EVENTS);
+         notifierChannels.Initialize(FileNotifier::CHANNELS);
       };
     ~FileCaches() { };
     static FileCaches* get();
@@ -107,6 +111,8 @@ class FileCaches
     std::string searchChannelLogo(cChannel *channel);
     void addEventImage(std::string file);
     void addChannelLogo(std::string file);
+    void removeEventImage(std::string file);
+    void removeChannelLogo(std::string file);
 };
 
 class VdrExtension
