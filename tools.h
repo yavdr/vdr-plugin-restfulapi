@@ -8,7 +8,10 @@
 #include <fstream>
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
+#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/inotify.h>
 #include <cxxtools/regex.h>
 #include <cxxtools/string.h>
 #include <cxxtools/utf8codec.h>
@@ -21,6 +24,10 @@
 #include "utf8_checked.h"
 
 #define LOWINT 2147483648;
+
+//some defines for inotify memory allocation
+#define EVENT_SIZE ( sizeof (struct inotify_event) )
+#define BUF_LEN     ( 1024 * ( EVENT_SIZE + 16 ) )
 
 #ifndef RESTFULAPI_EXTENSIONS
 #define RESTFULAPI_EXTENSIONS
@@ -64,11 +71,29 @@ class StreamExtension
     bool writeBinary(std::string path);
 };
 
+class FileNotifier : public cThread
+{
+  private:
+    int fdepg;
+    int fdchannel;
+    int wdepg;
+    int wdchannel;
+    bool active;
+    void Action(void);
+  public:
+    FileNotifier() { };
+    ~FileNotifier();
+    void Initialize();
+    void Stop();
+    bool isActive() { return active; }
+};
+
 class FileCaches
 {
   private:
     std::vector< std::string > eventImages;
     std::vector< std::string > channelLogos;
+    FileNotifier notifier;
   public:
     FileCaches() {
          cacheEventImages();
@@ -80,6 +105,8 @@ class FileCaches
     void cacheChannelLogos();
     void searchEventImages(int eventid, std::vector< std::string >& files);
     std::string searchChannelLogo(cChannel *channel);
+    void addEventImage(std::string file);
+    void addChannelLogo(std::string file);
 };
 
 class VdrExtension

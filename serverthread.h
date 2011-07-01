@@ -27,7 +27,6 @@
 #include "timers.h"
 #include "status.h"
 
-//#include "tools.h"
 using namespace std;
 
 class cServerThread : public cThread {
