@@ -39,6 +39,7 @@ void cServerThread::Action(void)
   RecordingsService recordingsService;
   RemoteService remoteService;
   TimersService timersService;
+  StatusService statusService;
   
   RestfulServices* services = RestfulServices::get();
   
@@ -51,6 +52,7 @@ void cServerThread::Action(void)
   RestfulService* recordings = new RestfulService("/recordings", true, 1);
   RestfulService* remote = new RestfulService("/remote", true, 1);
   RestfulService* timers = new RestfulService("/timers", true, 1);
+  RestfulService* status = new RestfulService("/status", true, 1);
   
   services->appendService(info);
   services->appendService(channels);
@@ -61,7 +63,7 @@ void cServerThread::Action(void)
   services->appendService(recordings);
   services->appendService(remote);
   services->appendService(timers);
-
+  services->appendService(status);
 
   server->addService(*info->Regex(), infoService);
   server->addService(*channels->Regex(), channelsService);
@@ -69,6 +71,7 @@ void cServerThread::Action(void)
   server->addService(*recordings->Regex(), recordingsService);
   server->addService(*remote->Regex(), remoteService);
   server->addService(*timers->Regex(), timersService);
+  server->addService(*status->Regex(), statusService);
 
   try {
     loop.run();

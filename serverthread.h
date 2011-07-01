@@ -25,6 +25,8 @@
 #include "recordings.h"
 #include "remote.h"
 #include "timers.h"
+#include "status.h"
+
 //#include "tools.h"
 using namespace std;
 
