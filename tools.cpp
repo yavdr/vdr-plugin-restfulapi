@@ -221,7 +221,7 @@ FileNotifier::~FileNotifier()
   if (active != false) {
     Stop();
   }
-  Cancel(0);
+  Cancel(1);
 }
 
 void FileNotifier::Initialize(int mode)
