@@ -218,9 +218,7 @@ bool StreamExtension::writeBinary(std::string path)
 
 FileNotifier::~FileNotifier()
 {
-  if (active != false) {
-    Stop();
-  }
+  Stop();
   Cancel(1);
 }
 
