@@ -83,7 +83,7 @@ class FileNotifier : public cThread
   public:
     static const int EVENTS = 0x01;
     static const int CHANNELS = 0x02;
-    FileNotifier() { };
+    FileNotifier() { active = false; };
     ~FileNotifier();
     void Initialize(int mode);
     void Stop();
@@ -101,13 +101,10 @@ class FileCaches
     FileCaches() {
          cacheEventImages();
          cacheChannelLogos();
-         //notifierEvents.Initialize(FileNotifier::EVENTS);
-         //notifierChannels.Initialize(FileNotifier::CHANNELS);
+         notifierEvents.Initialize(FileNotifier::EVENTS);
+         notifierChannels.Initialize(FileNotifier::CHANNELS);
       };
-    ~FileCaches() { 
-         //notifierEvents.Stop(); 
-         //notifierChannels.Stop();
-      };
+    ~FileCaches() { };
     static FileCaches* get();
     void cacheEventImages();
     void cacheChannelLogos();
@@ -117,6 +114,10 @@ class FileCaches
     void addChannelLogo(std::string file);
     void removeEventImage(std::string file);
     void removeChannelLogo(std::string file);
+    void stopNotifier() {
+      notifierEvents.Stop();
+      notifierChannels.Stop();
+    };
 };
 
 class VdrExtension

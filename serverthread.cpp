@@ -21,6 +21,9 @@ void cServerThread::Initialize()
 void cServerThread::Stop() {
   active = false;
   loop.exit();
+  int now = time(NULL);
+  esyslog("restfulapi: will end server thread: /%i/", now);
+  sleep(1);
   delete server;
 }
 
@@ -74,6 +77,8 @@ void cServerThread::Action(void)
   } catch ( const std::exception& e) {
     esyslog("restfulapi: starting services failed: /%s/", e.what());
   }
+  int now = time(NULL);
+  esyslog("restfulapi: server thread end: /%i/", now);
 
   dsyslog("restfulapi: server thread ended (pid=%d)", getpid());
 }

@@ -121,6 +121,7 @@ bool cPluginRestfulapi::Start(void)
 void cPluginRestfulapi::Stop(void)
 {
   // Stop any background activities the plugin is performing. 
+  FileCaches::get()->stopNotifier();
   serverThread.Stop();
 }
 

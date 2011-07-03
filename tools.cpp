@@ -218,9 +218,9 @@ bool StreamExtension::writeBinary(std::string path)
 
 FileNotifier::~FileNotifier()
 {
-  /*if ( active == true ) {
+  if ( active == true ) {
      Stop();
-  }*/
+  }
 }
 
 void FileNotifier::Initialize(int mode)
@@ -261,7 +261,10 @@ void FileNotifier::Action(void)
 
   while(active) {
     i = 0;
-    struct pollfd pfd[] { _filedescriptor, IN_CREATE | IN_DELETE };
+    struct pollfd pfd[2];
+    pfd[0].fd = _filedescriptor;
+    pfd[0].events = POLLIN;
+    
     if ( poll(pfd, 1, 500) > 0 ) {
        length = read( _filedescriptor, buffer, BUF_LEN );
     
@@ -292,14 +295,17 @@ void FileNotifier::Action(void)
        }
     }
   }
+  esyslog("restfulapi: Stopped watching directory!");
 }
 
 void FileNotifier::Stop()
-{
-  active = false;
-  Cancel(1);
-  ( void ) inotify_rm_watch( _filedescriptor, _wd );
-  ( void ) close( _filedescriptor );
+{ 
+  if ( active != false ) {
+     active = false;
+     Cancel(1);
+     ( void ) inotify_rm_watch( _filedescriptor, _wd );
+     ( void ) close( _filedescriptor );
+  }
 }
 
 // --- FileCaches -------------------------------------------------------------
