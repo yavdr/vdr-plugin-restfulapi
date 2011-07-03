@@ -25,6 +25,7 @@
 #include "recordings.h"
 #include "remote.h"
 #include "timers.h"
+#include "osd.h"
 
 using namespace std;
 
