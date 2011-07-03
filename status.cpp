@@ -6,7 +6,7 @@ void StatusResponder::reply(std::ostream& out,
 		cxxtools::http::Request& request, cxxtools::http::Reply& reply) {
 	if (request.method() != "GET") {
 		reply.httpReturn(403,
-				"Only GET method is support by the remote control");
+				"Only GET method is support by the status service");
 		return;
 	}
 
