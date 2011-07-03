@@ -261,7 +261,7 @@ void FileNotifier::Action(void)
 
   while(active) {
     i = 0;
-    struct pollfd pfd[2];
+    struct pollfd pfd[1];
     pfd[0].fd = _filedescriptor;
     pfd[0].events = POLLIN;
     
