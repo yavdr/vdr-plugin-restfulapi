@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <poll.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/inotify.h>
@@ -100,10 +101,13 @@ class FileCaches
     FileCaches() {
          cacheEventImages();
          cacheChannelLogos();
-         notifierEvents.Initialize(FileNotifier::EVENTS);
-         notifierChannels.Initialize(FileNotifier::CHANNELS);
+         //notifierEvents.Initialize(FileNotifier::EVENTS);
+         //notifierChannels.Initialize(FileNotifier::CHANNELS);
       };
-    ~FileCaches() { };
+    ~FileCaches() { 
+         //notifierEvents.Stop(); 
+         //notifierChannels.Stop();
+      };
     static FileCaches* get();
     void cacheEventImages();
     void cacheChannelLogos();

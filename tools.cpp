@@ -218,8 +218,9 @@ bool StreamExtension::writeBinary(std::string path)
 
 FileNotifier::~FileNotifier()
 {
-  Stop();
-  Cancel(1);
+  /*if ( active == true ) {
+     Stop();
+  }*/
 }
 
 void FileNotifier::Initialize(int mode)
@@ -260,30 +261,33 @@ void FileNotifier::Action(void)
 
   while(active) {
     i = 0;
-    length = read( _filedescriptor, buffer, BUF_LEN );
+    struct pollfd pfd[] { _filedescriptor, IN_CREATE | IN_DELETE };
+    if ( poll(pfd, 1, 500) > 0 ) {
+       length = read( _filedescriptor, buffer, BUF_LEN );
     
-    if ( length > 0 ) {
-       while ( i < length ) {
-          struct inotify_event *event = ( struct inotify_event * ) &buffer[ i ];
-          if ( event->len > 0 && !(event->mask & IN_ISDIR) ) {
-
-             if (event->mask & IN_CREATE) {
-                esyslog("restfulapi: inotify: found new image: %s", event->name);
-                if ( _mode == FileNotifier::EVENTS )
-                   FileCaches::get()->addEventImage((std::string)event->name);
-                else
-                   FileCaches::get()->addChannelLogo((std::string)event->name);
-             }
+       if ( length > 0 ) {
+          while ( i < length ) {
+             struct inotify_event *event = ( struct inotify_event * ) &buffer[ i ];
+             if ( event->len > 0 && !(event->mask & IN_ISDIR) ) {
+ 
+                if (event->mask & IN_CREATE) {
+                   esyslog("restfulapi: inotify: found new image: %s", event->name);
+                   if ( _mode == FileNotifier::EVENTS )
+                      FileCaches::get()->addEventImage((std::string)event->name);
+                   else
+                      FileCaches::get()->addChannelLogo((std::string)event->name);
+                }
              
-             if (event->mask & IN_DELETE)  {
-                esyslog("restfulapi: inotify: image %s has been removed", event->name);
-                if ( _mode == FileNotifier::EVENTS )
-                   FileCaches::get()->removeEventImage((std::string)event->name);
-                else
-                   FileCaches::get()->removeChannelLogo((std::string)event->name);
-             }
+                if (event->mask & IN_DELETE)  {
+                   esyslog("restfulapi: inotify: image %s has been removed", event->name);
+                   if ( _mode == FileNotifier::EVENTS )
+                      FileCaches::get()->removeEventImage((std::string)event->name);
+                   else
+                      FileCaches::get()->removeChannelLogo((std::string)event->name);
+                }
             
-             i += EVENT_SIZE + event->len;
+                i += EVENT_SIZE + event->len;
+             }
           }
        }
     }
@@ -293,6 +297,7 @@ void FileNotifier::Action(void)
 void FileNotifier::Stop()
 {
   active = false;
+  Cancel(1);
   ( void ) inotify_rm_watch( _filedescriptor, _wd );
   ( void ) close( _filedescriptor );
 }
