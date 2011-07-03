@@ -56,7 +56,11 @@ DEFINES += -D_GNU_SOURCE -DPLUGIN_NAME_I18N='"$(PLUGIN)"'
 
 ### The object files (add further files here):
 
+<<<<<<< HEAD
 OBJS = $(PLUGIN).o serverthread.o tools.o info.o channels.o events.o recordings.o remote.o timers.o
+=======
+OBJS = $(PLUGIN).o serverthread.o tools.o info.o channels.o events.o recordings.o remote.o timers.o status.o statusmonitor.o
+>>>>>>> 77801cb7e9e8f78066109133650c71014911a3af
 
 ### The main target:
 
