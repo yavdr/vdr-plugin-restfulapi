@@ -88,6 +88,52 @@ void StatusMonitor::OsdCreate(void)
      _osd = new TextOsd();
 }
 
+void StatusMonitor::TimerChange(const cTimer *Timer, eTimerChange Change)
+{
+
+}
+
+void StatusMonitor::ChannelSwitch(const cDevice *Device, int ChannelNumber)
+{
+  device = (cDevice*)Device;
+  channel_number = ChannelNumber;
+}
+
+void StatusMonitor::Recording(const cDevice *Device, const char *Name, const char *FileName, bool On)
+{
+
+}
+
+void StatusMonitor::Replaying(const cControl *Control, const char *Name, const char *FileName, bool On)
+{
+  recording_name = std::string(Name);
+  recording_file = std::string(FileName);
+}
+
+void StatusMonitor::SetVolume(int Volume, bool Absolute)
+{
+  if(Absolute) {
+    volume = Volume;
+  } else {
+    volume += Volume;
+  }
+}
+
+void StatusMonitor::SetAudioTrack(int Index, const char * const *Tracks)
+{
+
+}
+
+void StatusMonitor::SetAudioChannel(int AudioChannel)
+{
+
+}
+
+void StatusMonitor::SetSubtitleTrack(int Index, const char * const *Tracks)
+{
+
+}
+
 void StatusMonitor::OsdClear(void)
 {
   if ( _osd != NULL ) 
@@ -105,6 +151,15 @@ void StatusMonitor::OsdStatusMessage(const char *Message)
 {
   OsdCreate();
   _osd->Message(Message);
+}
+
+void StatusMonitor::OsdHelpKeys(const char *Red, const char *Green, const char *Yellow, const char *Blue)
+{
+  OsdCreate();
+  _osd->Red(Red);
+  _osd->Green(Green);
+  _osd->Yellow(Yellow);
+  _osd->Blue(Blue);
 }
 
 void StatusMonitor::OsdItem(const char *Text, int Index)
@@ -125,39 +180,14 @@ void StatusMonitor::OsdTextItem(const char *Text, bool Scroll)
   _osd->Text(Text);
 }
 
-void StatusMonitor::OsdHelpKeys(const char *Red, const char *Green, const char *Yellow, const char *Blue)
+void StatusMonitor::OsdChannel(const char *Text)
 {
-  OsdCreate();
-  _osd->Red(Red);
-  _osd->Green(Green);
-  _osd->Yellow(Yellow);
-  _osd->Blue(Blue);
+
 }
 
-StatusMonitor* StatusMonitor::get()
+void StatusMonitor::OsdProgramme(time_t PresentTime, const char *PresentTitle, const char *PresentSubtitle, time_t FollowingTime, const char *FollowingTitle, const char *FollowingSubtitle)
 {
-  static StatusMonitor sm;
-  return &sm;
+
 }
 
-void StatusMonitor::ChannelSwitch(const cDevice *Device, int ChannelNumber)
-{
-  device = (cDevice*)Device;
-  channel_number = ChannelNumber;
-}
-
-void StatusMonitor::SetVolume(int Volume, bool Absolute)
-{
-  if(Absolute) {
-    volume = Volume;
-  } else {
-    volume += Volume;
-  }
-}
-
-void StatusMonitor::Replaying(const cControl *Control, const char *Name, const char *FileName, bool On)
-{
-  recording_name = std::string(Name);
-  recording_file = std::string(FileName);
-}
 
