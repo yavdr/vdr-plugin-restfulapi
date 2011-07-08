@@ -18,7 +18,6 @@
 #include <cxxtools/utf8codec.h>
 #include <cxxtools/http/request.h>
 #include <cxxtools/query_params.h>
-#include <cxxtools/regex.h>
 #include <vdr/channels.h>
 #include <vdr/timers.h>
 #include <vdr/plugin.h>
