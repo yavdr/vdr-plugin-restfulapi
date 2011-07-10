@@ -180,13 +180,18 @@ void StreamExtension::write(std::string str)
   _out->write(str.c_str(), str.length());
 }
 
-void StreamExtension::writeHtmlHeader()
+void StreamExtension::writeHtmlHeader(std::string css)
 {
   write("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
   write("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n");
   write("<html xml:lang=\"en\" lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\">\n");
   write("<head>\n");
-  write("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />");
+  write("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n");
+  if (css.length() >= 0) {
+     write("<style type=\"text/css\">\n");
+     writeBinary(css);
+     write("</style>\n");
+  }
   write("</head><body>");
 }
 
@@ -788,7 +793,7 @@ void TaskScheduler::DoTasks()
        delete bt;
     }
     bt = tasks.front();
-  }while(bt->Created()+1 > now);
+  }while(bt != NULL && bt->Created()+1 > now);
 }
 
 TaskScheduler::~TaskScheduler()

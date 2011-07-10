@@ -1,0 +1,83 @@
+
+#redbutton
+{
+  position:absolute;
+  left:4%;
+  top:95%;
+  width:23%
+  height:3%;
+  background-color:red;
+}
+
+#greenbutton
+{
+  position:absolute;
+  left:27%;
+  top:95%;
+  width:23%
+  height:3%;
+  background-color:green;
+}
+
+#yellowbutton
+{
+  position:absolute;
+  left:50%;
+  top:95%;
+  width:23%;
+  height:3%;
+  background-color:yellow;
+}
+
+#bluebutton
+{
+  position:absolute;
+  left:73%;
+  top:95%;
+  width:23%;
+  height:3%;
+  background-color:blue;
+}
+
+#content
+{
+  position:absolute;
+  height:80%;
+  top:15%;
+  left:4%;
+  width:92%;
+  background-color:#CDCDCD;
+  overflow:auto;
+}
+
+.item
+{
+  position:relative;
+  left:5%;
+  width:90%;
+  top:1%;
+  background-color:#EFEFEF;
+  font-weight:bold;
+  font-size:25pt;
+}
+
+.item:hover
+{
+  background-color:#CDCDFF;
+}
+
+#header
+{
+  position:absolute;
+  top:5%;
+  width:92%;
+  left:4%;
+  height:10%;
+  background-color:#222266;
+  font-size:40pt;
+  color:#CDCDCD;
+  -moz-border-radius-topleft:25px;
+  -moz-border-radius-topright:25px;
+  border-top-left-radius:25px;
+  border-top-right-radius:25px;
+}

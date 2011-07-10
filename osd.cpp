@@ -20,11 +20,8 @@ void OsdResponder::reply(std::ostream& out, cxxtools::http::Request& request, cx
      reply.addHeader("Content-Type", "application/json; charset=utf-8");
      format = ".json";
   } else if ( q.isFormat(".html") ) {
-     format = ".html"; //will  be required later for implementation
+     format = ".html";
      reply.addHeader("Content-Type", "text/html; charset=utf-8");
-     StreamExtension se(&out);
-     se.write("To be implemented!");
-     return;
   } else if ( q.isFormat(".xml") ) {
      reply.addHeader("Content-Type", "text/xml; charset=utf-8");
      format = ".xml";
@@ -170,8 +167,42 @@ void JsonTextOsdList::printTextOsd(TextOsd* textOsd)
 
 void HtmlTextOsdList::printTextOsd(TextOsd* textOsd)
 {
-  s->writeHtmlHeader();
-  //to be implemented
+  s->writeHtmlHeader("/var/lib/vdr/plugins/restfulapi/osd.css");
+  s->write("<div id=\"header\">\n");
+    if (textOsd->Title().length() > 0)
+       s->write(textOsd->Title().c_str());
+    if (textOsd->Message().length() > 0) {
+       s->write("\n");
+       s->write(textOsd->Message().c_str());
+    }
+       
+  s->write("</div>\n");
+
+  s->write("<div id=\"content\">\n");
+    std::list< TextOsdItem* > items = textOsd->GetItems();
+    std::list< TextOsdItem* >::iterator it;
+    s->write("<ul type=\"none\">\n");
+    for(it = items.begin(); it != items.end(); ++it) { 
+       s->write("<li class=\"item\">");
+       s->write((*it)->Text().c_str());
+       s->write("</li>\n");
+    }
+  s->write("</ul>\n");
+  s->write("</div>\n");
+
+  if (textOsd->Red().length() > 0)
+     s->write((const char*)cString::sprintf("<div id=\"redbutton\">%s</div>\n", textOsd->Red().c_str()));
+
+  if (textOsd->Yellow().length() > 0)
+     s->write((const char*)cString::sprintf("<div id=\"yellowbutton\">%s</div>\n", textOsd->Yellow().c_str()));
+
+  if (textOsd->Green().length() > 0)
+     s->write((const char*)cString::sprintf("<div id=\"greenbutton\">%s</div>\n", textOsd->Green().c_str()));
+
+  if (textOsd->Blue().length() > 0) 
+     s->write((const char*)cString::sprintf("<div id=\"bluebutton\">%s</div>\n", textOsd->Blue().c_str()));
+
+  s->write("</body></html>");
 }
 
 // --- ProgrammeOsdWrapper ---------------------------------------------------------------------------
