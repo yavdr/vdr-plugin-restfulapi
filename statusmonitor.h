@@ -2,74 +2,124 @@
 #include <list>
 #include <vdr/status.h>
 
+
 #ifndef __STATUSMONITOR_H
 #define __STATUSMONITOR_H
 
-class OsdItem
+class TextOsdItem
 {
   private:
     std::string _text;
   public:
-    OsdItem(std::string text) { _text = text; };
-    ~OsdItem() { };
+    TextOsdItem(std::string text) { _text = text; };
+    ~TextOsdItem() { };
     std::string Text() { return _text; };
     void Text(std::string text) { _text = text; };
 };
 
-class TextOsd
+class TextOsd : BasicOsd
 {
   private:
     std::string _title;
     std::string _message;
-    std::string _text;
     
     std::string _red;
     std::string _green;
     std::string _yellow;
     std::string _blue;
     
-    std::list< OsdItem* > _items;
-    OsdItem*   _selected;
+    std::list< TextOsdItem* > _items;
+    TextOsdItem*   _selected;
   public:
-   TextOsd();
-   ~TextOsd();
+    TextOsd();
+    ~TextOsd();
+    virtual int Type() { return 0x01; }
 
-   OsdItem*    GetItem(int i);
-   int         CountItems();
-   void        ClearItems();
-   void        RemoveItem(OsdItem* item);
-   void        RemoveItem(std::string item);
+    TextOsdItem*    GetItem(int i);
+    TextOsdItem*    GetItem(std::string item);
+    std::list< TextOsdItem* > GetItems() { return _items; };
+    bool        ReplaceItem(TextOsdItem* item, int i);
+    int         CountItems();
+    void        ClearItems();
+    void	AddItem(TextOsdItem* item);
+    void        RemoveItem(TextOsdItem* item);
+    void        RemoveItem(std::string item);
 
-   std::string Title();
-   std::string Message();
-   std::string Text();
-   std::string Red();
-   std::string Green();
-   std::string Yellow();
-   std::string Blue();
-   OsdItem*    Selected();
+    std::string Title();
+    std::string Message();
+    std::string Red();
+    std::string Green();
+    std::string Yellow();
+    std::string Blue();
+    TextOsdItem* Selected();
 
-   void        Title(const char* title); 
-   void        Message(const char* message);
-   void        Text(const char* text);
-   void	       Red(const char* red);
-   void        Green(const char* green);
-   void        Yellow(const char* yellow);
-   void        Blue(const char* blue);
-   void        Selected(OsdItem* item);
+    void        Title(std::string title); 
+    void        Message(std::string message);
+    void        Red(std::string red);
+    void        Green(std::string green);
+    void        Yellow(std::string yellow);
+    void        Blue(std::string blue);
+    void        Selected(TextOsdItem* item);
 };
 
+class ChannelOsd : BasicOsd
+{
+  private:
+    std::string _channel;
+  public:
+    ChannelOsd(std::string channel) { _channel = channel; };
+    ~ChannelOsd() { };
+    virtual int Type() { return 0x02; }
+    void Channel(std::string channel) { _channel = channel; };
+    std::string Channel() { return _channel; };
+};
+
+class ProgrammeOsd : BasicOsd
+{
+  private:
+    time_t _presentTime;
+    std::string _presentTitle;
+    std::string _presentSubtitle;
+    time_t _followingTime;
+    std::string _followingTitle;
+    std::string _followingSubtitle;
+  public:
+    ProgrammeOsd(time_t PresentTime, std::string PresentTitle, std::string PresentSubtitle,
+                 time_t FollowingTime, std::string FollowingTitle, std::string FollowingSubtitle);
+    ~ProgrammeOsd() { };
+    virtual int  Type() { return 0x03; };
+
+    time_t       PresentTime() { return _presentTime; };
+    void         PresentTime(time_t PresentTime) { _presentTime = PresentTime; };
+
+    time_t       FollowingTime() { return _followingTime; };
+    void         FollowingTime(time_t FollowingTime) { _followingTime = FollowingTime; };
+
+    std::string  PresentTitle() { return _presentTitle; };
+    void         PresentTitle(std::string PresentTitle) { _presentTitle = PresentTitle; };
+
+    std::string  FollowingTitle() { return _followingTitle; };
+    void         FollowingTitle(std::string FollowingTitle) { _followingTitle = FollowingTitle; };
+    
+    std::string  PresentSubtitle() { return _presentSubtitle; };
+    void         PresentSubtitle(std::string PresentSubtitle) { _presentSubtitle = PresentSubtitle; };
+
+    std::string  FollowingSubtitle() { return _followingSubtitle; };
+    void         FollowingSubtitle(std::string FollowingSubtitle) { _followingSubtitle = FollowingSubtitle; };    
+};
 
 class StatusMonitor : public cStatus
 {
   private:
-    TextOsd* _osd;
+    BasicOsd* _osd;
+    int osd_type;
     int channel_number;
     cDevice *device;
     std::string recording_name;
     std::string recording_file;
     int volume;
     void OsdCreate(void);
+    void OsdDestroy(void);
   protected:
     virtual void TimerChange(const cTimer *Timer, eTimerChange Change);
     virtual void ChannelSwitch(const cDevice *Device, int ChannelNumber);
@@ -92,7 +142,17 @@ class StatusMonitor : public cStatus
     StatusMonitor() { _osd = NULL; };
     ~StatusMonitor() { };
     static StatusMonitor* get();
-    TextOsd* getOsd() { return _osd; }
+    BasicOsd* getOsd() { return _osd; }
+    //Add methods for other information, now only Osd can be returned!
+};
+
+class DeleteOsdTask : BaseTask
+{
+  protected:
+    BasicOsd* osd;
+  public:
+   DeleteOsdTask(BasicOsd* osd) { };
+   ~DeleteOsdTask();
 };
 
 #endif

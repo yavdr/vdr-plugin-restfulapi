@@ -9,6 +9,7 @@
 #include <getopt.h>
 #include <vdr/plugin.h>
 #include "serverthread.h"
+#include "statusmonitor.h"
 
 static const char *VERSION        = "0.0.1";
 static const char *DESCRIPTION    = "Offers a RESTful-API to retrieve data from VDR";
@@ -18,6 +19,7 @@ class cPluginRestfulapi : public cPlugin {
 private:
   // Add any member variables or functions you may need here.
   cServerThread serverThread;
+  StatusMonitor* statusMonitor;
 public:
   cPluginRestfulapi(void);
   virtual ~cPluginRestfulapi();
@@ -96,6 +98,7 @@ bool cPluginRestfulapi::ProcessArgs(int argc, char *argv[])
 bool cPluginRestfulapi::Initialize(void)
 {
   // Initialize any background activities the plugin shall perform.
+  statusMonitor = StatusMonitor::get();
   return true;
 }
 
@@ -123,6 +126,7 @@ void cPluginRestfulapi::Stop(void)
   // Stop any background activities the plugin is performing. 
   FileCaches::get()->stopNotifier();
   serverThread.Stop();
+  statusMonitor = NULL;
 }
 
 void cPluginRestfulapi::Housekeeping(void)
@@ -134,6 +138,7 @@ void cPluginRestfulapi::MainThreadHook(void)
 {
   // Perform actions in the context of the main program thread.
   // WARNING: Use with great care - see PLUGINS.html!
+  TaskScheduler::get()->DoTasks();
 }
 
 cString cPluginRestfulapi::Active(void)

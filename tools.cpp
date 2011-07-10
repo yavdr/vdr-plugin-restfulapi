@@ -768,3 +768,39 @@ std::vector< RestfulService* > RestfulServices::Services(bool internal, bool chi
   }
   return result;
 }
+
+// --- TaskScheduler ---------------------------------------------------------
+
+TaskScheduler* TaskScheduler::get()
+{
+  static TaskScheduler ts;
+  return &ts;
+}
+
+void TaskScheduler::DoTasks()
+{
+  int now = time(NULL);
+  BaseTask* bt = NULL;
+  do
+  {
+    if ( bt != NULL) {
+       tasks.pop_front();
+       delete bt;
+    }
+    bt = tasks.front();
+  }while(bt->Created()+1 > now);
+}
+
+TaskScheduler::~TaskScheduler()
+{
+  BaseTask* bt = NULL;
+  do
+  {
+    if (bt != NULL) 
+    {
+       tasks.pop_front();
+       delete bt;
+    }
+    bt = tasks.front();
+  }while(bt != NULL);
+}
