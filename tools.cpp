@@ -302,7 +302,7 @@ void FileNotifier::Stop()
 { 
   if ( active != false ) {
      active = false;
-     Cancel(1);
+     Cancel(0.1);
      ( void ) inotify_rm_watch( _filedescriptor, _wd );
      ( void ) close( _filedescriptor );
   }

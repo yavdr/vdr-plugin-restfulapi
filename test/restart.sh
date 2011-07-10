@@ -10,7 +10,7 @@ do
   if [ "$NUMBER" == "0" ]; then
      SUCCESS=$[$SUCCESS+1]
   fi
-  echo "Alread managed to restart vdr $SUCCESS times!"
+  echo "Managed to restart vdr $SUCCESS times!"
   COUNTER=$[$COUNTER+1]
 done
 echo $SUCCESS

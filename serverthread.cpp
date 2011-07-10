@@ -23,7 +23,7 @@ void cServerThread::Stop() {
   loop.exit();
   int now = time(NULL);
   esyslog("restfulapi: will end server thread: /%i/", now);
-  sleep(1);
+  usleep(100000);//100ms//sleep(1);
   delete server;
 }
 
