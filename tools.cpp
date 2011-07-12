@@ -784,16 +784,21 @@ TaskScheduler* TaskScheduler::get()
 
 void TaskScheduler::DoTasks()
 {
-  int now = time(NULL);
+  /*int now = time(NULL);
   BaseTask* bt = NULL;
-  do
-  {
-    if ( bt != NULL) {
-       tasks.pop_front();
-       delete bt;
-    }
-    bt = tasks.front();
-  }while(bt != NULL && bt->Created()+1 > now);
+  if ( tasks.size() > 0 ) {
+     do
+     {
+       if ( bt != NULL) {
+          if ( bt->Created()+1 > now) {
+             tasks.pop_front();
+             delete bt;
+             break;
+          }
+       }
+       bt = tasks.front();
+     }while(bt != NULL);
+  }*/
 }
 
 TaskScheduler::~TaskScheduler()

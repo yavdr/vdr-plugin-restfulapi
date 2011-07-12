@@ -247,8 +247,9 @@ void ProgrammeOsdWrapper::printJson(ProgrammeOsd* osd)
 
 void ProgrammeOsdWrapper::printHtml(ProgrammeOsd* osd)
 {
-  s->writeHtmlHeader();
-  //to be implemented
+  s->writeHtmlHeader("/var/lib/vdr/plugins/restfulapi/osd.css");
+  
+  s->write("</body></html>\n");
 }
 
 // --- ChannelOsdWrapper -----------------------------------------------------------------------------
@@ -281,6 +282,8 @@ void ChannelOsdWrapper::printJson(ChannelOsd* osd)
 
 void ChannelOsdWrapper::printHtml(ChannelOsd* osd)
 {
-  s->writeHtmlHeader();
-  //to be implemented
+  s->writeHtmlHeader("/var/lib/vdr/plugins/restfulapi/osd.css");
+  
+  s->write("</body></html>");
 }
+

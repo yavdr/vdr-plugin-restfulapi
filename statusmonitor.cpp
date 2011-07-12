@@ -152,8 +152,18 @@ void StatusMonitor::OsdCreate(void)
 
 void StatusMonitor::OsdDestroy(void)
 {
-  TaskScheduler::get()->AddTask((BaseTask*)new DeleteOsdTask(_osd));
-  _osd = NULL;
+  //TaskScheduler currently buggy...
+  //TaskScheduler::get()->AddTask((BaseTask*)new DeleteOsdTask(_osd));
+  //wait until uses got the data:
+  if ( _osd != NULL ) {
+     usleep(1000); //wait 1ms
+     if ( _osd->Type() == 0x01) {
+        TextOsd* tosd = (TextOsd*)_osd;
+        tosd->ClearItems();
+     }
+     delete _osd;
+     _osd = NULL;
+  }
 }
 
 void StatusMonitor::TimerChange(const cTimer *Timer, eTimerChange Change)
