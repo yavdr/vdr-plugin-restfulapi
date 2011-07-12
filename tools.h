@@ -66,7 +66,7 @@ class StreamExtension
     ~StreamExtension() { };
     std::ostream* getBasicStream();
     void write(std::string str);
-    void writeHtmlHeader();
+    void writeHtmlHeader(std::string css = "");
     void writeXmlHeader();
     bool writeBinary(std::string path);
 };
@@ -211,6 +211,46 @@ class RestfulServices
     void appendService(std::string path, bool internal = false, int version = 1, RestfulService* parent = NULL);
     void appendService(RestfulService* service);
     std::vector< RestfulService* > Services(bool internal = false, bool children = false);
+};
+
+#endif
+
+#ifndef __RESTFUL_BASICOSD_H
+#define __RESTFUL_BASICOSD_H
+
+class BasicOsd
+{
+  public:
+    BasicOsd() { };
+    ~BasicOsd() { };
+    virtual int Type() { return 0x00; };
+};
+
+#endif
+
+#ifndef __RESTFUL_TASKS_H
+#define __RESTFUL_TASKS_H
+
+class BaseTask
+{
+  protected:
+    int created; //time in s
+  public:
+    BaseTask() { created = (int)time(NULL); };
+    ~BaseTask() { };
+    int Created() { return created; };
+};
+
+class TaskScheduler
+{
+  protected:
+    std::list<BaseTask*> tasks;
+  public:
+    TaskScheduler() { };
+    ~TaskScheduler();
+    static TaskScheduler* get();
+    void AddTask(BaseTask* task) { tasks.push_back(task); };
+    void DoTasks();
 };
 
 #endif

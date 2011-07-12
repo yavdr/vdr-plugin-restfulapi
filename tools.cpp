@@ -180,13 +180,18 @@ void StreamExtension::write(std::string str)
   _out->write(str.c_str(), str.length());
 }
 
-void StreamExtension::writeHtmlHeader()
+void StreamExtension::writeHtmlHeader(std::string css)
 {
   write("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
   write("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n");
   write("<html xml:lang=\"en\" lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\">\n");
   write("<head>\n");
-  write("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />");
+  write("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n");
+  if (css.length() >= 0) {
+     write("<style type=\"text/css\">\n");
+     writeBinary(css);
+     write("</style>\n");
+  }
   write("</head><body>");
 }
 
@@ -302,7 +307,7 @@ void FileNotifier::Stop()
 { 
   if ( active != false ) {
      active = false;
-     Cancel(1);
+     Cancel(0.1);
      ( void ) inotify_rm_watch( _filedescriptor, _wd );
      ( void ) close( _filedescriptor );
   }
@@ -767,4 +772,45 @@ std::vector< RestfulService* > RestfulServices::Services(bool internal, bool chi
     }
   }
   return result;
+}
+
+// --- TaskScheduler ---------------------------------------------------------
+
+TaskScheduler* TaskScheduler::get()
+{
+  static TaskScheduler ts;
+  return &ts;
+}
+
+void TaskScheduler::DoTasks()
+{
+  /*int now = time(NULL);
+  BaseTask* bt = NULL;
+  if ( tasks.size() > 0 ) {
+     do
+     {
+       if ( bt != NULL) {
+          if ( bt->Created()+1 > now) {
+             tasks.pop_front();
+             delete bt;
+             break;
+          }
+       }
+       bt = tasks.front();
+     }while(bt != NULL);
+  }*/
+}
+
+TaskScheduler::~TaskScheduler()
+{
+  BaseTask* bt = NULL;
+  do
+  {
+    if (bt != NULL) 
+    {
+       tasks.pop_front();
+       delete bt;
+    }
+    bt = tasks.front();
+  }while(bt != NULL);
 }
