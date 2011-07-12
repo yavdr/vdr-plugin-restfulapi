@@ -143,6 +143,7 @@ class StringExtension
     static std::string toLowerCase(std::string str);
     static std::string trim(std::string str);
     static std::vector< std::string > split(std::string str, std::string s);
+    static std::string timeToString(time_t time);
 };
 
 class QueryHandler

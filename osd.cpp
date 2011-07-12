@@ -185,7 +185,6 @@ void HtmlTextOsdList::printTextOsd(TextOsd* textOsd)
     for(it = items.begin(); it != items.end(); ++it) { 
        s->write("<li class=\"item\">");
        s->write((*it)->Text().c_str());
-       s->write("</li>\n");
     }
   s->write("</ul>\n");
   s->write("</div>\n");
@@ -248,7 +247,16 @@ void ProgrammeOsdWrapper::printJson(ProgrammeOsd* osd)
 void ProgrammeOsdWrapper::printHtml(ProgrammeOsd* osd)
 {
   s->writeHtmlHeader("/var/lib/vdr/plugins/restfulapi/osd.css");
-  
+  s->write("<div id=\"content2\"><div id=\"innercontent\">");
+  s->write((const char*)cString::sprintf("<div id=\"eventtitle\">%s</div>", osd->PresentTitle().c_str()));
+  s->write((const char*)cString::sprintf("<div id=\"eventsubtitle\">%s - %s</div>", 
+				osd->PresentSubtitle().c_str(),
+				StringExtension::timeToString(osd->PresentTime()).c_str()));
+  s->write((const char*)cString::sprintf("<div id=\"eventtitle\">%s</div>", osd->FollowingTitle().c_str()));
+  s->write((const char*)cString::sprintf("<div id=\"eventsubtitle\">%s - %s</div>", 
+				osd->FollowingSubtitle().c_str(),
+				StringExtension::timeToString(osd->FollowingTime()).c_str()));
+  s->write("</div></div>\n"); 
   s->write("</body></html>\n");
 }
 
@@ -283,7 +291,9 @@ void ChannelOsdWrapper::printJson(ChannelOsd* osd)
 void ChannelOsdWrapper::printHtml(ChannelOsd* osd)
 {
   s->writeHtmlHeader("/var/lib/vdr/plugins/restfulapi/osd.css");
-  
+  s->write("<div id=\"header\">");
+  s->write(osd->Channel());
+  s->write("</div>\n");  
   s->write("</body></html>");
 }
 
