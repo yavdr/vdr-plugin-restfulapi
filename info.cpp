@@ -33,6 +33,7 @@ void InfoResponder::replyHtml(StreamExtension& se)
 void InfoResponder::replyJson(StreamExtension& se)
 {
   time_t now = time(0);
+  StatusMonitor* statm = StatusMonitor::get();
 
   cxxtools::JsonSerializer serializer(*se.getBasicStream());
   serializer.serialize("0.0.1", "version");
@@ -61,6 +62,16 @@ void InfoResponder::replyJson(StreamExtension& se)
   }
 
   serializer.serialize(services, "services");
+
+  if ( statm->getRecordingName().length() > 0 || statm->getRecordingFile().length() > 0 ) {
+     SerPlayerInfo pi;
+     pi.Name = StringExtension::UTF8Decode(statm->getRecordingName());
+     pi.FileName = StringExtension::UTF8Decode(statm->getRecordingFile());
+     serializer.serialize(pi, "video");
+  } else {
+     serializer.serialize(statm->getChannel(), "channel");
+  }
+
   serializer.serialize(pl, "vdr");
   serializer.finish();  
 }
@@ -68,6 +79,8 @@ void InfoResponder::replyJson(StreamExtension& se)
 void InfoResponder::replyXml(StreamExtension& se)
 {
   time_t now = time(0);
+  StatusMonitor* statm = StatusMonitor::get();
+
 
   se.writeXmlHeader();
   se.write("<info xmlns=\"http://www.domain.org/restfulapi/2011/info-xml\">\n");
@@ -83,6 +96,13 @@ void InfoResponder::replyXml(StreamExtension& se)
               restful_services[i]->Internal() ? "true" : "false"));
   }
   se.write(" </services>\n");
+
+  
+  if ( statm->getRecordingName().length() > 0 || statm->getRecordingFile().length() > 0 ) {
+     se.write((const char*)cString::sprintf(" <video name=\"%s\">%s</video>\n", StringExtension::encodeToXml(statm->getRecordingName()).c_str(), StringExtension::encodeToXml(statm->getRecordingFile()).c_str()));
+  } else {
+     se.write((const char*)cString::sprintf(" <channel>%i</channel>\n", statm->getChannel()));
+  }
 
   se.write(" <vdr>\n");
   se.write("  <plugins>\n");
@@ -115,5 +135,11 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerPlugin& p)
 void operator<<= (cxxtools::SerializationInfo& si, const SerPluginList& pl)
 {
   si.addMember("plugins") <<= pl.plugins;
+}
+
+void operator<<= (cxxtools::SerializationInfo& si, const SerPlayerInfo& pi)
+{
+  si.addMember("name") <<= pi.Name;
+  si.addMember("filename") <<= pi.FileName;
 }
 

@@ -173,8 +173,9 @@ void StatusMonitor::TimerChange(const cTimer *Timer, eTimerChange Change)
 
 void StatusMonitor::ChannelSwitch(const cDevice *Device, int ChannelNumber)
 {
-  device = (cDevice*)Device;
-  channel_number = ChannelNumber;
+  if (ChannelNumber != 0) {
+     channel_number = ChannelNumber;
+  }
 }
 
 void StatusMonitor::Recording(const cDevice *Device, const char *Name, const char *FileName, bool On)
@@ -184,8 +185,13 @@ void StatusMonitor::Recording(const cDevice *Device, const char *Name, const cha
 
 void StatusMonitor::Replaying(const cControl *Control, const char *Name, const char *FileName, bool On)
 {
-  recording_name = std::string(Name);
-  recording_file = std::string(FileName);
+  if (On) {
+     if(Name != NULL) recording_name = std::string(Name); else recording_name = "";
+     if(FileName != NULL) recording_file = std::string(FileName); else recording_file = "";
+  } else {
+     recording_name = "";
+     recording_file = "";
+  }
 }
 
 void StatusMonitor::SetVolume(int Volume, bool Absolute)
