@@ -71,6 +71,8 @@ void TimersResponder::createOrUpdateTimer(std::ostream& out, cxxtools::http::Req
      return;
   }
  
+  esyslog("restfulapi, timers: flags:%i, file:%s, stop:%i, start:%i, day:%s, chan:%s",
+             flags, file.c_str(), stop, start, day.c_str(), (const char*)chan->GetChannelID().ToString());
   std::ostringstream builder;
   builder << flags << ":"
           << (const char*)chan->GetChannelID().ToString() << ":"

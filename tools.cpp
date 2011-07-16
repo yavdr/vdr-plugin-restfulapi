@@ -479,8 +479,8 @@ bool VdrExtension::doesFileExistInFolder(std::string wildcardpath, std::string f
          }
      }
      globfree(&globbuf);
-  } 
-  return false;  
+  }
+  return false;
 }
 
 bool VdrExtension::IsRadio(cChannel* channel)
@@ -609,7 +609,26 @@ QueryHandler::QueryHandler(std::string service, cxxtools::http::Request& request
   _service = service;
   _options.parse_url(request.qparams());
   //workaround for current cxxtools which always appends ascii character #012 at the end? AFAIK!
-  _body.parse_url(request.bodyStr().substr(0,request.bodyStr().length()-1));
+  std::string body = request.bodyStr().substr(0,request.bodyStr().length()-1);
+  bool found_json = false;
+  
+  int i = 0;
+  while(!found_json) {
+    if (body[i] == '{') {
+       found_json = true;
+    } else if (body[i] != '\t' && body[i] != '\n' && body[i] != ' ') {
+       break;
+    }
+    i++;
+  }  
+
+  if ( found_json ) {
+     jsonObject = jsonParser.Parse(body);
+     esyslog("restfulapi: JSON parsed sucessfully: %s", jsonObject == NULL ? "no" : "yes");
+  } else {
+     _body.parse_url(body);
+     jsonObject = NULL;
+  }
 
   std::string params = _url.substr(_service.length());
   parseRestParams(params);
@@ -622,7 +641,9 @@ QueryHandler::QueryHandler(std::string service, cxxtools::http::Request& request
 
 QueryHandler::~QueryHandler()
 {
-
+  if (jsonObject != NULL) {
+     delete jsonObject;
+  }
 }
 
 void QueryHandler::parseRestParams(std::string params)
@@ -649,6 +670,34 @@ void QueryHandler::parseRestParams(std::string params)
   }
 }
 
+std::string QueryHandler::getJsonString(std::string name)
+{
+  if ( jsonObject == NULL ) return "";
+  JsonValue* jsonValue = jsonObject->GetItem(name);
+  if ( jsonValue == NULL ) return "";
+  JsonBase* jsonBase = jsonValue->Value();
+  if ( jsonBase == NULL || !jsonBase->IsBasicValue()) return "";
+  JsonBasicValue* jsonBasicValue = (JsonBasicValue*)jsonBase;
+  if ( jsonBasicValue->IsString() ) return jsonBasicValue->ValueAsString();
+  if ( jsonBasicValue->IsBool() ) return jsonBasicValue->ValueAsBool() ? "true" : "false";
+  std::ostringstream str;
+  if ( jsonBasicValue->IsDouble() ) { str << jsonBasicValue->ValueAsDouble(); return str.str(); }
+  return "";
+}
+
+int QueryHandler::getJsonInt(std::string name)
+{
+  if ( jsonObject == NULL ) return -LOWINT;
+  JsonValue* jsonValue = jsonObject->GetItem(name);
+  if ( jsonValue == NULL ) return -LOWINT;
+  JsonBase* jsonBase = jsonValue->Value();
+  if ( jsonBase == NULL || !jsonBase->IsBasicValue()) return -LOWINT;
+  JsonBasicValue* jsonBasicValue = (JsonBasicValue*)jsonBase;
+  if ( jsonBasicValue->IsBool() ) return jsonBasicValue->ValueAsBool() ? 1 : 0;
+  if ( jsonBasicValue->IsDouble() ) return (int)jsonBasicValue->ValueAsDouble();
+  return -LOWINT;
+}
+
 std::string QueryHandler::getParamAsString(int level)
 {
   if ( level >= (int)_params.size() )
@@ -672,6 +721,9 @@ std::string QueryHandler::getOptionAsString(std::string name)
 
 std::string QueryHandler::getBodyAsString(std::string name)
 {
+  if (jsonObject != NULL) {
+     return getJsonString(name);
+  }
   return _body.param(name);
 }
 
@@ -687,6 +739,9 @@ int QueryHandler::getOptionAsInt(std::string name)
 
 int QueryHandler::getBodyAsInt(std::string name)
 {
+  if (jsonObject != NULL) {
+     return getJsonInt(name);
+  }
   return StringExtension::strtoi(getOptionAsString(name));
 }
 

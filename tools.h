@@ -23,6 +23,7 @@
 #include <vdr/timers.h>
 #include <vdr/plugin.h>
 #include "utf8_checked.h"
+#include "jsonparser.h"
 
 #define LOWINT 2147483648;
 
@@ -154,7 +155,11 @@ class QueryHandler
     std::vector< std::string > _params;
     cxxtools::QueryParams _options;
     cxxtools::QueryParams _body;
+    JsonParser jsonParser;
+    JsonObject* jsonObject;
     void parseRestParams(std::string params);
+    std::string getJsonString(std::string name);
+    int getJsonInt(std::string name);
     std::string _format;
   public:
     QueryHandler(std::string service, cxxtools::http::Request& request);
