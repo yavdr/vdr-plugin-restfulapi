@@ -81,3 +81,40 @@
   border-top-left-radius:25px;
   border-top-right-radius:25px;
 }
+
+#content2
+{
+  position:absolute;
+  top:75%;
+  bottom:5%;
+  left:4%;
+  right:4%;
+  -moz-border-radius:25px;
+  border-radius:25px;
+  color:#CDCDCD;
+  background-color:#222266;
+}
+
+#innercontent
+{
+  padding-left:25px;
+  padding-right:25px;
+  padding-top:25px;
+  padding-bottom:25px;
+}
+
+#eventtitle
+{
+  font-size:25pt;
+}
+#eventsubtitle
+{
+  font-size:15pt;
+}
+#eventtime
+{
+  font-size:15pt;
+  right:7%;
+  top:78%;
+  width:20%;
+}

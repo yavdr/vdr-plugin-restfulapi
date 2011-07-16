@@ -590,6 +590,17 @@ std::vector< std::string > StringExtension::split(std::string str, std::string s
   return result;
 }
 
+std::string StringExtension::timeToString(time_t time)
+{
+  struct tm *ltime = localtime(&time);
+  char buffer[26];
+  strftime(buffer, 26, "%H:%M", ltime);
+  return (std::string)buffer;
+  /*std::ostringstream str;
+  str << time;
+  return str.str();*/
+}
+
 // --- QueryHandler -----------------------------------------------------------
 
 QueryHandler::QueryHandler(std::string service, cxxtools::http::Request& request)
@@ -600,7 +611,7 @@ QueryHandler::QueryHandler(std::string service, cxxtools::http::Request& request
   //workaround for current cxxtools which always appends ascii character #012 at the end? AFAIK!
   _body.parse_url(request.bodyStr().substr(0,request.bodyStr().length()-1));
 
-  std::string params = _url.substr(_service.length()/*, _url.length() - 1*/);
+  std::string params = _url.substr(_service.length());
   parseRestParams(params);
 
   _format = "";
@@ -634,7 +645,7 @@ void QueryHandler::parseRestParams(std::string params)
   }
 
   if(start != (int)params.length() - 1) {
-    _params.push_back(params.substr(start + 1/*, params.length() - 1*/));
+    _params.push_back(params.substr(start + 1));
   }
 }
 

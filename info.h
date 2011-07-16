@@ -6,6 +6,7 @@
 #include "tools.h"
 #include <time.h>
 #include <vector>
+#include "statusmonitor.h"
 
 struct SerService
 {
@@ -25,9 +26,16 @@ struct SerPluginList
   std::vector< struct SerPlugin > plugins;
 };
 
+struct SerPlayerInfo
+{
+  cxxtools::String Name;
+  cxxtools::String FileName;
+};
+
 void operator<<= (cxxtools::SerializationInfo& si, const SerService& s);
 void operator<<= (cxxtools::SerializationInfo& si, const SerPlugin& p);
 void operator<<= (cxxtools::SerializationInfo& si, const SerPluginList& pl);
+void operator<<= (cxxtools::SerializationInfo& si, const SerPlayerInfo& pi);
 
 class InfoResponder : public cxxtools::http::Responder
 {

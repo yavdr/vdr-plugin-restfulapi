@@ -143,7 +143,9 @@ class StatusMonitor : public cStatus
     ~StatusMonitor() { };
     static StatusMonitor* get();
     BasicOsd* getOsd() { return _osd; }
-    //Add methods for other information, now only Osd can be returned!
+    int getChannel() { return channel_number; }
+    std::string getRecordingName() { return recording_name; }
+    std::string getRecordingFile() { return recording_file; }
 };
 
 class DeleteOsdTask : BaseTask
