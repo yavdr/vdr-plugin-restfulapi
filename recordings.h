@@ -28,6 +28,23 @@ typedef cxxtools::http::CachedService<RecordingsResponder> RecordingsService;
 
 int getRecordingDuration(cRecording* m_recording);
 
+struct RecordingCacheItem
+{
+  std::string Name;
+  int Duration;
+};
+
+class RecordingCache
+{
+  private:
+    std::vector< struct RecordingCacheItem > _items;
+  public:
+    RecordingCache();
+    ~RecordingCache() { };
+    static RecordingCache* get();
+    int Duration(cRecording* recording);
+};
+
 struct SerRecording
 {
   cxxtools::String Name;

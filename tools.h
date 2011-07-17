@@ -21,6 +21,7 @@
 #include <cxxtools/regex.h>
 #include <vdr/channels.h>
 #include <vdr/timers.h>
+#include <vdr/recording.h>
 #include <vdr/plugin.h>
 #include "utf8_checked.h"
 #include "jsonparser.h"
@@ -131,6 +132,7 @@ class VdrExtension
     static int scanForFiles(const std::string wildcardpath, std::vector< std::string >& files);
     static bool doesFileExistInFolder(std::string wildcardpath, std::string filename);
     static bool IsRadio(cChannel* channel);
+    static bool IsRecording(cRecording* recording);
 };
 
 class StringExtension

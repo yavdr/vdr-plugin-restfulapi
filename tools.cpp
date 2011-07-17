@@ -491,6 +491,19 @@ bool VdrExtension::IsRadio(cChannel* channel)
   return false;
 }
 
+bool VdrExtension::IsRecording(cRecording* recording)
+{
+  cTimer* timer = NULL;
+  for (int i=0;i<Timers.Count();i++)
+  {
+     timer = Timers.Get(i);
+     if (std::string(timer->File()).compare(recording->Name())) {
+        return true;
+     }
+  }
+  return false;
+}
+
 // --- StringExtension --------------------------------------------------------
 
 std::string StringExtension::itostr(int i)
