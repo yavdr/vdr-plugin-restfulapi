@@ -624,7 +624,7 @@ QueryHandler::QueryHandler(std::string service, cxxtools::http::Request& request
   //workaround for current cxxtools which always appends ascii character #012 at the end? AFAIK!
   std::string body = request.bodyStr().substr(0,request.bodyStr().length()-1);
   bool found_json = false;
-  
+ 
   int i = 0;
   while(!found_json) {
     if (body[i] == '{') {
@@ -711,6 +711,19 @@ int QueryHandler::getJsonInt(std::string name)
   return -LOWINT;
 }
 
+bool QueryHandler::getJsonBool(std::string name)
+{
+  if (jsonObject == NULL) return false;
+  JsonValue* jsonValue = jsonObject->GetItem(name);
+  if (jsonValue == NULL) return false;
+  JsonBase* jsonBase = jsonValue->Value();
+  if (jsonBase == NULL || !jsonBase->IsBasicValue()) return false;
+  JsonBasicValue* jsonBasicValue = (JsonBasicValue*)jsonBase;
+  if (jsonBasicValue->IsBool()) return jsonBasicValue->ValueAsBool();
+  if (jsonBasicValue->IsDouble()) return jsonBasicValue->ValueAsDouble() != 0 ? true : false;
+  return false;
+}
+
 std::string QueryHandler::getParamAsString(int level)
 {
   if ( level >= (int)_params.size() )
@@ -755,7 +768,19 @@ int QueryHandler::getBodyAsInt(std::string name)
   if (jsonObject != NULL) {
      return getJsonInt(name);
   }
-  return StringExtension::strtoi(getOptionAsString(name));
+  return StringExtension::strtoi(getBodyAsString(name));
+}
+
+bool QueryHandler::getBodyAsBool(std::string name)
+{
+  if (jsonObject != NULL) {
+     return getJsonBool(name);
+  }
+  std::string result = getBodyAsString(name);
+  if (result == "true") return true;
+  if (result == "false") return false;
+  if (result == "1") return true;
+  return false;
 }
 
 bool QueryHandler::isFormat(std::string format)

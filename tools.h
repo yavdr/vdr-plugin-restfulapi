@@ -161,17 +161,19 @@ class QueryHandler
     JsonObject* jsonObject;
     void parseRestParams(std::string params);
     std::string getJsonString(std::string name);
-    int getJsonInt(std::string name);
+    int         getJsonInt(std::string name);
+    bool        getJsonBool(std::string name);
     std::string _format;
   public:
     QueryHandler(std::string service, cxxtools::http::Request& request);
     ~QueryHandler();
     std::string getParamAsString(int level);              //Parameters are part of the url (the rest after you cut away the service path)
     std::string getOptionAsString(std::string name);      //Options are the normal url query parameters after the question mark
-    std::string getBodyAsString(std::string name);        //Are variables in the body of the http-request -> for now only html is supported!!!
+    std::string getBodyAsString(std::string name);        //Are variables in the body of the http-request -> for now only html/json are supported, xml is not implemented (!)
     int getParamAsInt(int level);
     int getOptionAsInt(std::string name);
     int getBodyAsInt(std::string name);
+    bool getBodyAsBool(std::string name);
     bool isFormat(std::string format);
     std::string getFormat() { return _format; }
 };
