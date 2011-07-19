@@ -48,7 +48,6 @@ class Settings
     Settings() { initDefault(); }
     ~Settings() { };
     static Settings* get();
-    void init();
     void initDefault();
     int Port() { return port; }
     std::string Ip() { return ip; }

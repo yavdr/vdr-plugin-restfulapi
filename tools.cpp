@@ -1,26 +1,6 @@
 #include "tools.h"
 // --- Settings ----------------------------------------------------------------
 
-std::string Settings::cutComment(std::string str)
-{
-  bool esc = false;
-  char c;
-  int counter = 0;
-  while ( counter < (int)str.length() ) {
-    c = str[counter];
-    switch(c) {
-      case '\\': if (!esc) esc = true; else esc = false;
-                  break;
-      case '#': if (!esc) return str.substr(0, counter);
-                  break;
-      default: esc = false;
-                  break;
-    }
-    counter++;
-  }
-  return str;
-}
-
 bool Settings::SetPort(std::string v)
 {
   int p = StringExtension::strtoi(v);
@@ -78,85 +58,14 @@ bool Settings::SetChannelLogoDirectory(std::string v)
   return false;
 }
 
-bool Settings::parseLine(std::string str)
-{
-  str = cutComment(str);
-  int found = -1;
-  std::string value, name;
-  found = str.find_first_of('=');
-  if ( found != -1 ) {
-     value = StringExtension::trim(str.substr(found+1));
-     name = str.substr(0, found);
-
-     if ( (int)name.find("port") != -1 ) {
-        if ( SetPort(value) ) {
-           return true;
-        } else {
-           return false;
-        }
-     }
-
-     if ( (int)name.find("ip") != -1 ) {
-        if ( SetIp(value) ) {
-           return true;
-        } else {
-           return false;
-        }
-     }
-
-     if ( (int)name.find("epgimages") != -1 ) {
-        if ( SetEpgImageDirectory(value) ) {
-           return true;
-        } else {
-           return false;
-        }
-     }
-
-     if ( (int)name.find("channellogos") != -1 ) {
-        if ( SetChannelLogoDirectory(value) ) {
-           return true;
-        } else {
-           return false;
-        }
-     }
-  }
-  return false;
-}
-
 Settings* Settings::get() 
 {
   static Settings settings;
   return &settings;
 }
 
-void Settings::init()
-{
-  std::string configDir = cPlugin::ConfigDirectory() + (std::string)"/restfulapi.conf";
- 
-  FILE* f = fopen(configDir.c_str(), "r");
-  if ( f != NULL ) {
-     esyslog("restfulapi: trying to parse \"non debian specific\" restfulapi.conf");
-     std::ostringstream data;
-     char c;
-     while ( !feof(f) ) {
-       c = fgetc(f);
-       if ( c == '\n' ) {
-          parseLine(data.str());
-          data.str(""); //.clear() is inherited from std::ios and does only clear the error state
-       } else {
-          if (!feof(f)) //don't add EOF-char to string
-             data << c;
-       }
-     }
-     parseLine(data.str());
-     fclose(f);
-  }
-}
-
 void Settings::initDefault()
 {
-  esyslog("restfulapi: loading default settings");
-
   SetPort((std::string)"8002");
   SetIp((std::string)"0.0.0.0");
   SetEpgImageDirectory((std::string)"/var/cache/vdr/epgimages");
