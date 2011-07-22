@@ -9,6 +9,8 @@ void EventsResponder::reply(std::ostream& out, cxxtools::http::Request& request,
 
   if ( (int)request.url().find("/events/image/") == 0 ) {
      replyImage(out, request, reply);
+  } else if ( (int)request.url().find("/events/search") == 0 ){
+     replySearchResult(out, request, reply);
   } else {
      replyEvents(out, request, reply);
   }
@@ -117,6 +119,93 @@ void EventsResponder::replyImage(std::ostream& out, cxxtools::http::Request& req
   } else {
      reply.httpReturn(404, "Could not find image!");
   }
+}
+
+void EventsResponder::replySearchResult(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+{
+  StreamExtension se(&out);
+  QueryHandler q("/events/search", request);
+
+  std::string query = q.getBodyAsString("query");
+  int mode = q.getBodyAsInt("mode");// search mode (0=phrase, 1=and, 2=or, 3=regular expression)
+  int channel = q.getBodyAsInt("channel");
+  bool use_title = q.getBodyAsBool("use_title");
+  bool use_subtitle = q.getBodyAsBool("use_subtitle");
+  bool use_description = q.getBodyAsBool("use_description");
+
+  if ( query.length() == 0 ) {
+     reply.httpReturn(402, "Query required");
+     return;
+  }
+
+  EventList* eventList;
+
+  if ( q.isFormat(".json") ) {
+     reply.addHeader("Content-Type", "application/json; charset=utf-8");
+     eventList = (EventList*)new JsonEventList(&out);
+  } else if ( q.isFormat(".html") ) {
+     reply.addHeader("Content-Type", "text/html; charset=utf-8");
+     eventList = (EventList*)new HtmlEventList(&out);
+  } else if ( q.isFormat(".xml") ) {
+     reply.addHeader("Content-Type", "text/xml; charset=utf-8");
+     eventList = (EventList*)new XmlEventList(&out);
+  } else {
+     reply.httpReturn(403, "Resources are not available for the selected format. (Use: .json or .html)");
+     return;
+  }
+  eventList->init();
+  
+  if (!use_title && !use_subtitle && !use_description)
+     use_title = true;
+  if (mode < 0 || mode > 3) 
+     mode = 0;
+  if (channel < 0 || channel > Channels.Count())
+     channel = 0;
+  if (query.length() > 100)
+     query = query.substr(0,100); //don't allow more than 100 characters, NOTE: maybe I should add a limitation to the Responderclass?
+
+  struct Epgsearch_searchresults_v1_0* epgquery = new struct Epgsearch_searchresults_v1_0;
+  epgquery->query = (char*)query.c_str();
+  epgquery->mode = mode;
+  epgquery->channelNr = channel;
+  epgquery->useTitle = use_title;
+  epgquery->useSubTitle = use_subtitle;
+  epgquery->useDescription = use_description;
+ 
+  int start_filter = q.getOptionAsInt("start");
+  int limit_filter = q.getOptionAsInt("limit");
+  if ( start_filter >= 0 && limit_filter >= 1 ) {
+     eventList->activateLimit(start_filter, limit_filter);
+  }
+
+  int total = 0; 
+
+  cPlugin *Plugin = cPluginManager::GetPlugin("epgsearch");
+  if (Plugin) {
+     if (Plugin->Service("Epgsearch-searchresults-v1.0", NULL)) {
+        if (Plugin->Service("Epgsearch-searchresults-v1.0", epgquery)) {
+           cList< Epgsearch_searchresults_v1_0::cServiceSearchResult>* result = epgquery->pResultList;
+           Epgsearch_searchresults_v1_0::cServiceSearchResult* item = NULL;
+           if (result != NULL) {
+              for(int i=0;i<result->Count();i++) {
+                 item = result->Get(i);
+                 eventList->addEvent(((cEvent*)item->event));
+                 total++;
+              }
+           }
+        } else {
+           reply.httpReturn(406, "Internal (epgsearch) error, check parameters.");
+        }
+     } else {
+        reply.httpReturn(405, "Plugin-service not available.");
+     }
+  } else {
+     reply.httpReturn(404, "Plugin not installed!");
+  }
+  eventList->setTotal(total);
+  eventList->finish();
+  delete eventList;
+  delete epgquery;
 }
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)

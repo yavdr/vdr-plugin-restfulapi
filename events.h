@@ -6,8 +6,10 @@
 #include <cxxtools/serializationinfo.h>
 #include <cxxtools/utf8codec.h>
 #include "tools.h"
+#include "epgsearch/services.h"
 
 #include <vdr/epg.h>
+#include <vdr/plugin.h>
 
 class EventsResponder : public cxxtools::http::Responder
 {
@@ -18,6 +20,7 @@ class EventsResponder : public cxxtools::http::Responder
     virtual void reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void replyEvents(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void replyImage(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+    void replySearchResult(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
 };
 
 typedef cxxtools::http::CachedService<EventsResponder> EventsService;

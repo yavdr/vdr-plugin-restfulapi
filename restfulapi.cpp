@@ -107,8 +107,6 @@ bool cPluginRestfulapi::Start(void)
   // Start any background activities the plugin shall perform.
   Settings* settings = Settings::get();
 
-  settings->init(); //load settings from non-debian-secific config-file
-
   esyslog("restfulapi: Used settings: port: %i, ip: %s, eimgs: %s, cimgs: %s", 
           settings->Port(),
           settings->Ip().c_str(),
@@ -116,6 +114,7 @@ bool cPluginRestfulapi::Start(void)
           settings->ChannelLogoDirectory().c_str());
 
   FileCaches::get(); //cache files
+  RecordingCache::get(); //cache recording durations (access to hdd would be required if not cached)
   serverThread.Initialize();
   serverThread.Start();
   return true;
