@@ -1,4 +1,5 @@
 #include "tools.h"
+
 // --- Settings ----------------------------------------------------------------
 
 bool Settings::SetPort(std::string v)

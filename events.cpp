@@ -128,7 +128,7 @@ void EventsResponder::replySearchResult(std::ostream& out, cxxtools::http::Reque
 
   std::string query = q.getBodyAsString("query");
   int mode = q.getBodyAsInt("mode");// search mode (0=phrase, 1=and, 2=or, 3=regular expression)
-  int channel = q.getBodyAsInt("channel");
+  std::string channelid = q.getBodyAsString("channel"); //id !!
   bool use_title = q.getBodyAsBool("use_title");
   bool use_subtitle = q.getBodyAsBool("use_subtitle");
   bool use_description = q.getBodyAsBool("use_description");
@@ -136,6 +136,12 @@ void EventsResponder::replySearchResult(std::ostream& out, cxxtools::http::Reque
   if ( query.length() == 0 ) {
      reply.httpReturn(402, "Query required");
      return;
+  }
+
+  int channel = 0;
+  cChannel* channelInstance = VdrExtension::getChannel(channelid);
+  if (channelInstance != NULL) {
+     channel = channelInstance->Number();
   }
 
   EventList* eventList;
