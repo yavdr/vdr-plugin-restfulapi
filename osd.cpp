@@ -103,12 +103,12 @@ void XmlTextOsdList::printTextOsd(TextOsd* osd)
 {
   s->writeXmlHeader();
   s->write("<TextOsd xmlns=\"http://www.domain.org/restfulapi/2011/TextOsd-xml\">\n");
-  s->write((const char*)cString::sprintf(" <title>%s</title>\n", StringExtension::encodeToXml(osd->Title()).c_str()));
-  s->write((const char*)cString::sprintf(" <message>%s</message>\n", StringExtension::encodeToXml(osd->Message()).c_str()));
-  s->write((const char*)cString::sprintf(" <red>%s</red>\n", StringExtension::encodeToXml(osd->Red()).c_str()));
-  s->write((const char*)cString::sprintf(" <green>%s</green>\n", StringExtension::encodeToXml(osd->Green()).c_str()));
-  s->write((const char*)cString::sprintf(" <yellow>%s</yellow>\n", StringExtension::encodeToXml(osd->Yellow()).c_str()));
-  s->write((const char*)cString::sprintf(" <blue>%s</blue>\n", StringExtension::encodeToXml(osd->Blue()).c_str()));
+  s->write(cString::sprintf(" <title>%s</title>\n", StringExtension::encodeToXml(osd->Title()).c_str()));
+  s->write(cString::sprintf(" <message>%s</message>\n", StringExtension::encodeToXml(osd->Message()).c_str()));
+  s->write(cString::sprintf(" <red>%s</red>\n", StringExtension::encodeToXml(osd->Red()).c_str()));
+  s->write(cString::sprintf(" <green>%s</green>\n", StringExtension::encodeToXml(osd->Green()).c_str()));
+  s->write(cString::sprintf(" <yellow>%s</yellow>\n", StringExtension::encodeToXml(osd->Yellow()).c_str()));
+  s->write(cString::sprintf(" <blue>%s</blue>\n", StringExtension::encodeToXml(osd->Blue()).c_str()));
   
   std::list<TextOsdItem*>::iterator it;
   std::list<TextOsdItem*> items = osd->GetItems();
@@ -118,7 +118,7 @@ void XmlTextOsdList::printTextOsd(TextOsd* osd)
     if (!filtered()) {
        const char* selected = (*it) == osd->Selected() ? "true" : "false";
        TextOsdItem* item = *it;
-       s->write((const char*)cString::sprintf("  <item selected=\"%s\">%s</item>\n", selected, StringExtension::encodeToXml(item->Text()).c_str()));
+       s->write(cString::sprintf("  <item selected=\"%s\">%s</item>\n", selected, StringExtension::encodeToXml(item->Text()).c_str()));
     }
   }
   s->write(" </items>\n");
@@ -190,16 +190,16 @@ void HtmlTextOsdList::printTextOsd(TextOsd* textOsd)
   s->write("</div>\n");
 
   if (textOsd->Red().length() > 0)
-     s->write((const char*)cString::sprintf("<div id=\"redbutton\">%s</div>\n", textOsd->Red().c_str()));
+     s->write(cString::sprintf("<div id=\"redbutton\">%s</div>\n", textOsd->Red().c_str()));
 
   if (textOsd->Yellow().length() > 0)
-     s->write((const char*)cString::sprintf("<div id=\"yellowbutton\">%s</div>\n", textOsd->Yellow().c_str()));
+     s->write(cString::sprintf("<div id=\"yellowbutton\">%s</div>\n", textOsd->Yellow().c_str()));
 
   if (textOsd->Green().length() > 0)
-     s->write((const char*)cString::sprintf("<div id=\"greenbutton\">%s</div>\n", textOsd->Green().c_str()));
+     s->write(cString::sprintf("<div id=\"greenbutton\">%s</div>\n", textOsd->Green().c_str()));
 
   if (textOsd->Blue().length() > 0) 
-     s->write((const char*)cString::sprintf("<div id=\"bluebutton\">%s</div>\n", textOsd->Blue().c_str()));
+     s->write(cString::sprintf("<div id=\"bluebutton\">%s</div>\n", textOsd->Blue().c_str()));
 
   s->write("</body></html>");
 }
@@ -221,12 +221,12 @@ void ProgrammeOsdWrapper::printXml(ProgrammeOsd* osd)
 {
   s->writeXmlHeader();
   s->write("<ProgrammeOsd xmlns=\"http://www.domain.org/restfulapi/2011/ProgrammeOsd-xml\">\n");
-  s->write((const char*)cString::sprintf(" <presenttime>%i</presenttime>\n", (int)osd->PresentTime()));
-  s->write((const char*)cString::sprintf(" <presenttitle>%s</presenttitle>\n", StringExtension::encodeToXml(osd->PresentTitle()).c_str()));
-  s->write((const char*)cString::sprintf(" <presentsubtitle>%s</presentsubtitle>\n", StringExtension::encodeToXml(osd->PresentSubtitle()).c_str()));
-  s->write((const char*)cString::sprintf(" <followingtime>%i</followingtime>\n", (int)osd->FollowingTime()));
-  s->write((const char*)cString::sprintf(" <followingtitle>%s</followingtitle>\n", StringExtension::encodeToXml(osd->FollowingTitle()).c_str()));
-  s->write((const char*)cString::sprintf(" <followingsubtitle>%s</followingsubtitle>\n", StringExtension::encodeToXml(osd->FollowingSubtitle()).c_str()));
+  s->write(cString::sprintf(" <presenttime>%i</presenttime>\n", (int)osd->PresentTime()));
+  s->write(cString::sprintf(" <presenttitle>%s</presenttitle>\n", StringExtension::encodeToXml(osd->PresentTitle()).c_str()));
+  s->write(cString::sprintf(" <presentsubtitle>%s</presentsubtitle>\n", StringExtension::encodeToXml(osd->PresentSubtitle()).c_str()));
+  s->write(cString::sprintf(" <followingtime>%i</followingtime>\n", (int)osd->FollowingTime()));
+  s->write(cString::sprintf(" <followingtitle>%s</followingtitle>\n", StringExtension::encodeToXml(osd->FollowingTitle()).c_str()));
+  s->write(cString::sprintf(" <followingsubtitle>%s</followingsubtitle>\n", StringExtension::encodeToXml(osd->FollowingSubtitle()).c_str()));
   s->write("</ProgrammeOsd>\n");
 }
 
@@ -248,12 +248,12 @@ void ProgrammeOsdWrapper::printHtml(ProgrammeOsd* osd)
 {
   s->writeHtmlHeader("/var/lib/vdr/plugins/restfulapi/osd.css");
   s->write("<div id=\"content2\"><div id=\"innercontent\">");
-  s->write((const char*)cString::sprintf("<div id=\"eventtitle\">%s</div>", osd->PresentTitle().c_str()));
-  s->write((const char*)cString::sprintf("<div id=\"eventsubtitle\">%s - %s</div>", 
+  s->write(cString::sprintf("<div id=\"eventtitle\">%s</div>", osd->PresentTitle().c_str()));
+  s->write(cString::sprintf("<div id=\"eventsubtitle\">%s - %s</div>", 
 				osd->PresentSubtitle().c_str(),
 				StringExtension::timeToString(osd->PresentTime()).c_str()));
-  s->write((const char*)cString::sprintf("<div id=\"eventtitle\">%s</div>", osd->FollowingTitle().c_str()));
-  s->write((const char*)cString::sprintf("<div id=\"eventsubtitle\">%s - %s</div>", 
+  s->write(cString::sprintf("<div id=\"eventtitle\">%s</div>", osd->FollowingTitle().c_str()));
+  s->write(cString::sprintf("<div id=\"eventsubtitle\">%s - %s</div>", 
 				osd->FollowingSubtitle().c_str(),
 				StringExtension::timeToString(osd->FollowingTime()).c_str()));
   s->write("</div></div>\n"); 
@@ -277,7 +277,7 @@ void ChannelOsdWrapper::printXml(ChannelOsd* osd)
 {
   s->writeXmlHeader();
   s->write("<ChannelOsd xmlns=\"http://www.domain.org/restfulapi/2011/ChannelOsd-xml\">\n");
-  s->write((const char*)cString::sprintf(" <Text>%s</Text>\n", StringExtension::encodeToXml(osd->Channel()).c_str()));
+  s->write(cString::sprintf(" <Text>%s</Text>\n", StringExtension::encodeToXml(osd->Channel()).c_str()));
   s->write("</ChannelOsd>\n");
 }
 
@@ -292,7 +292,7 @@ void ChannelOsdWrapper::printHtml(ChannelOsd* osd)
 {
   s->writeHtmlHeader("/var/lib/vdr/plugins/restfulapi/osd.css");
   s->write("<div id=\"header\">");
-  s->write(osd->Channel());
+  s->write(StringExtension::encodeToXml(osd->Channel()).c_str());
   s->write("</div>\n");  
   s->write("</body></html>");
 }

@@ -67,7 +67,8 @@ class StreamExtension
     StreamExtension(std::ostream *out);
     ~StreamExtension() { };
     std::ostream* getBasicStream();
-    void write(std::string str);
+    void write(const char* str);
+    void write(cString& str) { write((const char*)str); }
     void writeHtmlHeader(std::string css = "");
     void writeXmlHeader();
     bool writeBinary(std::string path);

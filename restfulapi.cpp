@@ -10,7 +10,6 @@
 #include <vdr/plugin.h>
 #include "serverthread.h"
 #include "statusmonitor.h"
-#include "epgsearch.h"
 
 static const char *VERSION        = "0.0.1";
 static const char *DESCRIPTION    = "Offers a RESTful-API to retrieve data from VDR";

@@ -154,9 +154,9 @@ void StatusMonitor::OsdDestroy(void)
 {
   //TaskScheduler currently buggy...
   //TaskScheduler::get()->AddTask((BaseTask*)new DeleteOsdTask(_osd));
-  //wait until uses got the data:
+  //wait until users got the data:
   if ( _osd != NULL ) {
-     usleep(1000); //wait 1ms
+     usleep(100); //wait 0.1ms
      if ( _osd->Type() == 0x01) {
         TextOsd* tosd = (TextOsd*)_osd;
         tosd->ClearItems();

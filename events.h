@@ -5,11 +5,11 @@
 #include <cxxtools/jsonserializer.h>
 #include <cxxtools/serializationinfo.h>
 #include <cxxtools/utf8codec.h>
-#include "tools.h"
-#include "epgsearch/services.h"
-
 #include <vdr/epg.h>
 #include <vdr/plugin.h>
+
+#include "tools.h"
+#include "epgsearch/services.h"
 
 class EventsResponder : public cxxtools::http::Responder
 {

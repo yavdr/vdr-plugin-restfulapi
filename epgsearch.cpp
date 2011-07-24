@@ -1,20 +1,124 @@
-#include <vector>
-#include <algorithm>
-#include <vdr/channels.h>
-#include <vdr/plugin.h>
-#include <iomanip>
-#include "epgsearch/services.h"
 #include "epgsearch.h"
-#include "tools.h"
-#include <ostream>
-#include <sstream>
-#include <istream>
-#include <set>
-#include <stdexcept>
+
+
+void operator<<= (cxxtools::SerializationInfo& si, SerSearchTimerContainer s)
+{
+  si.addMember("id") <<= s.timer->Id();
+  si.addMember("search") <<= StringExtension::UTF8Decode(s.timer->Search());
+  si.addMember("mode") <<= s.timer->SearchMode();
+  si.addMember("tolerance") <<= s.timer->Tolerance();
+  si.addMember("match_case") <<= s.timer->MatchCase();
+  si.addMember("use_time") <<= s.timer->UseTime();
+  si.addMember("use_title") <<= s.timer->UseTitle();
+  si.addMember("use_subtitle") <<= s.timer->UseSubtitle();
+  si.addMember("use_description") <<= s.timer->UseDescription();
+  si.addMember("start_time") <<= s.timer->StartTime();
+  si.addMember("stop_time") <<= s.timer->StopTime();
+  si.addMember("use_channel") <<= s.timer->UseChannel();
+  si.addMember("channel_min") <<= (const char*)s.timer->ChannelMin().ToString();
+  si.addMember("channel_max") <<= (const char*)s.timer->ChannelMax().ToString();
+  si.addMember("channels") <<= s.timer->ChannelText();
+  si.addMember("use_as_searchtimer") <<= s.timer->UseAsSearchTimer();
+  si.addMember("use_duration") <<= s.timer->UseDuration();
+  si.addMember("duration_min") <<= s.timer->MinDuration();
+  si.addMember("duration_max") <<= s.timer->MaxDuration();
+  si.addMember("use_dayofweek") <<= s.timer->UseDayOfWeek();
+  si.addMember("dayofweek") <<= s.timer->DayOfWeek();
+  si.addMember("use_in_favorites") <<= s.timer->UseInFavorites();
+  si.addMember("search_timer_action") <<= s.timer->SearchTimerAction();
+  si.addMember("use_series_recording") <<= s.timer->UseSeriesRecording();
+  si.addMember("directory") <<= s.timer->Directory();
+  si.addMember("del_recs_after_days") <<= s.timer->DelRecsAfterDays();
+  si.addMember("keep_recs") <<= s.timer->KeepRecs();
+  si.addMember("pause_on_recs") <<= s.timer->PauseOnRecs();
+  si.addMember("blacklist_mode") <<= s.timer->BlacklistMode();
+  si.addMember("switch_min_before") <<= s.timer->SwitchMinBefore();
+  si.addMember("use_ext_epg_info") <<= s.timer->UseExtEPGInfo();
+  si.addMember("ext_epg_info") <<= s.timer->ExtEPGInfo();
+  si.addMember("avoid_repeats") <<= s.timer->AvoidRepeats();
+  si.addMember("allowed_repeats") <<= s.timer->AllowedRepeats();
+  si.addMember("repeats_within_days") <<= s.timer->RepeatsWithinDays();
+  si.addMember("compare_title") <<= s.timer->CompareTitle();
+  si.addMember("compare_subtitle") <<= s.timer->CompareSubtitle();
+  si.addMember("compare_summary") <<= s.timer->CompareSummary();
+  si.addMember("compare_categories") <<= s.timer->CompareCategories();
+  si.addMember("priority") <<= s.timer->Priority();
+  si.addMember("lifetime") <<= s.timer->Lifetime();
+  si.addMember("margin_start") <<= s.timer->MarginStart();
+  si.addMember("margin_stop") <<= s.timer->MarginStop();
+  si.addMember("use_vps") <<= s.timer->UseVPS();
+  si.addMember("del_mode") <<= s.timer->DelMode();
+  si.addMember("del_after_count_recs") <<= s.timer->DelAfterCountRecs();
+  si.addMember("del_after_days_of_first_rec") <<= s.timer->DelAfterDaysOfFirstRec();
+}
 
 namespace vdrlive {
 
 using namespace std;
+
+std::string SearchTimer::ToXml()
+{
+  std::ostringstream s;
+  s << "<searchtimer>\n"
+  << "<id>" << Id() << "</id>\n"
+  << "<search>" << StringExtension::encodeToXml(Search()) << "</search>\n"
+  << "<mode>" << SearchMode() << "</mode>\n"
+  << "<tolerance>" << Tolerance() << "</tolerance>\n"
+  << "<match_case>" << MatchCase() << "</match_case>\n"
+  << "<use_time>" << UseTime() << "</use_time>\n"
+  << "<use_title>" << UseTitle() << "</use_title>\n"
+  << "<use_subtitle>" << UseSubtitle() << "</use_subtitle>\n"
+  << "<start_time>" << StartTime() << "</start_time>\n"
+  << "<stop_time>" << StopTime() << "</stop_time>\n"
+  << "<use_channel>" << UseChannel() << "</use_channel>\n"
+  << "<channel_min>" << ChannelMin() << "</channel_min>\n"
+  << "<channel_max>" << ChannelMax() << "</channel_max>\n"
+  << "<channels>" << ChannelText() << "</channels>\n"
+  << "<use_as_searchtimer>" << UseAsSearchTimer() << "</use_as_searchtimer>\n"
+  << "<use_duration>" << UseDuration() << "</use_duration>\n"
+  << "<duration_min>" << MinDuration() << "</duration_min>\n"
+  << "<duration_max>" << MaxDuration() << "</duration_max>\n"
+  << "<use_dayofweek>" << UseDayOfWeek() << "</use_dayofweek>\n"
+  << "<dayofweek>" << DayOfWeek() << "</dayofweek>\n"
+  << "<use_in_favorites>" << UseInFavorites() << "</use_in_favorites>\n"
+  << "<directory>" << Directory() << "</directory>\n"
+  << "<del_recs_after_days>" << DelRecsAfterDays() << "</del_recs_after_days>\n"
+  << "<keep_recs>" << KeepRecs() << "</keep_recs>\n"
+  << "<pause_on_recs>" << PauseOnRecs() << "</pause_on_recs>\n"
+  << "<blacklist_mode>" << BlacklistMode() << "</blacklist_mode>\n"
+  << "<switch_min_before>" << SwitchMinBefore() << "</switch_min_before>\n"
+  << "<use_ext_epg_info>" << UseExtEPGInfo() << "</use_ext_epg_info>\n"
+  << "<ext_epg_info>\n";
+  std::vector< std::string > epg_infos = ExtEPGInfo();
+  for (int i=0;i<(int)epg_infos.size();i++)
+  {
+    s << " <info>" << epg_infos[i] << "</info>\n";
+  }
+  s << "</ext_epg_info>\n"
+  << "<avoid_repeats>" << AvoidRepeats() << "</avoid_repeats>\n"
+  << "<allowed_repeats>" << AllowedRepeats() << "</allowed_repeats>\n"
+  << "<repeats_within_days>" << RepeatsWithinDays() << "</repeats_within_days>\n"
+  << "<compare_title>" << CompareTitle() << "</compare_title>\n"
+  << "<compare_subtitle>" << CompareSubtitle() << "</compare_subtitle>\n"
+  << "<compare_summary>" << CompareSummary() << "</compare_summary>\n"
+  << "<compare_categories>" << CompareCategories() << "</compare_categories>\n"
+  << "<priority>" << Priority() << "</priority>\n"
+  << "<lifetime>" << Lifetime() << "</lifetime>\n"
+  << "<margin_start>" << MarginStart() << "</margin_start>\n"
+  << "<margin_stop>" << MarginStop() << "</margin_stop>\n"
+  << "<use_vps>" << UseVPS() << "</use_vps>\n"
+  << "<del_mode>" << DelMode() << "</del_mode>\n"
+  << "<del_after_count_recs>" << DelAfterCountRecs() << "</del_after_count_recs>\n"
+  << "<del_after_days_of_first_rec>" << DelAfterDaysOfFirstRec() << "</del_after_days_of_first_rec>\n"
+  << "</searchtimer>\n";
+  
+  return s.str();
+}
+
+std::string SearchTimer::ToHtml()
+{
+  return Search();
+} 
 
 istream& operator>>( istream& is, tChannelID& ret )
 {
@@ -338,7 +442,7 @@ SearchTimers::SearchTimers()
 bool SearchTimers::Reload()
 {
 	Epgsearch_services_v1_0 service;
-
+        cPluginManager::CallFirstService(ServiceInterface, &service);
 	ReadLock channelsLock( Channels, 0 );
 	list< string > timers = service.handler->SearchTimerList();
 	m_timers.assign( timers.begin(), timers.end() );
@@ -608,5 +712,5 @@ std::string EPGSearchExpr::EvaluateExpr(const std::string& expr, const cEvent* e
 }
 
 
-} // namespace vdrlivea
+} // namespace vdrlive
 

@@ -311,22 +311,22 @@ void XmlEventList::addEvent(cEvent* event)
   if ( event->Description() == NULL ) { eventDescription = ""; } else { eventDescription = event->Description(); }
 
   s->write(" <event>\n");
-  s->write((const char*)cString::sprintf("  <param name=\"id\">%i</param>\n", event->EventID()));
-  s->write((const char*)cString::sprintf("  <param name=\"title\">%s</param>\n", StringExtension::encodeToXml(eventTitle).c_str()));
-  s->write((const char*)cString::sprintf("  <param name=\"short_text\">%s</param>\n", StringExtension::encodeToXml(eventShortText).c_str()));
-  s->write((const char*)cString::sprintf("  <param name=\"description\">%s</param>\n", StringExtension::encodeToXml(eventDescription).c_str()));
-  s->write((const char*)cString::sprintf("  <param name=\"start_time\">%i</param>\n", (int)event->StartTime()));
-  s->write((const char*)cString::sprintf("  <param name=\"duration\">%i</param>\n", event->Duration()));
+  s->write(cString::sprintf("  <param name=\"id\">%i</param>\n", event->EventID()));
+  s->write(cString::sprintf("  <param name=\"title\">%s</param>\n", StringExtension::encodeToXml(eventTitle).c_str()));
+  s->write(cString::sprintf("  <param name=\"short_text\">%s</param>\n", StringExtension::encodeToXml(eventShortText).c_str()));
+  s->write(cString::sprintf("  <param name=\"description\">%s</param>\n", StringExtension::encodeToXml(eventDescription).c_str()));
+  s->write(cString::sprintf("  <param name=\"start_time\">%i</param>\n", (int)event->StartTime()));
+  s->write(cString::sprintf("  <param name=\"duration\">%i</param>\n", event->Duration()));
 
   std::vector< std::string > images;
   FileCaches::get()->searchEventImages((int)event->EventID(), images);
-  s->write((const char*)cString::sprintf("  <param name=\"images\">%i</param>\n", (int)images.size()));
+  s->write(cString::sprintf("  <param name=\"images\">%i</param>\n", (int)images.size()));
 
   s->write(" </event>\n");
 }
 
 void XmlEventList::finish()
 {
-  s->write((const char*)cString::sprintf(" <count>%i</count><total>%i</total>", Count(), total));
+  s->write(cString::sprintf(" <count>%i</count><total>%i</total>", Count(), total));
   s->write("</events>");
 }

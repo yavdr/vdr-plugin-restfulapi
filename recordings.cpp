@@ -234,22 +234,22 @@ void XmlRecordingList::addRecording(cRecording* recording)
   }
 
   s->write(" <recording>\n");
-  s->write((const char*)cString::sprintf("  <param name=\"name\">%s</param>\n", StringExtension::encodeToXml(recording->Name()).c_str()) );
-  s->write((const char*)cString::sprintf("  <param name=\"filename\">%s</param>\n", StringExtension::encodeToXml(recording->FileName()).c_str()) );
-  s->write((const char*)cString::sprintf("  <param name=\"is_new\">%s</param>\n", recording->IsNew() ? "true" : "false" ));
-  s->write((const char*)cString::sprintf("  <param name=\"is_edited\">%s</param>\n", recording->IsEdited() ? "true" : "false" ));
-  s->write((const char*)cString::sprintf("  <param name=\"is_pes_recording\">%s</param>\n", recording->IsPesRecording() ? "true" : "false" ));
-  s->write((const char*)cString::sprintf("  <param name=\"duration\">%i</param>\n", RecordingCache::get()->Duration(recording)));
-  s->write((const char*)cString::sprintf("  <param name=\"event_title\">%s</param>\n", StringExtension::encodeToXml(eventTitle).c_str()) );
-  s->write((const char*)cString::sprintf("  <param name=\"event_short_text\">%s</param>\n", StringExtension::encodeToXml(eventShortText).c_str()) );
-  s->write((const char*)cString::sprintf("  <param name=\"event_description\">%s</param>\n", StringExtension::encodeToXml(eventDescription).c_str()) );
-  s->write((const char*)cString::sprintf("  <param name=\"event_start_time\">%i</param>\n", eventStartTime));
-  s->write((const char*)cString::sprintf("  <param name=\"event_duration\">%i</param>\n", eventDuration));
+  s->write(cString::sprintf("  <param name=\"name\">%s</param>\n", StringExtension::encodeToXml(recording->Name()).c_str()) );
+  s->write(cString::sprintf("  <param name=\"filename\">%s</param>\n", StringExtension::encodeToXml(recording->FileName()).c_str()) );
+  s->write(cString::sprintf("  <param name=\"is_new\">%s</param>\n", recording->IsNew() ? "true" : "false" ));
+  s->write(cString::sprintf("  <param name=\"is_edited\">%s</param>\n", recording->IsEdited() ? "true" : "false" ));
+  s->write(cString::sprintf("  <param name=\"is_pes_recording\">%s</param>\n", recording->IsPesRecording() ? "true" : "false" ));
+  s->write(cString::sprintf("  <param name=\"duration\">%i</param>\n", RecordingCache::get()->Duration(recording)));
+  s->write(cString::sprintf("  <param name=\"event_title\">%s</param>\n", StringExtension::encodeToXml(eventTitle).c_str()) );
+  s->write(cString::sprintf("  <param name=\"event_short_text\">%s</param>\n", StringExtension::encodeToXml(eventShortText).c_str()) );
+  s->write(cString::sprintf("  <param name=\"event_description\">%s</param>\n", StringExtension::encodeToXml(eventDescription).c_str()) );
+  s->write(cString::sprintf("  <param name=\"event_start_time\">%i</param>\n", eventStartTime));
+  s->write(cString::sprintf("  <param name=\"event_duration\">%i</param>\n", eventDuration));
   s->write(" </recording>\n");
 }
 
 void XmlRecordingList::finish()
 {
-  s->write((const char*)cString::sprintf(" <count>%i</count><total>%i</total>", Count(), total));
+  s->write(cString::sprintf(" <count>%i</count><total>%i</total>", Count(), total));
   s->write("</recordings>");
 }

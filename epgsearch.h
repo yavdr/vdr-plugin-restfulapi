@@ -1,15 +1,31 @@
-#ifndef VDR_LIVE_EPGSEARCH_H
-#define VDR_LIVE_EPGSEARCH_H
-
 #include <vector>
 #include <list>
 #include <set>
 #include <string>
+#include <vector>
+#include <algorithm>
+#include <iomanip>
+#include <ostream>
+#include <sstream>
+#include <istream>
+#include <stdexcept>
+
+#include <cxxtools/serializationinfo.h>
 #include <vdr/channels.h>
 #include <vdr/epg.h>
+#include <vdr/plugin.h>
+
+#include "epgsearch/services.h"
 #include "tools.h"
 
+#ifndef VDR_LIVE_EPGSEARCH_H
+#define VDR_LIVE_EPGSEARCH_H
+
+
+
+
 namespace vdrlive {
+
 
 // --- VDR-PLUGIN-LIVE-TOOLS ----------------------------
 
@@ -67,6 +83,8 @@ public:
 	SearchTimer( std::string const& data );
 	void Init();
 	std::string ToText();
+        std::string ToXml();
+        std::string ToHtml();
 	friend bool operator<( SearchTimer const& left, SearchTimer const& right );
 
 	int Id() const { return m_id; }
@@ -167,7 +185,7 @@ public:
 	void SetDelAfterCountRecs(int delAfterCountRecs) { m_delAfterCountRecs = delAfterCountRecs; }
 	int DelAfterDaysOfFirstRec() const { return m_delAfterDaysOfFirstRec; }
 	void SetDelAfterDaysOfFirstRec(int delAfterDaysOfFirstRec) { m_delAfterDaysOfFirstRec = delAfterDaysOfFirstRec; }
-	
+
 private:
 	int m_id;
 	std::string m_search;
@@ -446,8 +464,22 @@ public:
   static std::string EvaluateExpr(const std::string& expr, const cEvent* event);
 };
 
+
+
+
 }
 
  // namespace vdrlive
+
+
+// --- JSON RELATED -------------------------------------
+struct SerSearchTimerContainer
+{
+  vdrlive::SearchTimer* timer;
+};
+
+
+void operator<<= (cxxtools::SerializationInfo& si, SerSearchTimerContainer s);
+
 
 #endif // VDR_LIVE_EPGSEARCH_H

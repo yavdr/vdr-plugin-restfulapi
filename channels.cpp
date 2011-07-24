@@ -255,25 +255,25 @@ void XmlChannelList::addChannel(cChannel* channel, std::string group, bool image
   std::string suffix = (std::string) ".ts";
 
   s->write(" <channel>\n");
-  s->write((const char*)cString::sprintf("  <param name=\"name\">%s</param>\n", StringExtension::encodeToXml(channel->Name()).c_str()));
-  s->write((const char*)cString::sprintf("  <param name=\"number\">%i</param>\n", channel->Number()));
-  s->write((const char*)cString::sprintf("  <param name=\"channel_id\">%s</param>\n",  StringExtension::encodeToXml( (std::string)channel->GetChannelID().ToString()).c_str()));
-  s->write((const char*)cString::sprintf("  <param name=\"image\">%s</param>\n", (image ? "true" : "false")));
-  s->write((const char*)cString::sprintf("  <param name=\"group\">%s</param>\n", StringExtension::encodeToXml( group ).c_str()));
-  s->write((const char*)cString::sprintf("  <param name=\"transponder\">%i</param>\n", channel->Transponder()));
-  s->write((const char*)cString::sprintf("  <param name=\"stream\">%s</param>\n", StringExtension::encodeToXml( ((std::string)channel->GetChannelID().ToString() + (std::string)suffix).c_str()).c_str()));
-  s->write((const char*)cString::sprintf("  <param name=\"is_atsc\">%s</param>\n", channel->IsAtsc() ? "true" : "false"));
-  s->write((const char*)cString::sprintf("  <param name=\"is_cable\">%s</param>\n", channel->IsCable() ? "true" : "false"));
-  s->write((const char*)cString::sprintf("  <param name=\"is_sat\">%s</param>\n", channel->IsSat() ? "true" : "false"));
-  s->write((const char*)cString::sprintf("  <param name=\"is_terr\">%s</param>\n", channel->IsTerr() ? "true" : "false"));
+  s->write(cString::sprintf("  <param name=\"name\">%s</param>\n", StringExtension::encodeToXml(channel->Name()).c_str()));
+  s->write(cString::sprintf("  <param name=\"number\">%i</param>\n", channel->Number()));
+  s->write(cString::sprintf("  <param name=\"channel_id\">%s</param>\n",  StringExtension::encodeToXml( (std::string)channel->GetChannelID().ToString()).c_str()));
+  s->write(cString::sprintf("  <param name=\"image\">%s</param>\n", (image ? "true" : "false")));
+  s->write(cString::sprintf("  <param name=\"group\">%s</param>\n", StringExtension::encodeToXml( group ).c_str()));
+  s->write(cString::sprintf("  <param name=\"transponder\">%i</param>\n", channel->Transponder()));
+  s->write(cString::sprintf("  <param name=\"stream\">%s</param>\n", StringExtension::encodeToXml( ((std::string)channel->GetChannelID().ToString() + (std::string)suffix).c_str()).c_str()));
+  s->write(cString::sprintf("  <param name=\"is_atsc\">%s</param>\n", channel->IsAtsc() ? "true" : "false"));
+  s->write(cString::sprintf("  <param name=\"is_cable\">%s</param>\n", channel->IsCable() ? "true" : "false"));
+  s->write(cString::sprintf("  <param name=\"is_sat\">%s</param>\n", channel->IsSat() ? "true" : "false"));
+  s->write(cString::sprintf("  <param name=\"is_terr\">%s</param>\n", channel->IsTerr() ? "true" : "false"));
   bool is_radio = VdrExtension::IsRadio(channel);
-  s->write((const char*)cString::sprintf("  <param name=\"is_radio\">%s</param>\n", is_radio ? "true" : "false"));
+  s->write(cString::sprintf("  <param name=\"is_radio\">%s</param>\n", is_radio ? "true" : "false"));
   s->write(" </channel>\n");
 }
 
 void XmlChannelList::finish()
 {
-  s->write((const char*)cString::sprintf(" <count>%i</count><total>%i</total>", Count(), total));
+  s->write(cString::sprintf(" <count>%i</count><total>%i</total>", Count(), total));
   s->write("</channels>");
 }
 
@@ -332,11 +332,11 @@ void XmlChannelGroupList::init()
 void XmlChannelGroupList::addGroup(std::string group)
 {
   if ( filtered() ) return;
-  s->write((const char*)cString::sprintf(" <group>%s</group>\n", group.c_str()));
+  s->write(cString::sprintf(" <group>%s</group>\n", group.c_str()));
 }
 
 void XmlChannelGroupList::finish()
 {
-  s->write((const char*)cString::sprintf(" <count>%i</count><total>%i</total>", Count(), total));
+  s->write(cString::sprintf(" <count>%i</count><total>%i</total>", Count(), total));
   s->write("</groups>");
 }
