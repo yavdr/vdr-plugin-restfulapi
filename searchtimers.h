@@ -23,6 +23,7 @@ class SearchTimersResponder : public cxxtools::http::Responder
       { }
     virtual void reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     virtual void replyShow(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+    virtual void replyCreate(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
 };
 
 typedef cxxtools::http::CachedService<SearchTimersResponder> SearchTimersService;

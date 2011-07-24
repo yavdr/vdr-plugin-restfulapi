@@ -8,12 +8,13 @@ void SearchTimersResponder::reply(std::ostream& out, cxxtools::http::Request& re
      return; 
   } 
   
-  if (request.method() != "GET") {
-     reply.httpReturn(404, "To retrieve intformation use the GET method!");
-     return;
+  if (request.method() == "GET") {
+     replyShow(out, request, reply);
+  } else if (request.method() == "POST") {
+     replyCreate(out, request, reply);
+  } else {
+     reply.httpReturn(404, "The searchtimer-service does only support the following methods: GET, POST and DELETE.");
   }
-
-  replyShow(out, request, reply);
 }
 
 void SearchTimersResponder::replyShow(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
@@ -55,6 +56,28 @@ void SearchTimersResponder::replyShow(std::ostream& out, cxxtools::http::Request
   stList->finish();
   
   delete stList;
+}
+
+void SearchTimersResponder::replyCreate(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+{
+  QueryHandler q("/searchtimers", request);
+  vdrlive::SearchTimer* searchTimer = new vdrlive::SearchTimer();
+  vdrlive::SearchTimers searchTimers;
+  std::string result = searchTimer->LoadFromQuery(q);
+
+  if (result.length() > 0)
+  { 
+     reply.httpReturn(406, result.c_str());
+  } else {
+     bool succeeded = searchTimers.Save(searchTimer);
+     if(succeeded) {
+        reply.httpReturn(200, (const char*)cString::sprintf("OK, Id:%i", searchTimer->Id()));
+     } else {
+        reply.httpReturn(407, "Creating searchtimer failed.");
+     }
+  }
+
+  delete searchTimer;
 }
 
 SearchTimerList::SearchTimerList(std::ostream* _out)

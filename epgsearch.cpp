@@ -118,6 +118,148 @@ std::string SearchTimer::ToXml()
 std::string SearchTimer::ToHtml()
 {
   return Search();
+}
+
+std::string SearchTimer::LoadFromQuery(QueryHandler& q)
+{
+  std::string search = q.getBodyAsString("search");
+  if ( search.length() > 0 ) { m_search = search; } else { return "Search required."; }
+
+  m_useTime = q.getBodyAsBool("use_time");
+  if ( m_useTime ) {
+     m_startTime = q.getBodyAsInt("start_time");
+     m_stopTime = q.getBodyAsInt("stop_time");
+     if ( m_startTime < 0 || m_stopTime < 0 ) return "start or stop-time invalid";
+  }
+
+  int use_channel = q.getBodyAsInt("use_channel");
+  if ( use_channel >= 0 && use_channel <= 3 ) m_useChannel = use_channel; else return "use_channel invalid (0=no, 1=interval, 2=channel group, 3=only FTA";
+  if ( m_useChannel == Interval ) {
+     cChannel* minChannel = VdrExtension::getChannel(q.getBodyAsString("channel_min"));
+     cChannel* maxChannel = VdrExtension::getChannel(q.getBodyAsString("channel_max"));
+     if (minChannel == NULL || maxChannel == NULL) {
+        return "channel_min or channel_max invalid";
+     }
+     
+     m_channelMin = minChannel->GetChannelID();
+     m_channelMax = maxChannel->GetChannelID();
+  } else if(use_channel != 0) {
+     m_channels = q.getBodyAsString("channels");
+     if ( m_channels.length() == 0 ) { return "use_channels activated but no channel selected"; }
+  }
+  
+  m_useCase = q.getBodyAsBool("use_case");
+  m_mode = q.getBodyAsInt("mode");
+  if ( m_mode < 0 | m_mode > 5 ) return "mode invalid, (0=phrase, 1=all words, 2=at least one word, 3=match exactly, 4=regex, 5=fuzzy";
+  
+  m_useTitle = q.getBodyAsBool("use_title");
+  m_useSubtitle = q.getBodyAsBool("use_subtitle");
+  m_useDescription = q.getBodyAsBool("use_description");
+  if ( !m_useTitle && !m_useSubtitle && !m_useDescription ) return "You have to select at least one of the following three values: use_title, use_subtitle or/and use_description.";
+
+  m_useDuration = q.getBodyAsBool("use_duration");
+  if ( m_useDuration ) {
+     m_minDuration = q.getBodyAsInt("duration_min");
+     m_maxDuration = q.getBodyAsInt("duration_max");
+     if ( m_minDuration < 0 || m_maxDuration < 1 ) return "min/max-duration invalid";
+  }
+  
+  m_useDayOfWeek = q.getBodyAsBool("use_dayofweek");
+  if ( m_useDayOfWeek ) {
+     m_dayOfWeek = q.getBodyAsInt("dayofweek");
+     if (m_dayOfWeek < 0 || m_dayOfWeek > 127 ) return "day_of_week invalid (uses 7 bits for the seven days!)"; 
+  }
+
+  m_useEpisode = q.getBodyAsBool("use_series_recording");
+
+  int priority = q.getBodyAsInt("priority");
+  if (priority >= 0) m_priority = priority;
+
+  int lifetime = q.getBodyAsInt("lifetime");
+  if (lifetime >= 0) m_lifetime = lifetime;
+
+  //only required in fuzzy mode
+  int tolerance = q.getBodyAsInt("tolerance");  
+  if ( tolerance >= 0 && m_mode == 5 ) m_fuzzytolerance = tolerance;
+
+  m_useInFavorites = q.getBodyAsBool("use_in_favorites");
+
+  int useAsSearchtimer = q.getBodyAsInt("use_as_searchtimer");
+  if (useAsSearchtimer >= 0 && useAsSearchtimer <= 2) 
+     m_useAsSearchtimer = useAsSearchtimer;
+  else
+     return "use_as_searchtimer invalid (0=no, 1=yes, 2=user defined";
+
+  if (useAsSearchtimer == 2 /*user defined*/) {
+     //read time_t m_useAsSearchTimerFrom
+     //read time_t m_useAsSearchTimerTil
+     //to be implemented in the parser and in the webservice output // add methods to SearchTimer-class
+     return "use_as_searchtimer mode user defined not supported in restfulapi (at least currently)";
+  }
+
+  int action = q.getBodyAsInt("search_timer_action");
+  if ( action >= 0 ) m_action = action;
+
+  std::string directory = q.getBodyAsString("directory");
+  if ( directory.length() > 0 ) m_directory = directory;
+
+  int del_after_days = q.getBodyAsInt("del_recs_after_days");
+  if ( del_after_days > 0 ) m_delAfterDays = del_after_days;
+ 
+  int keep_recs = q.getBodyAsInt("keep_recs");
+  if ( keep_recs > 0 ) m_recordingsKeep = keep_recs;
+
+  int pause_on_recs = q.getBodyAsInt("pause_on_recs");
+  if ( pause_on_recs > 0 ) m_pauseOnNrRecordings = pause_on_recs;
+
+  int switch_min_before = q.getBodyAsInt("switch_min_before");
+  if ( switch_min_before >= 0 ) m_switchMinBefore = switch_min_before;
+ 
+  int marginstart = q.getBodyAsInt("margin_start");
+  int marginstop = q.getBodyAsInt("margin_stop");
+  if (marginstart >= 0) m_marginstart = marginstart;
+  if (marginstop >= 0) m_marginstop = marginstop;
+  
+  m_useVPS = q.getBodyAsBool("use_vps");
+  m_avoidrepeats = q.getBodyAsBool("avoid_repeats");
+  
+  if (m_avoidrepeats) {
+     int repeats = q.getBodyAsInt("allowed_repeats");
+     if (repeats < 0) return "allowed_repeats invalid";
+     m_allowedrepeats = repeats;
+  }
+  
+  m_compareTitle = q.getBodyAsBool("compare_title");
+  
+  int compareSubtitle = q.getBodyAsInt("compare_subtitle");
+  if (compareSubtitle > 0 ) m_compareSubtitle = compareSubtitle;
+  
+  m_compareSummary = q.getBodyAsBool("compare_summary");
+ 
+  int repeatsWithinDays = q.getBodyAsInt("repeats_within_days");
+  if (repeatsWithinDays > 0) m_repeatsWithinDays = repeatsWithinDays;
+
+  //int m_blacklistmode
+  //std::vecotr< std::string > m_blacklist_IDs;
+  //m_blacklistmode: 0=no, 1=Selection, 2=all
+  //to be implemented, requires array-support in QueryHandler for xml/html and json -> html param-parser has to be impelemented???
+  //and blacklist ids should be added to the webservice output 
+  int blacklistmode = q.getBodyAsInt("blackliste_mode");
+  if (blacklistmode > 0) return "blacklist currently not implemented";
+
+  int compareCategories = q.getBodyAsInt("compare_categories");
+  if (compareCategories >= 0) { m_catvaluesAvoidRepeat = compareCategories; }
+
+  int del_mode = q.getBodyAsInt("del_mode");
+  if (del_mode >= 0) m_delMode = del_mode;
+  
+  int delAfterCountRecs = q.getBodyAsInt("del_after_count_recs");
+  if (delAfterCountRecs >= 0) m_delAfterCountRecs = delAfterCountRecs;
+
+  int delAfterDaysOfFirstRec = q.getBodyAsInt("del_after_days_of_first_rec");
+  if (delAfterDaysOfFirstRec >= 0) m_delAfterDaysOfFirstRec = delAfterDaysOfFirstRec;
+
+  return ""; 
 } 
 
 istream& operator>>( istream& is, tChannelID& ret )
