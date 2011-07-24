@@ -11,6 +11,9 @@
 #include "tools.h"
 #include "epgsearch/services.h"
 
+#ifndef __RESTFUL_EVENTS_H
+#define __RESTFUL_EVENTS_H
+
 class EventsResponder : public cxxtools::http::Responder
 {
   public:
@@ -31,6 +34,7 @@ struct SerEvent
   cxxtools::String Title;
   cxxtools::String ShortText;
   cxxtools::String Description;
+  cxxtools::String Channel;
   int StartTime;
   int Duration;
   int Images;
@@ -47,7 +51,7 @@ class EventList : public BaseList
     EventList(std::ostream* _out);
     ~EventList();
     virtual void init() { };
-    virtual void addEvent(cEvent* event) { };
+    virtual void addEvent(cEvent* event, cChannel* channel) { };
     virtual void finish() { };
     virtual void setTotal(int _total) { total = _total; }
 };
@@ -58,7 +62,7 @@ class HtmlEventList : EventList
     HtmlEventList(std::ostream* _out) : EventList(_out) { };
     ~HtmlEventList() { };
     virtual void init();
-    virtual void addEvent(cEvent* event);
+    virtual void addEvent(cEvent* event, cChannel* channel);
     virtual void finish();
 };
 
@@ -69,7 +73,7 @@ class JsonEventList : EventList
   public:
     JsonEventList(std::ostream* _out) : EventList(_out) { };
     ~JsonEventList() { };
-    virtual void addEvent(cEvent* event);
+    virtual void addEvent(cEvent* event, cChannel* channel);
     virtual void finish();
 };
 
@@ -79,6 +83,8 @@ class XmlEventList : EventList
     XmlEventList(std::ostream* _out) : EventList(_out) { };
     ~XmlEventList() { };
     virtual void init();
-    virtual void addEvent(cEvent* event);
+    virtual void addEvent(cEvent* event, cChannel* channel);
     virtual void finish();
 };
+
+#endif //__RESTFUL_EVENTS_H

@@ -11,6 +11,7 @@
 #include "tools.h"
 #include "epgsearch/services.h"
 #include "epgsearch.h"
+#include "events.h"
 
 #ifndef __RESTFUL_SEARCHTIMERS_H
 #define __RESETFUL_SEARCHTIMERS_H
@@ -24,6 +25,8 @@ class SearchTimersResponder : public cxxtools::http::Responder
     virtual void reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     virtual void replyShow(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     virtual void replyCreate(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+    virtual void replyDelete(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+    virtual void replySearch(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
 };
 
 typedef cxxtools::http::CachedService<SearchTimersResponder> SearchTimersService;
