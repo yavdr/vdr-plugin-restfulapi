@@ -261,7 +261,7 @@ JsonObject* JsonParser::ParseJsonObject(const char* data, long size, long* posit
 {
   SkipEmpty(data, size, position);
   if ( data[*position] != '{' ) return NULL;
-  (*position)++;
+  (*position)++; //skip '{'
   bool finished = false;
   std::string error = "";
   JsonObject* jsonObject = new JsonObject();
@@ -270,7 +270,7 @@ JsonObject* JsonParser::ParseJsonObject(const char* data, long size, long* posit
     SkipEmpty(data, size, position);
     if ( data[*position] == '}' || data[*position] == 0 ) {
        finished = true;
-       (*position)++;
+       (*position)++; // skip '}'
     } else {
       std::string name = ParseString(data, size, position);
       SkipEmpty(data, size, position);

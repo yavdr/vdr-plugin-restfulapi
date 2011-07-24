@@ -26,6 +26,8 @@
 #include "remote.h"
 #include "timers.h"
 #include "osd.h"
+#include "searchtimers.h"
+#include "epgsearch.h"
 
 using namespace std;
 

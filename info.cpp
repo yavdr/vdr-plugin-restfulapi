@@ -85,12 +85,12 @@ void InfoResponder::replyXml(StreamExtension& se)
   se.writeXmlHeader();
   se.write("<info xmlns=\"http://www.domain.org/restfulapi/2011/info-xml\">\n");
   se.write(" <version>0.0.1</version>\n");
-  se.write((const char*)cString::sprintf(" <time>%i</time>\n", (int)now)); 
+  se.write(cString::sprintf(" <time>%i</time>\n", (int)now)); 
   se.write(" <services>\n");
   
   std::vector< RestfulService* > restful_services = RestfulServices::get()->Services(true, true);
   for (size_t i = 0; i < restful_services.size(); i++) {
-    se.write((const char*)cString::sprintf("  <service path=\"%s\"  version=\"%i\" internal=\"%s\" />\n", 
+    se.write(cString::sprintf("  <service path=\"%s\"  version=\"%i\" internal=\"%s\" />\n", 
               restful_services[i]->Path().c_str(),
               restful_services[i]->Version(),
               restful_services[i]->Internal() ? "true" : "false"));
@@ -99,9 +99,9 @@ void InfoResponder::replyXml(StreamExtension& se)
 
   
   if ( statm->getRecordingName().length() > 0 || statm->getRecordingFile().length() > 0 ) {
-     se.write((const char*)cString::sprintf(" <video name=\"%s\">%s</video>\n", StringExtension::encodeToXml(statm->getRecordingName()).c_str(), StringExtension::encodeToXml(statm->getRecordingFile()).c_str()));
+     se.write(cString::sprintf(" <video name=\"%s\">%s</video>\n", StringExtension::encodeToXml(statm->getRecordingName()).c_str(), StringExtension::encodeToXml(statm->getRecordingFile()).c_str()));
   } else {
-     se.write((const char*)cString::sprintf(" <channel>%i</channel>\n", statm->getChannel()));
+     se.write(cString::sprintf(" <channel>%i</channel>\n", statm->getChannel()));
   }
 
   se.write(" <vdr>\n");
@@ -110,7 +110,7 @@ void InfoResponder::replyXml(StreamExtension& se)
   cPlugin* p = NULL; 
   int counter = 0;
   while ( (p = cPluginManager::GetPlugin(counter) ) != NULL ) {
-     se.write((const char*)cString::sprintf("   <plugin name=\"%s\" version=\"%s\" />\n", p->Name(), p->Version()));
+     se.write(cString::sprintf("   <plugin name=\"%s\" version=\"%s\" />\n", p->Name(), p->Version()));
      counter++;
   }
 

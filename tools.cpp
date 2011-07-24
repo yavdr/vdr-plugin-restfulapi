@@ -1,4 +1,5 @@
 #include "tools.h"
+
 // --- Settings ----------------------------------------------------------------
 
 bool Settings::SetPort(std::string v)
@@ -84,9 +85,10 @@ std::ostream* StreamExtension::getBasicStream()
   return _out;
 }
 
-void StreamExtension::write(std::string str)
+void StreamExtension::write(const char* str)
 {
-  _out->write(str.c_str(), str.length());
+  std::string data = (std::string)str;
+  _out->write(str, data.length());
 }
 
 void StreamExtension::writeHtmlHeader(std::string css)

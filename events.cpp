@@ -80,7 +80,7 @@ void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& re
     int ts = event->StartTime();
     int te = ts + event->Duration();
     if ( (ts <= to && te > from) || (te > from && timespan == 0) ) {
-       eventList->addEvent(event);
+       eventList->addEvent(event, channel);
     }else{
       if(ts > to) break;
       if(te <= from) {
@@ -128,7 +128,7 @@ void EventsResponder::replySearchResult(std::ostream& out, cxxtools::http::Reque
 
   std::string query = q.getBodyAsString("query");
   int mode = q.getBodyAsInt("mode");// search mode (0=phrase, 1=and, 2=or, 3=regular expression)
-  int channel = q.getBodyAsInt("channel");
+  std::string channelid = q.getBodyAsString("channel"); //id !!
   bool use_title = q.getBodyAsBool("use_title");
   bool use_subtitle = q.getBodyAsBool("use_subtitle");
   bool use_description = q.getBodyAsBool("use_description");
@@ -136,6 +136,12 @@ void EventsResponder::replySearchResult(std::ostream& out, cxxtools::http::Reque
   if ( query.length() == 0 ) {
      reply.httpReturn(402, "Query required");
      return;
+  }
+
+  int channel = 0;
+  cChannel* channelInstance = VdrExtension::getChannel(channelid);
+  if (channelInstance != NULL) {
+     channel = channelInstance->Number();
   }
 
   EventList* eventList;
@@ -189,7 +195,7 @@ void EventsResponder::replySearchResult(std::ostream& out, cxxtools::http::Reque
            if (result != NULL) {
               for(int i=0;i<result->Count();i++) {
                  item = result->Get(i);
-                 eventList->addEvent(((cEvent*)item->event));
+                 eventList->addEvent(((cEvent*)item->event), channelInstance);
                  total++;
               }
            }
@@ -221,6 +227,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)
 
 EventList::EventList(std::ostream *_out) {
   s = new StreamExtension(_out);
+  total = 0;
 }
 
 EventList::~EventList()
@@ -234,7 +241,7 @@ void HtmlEventList::init()
   s->write("<ul>");
 }
 
-void HtmlEventList::addEvent(cEvent* event)
+void HtmlEventList::addEvent(cEvent* event, cChannel* channel)
 {
   if ( filtered() ) return;
   s->write("<li>");
@@ -248,15 +255,15 @@ void HtmlEventList::finish()
   s->write("</body></html>");
 }
 
-void JsonEventList::addEvent(cEvent* event)
+void JsonEventList::addEvent(cEvent* event, cChannel* channel)
 {
   if ( filtered() ) return;
-  
 
   cxxtools::String eventTitle;
   cxxtools::String eventShortText;
   cxxtools::String eventDescription;
   cxxtools::String empty = StringExtension::UTF8Decode("");
+  cxxtools::String channelStr = StringExtension::UTF8Decode((const char*)channel->GetChannelID().ToString());
   SerEvent serEvent;
 
   if( !event->Title() ) { eventTitle = empty; } else { eventTitle = StringExtension::UTF8Decode(event->Title()); }
@@ -267,6 +274,7 @@ void JsonEventList::addEvent(cEvent* event)
   serEvent.Title = eventTitle;
   serEvent.ShortText = eventShortText;
   serEvent.Description = eventDescription;
+  serEvent.Channel = channelStr;
   serEvent.StartTime = event->StartTime();
   serEvent.Duration = event->Duration();
 
@@ -292,7 +300,7 @@ void XmlEventList::init()
   s->write("<events xmlns=\"http://www.domain.org/restfulapi/2011/events-xml\">\n");
 }
 
-void XmlEventList::addEvent(cEvent* event)
+void XmlEventList::addEvent(cEvent* event, cChannel* channel)
 {
   if ( filtered() ) return;
 
@@ -305,22 +313,23 @@ void XmlEventList::addEvent(cEvent* event)
   if ( event->Description() == NULL ) { eventDescription = ""; } else { eventDescription = event->Description(); }
 
   s->write(" <event>\n");
-  s->write((const char*)cString::sprintf("  <param name=\"id\">%i</param>\n", event->EventID()));
-  s->write((const char*)cString::sprintf("  <param name=\"title\">%s</param>\n", StringExtension::encodeToXml(eventTitle).c_str()));
-  s->write((const char*)cString::sprintf("  <param name=\"short_text\">%s</param>\n", StringExtension::encodeToXml(eventShortText).c_str()));
-  s->write((const char*)cString::sprintf("  <param name=\"description\">%s</param>\n", StringExtension::encodeToXml(eventDescription).c_str()));
-  s->write((const char*)cString::sprintf("  <param name=\"start_time\">%i</param>\n", (int)event->StartTime()));
-  s->write((const char*)cString::sprintf("  <param name=\"duration\">%i</param>\n", event->Duration()));
+  s->write(cString::sprintf("  <param name=\"id\">%i</param>\n", event->EventID()));
+  s->write(cString::sprintf("  <param name=\"title\">%s</param>\n", StringExtension::encodeToXml(eventTitle).c_str()));
+  s->write(cString::sprintf("  <param name=\"short_text\">%s</param>\n", StringExtension::encodeToXml(eventShortText).c_str()));
+  s->write(cString::sprintf("  <param name=\"description\">%s</param>\n", StringExtension::encodeToXml(eventDescription).c_str()));
+  s->write(cString::sprintf("  <param name=\"channel\">%s</param>\n", StringExtension::encodeToXml((const char*)channel->GetChannelID().ToString()).c_str()));
+  s->write(cString::sprintf("  <param name=\"start_time\">%i</param>\n", (int)event->StartTime()));
+  s->write(cString::sprintf("  <param name=\"duration\">%i</param>\n", event->Duration()));
 
   std::vector< std::string > images;
   FileCaches::get()->searchEventImages((int)event->EventID(), images);
-  s->write((const char*)cString::sprintf("  <param name=\"images\">%i</param>\n", (int)images.size()));
+  s->write(cString::sprintf("  <param name=\"images\">%i</param>\n", (int)images.size()));
 
   s->write(" </event>\n");
 }
 
 void XmlEventList::finish()
 {
-  s->write((const char*)cString::sprintf(" <count>%i</count><total>%i</total>", Count(), total));
+  s->write(cString::sprintf(" <count>%i</count><total>%i</total>", Count(), total));
   s->write("</events>");
 }

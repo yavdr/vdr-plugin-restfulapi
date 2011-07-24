@@ -43,6 +43,7 @@ void cServerThread::Action(void)
   RemoteService remoteService;
   TimersService timersService;
   OsdService osdService;
+  SearchTimersService searchTimersService;
   
   RestfulServices* services = RestfulServices::get();
   
@@ -52,10 +53,12 @@ void cServerThread::Action(void)
   RestfulService* channelImage = new RestfulService("/channels/image", true, 1, channels);
   RestfulService* events = new RestfulService("/events", true, 1);
   RestfulService* eventsImage = new RestfulService("/events/image", true, 1, events);
+  RestfulService* eventsSearch = new RestfulService("/events/search", false, 1, events);
   RestfulService* recordings = new RestfulService("/recordings", true, 1);
   RestfulService* remote = new RestfulService("/remote", true, 1);
   RestfulService* timers = new RestfulService("/timers", true, 1);
   RestfulService* osd = new RestfulService("/osd", true, 1);
+  RestfulService* searchtimers = new RestfulService("/searchtimers", false, 1);
   
   services->appendService(info);
   services->appendService(channels);
@@ -63,10 +66,12 @@ void cServerThread::Action(void)
   services->appendService(channelImage);
   services->appendService(events);
   services->appendService(eventsImage);
+  services->appendService(eventsSearch);
   services->appendService(recordings);
   services->appendService(remote);
   services->appendService(timers);
   services->appendService(osd);
+  services->appendService(searchtimers);
 
   server->addService(*info->Regex(), infoService);
   server->addService(*channels->Regex(), channelsService);
@@ -75,6 +80,7 @@ void cServerThread::Action(void)
   server->addService(*remote->Regex(), remoteService);
   server->addService(*timers->Regex(), timersService);
   server->addService(*osd->Regex(), osdService);
+  server->addService(*searchtimers->Regex(), searchTimersService);
 
   try {
     loop.run();
