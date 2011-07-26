@@ -69,7 +69,11 @@ void InfoResponder::replyJson(StreamExtension& se)
      pi.FileName = StringExtension::UTF8Decode(statm->getRecordingFile());
      serializer.serialize(pi, "video");
   } else {
-     serializer.serialize(statm->getChannel(), "channel");
+     std::string channelid = "";
+     cChannel* channel = VdrExtension::getChannel(statm->getChannel());
+     if (channel != NULL) channelid = (const char*)channel->GetChannelID().ToString();
+
+     serializer.serialize(channelid, "channel");
   }
 
   serializer.serialize(pl, "vdr");
@@ -101,7 +105,11 @@ void InfoResponder::replyXml(StreamExtension& se)
   if ( statm->getRecordingName().length() > 0 || statm->getRecordingFile().length() > 0 ) {
      se.write(cString::sprintf(" <video name=\"%s\">%s</video>\n", StringExtension::encodeToXml(statm->getRecordingName()).c_str(), StringExtension::encodeToXml(statm->getRecordingFile()).c_str()));
   } else {
-     se.write(cString::sprintf(" <channel>%i</channel>\n", statm->getChannel()));
+     cChannel* channel = VdrExtension::getChannel(statm->getChannel());
+     std::string channelid = "";
+     if (channel != NULL) channelid = (const char*)channel->GetChannelID().ToString();
+
+     se.write(cString::sprintf(" <channel>%s</channel>\n", channelid.c_str()));
   }
 
   se.write(" <vdr>\n");
