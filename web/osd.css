@@ -1,90 +1,70 @@
-
-#redbutton
-{
-  position:absolute;
-  left:4%;
-  top:95%;
-  width:23%
-  height:3%;
-  background-color:red;
+body{
+  font-family: Arial, sans-serif;
+  margin: 0px;
+  padding: 0px;
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+  font-size: 1em;
 }
 
-#greenbutton
-{
-  position:absolute;
-  left:27%;
-  top:95%;
-  width:23%
-  height:3%;
-  background-color:green;
-}
+/* osd_container - main wrapper element */
 
-#yellowbutton
-{
-  position:absolute;
-  left:50%;
-  top:95%;
-  width:23%;
-  height:3%;
-  background-color:yellow;
-}
-
-#bluebutton
-{
-  position:absolute;
-  left:73%;
-  top:95%;
-  width:23%;
-  height:3%;
-  background-color:blue;
-}
-
-#content
-{
-  position:absolute;
-  height:80%;
-  top:15%;
-  left:4%;
-  width:92%;
-  background-color:#CDCDCD;
-  overflow:auto;
-}
-
-.item
-{
-  position:relative;
-  left:5%;
+div#osd_container{
   width:90%;
-  top:1%;
-  background-color:#EFEFEF;
-  font-weight:bold;
-  font-size:25pt;
+  height: 90%;
+  margin: 5%;
+  padding: 0px;
 }
 
-.item:hover
-{
-  background-color:#CDCDFF;
-}
+/* header */
 
-#header
+div#header
 {
-  position:absolute;
-  top:5%;
-  width:92%;
-  left:4%;
-  height:10%;
   background-color:#222266;
-  font-size:40pt;
+  font-size: 2em;
   color:#CDCDCD;
+  padding: 1%;
   -moz-border-radius-topleft:25px;
   -moz-border-radius-topright:25px;
   border-top-left-radius:25px;
   border-top-right-radius:25px;
 }
 
+/* content - between header and colored buttons */
+
+div#content{
+  height:80%;
+  background-color:#CDCDCD;
+  padding: 1%;
+  margin: 0px;
+}
+
+div#content ul
+{
+  padding: 0px;
+  margin: 0px;
+}
+
+div#content ul li.item
+{
+  width: 90%;
+  padding: 0% 1% 0% 1%;
+  margin: 0% 4% 0.5% 4%;
+  background-color:#EFEFEF;
+  font-weight:bold;
+  font-size: 2em;
+  overflow: hidden;
+}
+
+div#content ul li.item:hover
+{
+  background-color:#CDCDFF;
+}
+
 #content2
 {
-  position:absolute;
+/*  position:absolute;
   top:75%;
   bottom:5%;
   left:4%;
@@ -92,15 +72,15 @@
   -moz-border-radius:25px;
   border-radius:25px;
   color:#CDCDCD;
-  background-color:#222266;
+  background-color:#222266;*/
 }
 
 #innercontent
-{
+{/*
   padding-left:25px;
   padding-right:25px;
   padding-top:25px;
-  padding-bottom:25px;
+  padding-bottom:25px;*/
 }
 
 #eventtitle
@@ -117,4 +97,55 @@
   right:7%;
   top:78%;
   width:20%;
+}
+
+div#color_buttons{
+  width: 100%;
+  height: 20%;
+  background-color: black;
+  -moz-border-radius-bottomleft:25px;
+  -moz-border-radius-bottomright:25px;
+  border-bottom-left-radius:25px;
+  border-bottom-right-radius:25px;
+}
+
+div#color_buttons div.active,
+div#color_buttons div.inactive{
+  float: left;
+  padding: 0px;
+  margin: 1%;
+  font-size: 2em;
+  width: 23%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #444444;
+  text-align: center;
+  -moz-border-radius:25px;
+  -moz-border-radius:25px;
+  border-radius:25px;
+  border-radius:25px;
+}
+
+div#color_buttons div#red.active
+{
+  background-color:red;
+}
+
+div#color_buttons div#green.active
+{
+  background-color:green;
+}
+
+div#color_buttons div#yellow.active
+{
+  background-color:yellow;
+}
+
+div#color_buttons div#blue.active
+{
+  background-color:blue;
+}
+
+div#color_buttons br.clear{
+  clear: both;
 }
