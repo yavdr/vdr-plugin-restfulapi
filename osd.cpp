@@ -6,7 +6,7 @@ void OsdResponder::reply(std::ostream& out, cxxtools::http::Request& request, cx
      reply.httpReturn(403, "Only GET-method is supported!");
      return;
   }
-  
+
   BasicOsd* osd = StatusMonitor::get()->getOsd();
 
   if ( osd == NULL ) {
@@ -29,7 +29,7 @@ void OsdResponder::reply(std::ostream& out, cxxtools::http::Request& request, cx
      reply.httpReturn(403, "Resources are not available for the selected format. (Use: .json, .html or .xml)");
      return;
   }
-  
+
   int start_filter = q.getOptionAsInt("start");
   int limit_filter = q.getOptionAsInt("limit");
 
@@ -44,7 +44,7 @@ void OsdResponder::reply(std::ostream& out, cxxtools::http::Request& request, cx
      case 0x03: { ProgrammeOsdWrapper* w = new ProgrammeOsdWrapper(&out);
                   w->print((ProgrammeOsd*)osd, format);
                   delete w; }
-                break; 
+                break;
   }
 }
 
@@ -64,7 +64,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerTextOsd& o)
   si.addMember("yellow") <<= o.Yellow;
   si.addMember("blue") <<= o.Blue;
 
-  si.addMember("items") <<= o.ItemContainer->items;  
+  si.addMember("items") <<= o.ItemContainer->items;
 }
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerProgrammeOsd& o)
@@ -109,7 +109,7 @@ void XmlTextOsdList::printTextOsd(TextOsd* osd)
   s->write(cString::sprintf(" <green>%s</green>\n", StringExtension::encodeToXml(osd->Green()).c_str()));
   s->write(cString::sprintf(" <yellow>%s</yellow>\n", StringExtension::encodeToXml(osd->Yellow()).c_str()));
   s->write(cString::sprintf(" <blue>%s</blue>\n", StringExtension::encodeToXml(osd->Blue()).c_str()));
-  
+
   std::list<TextOsdItem*>::iterator it;
   std::list<TextOsdItem*> items = osd->GetItems();
 
@@ -142,7 +142,7 @@ void JsonTextOsdList::printTextOsd(TextOsd* textOsd)
 
   std::list<TextOsdItem*>::iterator it;
   std::list<TextOsdItem*> items = textOsd->GetItems();
-  
+
   for(it = items.begin(); it != items.end(); ++it)
   {
     if (!filtered()) {
@@ -151,8 +151,8 @@ void JsonTextOsdList::printTextOsd(TextOsd* textOsd)
        sitem.Selected = (*it) == textOsd->Selected() ? true : false;
        itemContainer->items.push_back(sitem);
     }
-  }  
-  
+  }
+
   t.ItemContainer = itemContainer;;
 
   cxxtools::JsonSerializer serializer(*s->getBasicStream());
@@ -168,39 +168,52 @@ void JsonTextOsdList::printTextOsd(TextOsd* textOsd)
 void HtmlTextOsdList::printTextOsd(TextOsd* textOsd)
 {
   s->writeHtmlHeader("/var/lib/vdr/plugins/restfulapi/osd.css");
-  s->write("<div id=\"header\">\n");
+  s->write("\n<div id=\"osd_container\">");
+  s->write("\n<div id=\"header\">");
     if (textOsd->Title().length() > 0)
        s->write(textOsd->Title().c_str());
     if (textOsd->Message().length() > 0) {
        s->write("\n");
        s->write(textOsd->Message().c_str());
     }
-       
-  s->write("</div>\n");
+
+  s->write("</div><!-- closing header container -->\n");
 
   s->write("<div id=\"content\">\n");
     std::list< TextOsdItem* > items = textOsd->GetItems();
     std::list< TextOsdItem* >::iterator it;
     s->write("<ul type=\"none\">\n");
-    for(it = items.begin(); it != items.end(); ++it) { 
+    for(it = items.begin(); it != items.end(); ++it) {
        s->write("<li class=\"item\">");
        s->write((*it)->Text().c_str());
+       s->write("</li>\n");
     }
   s->write("</ul>\n");
-  s->write("</div>\n");
+  s->write("</div><!-- closing content container -->\n");
 
+  s->write("<div id=\"color_buttons\">\n");
   if (textOsd->Red().length() > 0)
-     s->write(cString::sprintf("<div id=\"redbutton\">%s</div>\n", textOsd->Red().c_str()));
-
-  if (textOsd->Yellow().length() > 0)
-     s->write(cString::sprintf("<div id=\"yellowbutton\">%s</div>\n", textOsd->Yellow().c_str()));
+     s->write(cString::sprintf("<div id=\"red\" class=\"first active\">%s</div>\n", textOsd->Red().c_str()));
+  else
+     s->write(cString::sprintf("<div id=\"red\" class=\"first inactive\">&nbsp;</div>\n"));
 
   if (textOsd->Green().length() > 0)
-     s->write(cString::sprintf("<div id=\"greenbutton\">%s</div>\n", textOsd->Green().c_str()));
+     s->write(cString::sprintf("<div id=\"green\" class=\"second active\">%s</div>\n", textOsd->Green().c_str()));
+  else
+     s->write(cString::sprintf("<div id=\"green\" class=\"second inactive\">&nbsp;</div>\n"));
 
-  if (textOsd->Blue().length() > 0) 
-     s->write(cString::sprintf("<div id=\"bluebutton\">%s</div>\n", textOsd->Blue().c_str()));
+  if (textOsd->Yellow().length() > 0)
+     s->write(cString::sprintf("<div id=\"yellow\" class=\"third active\">%s</div>\n", textOsd->Yellow().c_str()));
+  else
+     s->write(cString::sprintf("<div id=\"yellow\" class=\"third inactive\">&nbsp;</div>\n"));
 
+  if (textOsd->Blue().length() > 0)
+     s->write(cString::sprintf("<div id=\"blue\" class=\"fourth active\">%s</div>\n", textOsd->Blue().c_str()));
+  else
+     s->write(cString::sprintf("<div id=\"blue\" class=\"fourth inactive\">&nbsp;</div>\n"));
+
+  s->write("<br class=\"clear\">\n</div><!-- closing color_buttons container -->\n");
+  s->write("</div><!-- closing osd_container -->\n");
   s->write("</body></html>");
 }
 
@@ -249,14 +262,14 @@ void ProgrammeOsdWrapper::printHtml(ProgrammeOsd* osd)
   s->writeHtmlHeader("/var/lib/vdr/plugins/restfulapi/osd.css");
   s->write("<div id=\"content2\"><div id=\"innercontent\">");
   s->write(cString::sprintf("<div id=\"eventtitle\">%s</div>", osd->PresentTitle().c_str()));
-  s->write(cString::sprintf("<div id=\"eventsubtitle\">%s - %s</div>", 
+  s->write(cString::sprintf("<div id=\"eventsubtitle\">%s - %s</div>",
 				osd->PresentSubtitle().c_str(),
 				StringExtension::timeToString(osd->PresentTime()).c_str()));
   s->write(cString::sprintf("<div id=\"eventtitle\">%s</div>", osd->FollowingTitle().c_str()));
-  s->write(cString::sprintf("<div id=\"eventsubtitle\">%s - %s</div>", 
+  s->write(cString::sprintf("<div id=\"eventsubtitle\">%s - %s</div>",
 				osd->FollowingSubtitle().c_str(),
 				StringExtension::timeToString(osd->FollowingTime()).c_str()));
-  s->write("</div></div>\n"); 
+  s->write("</div></div>\n");
   s->write("</body></html>\n");
 }
 
@@ -284,7 +297,7 @@ void ChannelOsdWrapper::printXml(ChannelOsd* osd)
 void ChannelOsdWrapper::printJson(ChannelOsd* osd)
 {
   cxxtools::JsonSerializer serializer(*s->getBasicStream());
-  serializer.serialize(StringExtension::UTF8Decode(osd->Channel()), "ChannelOsd"); 
+  serializer.serialize(StringExtension::UTF8Decode(osd->Channel()), "ChannelOsd");
   serializer.finish();
 }
 
@@ -293,7 +306,6 @@ void ChannelOsdWrapper::printHtml(ChannelOsd* osd)
   s->writeHtmlHeader("/var/lib/vdr/plugins/restfulapi/osd.css");
   s->write("<div id=\"header\">");
   s->write(StringExtension::encodeToXml(osd->Channel()).c_str());
-  s->write("</div>\n");  
+  s->write("</div>\n");
   s->write("</body></html>");
 }
-
