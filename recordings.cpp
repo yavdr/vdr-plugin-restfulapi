@@ -150,7 +150,6 @@ void HtmlRecordingList::addRecording(cRecording* recording)
   if ( filtered() ) return;
   s->write("<li>");
   s->write((char*)recording->Name());
-  s->write("</body></html>");
 }
 
 void HtmlRecordingList::finish()
