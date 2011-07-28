@@ -184,9 +184,11 @@ void HtmlTextOsdList::printTextOsd(TextOsd* textOsd)
     std::list< TextOsdItem* >::iterator it;
     s->write("<ul type=\"none\">\n");
     for(it = items.begin(); it != items.end(); ++it) {
-       s->write("<li class=\"item\">");
-       s->write((*it)->Text().c_str());
-       s->write("</li>\n");
+       if (!filtered()) {
+          s->write("<li class=\"item\">");
+          s->write((*it)->Text().c_str());
+          s->write("</li>\n");
+       }
     }
   s->write("</ul>\n");
   s->write("</div><!-- closing content container -->\n");
