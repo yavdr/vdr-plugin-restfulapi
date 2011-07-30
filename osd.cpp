@@ -185,7 +185,9 @@ void HtmlTextOsdList::printTextOsd(TextOsd* textOsd)
     s->write("<ul type=\"none\">\n");
     for(it = items.begin(); it != items.end(); ++it) {
        if (!filtered()) {
-          s->write("<li class=\"item\">");
+          s->write("<li class=\"");
+          s->write((*it) == textOsd->Selected() ? "selected " : "" );
+          s->write("item\">");
           s->write((*it)->Text().c_str());
           s->write("</li>\n");
        }
