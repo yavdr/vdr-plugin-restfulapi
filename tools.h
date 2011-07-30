@@ -69,9 +69,38 @@ class StreamExtension
     std::ostream* getBasicStream();
     void write(const char* str);
     void write(cString& str) { write((const char*)str); }
-    void writeHtmlHeader(std::string pagetitle = "", std::string css = "", std::string js = "");
+    void writeHtmlHeader(std::string title);
     void writeXmlHeader();
     bool writeBinary(std::string path);
+};
+
+class HtmlHeader
+{
+  private:
+    std::string _title;
+    std::string _onload;
+    std::vector< std::string > _stylesheets;
+    std::vector< std::string > _scripts;
+    std::vector< std::string > _metatags;
+  public:
+    HtmlHeader() { }
+    ~HtmlHeader() { }
+    void Title(std::string title) { _title = title; }
+    std::string Title() { return _title; }
+
+    void OnLoad(std::string onload) { _onload = onload; }
+    std::string OnLoad() { return _onload; }
+
+    void Stylesheet(std::string stylesheet) { _stylesheets.push_back(stylesheet); }
+    std::vector< std::string >& Stylesheet() { return _stylesheets; }
+
+    void Script(std::string script) { _scripts.push_back(script); }
+    std::vector< std::string >& Scripts() { return _scripts; }
+
+    void MetaTag(std::string metatag) { _metatags.push_back(metatag); }
+    std::vector< std::string >& MataTags() { return _metatags; }
+
+    void ToStream(StreamExtension* se);
 };
 
 class FileNotifier : public cThread

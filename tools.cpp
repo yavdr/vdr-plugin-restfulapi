@@ -73,6 +73,54 @@ void Settings::initDefault()
   SetChannelLogoDirectory((std::string)"/usr/share/vdr/channel-logos");
 }
 
+// --- HtmlHeader --------------------------------------------------------------
+
+void HtmlHeader::ToStream(StreamExtension* se)
+{
+  se->write("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
+  se->write("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n");
+  se->write("<html xml:lang=\"en\" lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\">\n");
+  se->write("<head>\n");
+
+  se->write("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n");
+
+  for (int i=0;i<(int)_metatags.size();i++)
+  {
+    se->write(_metatags[i].c_str());
+    se->write("\n");
+  }
+
+  se->write("<title>");
+  se->write(_title.c_str());
+  se->write("</title>\n");
+
+  se->write("<style type=\"text/css\">\n");
+  for (int i=0;i<(int)_stylesheets.size();i++) 
+  {
+    se->writeBinary(_stylesheets[i]);
+    se->write("\n");
+  }
+  se->write("</style>\n");
+  
+  se->write("<script type=\"text/javascript\">\n//<![CDATA[\n\n");
+
+  for (int i=0;i<(int)_scripts.size();i++) 
+  {
+    se->writeBinary(_scripts[i]);
+  }
+
+  se->write("\n//]]>\n</script>\n");  
+
+  if ( _onload.size() == 0 ) {
+     se->write("</head><body>\n");
+  } else {
+     se->write("<body onload=\"");
+     //f.e. javascript:bootstrap();
+     se->write(_onload.c_str());
+     se->write("\">\n");
+  }
+}
+
 // --- StreamExtension ---------------------------------------------------------
 
 StreamExtension::StreamExtension(std::ostream *out)
@@ -91,31 +139,17 @@ void StreamExtension::write(const char* str)
   _out->write(str, data.length());
 }
 
-void StreamExtension::writeHtmlHeader(std::string pagetitle, std::string css, std::string js)
+void StreamExtension::writeHtmlHeader(std::string title)
 {
   write("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
   write("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n");
   write("<html xml:lang=\"en\" lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\">\n");
   write("<head>\n");
   write("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n");
-  if (pagetitle.length() >= 0) {
-     write("<title>VDR-Plugin-Restfulapi: ");
-     write( pagetitle.c_str() );
-     write("</title>\n");
-  }
-  if (css.length() >= 0) {
-     write("<style type=\"text/css\">\n");
-     writeBinary( css );
-     write("</style>\n");
-  }
-  if (js.length() >= 0) {
-     write("<script type=\"text/javascript\">\n//<![CDATA[\n\n");
-     writeBinary( js );
-     write("\n//]]>\n</script>\n");
-     write("</head>\n<body onload=\"javascript:bootstrap();\">\n");
-  }
-  else
-    write("</head>\n<body>\n");
+  write("<title>VDR-Plugin-Restfulapi: ");
+  if ( title.length() > 0 ) write(title.c_str());
+  write("</title>");
+  write("</head>\n<body>\n");
 }
 
 void StreamExtension::writeXmlHeader()
