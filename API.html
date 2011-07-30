@@ -394,16 +394,16 @@ This service allows you to search for events.<br />
 <b>The Request:</b>
 <br />
 <br />
-Method: <b>GET</b><br />
+Method: <b>POST</b><br />
 <br />
 <b>Example URL:</b> <br />
 <br />
 <div class="code"><code>
-GET http://&lt;ip&gt;:&lt;port&gt;/events/search.&lt;format&gt;?limit=5&amp;start=0;
+POST http://&lt;ip&gt;:&lt;port&gt;/events/search.&lt;format&gt;?limit=5&amp;start=0;
 </code></div>
 
 <br />
-<b>HTTP-Body-Parameters</b>
+<b>HTTP-Body-Parameters:</b>
 <br />
 <ul>
 <li>query - (required)
@@ -413,6 +413,11 @@ GET http://&lt;ip&gt;:&lt;port&gt;/events/search.&lt;format&gt;?limit=5&amp;star
 <li>use_subtitle - (optional)
 <li>use_description - (optional)
 </ul>
+<br />
+<b>Example:</b>
+<div class="code"><code>
+{"query":"Asterix", "mode":0, "channelid":0,"use_title":true}
+</code></div>
 <br />
 <br />
 
