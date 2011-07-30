@@ -237,7 +237,7 @@ EventList::~EventList()
 
 void HtmlEventList::init()
 {
-  s->writeHtmlHeader();
+  s->writeHtmlHeader( "HtmlEventList" );
   s->write("<ul>");
 }
 

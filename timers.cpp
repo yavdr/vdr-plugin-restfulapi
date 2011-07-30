@@ -229,7 +229,7 @@ TimerList::~TimerList()
 
 void HtmlTimerList::init()
 {
-  s->writeHtmlHeader(); 
+  s->writeHtmlHeader("HtmlTimerList");
   s->write("<ul>");
 }
 

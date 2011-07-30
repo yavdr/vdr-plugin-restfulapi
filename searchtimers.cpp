@@ -152,7 +152,7 @@ SearchTimerList::~SearchTimerList()
 
 void HtmlSearchTimerList::init()
 {
-  s->writeHtmlHeader();
+  s->writeHtmlHeader("HtmlSearchTimerList");
   s->write("<ul>");
 }
 

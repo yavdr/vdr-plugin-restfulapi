@@ -141,7 +141,7 @@ RecordingList::~RecordingList()
 
 void HtmlRecordingList::init()
 {
-  s->writeHtmlHeader();
+  s->writeHtmlHeader("HtmlRecordingList");
   s->write("<ul>");
 }
 

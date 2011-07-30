@@ -167,7 +167,7 @@ void JsonTextOsdList::printTextOsd(TextOsd* textOsd)
 
 void HtmlTextOsdList::printTextOsd(TextOsd* textOsd)
 {
-  s->writeHtmlHeader("/var/lib/vdr/plugins/restfulapi/osd.css");
+  s->writeHtmlHeader("HtmlTextOsdList", "/var/lib/vdr/plugins/restfulapi/osd.css", "/var/lib/vdr/plugins/restfulapi/osd.js");
   s->write("\n<div id=\"osd_container\">");
   s->write("\n<div id=\"header\">");
     if (textOsd->Title().length() > 0)
@@ -261,7 +261,7 @@ void ProgrammeOsdWrapper::printJson(ProgrammeOsd* osd)
 
 void ProgrammeOsdWrapper::printHtml(ProgrammeOsd* osd)
 {
-  s->writeHtmlHeader("/var/lib/vdr/plugins/restfulapi/osd.css");
+  s->writeHtmlHeader("ProgrammeOsdWrapper", "/var/lib/vdr/plugins/restfulapi/osd.css");
   s->write("<div id=\"content2\"><div id=\"innercontent\">");
   s->write(cString::sprintf("<div id=\"eventtitle\">%s</div>", osd->PresentTitle().c_str()));
   s->write(cString::sprintf("<div id=\"eventsubtitle\">%s - %s</div>",
@@ -305,7 +305,7 @@ void ChannelOsdWrapper::printJson(ChannelOsd* osd)
 
 void ChannelOsdWrapper::printHtml(ChannelOsd* osd)
 {
-  s->writeHtmlHeader("/var/lib/vdr/plugins/restfulapi/osd.css");
+  s->writeHtmlHeader("ChannelOsdWrapper", "/var/lib/vdr/plugins/restfulapi/osd.css");
   s->write("<div id=\"header\">");
   s->write(StringExtension::encodeToXml(osd->Channel()).c_str());
   s->write("</div>\n");

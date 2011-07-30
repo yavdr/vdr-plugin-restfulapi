@@ -91,19 +91,31 @@ void StreamExtension::write(const char* str)
   _out->write(str, data.length());
 }
 
-void StreamExtension::writeHtmlHeader(std::string css)
+void StreamExtension::writeHtmlHeader(std::string pagetitle, std::string css, std::string js)
 {
   write("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
   write("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n");
   write("<html xml:lang=\"en\" lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\">\n");
   write("<head>\n");
   write("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n");
+  if (pagetitle.length() >= 0) {
+     write("<title>VDR-Plugin-Restfulapi: ");
+     write( pagetitle.c_str() );
+     write("</title>\n");
+  }
   if (css.length() >= 0) {
      write("<style type=\"text/css\">\n");
-     writeBinary(css);
+     writeBinary( css );
      write("</style>\n");
   }
-  write("</head><body>");
+  if (js.length() >= 0) {
+     write("<script type=\"text/javascript\">\n//<![CDATA[\n\n");
+     writeBinary( js );
+     write("\n//]]>\n</script>\n");
+     write("</head>\n<body onload=\"javascript:bootstrap();\">\n");
+  }
+  else
+    write("</head>\n<body>\n");
 }
 
 void StreamExtension::writeXmlHeader()

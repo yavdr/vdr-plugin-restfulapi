@@ -192,7 +192,7 @@ ChannelList::~ChannelList()
 
 void HtmlChannelList::init()
 {
-  s->writeHtmlHeader();
+  s->writeHtmlHeader( "HtmlChannelList" );
   s->write("<ul>");
 }
 
@@ -289,7 +289,7 @@ ChannelGroupList::~ChannelGroupList()
 
 void HtmlChannelGroupList::init()
 {
-  s->writeHtmlHeader();
+  s->writeHtmlHeader( "HtmlChannelGroupList" );
   s->write("<ul>");
 }
 
