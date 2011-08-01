@@ -8,13 +8,19 @@ void OsdResponder::reply(std::ostream& out, cxxtools::http::Request& request, cx
   }
 
   BasicOsd* osd = StatusMonitor::get()->getOsd();
+  QueryHandler q("/osd", request);
 
   if ( osd == NULL ) {
-     reply.httpReturn(404, "No OSD opened!");
-     return;
-  }
+     if ( q.isFormat(".html") ) {
+        reply.addHeader("Content-Type", "text /html; charset=utf-8");
+        printEmptyHtml(out);
+        return;
+     } else {
+        reply.httpReturn(404, "No OSD opened!");
+        return;
+     }
+  } 
 
-  QueryHandler q("/osd", request);
   std::string format = "";
   if ( q.isFormat(".json") ) {
      reply.addHeader("Content-Type", "application/json; charset=utf-8");
@@ -75,6 +81,20 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerProgrammeOsd& o)
   si.addMember("following_time") <<= o.FollowingTime;
   si.addMember("following_title") <<= o.FollowingTitle;
   si.addMember("following_subtitle") <<= o.FollowingSubtitle;
+}
+
+void OsdResponder::printEmptyHtml(std::ostream& out)
+{
+  StreamExtension se(&out);
+
+  HtmlHeader htmlHeader;
+  htmlHeader.Title("VDR Restfulapi: No OSD opened!");
+  
+  //add the scripts here:
+  //htmlHeader.Script("");
+
+  htmlHeader.ToStream(&se);
+  se.write("</body></html>");
 }
 
 void OsdResponder::printTextOsd(std::ostream& out, TextOsd* osd, std::string format, int start_filter, int limit_filter)
