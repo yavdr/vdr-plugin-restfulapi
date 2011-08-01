@@ -13,13 +13,14 @@ void EventsResponder::reply(std::ostream& out, cxxtools::http::Request& request,
 
 void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
+  QueryHandler q("/events", request, reply);
+
   if ( request.method() != "GET") {
 
      reply.httpReturn(403, "To retrieve information use the GET method!");
      return;
   }
 
-  QueryHandler q("/events", request);
 
   EventList* eventList;
 
@@ -96,13 +97,13 @@ void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& re
 
 void EventsResponder::replyImage(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
+  QueryHandler q("/events/image", request, reply);
   if ( request.method() != "GET") {
      reply.httpReturn(403, "To retrieve information use the GET method!");
      return;
   }
 
   StreamExtension se(&out);
-  QueryHandler q("/events/image", request);
   int eventid = q.getParamAsInt(0);
   int number = q.getParamAsInt(1);
   
@@ -129,6 +130,7 @@ void EventsResponder::replyImage(std::ostream& out, cxxtools::http::Request& req
 
 void EventsResponder::replySearchResult(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
+  QueryHandler q("/events/search", request, reply);
 
   if ( request.method() != "POST") {
      reply.httpReturn(403, "To search for information use the POST method!");
@@ -136,7 +138,6 @@ void EventsResponder::replySearchResult(std::ostream& out, cxxtools::http::Reque
   }
 
   StreamExtension se(&out);
-  QueryHandler q("/events/search", request);
 
   std::string query = q.getBodyAsString("query");
   int mode = q.getBodyAsInt("mode");// search mode (0=phrase, 1=and, 2=or, 3=regular expression)
