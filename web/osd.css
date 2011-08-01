@@ -80,7 +80,7 @@ div#content ul li.item
   white-space: nowrap;
 }
 
-div#content ul li.selected,
+div#content ul li#selectedItem,
 div#content ul li.item:hover
 {
   -moz-border-radius:25px;
