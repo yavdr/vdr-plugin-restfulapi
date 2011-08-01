@@ -171,6 +171,7 @@ void HtmlTextOsdList::printTextOsd(TextOsd* textOsd)
   htmlHeader.Title("HtmlTextOsdList");
   htmlHeader.Stylesheet("/var/lib/vdr/plugins/restfulapi/osd.css");
   htmlHeader.Script("/var/lib/vdr/plugins/restfulapi/osd.js");
+  htmlHeader.MetaTag("<meta http-equiv=\"refresh\" content=\"1\">");
   htmlHeader.ToStream(s);
 
   s->write("\n<div id=\"osd_container\">");
@@ -190,9 +191,8 @@ void HtmlTextOsdList::printTextOsd(TextOsd* textOsd)
     s->write("<ul type=\"none\">\n");
     for(it = items.begin(); it != items.end(); ++it) {
        if (!filtered()) {
-          s->write("<li class=\"");
-          s->write((*it) == textOsd->Selected() ? "selected " : "" );
-          s->write("item\">");
+          s->write("<li class=\"item\"");
+          s->write((*it) == textOsd->Selected() ? " id=\"selectedItem\">" : ">" );
           s->write((*it)->Text().c_str());
           s->write("</li>\n");
        }
@@ -204,22 +204,22 @@ void HtmlTextOsdList::printTextOsd(TextOsd* textOsd)
   if (textOsd->Red().length() > 0)
      s->write(cString::sprintf("<div id=\"red\" class=\"first active\">%s</div>\n", textOsd->Red().c_str()));
   else
-     s->write(cString::sprintf("<div id=\"red\" class=\"first inactive\">&nbsp;</div>\n"));
+     s->write("<div id=\"red\" class=\"first inactive\">&nbsp;</div>\n");
 
   if (textOsd->Green().length() > 0)
      s->write(cString::sprintf("<div id=\"green\" class=\"second active\">%s</div>\n", textOsd->Green().c_str()));
   else
-     s->write(cString::sprintf("<div id=\"green\" class=\"second inactive\">&nbsp;</div>\n"));
+     s->write("<div id=\"green\" class=\"second inactive\">&nbsp;</div>\n");
 
   if (textOsd->Yellow().length() > 0)
      s->write(cString::sprintf("<div id=\"yellow\" class=\"third active\">%s</div>\n", textOsd->Yellow().c_str()));
   else
-     s->write(cString::sprintf("<div id=\"yellow\" class=\"third inactive\">&nbsp;</div>\n"));
+     s->write("<div id=\"yellow\" class=\"third inactive\">&nbsp;</div>\n");
 
   if (textOsd->Blue().length() > 0)
      s->write(cString::sprintf("<div id=\"blue\" class=\"fourth active\">%s</div>\n", textOsd->Blue().c_str()));
   else
-     s->write(cString::sprintf("<div id=\"blue\" class=\"fourth inactive\">&nbsp;</div>\n"));
+     s->write("<div id=\"blue\" class=\"fourth inactive\">&nbsp;</div>\n");
 
   s->write("<br class=\"clear\">\n</div><!-- closing color_buttons container -->\n");
   s->write("</div><!-- closing osd_container -->\n");
@@ -271,6 +271,7 @@ void ProgrammeOsdWrapper::printHtml(ProgrammeOsd* osd)
   HtmlHeader htmlHeader;
   htmlHeader.Title("ProgrammeOsdWrapper");
   htmlHeader.Stylesheet("/var/lib/vdr/plugins/restfulapi/osd.css");
+  htmlHeader.MetaTag("<meta http-equiv=\"refresh\" content=\"1\">");
   htmlHeader.ToStream(s);
 
   s->write("<div id=\"content2\"><div id=\"innercontent\">");
@@ -319,6 +320,7 @@ void ChannelOsdWrapper::printHtml(ChannelOsd* osd)
   HtmlHeader htmlHeader;
   htmlHeader.Title("ChannelOsdWrapper");
   htmlHeader.Stylesheet("/var/lib/vdr/plugins/restfulapi/osd.css");
+  htmlHeader.MetaTag("<meta http-equiv=\"refresh\" content=\"1\">");
   htmlHeader.ToStream(s);
 
   s->write("<div id=\"header\">");
