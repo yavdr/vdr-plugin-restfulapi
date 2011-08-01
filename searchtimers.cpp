@@ -130,7 +130,7 @@ void SearchTimersResponder::replySearch(std::ostream& out, cxxtools::http::Reque
   int total = 0;
   
   for (vdrlive::SearchResults::iterator item = searchResults.begin(); item != searchResults.end(); ++item) {
-    eventList->addEvent((cEvent*)item->GetEvent(), (cChannel*)item->GetChannel());
+    eventList->addEvent((cEvent*)item->GetEvent());
     total++;
   }
 

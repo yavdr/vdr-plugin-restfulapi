@@ -51,7 +51,7 @@ class EventList : public BaseList
     EventList(std::ostream* _out);
     ~EventList();
     virtual void init() { };
-    virtual void addEvent(cEvent* event, cChannel* channel) { };
+    virtual void addEvent(cEvent* event) { };
     virtual void finish() { };
     virtual void setTotal(int _total) { total = _total; }
 };
@@ -62,7 +62,7 @@ class HtmlEventList : EventList
     HtmlEventList(std::ostream* _out) : EventList(_out) { };
     ~HtmlEventList() { };
     virtual void init();
-    virtual void addEvent(cEvent* event, cChannel* channel);
+    virtual void addEvent(cEvent* event);
     virtual void finish();
 };
 
@@ -73,7 +73,7 @@ class JsonEventList : EventList
   public:
     JsonEventList(std::ostream* _out) : EventList(_out) { };
     ~JsonEventList() { };
-    virtual void addEvent(cEvent* event, cChannel* channel);
+    virtual void addEvent(cEvent* event);
     virtual void finish();
 };
 
@@ -83,7 +83,7 @@ class XmlEventList : EventList
     XmlEventList(std::ostream* _out) : EventList(_out) { };
     ~XmlEventList() { };
     virtual void init();
-    virtual void addEvent(cEvent* event, cChannel* channel);
+    virtual void addEvent(cEvent* event);
     virtual void finish();
 };
 
