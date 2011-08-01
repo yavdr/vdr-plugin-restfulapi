@@ -13,6 +13,8 @@ void OsdResponder::reply(std::ostream& out, cxxtools::http::Request& request, cx
   if ( osd == NULL ) {
      if ( q.isFormat(".html") ) {
         reply.addHeader("Content-Type", "text /html; charset=utf-8");
+        reply.addHeader("Access-Control-Allow-Origin", "*");
+        reply.addHeader("Access-Control-Allow-Methods", "POST, GET, DELETE, PUSH");
         printEmptyHtml(out);
         return;
      } else {
@@ -24,15 +26,23 @@ void OsdResponder::reply(std::ostream& out, cxxtools::http::Request& request, cx
   std::string format = "";
   if ( q.isFormat(".json") ) {
      reply.addHeader("Content-Type", "application/json; charset=utf-8");
+     reply.addHeader("Access-Control-Allow-Origin", "*");
+     reply.addHeader("Access-Control-Allow-Methods", "POST, GET, DELETE, PUSH");
      format = ".json";
   } else if ( q.isFormat(".html") ) {
      format = ".html";
      reply.addHeader("Content-Type", "text/html; charset=utf-8");
+     reply.addHeader("Access-Control-Allow-Origin", "*");
+     reply.addHeader("Access-Control-Allow-Methods", "POST, GET, DELETE, PUSH");
   } else if ( q.isFormat(".xml") ) {
      reply.addHeader("Content-Type", "text/xml; charset=utf-8");
+     reply.addHeader("Access-Control-Allow-Origin", "*");
+     reply.addHeader("Access-Control-Allow-Methods", "POST, GET, DELETE, PUSH");
      format = ".xml";
   } else {
      reply.httpReturn(403, "Resources are not available for the selected format. (Use: .json, .html or .xml)");
+     reply.addHeader("Access-Control-Allow-Origin", "*");
+     reply.addHeader("Access-Control-Allow-Methods", "POST, GET, DELETE, PUSH");
      return;
   }
 
