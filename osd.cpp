@@ -89,11 +89,12 @@ void OsdResponder::printEmptyHtml(std::ostream& out)
 
   HtmlHeader htmlHeader;
   htmlHeader.Title("VDR Restfulapi: No OSD opened!");
-  
-  //add the scripts here:
-  //htmlHeader.Script("");
-
+  htmlHeader.Stylesheet("/var/lib/vdr/plugins/restfulapi/osd.css");
+  //htmlHeader.Script("/var/lib/vdr/plugins/restfulapi/osd.js");
+  htmlHeader.MetaTag("<meta http-equiv=\"refresh\" content=\"1\">");
   htmlHeader.ToStream(&se);
+
+  se.write("\n<div id=\"osd_container\">&nbsp;</div>\n");
   se.write("</body></html>");
 }
 
