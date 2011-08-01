@@ -17,6 +17,7 @@
 #include <cxxtools/string.h>
 #include <cxxtools/utf8codec.h>
 #include <cxxtools/http/request.h>
+#include <cxxtools/http/reply.h>
 #include <cxxtools/query_params.h>
 #include <cxxtools/regex.h>
 #include <vdr/channels.h>
@@ -194,7 +195,7 @@ class QueryHandler
     bool        getJsonBool(std::string name);
     std::string _format;
   public:
-    QueryHandler(std::string service, cxxtools::http::Request& request);
+    QueryHandler(std::string service, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     ~QueryHandler();
     std::string getParamAsString(int level);              //Parameters are part of the url (the rest after you cut away the service path)
     std::string getOptionAsString(std::string name);      //Options are the normal url query parameters after the question mark

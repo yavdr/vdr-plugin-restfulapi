@@ -4,6 +4,9 @@ void SearchTimersResponder::reply(std::ostream& out, cxxtools::http::Request& re
 {
   cPlugin* plugin = cPluginManager::GetPlugin("epgsearch");
   if (plugin == NULL) {
+     reply.addHeader("Access-Control-Allow-Origin", "*");
+     reply.addHeader("Access-Control-Allow-Methods", "POST, GET, DELETE, PUSH");
+
      reply.httpReturn(403, "Epgsearch isn't installed!");
      return; 
   }
@@ -18,6 +21,8 @@ void SearchTimersResponder::reply(std::ostream& out, cxxtools::http::Request& re
      } else if (request.method() == "DELETE") {
         replyDelete(out, request, reply);
      } else {
+        reply.addHeader("Access-Control-Allow-Origin", "*");
+        reply.addHeader("Access-Control-Allow-Methods", "POST, GET, DELETE, PUSH");
         reply.httpReturn(404, "The searchtimer-service does only support the following methods: GET, POST and DELETE.");
      }
   }
@@ -25,7 +30,7 @@ void SearchTimersResponder::reply(std::ostream& out, cxxtools::http::Request& re
 
 void SearchTimersResponder::replyShow(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  QueryHandler q("/searchtimers", request);
+  QueryHandler q("/searchtimers", request, reply);
   vdrlive::SearchTimers service;
   SearchTimerList* stList;
 
@@ -66,7 +71,7 @@ void SearchTimersResponder::replyShow(std::ostream& out, cxxtools::http::Request
 
 void SearchTimersResponder::replyCreate(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  QueryHandler q("/searchtimers", request);
+  QueryHandler q("/searchtimers", request, reply);
   vdrlive::SearchTimer* searchTimer = new vdrlive::SearchTimer();
   vdrlive::SearchTimers searchTimers;
   std::string result = searchTimer->LoadFromQuery(q);
@@ -88,7 +93,7 @@ void SearchTimersResponder::replyCreate(std::ostream& out, cxxtools::http::Reque
 
 void SearchTimersResponder::replyDelete(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  QueryHandler q("/searchtimers", request);
+  QueryHandler q("/searchtimers", request, reply);
   vdrlive::SearchTimers searchTimers;
   std::string id = q.getParamAsString(0);
   bool result = searchTimers.Delete(id);
@@ -99,7 +104,7 @@ void SearchTimersResponder::replyDelete(std::ostream& out, cxxtools::http::Reque
 
 void SearchTimersResponder::replySearch(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  QueryHandler q("/searchtimers/search", request);
+  QueryHandler q("/searchtimers/search", request, reply);
   vdrlive::SearchResults searchResults;
   int id = q.getParamAsInt(0);
 

@@ -3,12 +3,17 @@
 void RemoteResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   if (request.method() != "POST") {
+     // add headers - current hack to access services from the browser on another client in javascript
+     reply.addHeader("Access-Control-Allow-Origin", "*");
+     reply.addHeader("Access-Control-Allow-Methods", "POST, GET, DELETE, PUSH");
+     // hack end
+
      reply.httpReturn(403, "Only POST method is support by the remote control");
      return;
   }
 
   if ( (int)request.url().find("/remote/switch") != -1 ) {
-     QueryHandler q("/remote/switch", request);
+     QueryHandler q("/remote/switch", request, reply);
      cChannel* channel = VdrExtension::getChannel(q.getParamAsString(0));
      if ( channel == NULL ) {
         reply.httpReturn(404, "Channel-Id is not valid.");
@@ -18,7 +23,7 @@ void RemoteResponder::reply(std::ostream& out, cxxtools::http::Request& request,
      return;
   } 
 
-  QueryHandler q("/remote", request);
+  QueryHandler q("/remote", request, reply);
   std::string key = q.getParamAsString(0);
 
   if (key.length() == 0) {

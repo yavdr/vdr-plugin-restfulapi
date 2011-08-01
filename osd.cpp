@@ -2,13 +2,14 @@
 
 void OsdResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
+  QueryHandler q("/osd", request, reply);
+
   if ( request.method() != "GET" ) {
      reply.httpReturn(403, "Only GET-method is supported!");
      return;
   }
 
   BasicOsd* osd = StatusMonitor::get()->getOsd();
-  QueryHandler q("/osd", request);
 
   if ( osd == NULL ) {
      if ( q.isFormat(".html") ) {

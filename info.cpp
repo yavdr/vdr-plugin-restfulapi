@@ -2,11 +2,12 @@
 
 void InfoResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
+  QueryHandler q("/info", request, reply);
+
   if (request.method() != "GET") {
      reply.httpReturn(403, "Only GET method is support by the remote control");
      return;
   }
-  QueryHandler q("/info", request);
   StreamExtension se(&out);
 
   if (q.isFormat(".xml")) {
