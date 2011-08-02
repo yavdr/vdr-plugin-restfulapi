@@ -3,6 +3,83 @@
 <html xml:lang="en" lang="en" xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <script src="jquery-1.6.2.js"></script>
+    <script>
+
+//change restfulapiHost according to your needs
+var restfulapiHost = "http://127.0.0.1:8002/";
+
+var oldOsdData = null;
+
+function getHost(){
+	return restfulapiHost;
+}
+
+function refreshOsdData()
+{
+  $.getJSON( getHost() + "osd.json", function(data){updateScreen(data)});
+}
+
+function updateScreen(data){
+  var TextOsd = data.TextOsd;
+  if (typeof TextOsd.title == "string")
+  {
+      $("div#header").html(TextOsd.title);
+      $("div#header").toggleClass("invisible", false);
+  }
+  else
+  {
+      $("div#header").html("");
+      $("div#header").toggleClass("invisible", true);
+  }
+  
+  var colorButtons = [ "red", "green", "yellow", "blue" ];
+  var showColorButtons = false;
+  var z= 0;
+  for (z = 0; z < colorButtons.length; z++)
+  {
+      var currentButton = "div#" + colorButtons[z];
+      if (typeof (TextOsd[ colorButtons[z] ]) == "string" && TextOsd[ colorButtons[z] ] != "")
+      {
+          $( currentButton ).html(TextOsd[ colorButtons[z] ]);
+          $( currentButton ).toggleClass("active", true);
+          $( currentButton ).toggleClass("inactive", false);
+          showColorButtons = true;
+      }
+      else
+      {
+          $( currentButton ).html("&nbsp;");
+          $( currentButton ).toggleClass("active", false);
+          $( currentButton ).toggleClass("inactive", true);
+      }
+  }
+  $("div#color_buttons" ).toggleClass("invisible", !showColorButtons);
+  $( "ul" ).empty();
+  if (TextOsd.items.length > 0)
+  {
+      for (z = 0; z < TextOsd.items.length; z++)
+      {
+          var id = TextOsd.items[z].is_selected ? " id=\"selectedItem\"" : ""; 
+          $( "ul" ).append("<li"+id+" class=\"item\">"+ TextOsd.items[z].content +"</li>")
+      }
+      $("div#content" ).toggleClass("invisible", false);
+  }
+  else
+  {
+      $("div#content" ).toggleClass("invisible", true);
+  }
+  oldOsdData = TextOsd;
+  refreshOsdData();
+}
+
+ $(document).ready(function(){
+    $("div.log").ajaxError(function(event, xhr, settings, exception) {
+      $(this).text( "Triggered ajaxError handler." +
+            xhr.responseText + "/" + xhr.status + "/" + settings.url );
+    });
+    refreshOsdData();
+});
+
+    </script>
     <link rel="stylesheet" type="text/css" href="osd.css" />
     <title>HTML based VDR OSD (passive slave)</title>
   </head>
@@ -21,76 +98,5 @@
       <br class="clear">
     </div><!-- closing color_buttons container -->
   </div><!-- closing osd_container -->
-  <script>
-
-
- $(document).ready(function(){
-
-    //change restfulapiHost according to your needs
-    var restfulapiHost = "http://127.0.0.1:8002/";
-    
-    $("div.log").ajaxError(function(event, xhr, settings, exception) {
-      $(this).text( "Triggered ajaxError handler." +
-            xhr.responseText + "/" + xhr.status + "/" + settings.url );
-    });
-    refresh();
-
-    function refresh()
-    {    
-    $.getJSON( restfulapiHost + "osd.json", function(data){
-        var TextOsd = data.TextOsd;
-        if (typeof TextOsd.title == "string")
-        {
-            $("div#header").html(TextOsd.title);
-            $("div#header").toggleClass("invisible", false);
-        }
-        else
-        {
-            $("div#header").html("");
-            $("div#header").toggleClass("invisible", true);
-        }
-        
-        var colorButtons = [ "red", "green", "yellow", "blue" ];
-        var showColorButtons = false;
-        var z= 0;
-        for (z = 0; z < colorButtons.length; z++)
-        {
-            var currentButton = "div#" + colorButtons[z];
-            if (typeof (TextOsd[ colorButtons[z] ]) == "string" && TextOsd[ colorButtons[z] ] != "")
-            {
-                $( currentButton ).html(TextOsd[ colorButtons[z] ]);
-                $( currentButton ).toggleClass("active", true);
-                $( currentButton ).toggleClass("inactive", false);
-                showColorButtons = true;
-            }
-            else
-            {
-                $( currentButton ).html("&nbsp;");
-                $( currentButton ).toggleClass("active", false);
-                $( currentButton ).toggleClass("inactive", true);
-            }
-        }
-        $("div#color_buttons" ).toggleClass("invisible", !showColorButtons);
-        if (TextOsd.items.length > 0)
-        {
-            $( "ul" ).empty();
-            for (z = 0; z < TextOsd.items.length; z++)
-            {
-                var id = TextOsd.items[z].is_selected ? " id=\"selectedItem\"" : ""; 
-                $( "ul" ).append("<li"+id+" class=\"item\">"+ TextOsd.items[z].content +"</li>")
-            }
-            $("div#content" ).toggleClass("invisible", false);
-        }
-        else
-        {
-            $("div#content" ).toggleClass("invisible", true);
-            $( "ul" ).empty();
-        }
-        refresh();
-    });
-    }
-});
-
-    </script>
   </body>
 </html>
