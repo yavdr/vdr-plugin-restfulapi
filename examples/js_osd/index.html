@@ -5,70 +5,74 @@
     <script src="jquery-1.6.2.js"></script>
     <script>
 
-//change restfulapiHost according to your needs
-var restfulapiHost = "http://127.0.0.1:8002/";
+function VdrOsd(){
 
-var oldOsdData = null;
+  //change restfulapiHost according to your needs
+  this.restfulapiHost = "http://127.0.0.1:8002/";
+  this.waitBeforeRefresh = 300; //milliseconds
+  this.oldOsdData = null;
 
-function getHost(){
-	return restfulapiHost;
-}
-
-function refreshOsdData()
-{
-  $.getJSON( getHost() + "osd.json", function(data){updateScreen(data)});
-}
-
-function updateScreen(data){
-  var TextOsd = data.TextOsd;
-  if (typeof TextOsd.title == "string")
+  this.refreshOsdData = function()
   {
-      $("div#header").html(TextOsd.title);
-      $("div#header").toggleClass("invisible", false);
+    OSDobj = this;
+    $.getJSON( this.restfulapiHost + "osd.json", function(data){OSDobj.updateScreen(data)});
   }
-  else
-  {
-      $("div#header").html("");
-      $("div#header").toggleClass("invisible", true);
-  }
-  
-  var colorButtons = [ "red", "green", "yellow", "blue" ];
-  var showColorButtons = false;
-  var z= 0;
-  for (z = 0; z < colorButtons.length; z++)
-  {
-      var currentButton = "div#" + colorButtons[z];
-      if (typeof (TextOsd[ colorButtons[z] ]) == "string" && TextOsd[ colorButtons[z] ] != "")
+
+  this.updateScreen = function (data){
+    var TextOsd = data.TextOsd;
+    if (JSON.stringify(this.oldOsdData) !== JSON.stringify(TextOsd)){
+      if (typeof TextOsd.title == "string")
       {
-          $( currentButton ).html(TextOsd[ colorButtons[z] ]);
-          $( currentButton ).toggleClass("active", true);
-          $( currentButton ).toggleClass("inactive", false);
-          showColorButtons = true;
+          $("div#header").html(TextOsd.title);
+          $("div#header").toggleClass("invisible", false);
       }
       else
       {
-          $( currentButton ).html("&nbsp;");
-          $( currentButton ).toggleClass("active", false);
-          $( currentButton ).toggleClass("inactive", true);
+          $("div#header").html("");
+          $("div#header").toggleClass("invisible", true);
       }
-  }
-  $("div#color_buttons" ).toggleClass("invisible", !showColorButtons);
-  $( "ul" ).empty();
-  if (TextOsd.items.length > 0)
-  {
-      for (z = 0; z < TextOsd.items.length; z++)
+
+      var colorButtons = [ "red", "green", "yellow", "blue" ];
+      var showColorButtons = false;
+      var z= 0;
+      for (z = 0; z < colorButtons.length; z++)
       {
-          var id = TextOsd.items[z].is_selected ? " id=\"selectedItem\"" : ""; 
-          $( "ul" ).append("<li"+id+" class=\"item\">"+ TextOsd.items[z].content +"</li>")
+          var currentButton = "div#" + colorButtons[z];
+          if (typeof (TextOsd[ colorButtons[z] ]) == "string" && TextOsd[ colorButtons[z] ] != "")
+          {
+              $( currentButton ).html(TextOsd[ colorButtons[z] ]);
+              $( currentButton ).toggleClass("active", true);
+              $( currentButton ).toggleClass("inactive", false);
+              showColorButtons = true;
+          }
+          else
+          {
+              $( currentButton ).html("&nbsp;");
+              $( currentButton ).toggleClass("active", false);
+              $( currentButton ).toggleClass("inactive", true);
+          }
       }
-      $("div#content" ).toggleClass("invisible", false);
+      $("div#color_buttons" ).toggleClass("invisible", !showColorButtons);
+      $( "ul" ).empty();
+      if (TextOsd.items.length > 0)
+      {
+          for (z = 0; z < TextOsd.items.length; z++)
+          {
+              var id = TextOsd.items[z].is_selected ? " id=\"selectedItem\"" : "";
+              $( "ul" ).append("<li"+id+" class=\"item\">"+ TextOsd.items[z].content +"</li>")
+          }
+          $("div#content" ).toggleClass("invisible", false);
+      }
+      else
+      {
+          $("div#content" ).toggleClass("invisible", true);
+      }
+      this.oldOsdData = TextOsd;
+    }
+    //trigger refresh x milliseconds after rendering
+    var x = setTimeout("OSDobj.refreshOsdData()", this.waitBeforeRefresh);
   }
-  else
-  {
-      $("div#content" ).toggleClass("invisible", true);
-  }
-  oldOsdData = TextOsd;
-  refreshOsdData();
+
 }
 
  $(document).ready(function(){
@@ -76,7 +80,8 @@ function updateScreen(data){
       $(this).text( "Triggered ajaxError handler." +
             xhr.responseText + "/" + xhr.status + "/" + settings.url );
     });
-    refreshOsdData();
+    var OSDobj = new VdrOsd();
+    OSDobj.refreshOsdData();
 });
 
     </script>
@@ -90,7 +95,7 @@ function updateScreen(data){
     <ul type="none">
     </ul>
     </div><!-- closing content container -->
-    <div class="invisible" id="color_buttons">
+    <div class="invisible2" id="color_buttons">
       <div id="red" class="first inactive">&nbsp;</div>
       <div id="green" class="second inactive">&nbsp;</div>
       <div id="yellow" class="third inactive">&nbsp;</div>
