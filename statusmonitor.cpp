@@ -266,8 +266,14 @@ void StatusMonitor::OsdCurrentItem(const char *Text)
 {
   OsdCreate();
   TextOsd* _tOsd = (TextOsd*)_osd;
-  if(Text != NULL)
-     _tOsd->Selected(_tOsd->GetItem((std::string)Text));
+
+  TextOsdItem* osdItem = _tOsd->GetItem((std::string)Text);
+
+  if ( osdItem == NULL ) {
+     _tOsd->Selected()->Text(Text);
+  } else {
+     _tOsd->Selected(osdItem);
+  }
 }
 
 void StatusMonitor::OsdTextItem(const char *Text, bool Scroll)
