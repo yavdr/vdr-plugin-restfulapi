@@ -129,6 +129,7 @@
                 xhr.responseText + "/" + xhr.status + "/" + settings.url );
         });*/
         var OSDobj = new VdrOsd();
+        OSDobj.restfulapiHost = prompt("Please change IP and port to match your running vdr-plugin-restfulapi within your local network", OSDobj.restfulapiHost);
         OSDobj.refreshOsdData();
     });
 
