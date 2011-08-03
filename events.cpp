@@ -140,7 +140,7 @@ void EventsResponder::replySearchResult(std::ostream& out, cxxtools::http::Reque
   StreamExtension se(&out);
 
   std::string query = q.getBodyAsString("query");
-  esyslog("restfulapi, query:/%s/", query.c_str());
+ 
   int mode = q.getBodyAsInt("mode");// search mode (0=phrase, 1=and, 2=or, 3=regular expression)
   std::string channelid = q.getBodyAsString("channel"); //id !!
   bool use_title = q.getBodyAsBool("use_title");
