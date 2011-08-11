@@ -148,7 +148,16 @@ void cPluginRestfulapi::MainThreadHook(void)
 {
   // Perform actions in the context of the main program thread.
   // WARNING: Use with great care - see PLUGINS.html!
-  TaskScheduler::get()->DoTasks();
+  TaskScheduler* scheduler = TaskScheduler::get();
+
+  scheduler->DoTasks();
+ 
+  cChannel* channel = scheduler->SwitchableChannel();
+  
+  if ( channel != NULL ) {
+     Channels.SwitchTo( channel->Number() );
+     scheduler->SwitchableChannel(NULL);
+  }
 }
 
 cString cPluginRestfulapi::Active(void)
