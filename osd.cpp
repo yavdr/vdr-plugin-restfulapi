@@ -2,7 +2,7 @@
 
 void OsdResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  QueryHandler q("/osd", request, reply);
+  QueryHandler q("/osd", request);
 
   if ( request.method() != "GET" ) {
      reply.httpReturn(403, "Only GET-method is supported!");

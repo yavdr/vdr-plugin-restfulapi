@@ -44,6 +44,7 @@ class Settings
     std::string epgimage_dir;
     std::string channellogo_dir;
     std::string cutComment(std::string str);
+    bool activateHeaders;
     bool parseLine(std::string str);
   public:
     Settings() { initDefault(); }
@@ -54,10 +55,12 @@ class Settings
     std::string Ip() { return ip; }
     std::string EpgImageDirectory() { return epgimage_dir; }
     std::string ChannelLogoDirectory() { return channellogo_dir; }
+    bool Headers() { return activateHeaders; }
     bool SetPort(std::string v);
     bool SetIp(std::string v);
     bool SetEpgImageDirectory(std::string v);
     bool SetChannelLogoDirectory(std::string v);
+    bool SetHeaders(std::string v);
 };
 
 class StreamExtension
@@ -195,7 +198,7 @@ class QueryHandler
     bool        getJsonBool(std::string name);
     std::string _format;
   public:
-    QueryHandler(std::string service, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+    QueryHandler(std::string service, cxxtools::http::Request& request);
     ~QueryHandler();
     std::string getParamAsString(int level);              //Parameters are part of the url (the rest after you cut away the service path)
     std::string getOptionAsString(std::string name);      //Options are the normal url query parameters after the question mark
@@ -206,6 +209,7 @@ class QueryHandler
     bool getBodyAsBool(std::string name);
     bool isFormat(std::string format);
     std::string getFormat() { return _format; }
+    static void addHeader(cxxtools::http::Reply& reply);
 };
 
 class BaseList

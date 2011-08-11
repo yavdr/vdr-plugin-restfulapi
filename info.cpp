@@ -2,7 +2,8 @@
 
 void InfoResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  QueryHandler q("/info", request, reply);
+  QueryHandler::addHeader(reply);
+  QueryHandler q("/info", request);
 
   if (request.method() != "GET") {
      reply.httpReturn(403, "Only GET method is support by the remote control");

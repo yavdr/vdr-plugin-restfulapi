@@ -2,6 +2,7 @@
 
 void SearchTimersResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
+  QueryHandler::addHeader(reply);
   cPlugin* plugin = cPluginManager::GetPlugin("epgsearch");
   if (plugin == NULL) {
      reply.addHeader("Access-Control-Allow-Origin", "*");
@@ -30,7 +31,7 @@ void SearchTimersResponder::reply(std::ostream& out, cxxtools::http::Request& re
 
 void SearchTimersResponder::replyShow(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  QueryHandler q("/searchtimers", request, reply);
+  QueryHandler q("/searchtimers", request);
   vdrlive::SearchTimers service;
   SearchTimerList* stList;
 
@@ -71,7 +72,7 @@ void SearchTimersResponder::replyShow(std::ostream& out, cxxtools::http::Request
 
 void SearchTimersResponder::replyCreate(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  QueryHandler q("/searchtimers", request, reply);
+  QueryHandler q("/searchtimers", request);
   vdrlive::SearchTimer* searchTimer = new vdrlive::SearchTimer();
   vdrlive::SearchTimers searchTimers;
   std::string result = searchTimer->LoadFromQuery(q);
@@ -93,7 +94,7 @@ void SearchTimersResponder::replyCreate(std::ostream& out, cxxtools::http::Reque
 
 void SearchTimersResponder::replyDelete(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  QueryHandler q("/searchtimers", request, reply);
+  QueryHandler q("/searchtimers", request);
   vdrlive::SearchTimers searchTimers;
   std::string id = q.getParamAsString(0);
   bool result = searchTimers.Delete(id);
@@ -104,7 +105,7 @@ void SearchTimersResponder::replyDelete(std::ostream& out, cxxtools::http::Reque
 
 void SearchTimersResponder::replySearch(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  QueryHandler q("/searchtimers/search", request, reply);
+  QueryHandler q("/searchtimers/search", request);
   vdrlive::SearchResults searchResults;
   int id = q.getParamAsInt(0);
 

@@ -2,6 +2,7 @@
 
 void TimersResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
+  QueryHandler::addHeader(reply);
   if ( request.method() == "GET" ) {
      showTimers(out, request, reply);
   } else if ( request.method() == "DELETE" ) {
@@ -11,16 +12,13 @@ void TimersResponder::reply(std::ostream& out, cxxtools::http::Request& request,
   } else if ( request.method() == "PUT" ) {
      createOrUpdateTimer(out, request, reply, true);
   } else {
-     reply.addHeader("Access-Control-Allow-Origin", "*");
-     reply.addHeader("Access-Control-Allow-Methods", "POST, GET, DELETE, PUSH");
-
      reply.httpReturn(501, "Only GET, DELETE, POST and PUT methods are supported.");
   }
 }
 
 void TimersResponder::createOrUpdateTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply, bool update)
 {
-  QueryHandler q("/timers", request, reply);
+  QueryHandler q("/timers", request);
 
   if ( Timers.BeingEdited() ) {
      reply.httpReturn(502, "Timers are being edited - try again later");
@@ -119,7 +117,7 @@ void TimersResponder::createOrUpdateTimer(std::ostream& out, cxxtools::http::Req
 
 void TimersResponder::deleteTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  QueryHandler q("/timers", request, reply);
+  QueryHandler q("/timers", request);
 
   if ( Timers.BeingEdited() ) {
      reply.httpReturn(502, "Timers are being edited - try again later");
@@ -144,7 +142,7 @@ void TimersResponder::deleteTimer(std::ostream& out, cxxtools::http::Request& re
 
 void TimersResponder::showTimers(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  QueryHandler q("/timers", request, reply);
+  QueryHandler q("/timers", request);
   TimerList* timerList;
  
   Timers.SetModified();

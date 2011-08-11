@@ -2,6 +2,8 @@
 
 void ChannelsResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
+  QueryHandler::addHeader(reply);
+
   if ( request.method() != "GET") {
      reply.httpReturn(403, "To retrieve information use the GET method!");
      return;
@@ -20,7 +22,7 @@ void ChannelsResponder::reply(std::ostream& out, cxxtools::http::Request& reques
 
 void ChannelsResponder::replyChannels(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  QueryHandler q("/channels", request, reply);
+  QueryHandler q("/channels", request);
   
   ChannelList* channelList;
 
@@ -95,7 +97,7 @@ void ChannelsResponder::replyChannels(std::ostream& out, cxxtools::http::Request
 void ChannelsResponder::replyImage(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   StreamExtension se(&out);
-  QueryHandler q("/channels/image/", request, reply);
+  QueryHandler q("/channels/image/", request);
   
   std::string channelid = q.getParamAsString(0);
   cChannel* channel = VdrExtension::getChannel(channelid);
@@ -124,7 +126,7 @@ void ChannelsResponder::replyImage(std::ostream& out, cxxtools::http::Request& r
 
 void ChannelsResponder::replyGroups(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 { 
-  QueryHandler q("/channels/groups", request, reply);
+  QueryHandler q("/channels/groups", request);
   ChannelGroupList* channelGroupList;
   
   if ( q.isFormat(".json") ) {

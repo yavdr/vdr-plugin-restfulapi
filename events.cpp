@@ -2,6 +2,7 @@
 
 void EventsResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
+  QueryHandler::addHeader(reply);
   if ( (int)request.url().find("/events/image/") == 0 ) {
      replyImage(out, request, reply);
   } else if ( (int)request.url().find("/events/search") == 0 ){
@@ -13,7 +14,7 @@ void EventsResponder::reply(std::ostream& out, cxxtools::http::Request& request,
 
 void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  QueryHandler q("/events", request, reply);
+  QueryHandler q("/events", request);
 
   if ( request.method() != "GET") {
 
@@ -97,7 +98,7 @@ void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& re
 
 void EventsResponder::replyImage(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  QueryHandler q("/events/image", request, reply);
+  QueryHandler q("/events/image", request);
   if ( request.method() != "GET") {
      reply.httpReturn(403, "To retrieve information use the GET method!");
      return;
@@ -130,7 +131,7 @@ void EventsResponder::replyImage(std::ostream& out, cxxtools::http::Request& req
 
 void EventsResponder::replySearchResult(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  QueryHandler q("/events/search", request, reply);
+  QueryHandler q("/events/search", request);
 
   if ( request.method() != "POST") {
      reply.httpReturn(403, "To search for information use the POST method!");

@@ -59,6 +59,16 @@ bool Settings::SetChannelLogoDirectory(std::string v)
   return false;
 }
 
+bool Settings::SetHeaders(std::string v)
+{
+  if ( v == "false" ) {
+     activateHeaders = false;
+  } else {
+     activateHeaders = true;
+  }
+  return true;
+}
+
 Settings* Settings::get() 
 {
   static Settings settings;
@@ -71,6 +81,7 @@ void Settings::initDefault()
   SetIp((std::string)"0.0.0.0");
   SetEpgImageDirectory((std::string)"/var/cache/vdr/epgimages");
   SetChannelLogoDirectory((std::string)"/usr/share/vdr/channel-logos");
+  SetHeaders((std::string)"true");
 }
 
 // --- HtmlHeader --------------------------------------------------------------
@@ -573,13 +584,8 @@ std::string StringExtension::timeToString(time_t time)
 
 // --- QueryHandler -----------------------------------------------------------
 
-QueryHandler::QueryHandler(std::string service, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+QueryHandler::QueryHandler(std::string service, cxxtools::http::Request& request)
 {
-  // add headers - current hack to access services from the browser on another client in javascript
-  reply.addHeader("Access-Control-Allow-Origin", "*");
-  reply.addHeader("Access-Control-Allow-Methods", "POST, GET, DELETE, PUSH");
-  // hack end
-
   _url = request.url();
   _service = service;
   _options.parse_url(request.qparams());
@@ -750,6 +756,12 @@ bool QueryHandler::isFormat(std::string format)
   if ((int)_url.find(format) != -1)
      return true;
   return false;
+}
+
+void QueryHandler::addHeader(cxxtools::http::Reply& reply)
+{
+  reply.addHeader("Access-Control-Allow-Origin", "*");
+  reply.addHeader("Access-Control-Allow-Methods", "POST, GET, DELETE, PUSH");
 }
 
 // --- BaseList ---------------------------------------------------------------

@@ -2,19 +2,20 @@
 
 void RecordingsResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
+  QueryHandler::addHeader(reply);
   if ( request.method() == "GET" ) {
      showRecordings(out, request, reply);
   } else if ( request.method() == "DELETE" ) {
      deleteRecording(out, request, reply);
   } else {
-     QueryHandler q("/recordings", request, reply);
+     QueryHandler q("/recordings", request);
      reply.httpReturn(501, "Only GET and DELETE methods are supported.");
   }
 }
 
 void RecordingsResponder::deleteRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  QueryHandler q("/recordings", request, reply);
+  QueryHandler q("/recordings", request);
   int recording_number = q.getParamAsInt(0);
   if ( recording_number < 0 || recording_number >= Recordings.Count() ) { 
      reply.httpReturn(404, "Wrong recording number!");
@@ -28,7 +29,7 @@ void RecordingsResponder::deleteRecording(std::ostream& out, cxxtools::http::Req
 
 void RecordingsResponder::showRecordings(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  QueryHandler q("/recordings", request, reply);
+  QueryHandler q("/recordings", request);
   RecordingList* recordingList;
 
   if ( q.isFormat(".json") ) {
