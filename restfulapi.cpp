@@ -125,7 +125,7 @@ bool cPluginRestfulapi::Start(void)
           headers.c_str());
 
   FileCaches::get(); //cache files
-  RecordingCache::get(); //cache recording durations (access to hdd would be required if not cached)
+  //RecordingCache::get(); //cache recording durations (access to hdd would be required if not cached)
   serverThread.Initialize();
   serverThread.Start();
   return true;

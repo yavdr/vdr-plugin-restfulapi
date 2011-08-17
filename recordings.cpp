@@ -188,7 +188,7 @@ void JsonRecordingList::addRecording(cRecording* recording)
   serRecording.IsNew = recording->IsNew();
   serRecording.IsEdited = recording->IsEdited();
   serRecording.IsPesRecording = recording->IsPesRecording();
-  serRecording.Duration = RecordingCache::get()->Duration(recording);
+  serRecording.Duration = -1;//RecordingCache::get()->Duration(recording);
   serRecording.EventTitle = eventTitle;
   serRecording.EventShortText = eventShortText;
   serRecording.EventDescription = eventDescription;
@@ -240,7 +240,7 @@ void XmlRecordingList::addRecording(cRecording* recording)
   s->write(cString::sprintf("  <param name=\"is_new\">%s</param>\n", recording->IsNew() ? "true" : "false" ));
   s->write(cString::sprintf("  <param name=\"is_edited\">%s</param>\n", recording->IsEdited() ? "true" : "false" ));
   s->write(cString::sprintf("  <param name=\"is_pes_recording\">%s</param>\n", recording->IsPesRecording() ? "true" : "false" ));
-  s->write(cString::sprintf("  <param name=\"duration\">%i</param>\n", RecordingCache::get()->Duration(recording)));
+  s->write(cString::sprintf("  <param name=\"duration\">%i</param>\n", -1));//RecordingCache::get()->Duration(recording)));
   s->write(cString::sprintf("  <param name=\"event_title\">%s</param>\n", StringExtension::encodeToXml(eventTitle).c_str()) );
   s->write(cString::sprintf("  <param name=\"event_short_text\">%s</param>\n", StringExtension::encodeToXml(eventShortText).c_str()) );
   s->write(cString::sprintf("  <param name=\"event_description\">%s</param>\n", StringExtension::encodeToXml(eventDescription).c_str()) );
