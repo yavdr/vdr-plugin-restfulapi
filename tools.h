@@ -290,15 +290,16 @@ class TaskScheduler
 {
   protected:
     std::list<BaseTask*> tasks;
-    cChannel* _channel;
+    tChannelID _channel;
+    cMutex     _channelMutex;
   public:
-    TaskScheduler() { _channel = NULL; };
+    TaskScheduler() { _channel = tChannelID::InvalidID; };
     ~TaskScheduler();
     static TaskScheduler* get();
     void AddTask(BaseTask* task) { tasks.push_back(task); };
     void DoTasks();
-    void SwitchableChannel(cChannel* channel) { _channel = channel; }
-    cChannel* SwitchableChannel() { return _channel; }
+    void SwitchableChannel(tChannelID channel);
+    tChannelID SwitchableChannel();
 };
 
 #endif

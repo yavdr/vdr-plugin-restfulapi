@@ -892,3 +892,19 @@ TaskScheduler::~TaskScheduler()
     bt = tasks.front();
   }while(bt != NULL);
 }
+
+void TaskScheduler::SwitchableChannel(tChannelID channel)
+{
+  _channelMutex.Lock();
+  _channel = channel;
+  _channelMutex.Unlock();
+}
+
+tChannelID TaskScheduler::SwitchableChannel()
+{
+  _channelMutex.Lock();
+  tChannelID tmp = _channel;
+  _channel = tChannelID::InvalidID;
+  _channelMutex.Unlock();
+  return tmp;
+}
