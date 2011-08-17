@@ -264,12 +264,16 @@ void StatusMonitor::OsdItem(const char *Text, int Index)
 
 void StatusMonitor::OsdCurrentItem(const char *Text)
 {
+  if ( Text == NULL ) return;
   OsdCreate();
   TextOsd* _tOsd = (TextOsd*)_osd;
 
   TextOsdItem* osdItem = _tOsd->GetItem((std::string)Text);
 
-  if ( osdItem == NULL ) {
+  if ( osdItem == NULL && _tOsd->Selected() == NULL ) {
+      TextOsdItem* newItem = new TextOsdItem((std::string)Text);
+      _tOsd->AddItem(newItem);
+  } else if ( osdItem == NULL) {
      _tOsd->Selected()->Text(Text);
   } else {
      _tOsd->Selected(osdItem);
