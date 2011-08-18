@@ -247,7 +247,7 @@ void FileNotifier::Action(void)
              if ( event->len > 0 && !(event->mask & IN_ISDIR) ) {
  
                 if (event->mask & IN_CREATE) {
-                   esyslog("restfulapi: inotify: found new image: %s", event->name);
+                   //esyslog("restfulapi: inotify: found new image: %s", event->name);
                    if ( _mode == FileNotifier::EVENTS )
                       FileCaches::get()->addEventImage((std::string)event->name);
                    else
@@ -255,7 +255,7 @@ void FileNotifier::Action(void)
                 }
              
                 if (event->mask & IN_DELETE)  {
-                   esyslog("restfulapi: inotify: image %s has been removed", event->name);
+                   //esyslog("restfulapi: inotify: image %s has been removed", event->name);
                    if ( _mode == FileNotifier::EVENTS )
                       FileCaches::get()->removeEventImage((std::string)event->name);
                    else
