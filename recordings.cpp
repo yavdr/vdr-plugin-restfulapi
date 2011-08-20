@@ -66,15 +66,13 @@ void RecordingsResponder::showRecordings(std::ostream& out, cxxtools::http::Requ
 // --- RecordingDurationCache ------------------------------------------------------------
 
 int getRecordingDuration(cRecording* m_recording) {
-  int RecLength = 0;
-  if ( !m_recording->FileName() ) return 0;
-  cIndexFile *index = new cIndexFile(m_recording->FileName(), false, m_recording->IsPesRecording());
-  if ( index && index->Ok()) {
-     RecLength = (int) (index->Last() / SecondsToFrames(60, m_recording->FramesPerSecond()));
+  if ( m_recording != NULL ) {
+     int frames = cIndexFile::GetLength(m_recording->FileName(), m_recording->IsPesRecording());
+     if ( frames != -1 ) {
+        return ((int)(frames / m_recording->FramesPerSecond()))/60;  //result in minutes
+     }
   }
-  delete index;
-
-  return RecLength;
+  return -1;
 }
 
 RecordingCache::RecordingCache()
@@ -94,14 +92,14 @@ RecordingCache* RecordingCache::get()
 }
 
 int RecordingCache::Duration(cRecording* recording)
-{
+{  
   std::string name = recording->FileName();
   for(int i=0;i<(int)_items.size();i++){
      if (_items[i].Name == name) {
         return _items[i].Duration;
      }
   }
-  
+
   if (VdrExtension::IsRecording(recording)) {
      return getRecordingDuration(recording);
   } else {
@@ -124,6 +122,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerRecording& p)
   si.addMember("is_edited") <<= p.IsEdited;
   si.addMember("is_pes_recording") <<= p.IsPesRecording;
   si.addMember("duration") <<= p.Duration;
+  si.addMember("frames_per_second") <<= p.FramesPerSecond;
   si.addMember("event_title") <<= p.EventTitle;
   si.addMember("event_short_text") <<= p.EventShortText;
   si.addMember("event_description") <<= p.EventDescription;
@@ -188,7 +187,8 @@ void JsonRecordingList::addRecording(cRecording* recording)
   serRecording.IsNew = recording->IsNew();
   serRecording.IsEdited = recording->IsEdited();
   serRecording.IsPesRecording = recording->IsPesRecording();
-  serRecording.Duration = -1;//RecordingCache::get()->Duration(recording);
+  serRecording.Duration = RecordingCache::get()->Duration(recording);
+  serRecording.FramesPerSecond = recording->FramesPerSecond();
   serRecording.EventTitle = eventTitle;
   serRecording.EventShortText = eventShortText;
   serRecording.EventDescription = eventDescription;
@@ -240,7 +240,8 @@ void XmlRecordingList::addRecording(cRecording* recording)
   s->write(cString::sprintf("  <param name=\"is_new\">%s</param>\n", recording->IsNew() ? "true" : "false" ));
   s->write(cString::sprintf("  <param name=\"is_edited\">%s</param>\n", recording->IsEdited() ? "true" : "false" ));
   s->write(cString::sprintf("  <param name=\"is_pes_recording\">%s</param>\n", recording->IsPesRecording() ? "true" : "false" ));
-  s->write(cString::sprintf("  <param name=\"duration\">%i</param>\n", -1));//RecordingCache::get()->Duration(recording)));
+  s->write(cString::sprintf("  <param name=\"duration\">%i</param>\n", RecordingCache::get()->Duration(recording)));
+  s->write(cString::sprintf("  <param name=\"frames_per_second\">%f</param>\n", recording->FramesPerSecond()));
   s->write(cString::sprintf("  <param name=\"event_title\">%s</param>\n", StringExtension::encodeToXml(eventTitle).c_str()) );
   s->write(cString::sprintf("  <param name=\"event_short_text\">%s</param>\n", StringExtension::encodeToXml(eventShortText).c_str()) );
   s->write(cString::sprintf("  <param name=\"event_description\">%s</param>\n", StringExtension::encodeToXml(eventDescription).c_str()) );
