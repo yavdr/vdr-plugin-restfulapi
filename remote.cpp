@@ -17,7 +17,7 @@ void RemoteResponder::reply(std::ostream& out, cxxtools::http::Request& request,
         reply.httpReturn(404, "Couldn't switch to channel.");
      }*/
      } else {
-        TaskScheduler::get()->SwitchableChannel(channel);
+        TaskScheduler::get()->SwitchableChannel(channel->GetChannelID());
      }
 
      return;
