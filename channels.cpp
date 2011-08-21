@@ -2,6 +2,8 @@
 
 void ChannelsResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
+  QueryHandler::addHeader(reply);
+
   if ( request.method() != "GET") {
      reply.httpReturn(403, "To retrieve information use the GET method!");
      return;
@@ -192,7 +194,7 @@ ChannelList::~ChannelList()
 
 void HtmlChannelList::init()
 {
-  s->writeHtmlHeader();
+  s->writeHtmlHeader( "HtmlChannelList" );
   s->write("<ul>");
 }
 
@@ -289,7 +291,7 @@ ChannelGroupList::~ChannelGroupList()
 
 void HtmlChannelGroupList::init()
 {
-  s->writeHtmlHeader();
+  s->writeHtmlHeader( "HtmlChannelGroupList" );
   s->write("<ul>");
 }
 

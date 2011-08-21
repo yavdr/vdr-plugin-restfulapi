@@ -2,11 +2,7 @@
 
 void EventsResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  if ( request.method() != "GET") {
-     reply.httpReturn(403, "To retrieve information use the GET method!");
-     return;
-  }
-
+  QueryHandler::addHeader(reply);
   if ( (int)request.url().find("/events/image/") == 0 ) {
      replyImage(out, request, reply);
   } else if ( (int)request.url().find("/events/search") == 0 ){
@@ -19,6 +15,13 @@ void EventsResponder::reply(std::ostream& out, cxxtools::http::Request& request,
 void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/events", request);
+
+  if ( request.method() != "GET") {
+
+     reply.httpReturn(403, "To retrieve information use the GET method!");
+     return;
+  }
+
 
   EventList* eventList;
 
@@ -80,7 +83,7 @@ void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& re
     int ts = event->StartTime();
     int te = ts + event->Duration();
     if ( (ts <= to && te > from) || (te > from && timespan == 0) ) {
-       eventList->addEvent(event, channel);
+       eventList->addEvent(event);
     }else{
       if(ts > to) break;
       if(te <= from) {
@@ -95,8 +98,13 @@ void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& re
 
 void EventsResponder::replyImage(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  StreamExtension se(&out);
   QueryHandler q("/events/image", request);
+  if ( request.method() != "GET") {
+     reply.httpReturn(403, "To retrieve information use the GET method!");
+     return;
+  }
+
+  StreamExtension se(&out);
   int eventid = q.getParamAsInt(0);
   int number = q.getParamAsInt(1);
   
@@ -123,10 +131,17 @@ void EventsResponder::replyImage(std::ostream& out, cxxtools::http::Request& req
 
 void EventsResponder::replySearchResult(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  StreamExtension se(&out);
   QueryHandler q("/events/search", request);
 
+  if ( request.method() != "POST") {
+     reply.httpReturn(403, "To search for information use the POST method!");
+     return;
+  }
+
+  StreamExtension se(&out);
+
   std::string query = q.getBodyAsString("query");
+ 
   int mode = q.getBodyAsInt("mode");// search mode (0=phrase, 1=and, 2=or, 3=regular expression)
   std::string channelid = q.getBodyAsString("channel"); //id !!
   bool use_title = q.getBodyAsBool("use_title");
@@ -195,7 +210,7 @@ void EventsResponder::replySearchResult(std::ostream& out, cxxtools::http::Reque
            if (result != NULL) {
               for(int i=0;i<result->Count();i++) {
                  item = result->Get(i);
-                 eventList->addEvent(((cEvent*)item->event), channelInstance);
+                 eventList->addEvent(((cEvent*)item->event));
                  total++;
               }
            }
@@ -237,11 +252,11 @@ EventList::~EventList()
 
 void HtmlEventList::init()
 {
-  s->writeHtmlHeader();
+  s->writeHtmlHeader( "HtmlEventList" );
   s->write("<ul>");
 }
 
-void HtmlEventList::addEvent(cEvent* event, cChannel* channel)
+void HtmlEventList::addEvent(cEvent* event)
 {
   if ( filtered() ) return;
   s->write("<li>");
@@ -255,7 +270,7 @@ void HtmlEventList::finish()
   s->write("</body></html>");
 }
 
-void JsonEventList::addEvent(cEvent* event, cChannel* channel)
+void JsonEventList::addEvent(cEvent* event)
 {
   if ( filtered() ) return;
 
@@ -263,7 +278,8 @@ void JsonEventList::addEvent(cEvent* event, cChannel* channel)
   cxxtools::String eventShortText;
   cxxtools::String eventDescription;
   cxxtools::String empty = StringExtension::UTF8Decode("");
-  cxxtools::String channelStr = StringExtension::UTF8Decode((const char*)channel->GetChannelID().ToString());
+  cxxtools::String channelStr = StringExtension::UTF8Decode((const char*)event->ChannelID().ToString());
+
   SerEvent serEvent;
 
   if( !event->Title() ) { eventTitle = empty; } else { eventTitle = StringExtension::UTF8Decode(event->Title()); }
@@ -300,7 +316,7 @@ void XmlEventList::init()
   s->write("<events xmlns=\"http://www.domain.org/restfulapi/2011/events-xml\">\n");
 }
 
-void XmlEventList::addEvent(cEvent* event, cChannel* channel)
+void XmlEventList::addEvent(cEvent* event)
 {
   if ( filtered() ) return;
 
@@ -317,7 +333,9 @@ void XmlEventList::addEvent(cEvent* event, cChannel* channel)
   s->write(cString::sprintf("  <param name=\"title\">%s</param>\n", StringExtension::encodeToXml(eventTitle).c_str()));
   s->write(cString::sprintf("  <param name=\"short_text\">%s</param>\n", StringExtension::encodeToXml(eventShortText).c_str()));
   s->write(cString::sprintf("  <param name=\"description\">%s</param>\n", StringExtension::encodeToXml(eventDescription).c_str()));
-  s->write(cString::sprintf("  <param name=\"channel\">%s</param>\n", StringExtension::encodeToXml((const char*)channel->GetChannelID().ToString()).c_str()));
+
+  s->write(cString::sprintf("  <param name=\"channel\">%s</param>\n", StringExtension::encodeToXml((const char*)event->ChannelID().ToString()).c_str()));
+
   s->write(cString::sprintf("  <param name=\"start_time\">%i</param>\n", (int)event->StartTime()));
   s->write(cString::sprintf("  <param name=\"duration\">%i</param>\n", event->Duration()));
 

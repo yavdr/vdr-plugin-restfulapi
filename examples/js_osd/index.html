@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xml:lang="en" lang="en" xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <script type="text/javascript" src="jquery-1.6.2.js"></script>
+    <script type="text/javascript">
+    //<![CDATA[
+
+    function VdrOsd(){
+
+      //change restfulapiHost according to your needs
+      this.restfulapiHost = "http://127.0.0.1:8002/";
+      this.waitBeforeRefresh = 300; //milliseconds
+      this.oldOsdData = null;
+
+      this.refreshOsdData = function()
+      {
+        OSDobj = this;
+        $.getJSON( this.restfulapiHost + "osd.json", function(data){OSDobj.updateScreen(data)})
+        .error(function(data) { OSDobj.setScreenToBlank(); });
+      }
+
+      this.setScreenToBlank = function (data)
+      {
+        this.oldOsdData = null;
+        $("div#header").toggleClass("invisible", true);
+        $("div#color_buttons" ).toggleClass("invisible", true);
+        $("div#content" ).toggleClass("invisible", true);
+        $("div#message" ).toggleClass("invisible", true);
+        //trigger refresh x milliseconds after rendering
+        var x = setTimeout("OSDobj.refreshOsdData()", this.waitBeforeRefresh);
+      }
+
+      this.updateScreen = function (data)
+      {
+        var TextOsd = data.TextOsd;
+        //if (TextOsd.type !== "TextOsd") $("body").html(TextOsd.type);
+        if (JSON.stringify(this.oldOsdData) !== JSON.stringify(TextOsd)){
+
+          //update header
+          var headerObj = $("div#header");
+          if (typeof TextOsd.title == "string" && (TextOsd.title != "" || TextOsd.items.length > 0))
+          {
+              var title = (TextOsd.title == "") ? "&nbsp;" : TextOsd.title;
+              headerObj.html( title );
+              headerObj.toggleClass("invisible", false);
+          }
+          else
+          {
+              headerObj.html("&nbsp;");
+              headerObj.toggleClass("invisible", true);
+          }
+
+          //update content body
+          $( "ul" ).empty();
+          if (TextOsd.items.length > 0)
+          {
+            for (z = 0; z < TextOsd.items.length; z++)
+            {
+              var id = TextOsd.items[z].is_selected ? " id=\"selectedItem\"" : "";
+              $( "ul" ).append("<li"+id+" class=\"item\">"+ TextOsd.items[z].content +"</li>");
+            }
+            $("div#content" ).toggleClass("invisible", false);
+          }
+          else if (typeof TextOsd.title == "string" && TextOsd.title != "")
+          {
+            $( "ul" ).append("<li class=\"item\">&nbsp;</li>");
+            $("div#content" ).toggleClass("invisible", false);
+          }
+
+          //update message
+          var messageObj = $("div#message");
+          if (typeof TextOsd.message == "string" && TextOsd.message != "")
+          {
+            messageObj.html( TextOsd.message );
+            messageObj.toggleClass("invisible", false);
+          }
+          else if ((typeof TextOsd.title == "string" && TextOsd.title != "") || TextOsd.items.length > 0)
+          {
+            messageObj.html("&nbsp;");
+            messageObj.toggleClass("invisible", false);
+          }
+          else
+          {
+            messageObj.html("&nbsp;");
+            messageObj.toggleClass("invisible", true);
+          }
+
+          //update color button area
+          var colorButtons = [ "red", "green", "yellow", "blue" ];
+          var showColorButtons = false;
+          var z= 0;
+          for (z = 0; z < colorButtons.length; z++)
+          {
+            var currentButtonName = "div#" + colorButtons[z];
+            var currentButtonObj = $( currentButtonName );
+            if (typeof (TextOsd[ colorButtons[z] ]) == "string" && TextOsd[ colorButtons[z] ] != "")
+            {
+              currentButtonObj.html(TextOsd[ colorButtons[z] ]);
+              currentButtonObj.toggleClass("active", true);
+              currentButtonObj.toggleClass("inactive", false);
+              showColorButtons = true;
+            }
+            else
+            {
+              currentButtonObj.html("&nbsp;");
+              currentButtonObj.toggleClass("active", false);
+              currentButtonObj.toggleClass("inactive", true);
+            }
+          }
+          if (TextOsd.items.length == 0 && typeof TextOsd.title == "string" && TextOsd.title == "" && !showColorButtons)
+            $("div#color_buttons" ).toggleClass("invisible", true);
+          else
+            $("div#color_buttons" ).toggleClass("invisible", false);
+
+          //keep in mind current osd status to compare later
+          this.oldOsdData = TextOsd;
+        }
+        //trigger refresh x milliseconds after rendering
+        var x = setTimeout("OSDobj.refreshOsdData()", this.waitBeforeRefresh);
+      }
+    }
+
+    $(document).ready(function()
+     {
+        /*$("body").ajaxError(function(event, xhr, settings, exception)
+        {
+          $(this).text( "Triggered ajaxError handler." +
+                xhr.responseText + "/" + xhr.status + "/" + settings.url );
+        });*/
+        var OSDobj = new VdrOsd();
+        OSDobj.restfulapiHost = prompt("Please change IP and port to match your running vdr-plugin-restfulapi within your local network", OSDobj.restfulapiHost);
+        OSDobj.refreshOsdData();
+    });
+
+    //]]>
+    </script>
+    <link rel="stylesheet" type="text/css" href="osd.css" />
+    <title>HTML based VDR OSD (passive slave)</title>
+  </head>
+  <body>
+  <div id="osd_container">
+    <div class="invisible" id="header">&nbsp;</div>
+    <div class="invisible" id="content">
+    <ul type="none">
+    </ul>
+    </div><!-- closing content container -->
+    <div class="invisible" id="message">&nbsp;</div>
+    <div class="invisible" id="color_buttons">
+      <div id="red" class="first inactive">&nbsp;</div>
+      <div id="green" class="second inactive">&nbsp;</div>
+      <div id="yellow" class="third inactive">&nbsp;</div>
+      <div id="blue" class="fourth inactive">&nbsp;</div>
+      <br class="clear">
+    </div><!-- closing color_buttons container -->
+  </div><!-- closing osd_container -->
+  </body>
+</html>

@@ -17,6 +17,7 @@
 #include <cxxtools/string.h>
 #include <cxxtools/utf8codec.h>
 #include <cxxtools/http/request.h>
+#include <cxxtools/http/reply.h>
 #include <cxxtools/query_params.h>
 #include <vdr/channels.h>
 #include <vdr/timers.h>
@@ -42,6 +43,7 @@ class Settings
     std::string epgimage_dir;
     std::string channellogo_dir;
     std::string cutComment(std::string str);
+    bool activateHeaders;
     bool parseLine(std::string str);
   public:
     Settings() { initDefault(); }
@@ -52,10 +54,12 @@ class Settings
     std::string Ip() { return ip; }
     std::string EpgImageDirectory() { return epgimage_dir; }
     std::string ChannelLogoDirectory() { return channellogo_dir; }
+    bool Headers() { return activateHeaders; }
     bool SetPort(std::string v);
     bool SetIp(std::string v);
     bool SetEpgImageDirectory(std::string v);
     bool SetChannelLogoDirectory(std::string v);
+    bool SetHeaders(std::string v);
 };
 
 class StreamExtension
@@ -68,9 +72,38 @@ class StreamExtension
     std::ostream* getBasicStream();
     void write(const char* str);
     void write(cString& str) { write((const char*)str); }
-    void writeHtmlHeader(std::string css = "");
+    void writeHtmlHeader(std::string title);
     void writeXmlHeader();
     bool writeBinary(std::string path);
+};
+
+class HtmlHeader
+{
+  private:
+    std::string _title;
+    std::string _onload;
+    std::vector< std::string > _stylesheets;
+    std::vector< std::string > _scripts;
+    std::vector< std::string > _metatags;
+  public:
+    HtmlHeader() { }
+    ~HtmlHeader() { }
+    void Title(std::string title) { _title = title; }
+    std::string Title() { return _title; }
+
+    void OnLoad(std::string onload) { _onload = onload; }
+    std::string OnLoad() { return _onload; }
+
+    void Stylesheet(std::string stylesheet) { _stylesheets.push_back(stylesheet); }
+    std::vector< std::string >& Stylesheet() { return _stylesheets; }
+
+    void Script(std::string script) { _scripts.push_back(script); }
+    std::vector< std::string >& Scripts() { return _scripts; }
+
+    void MetaTag(std::string metatag) { _metatags.push_back(metatag); }
+    std::vector< std::string >& MataTags() { return _metatags; }
+
+    void ToStream(StreamExtension* se);
 };
 
 class FileNotifier : public cThread
@@ -175,6 +208,7 @@ class QueryHandler
     bool getBodyAsBool(std::string name);
     bool isFormat(std::string format);
     std::string getFormat() { return _format; }
+    static void addHeader(cxxtools::http::Reply& reply);
 };
 
 class BaseList
@@ -255,12 +289,16 @@ class TaskScheduler
 {
   protected:
     std::list<BaseTask*> tasks;
+    tChannelID _channel;
+    cMutex     _channelMutex;
   public:
-    TaskScheduler() { };
+    TaskScheduler() { _channel = tChannelID::InvalidID; };
     ~TaskScheduler();
     static TaskScheduler* get();
     void AddTask(BaseTask* task) { tasks.push_back(task); };
     void DoTasks();
+    void SwitchableChannel(tChannelID channel);
+    tChannelID SwitchableChannel();
 };
 
 #endif

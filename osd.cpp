@@ -2,6 +2,8 @@
 
 void OsdResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
+  QueryHandler q("/osd", request);
+
   if ( request.method() != "GET" ) {
      reply.httpReturn(403, "Only GET-method is supported!");
      return;
@@ -10,11 +12,16 @@ void OsdResponder::reply(std::ostream& out, cxxtools::http::Request& request, cx
   BasicOsd* osd = StatusMonitor::get()->getOsd();
 
   if ( osd == NULL ) {
-     reply.httpReturn(404, "No OSD opened!");
-     return;
+     if ( q.isFormat(".html") ) {
+        reply.addHeader("Content-Type", "text /html; charset=utf-8");
+        printEmptyHtml(out);
+        return;
+     } else {
+        reply.httpReturn(404, "No OSD opened!");
+        return;
+     }
   }
 
-  QueryHandler q("/osd", request);
   std::string format = "";
   if ( q.isFormat(".json") ) {
      reply.addHeader("Content-Type", "application/json; charset=utf-8");
@@ -39,7 +46,7 @@ void OsdResponder::reply(std::ostream& out, cxxtools::http::Request& request, cx
                 break;
      case 0x02: { ChannelOsdWrapper* w = new ChannelOsdWrapper(&out);
                   w->print((ChannelOsd*)osd, format);
-                  delete w;  }
+                  delete w; }
                 break;
      case 0x03: { ProgrammeOsdWrapper* w = new ProgrammeOsdWrapper(&out);
                   w->print((ProgrammeOsd*)osd, format);
@@ -75,6 +82,21 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerProgrammeOsd& o)
   si.addMember("following_time") <<= o.FollowingTime;
   si.addMember("following_title") <<= o.FollowingTitle;
   si.addMember("following_subtitle") <<= o.FollowingSubtitle;
+}
+
+void OsdResponder::printEmptyHtml(std::ostream& out)
+{
+  StreamExtension se(&out);
+
+  HtmlHeader htmlHeader;
+  htmlHeader.Title("VDR Restfulapi: No OSD opened!");
+  htmlHeader.Stylesheet("/var/lib/vdr/plugins/restfulapi/osd.css");
+  //htmlHeader.Script("/var/lib/vdr/plugins/restfulapi/osd.js");
+  htmlHeader.MetaTag("<meta http-equiv=\"refresh\" content=\"1\">");
+  htmlHeader.ToStream(&se);
+
+  se.write("\n<div id=\"osd_container\">&nbsp;</div>\n");
+  se.write("</body></html>");
 }
 
 void OsdResponder::printTextOsd(std::ostream& out, TextOsd* osd, std::string format, int start_filter, int limit_filter)
@@ -118,7 +140,7 @@ void XmlTextOsdList::printTextOsd(TextOsd* osd)
     if (!filtered()) {
        const char* selected = (*it) == osd->Selected() ? "true" : "false";
        TextOsdItem* item = *it;
-       s->write(cString::sprintf("  <item selected=\"%s\">%s</item>\n", selected, StringExtension::encodeToXml(item->Text()).c_str()));
+       s->write(cString::sprintf(" <item selected=\"%s\">%s</item>\n", selected, StringExtension::encodeToXml(item->Text()).c_str()));
     }
   }
   s->write(" </items>\n");
@@ -167,7 +189,13 @@ void JsonTextOsdList::printTextOsd(TextOsd* textOsd)
 
 void HtmlTextOsdList::printTextOsd(TextOsd* textOsd)
 {
-  s->writeHtmlHeader("/var/lib/vdr/plugins/restfulapi/osd.css");
+  HtmlHeader htmlHeader;
+  htmlHeader.Title("HtmlTextOsdList");
+  htmlHeader.Stylesheet("/var/lib/vdr/plugins/restfulapi/osd.css");
+  htmlHeader.Script("/var/lib/vdr/plugins/restfulapi/osd.js");
+  htmlHeader.MetaTag("<meta http-equiv=\"refresh\" content=\"1\">");
+  htmlHeader.ToStream(s);
+
   s->write("\n<div id=\"osd_container\">");
   s->write("\n<div id=\"header\">");
     if (textOsd->Title().length() > 0)
@@ -185,7 +213,8 @@ void HtmlTextOsdList::printTextOsd(TextOsd* textOsd)
     s->write("<ul type=\"none\">\n");
     for(it = items.begin(); it != items.end(); ++it) {
        if (!filtered()) {
-          s->write("<li class=\"item\">");
+          s->write("<li class=\"item\"");
+          s->write((*it) == textOsd->Selected() ? " id=\"selectedItem\">" : ">" );
           s->write((*it)->Text().c_str());
           s->write("</li>\n");
        }
@@ -197,22 +226,22 @@ void HtmlTextOsdList::printTextOsd(TextOsd* textOsd)
   if (textOsd->Red().length() > 0)
      s->write(cString::sprintf("<div id=\"red\" class=\"first active\">%s</div>\n", textOsd->Red().c_str()));
   else
-     s->write(cString::sprintf("<div id=\"red\" class=\"first inactive\">&nbsp;</div>\n"));
+     s->write("<div id=\"red\" class=\"first inactive\">&nbsp;</div>\n");
 
   if (textOsd->Green().length() > 0)
      s->write(cString::sprintf("<div id=\"green\" class=\"second active\">%s</div>\n", textOsd->Green().c_str()));
   else
-     s->write(cString::sprintf("<div id=\"green\" class=\"second inactive\">&nbsp;</div>\n"));
+     s->write("<div id=\"green\" class=\"second inactive\">&nbsp;</div>\n");
 
   if (textOsd->Yellow().length() > 0)
      s->write(cString::sprintf("<div id=\"yellow\" class=\"third active\">%s</div>\n", textOsd->Yellow().c_str()));
   else
-     s->write(cString::sprintf("<div id=\"yellow\" class=\"third inactive\">&nbsp;</div>\n"));
+     s->write("<div id=\"yellow\" class=\"third inactive\">&nbsp;</div>\n");
 
   if (textOsd->Blue().length() > 0)
      s->write(cString::sprintf("<div id=\"blue\" class=\"fourth active\">%s</div>\n", textOsd->Blue().c_str()));
   else
-     s->write(cString::sprintf("<div id=\"blue\" class=\"fourth inactive\">&nbsp;</div>\n"));
+     s->write("<div id=\"blue\" class=\"fourth inactive\">&nbsp;</div>\n");
 
   s->write("<br class=\"clear\">\n</div><!-- closing color_buttons container -->\n");
   s->write("</div><!-- closing osd_container -->\n");
@@ -261,16 +290,21 @@ void ProgrammeOsdWrapper::printJson(ProgrammeOsd* osd)
 
 void ProgrammeOsdWrapper::printHtml(ProgrammeOsd* osd)
 {
-  s->writeHtmlHeader("/var/lib/vdr/plugins/restfulapi/osd.css");
+  HtmlHeader htmlHeader;
+  htmlHeader.Title("ProgrammeOsdWrapper");
+  htmlHeader.Stylesheet("/var/lib/vdr/plugins/restfulapi/osd.css");
+  htmlHeader.MetaTag("<meta http-equiv=\"refresh\" content=\"1\">");
+  htmlHeader.ToStream(s);
+
   s->write("<div id=\"content2\"><div id=\"innercontent\">");
   s->write(cString::sprintf("<div id=\"eventtitle\">%s</div>", osd->PresentTitle().c_str()));
   s->write(cString::sprintf("<div id=\"eventsubtitle\">%s - %s</div>",
-				osd->PresentSubtitle().c_str(),
-				StringExtension::timeToString(osd->PresentTime()).c_str()));
+osd->PresentSubtitle().c_str(),
+StringExtension::timeToString(osd->PresentTime()).c_str()));
   s->write(cString::sprintf("<div id=\"eventtitle\">%s</div>", osd->FollowingTitle().c_str()));
   s->write(cString::sprintf("<div id=\"eventsubtitle\">%s - %s</div>",
-				osd->FollowingSubtitle().c_str(),
-				StringExtension::timeToString(osd->FollowingTime()).c_str()));
+osd->FollowingSubtitle().c_str(),
+StringExtension::timeToString(osd->FollowingTime()).c_str()));
   s->write("</div></div>\n");
   s->write("</body></html>\n");
 }
@@ -305,7 +339,12 @@ void ChannelOsdWrapper::printJson(ChannelOsd* osd)
 
 void ChannelOsdWrapper::printHtml(ChannelOsd* osd)
 {
-  s->writeHtmlHeader("/var/lib/vdr/plugins/restfulapi/osd.css");
+  HtmlHeader htmlHeader;
+  htmlHeader.Title("ChannelOsdWrapper");
+  htmlHeader.Stylesheet("/var/lib/vdr/plugins/restfulapi/osd.css");
+  htmlHeader.MetaTag("<meta http-equiv=\"refresh\" content=\"1\">");
+  htmlHeader.ToStream(s);
+
   s->write("<div id=\"header\">");
   s->write(StringExtension::encodeToXml(osd->Channel()).c_str());
   s->write("</div>\n");

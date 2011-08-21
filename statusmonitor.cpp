@@ -264,10 +264,20 @@ void StatusMonitor::OsdItem(const char *Text, int Index)
 
 void StatusMonitor::OsdCurrentItem(const char *Text)
 {
+  if ( Text == NULL ) return;
   OsdCreate();
   TextOsd* _tOsd = (TextOsd*)_osd;
-  if(Text != NULL)
-     _tOsd->Selected(_tOsd->GetItem((std::string)Text));
+
+  TextOsdItem* osdItem = _tOsd->GetItem((std::string)Text);
+
+  if ( osdItem == NULL && _tOsd->Selected() == NULL ) {
+      TextOsdItem* newItem = new TextOsdItem((std::string)Text);
+      _tOsd->AddItem(newItem);
+  } else if ( osdItem == NULL) {
+     _tOsd->Selected()->Text(Text);
+  } else {
+     _tOsd->Selected(osdItem);
+  }
 }
 
 void StatusMonitor::OsdTextItem(const char *Text, bool Scroll)
@@ -292,12 +302,20 @@ void StatusMonitor::OsdChannel(const char *Text)
 
 void StatusMonitor::OsdProgramme(time_t PresentTime, const char *PresentTitle, const char *PresentSubtitle, time_t FollowingTime, const char *FollowingTitle, const char *FollowingSubtitle)
 {
-  if ( PresentTitle != NULL && PresentSubtitle != NULL && FollowingTitle != NULL && FollowingSubtitle != NULL) {
-     OsdDestroy();
-     _osd = (BasicOsd*)new ProgrammeOsd(PresentTime, (std::string)PresentTitle, 
-                           (std::string)PresentSubtitle, FollowingTime, (std::string)FollowingTitle, 
-                           (std::string)FollowingSubtitle);
-  }
+  OsdDestroy();
+
+  std::string presentTitle = "";
+  std::string presentSubtitle = "";
+  std::string followingTitle = "";
+  std::string followingSubtitle = "";
+  
+  if ( PresentTitle != NULL ) { presentTitle = (std::string)PresentTitle; }
+  if ( PresentSubtitle != NULL ) { presentSubtitle = (std::string)PresentSubtitle; }
+  if ( FollowingTitle != NULL ) { followingTitle = (std::string)FollowingTitle; }
+  if ( FollowingSubtitle != NULL ) { followingSubtitle = (std::string)FollowingSubtitle; }
+
+  _osd = (BasicOsd*)new ProgrammeOsd(PresentTime, presentTitle, presentSubtitle, 
+				     FollowingTime, (std::string)followingTitle, followingSubtitle);
 }
 
 StatusMonitor* StatusMonitor::get()

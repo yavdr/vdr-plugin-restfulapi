@@ -32,7 +32,7 @@ html, body {
 
 <div class="center">
 <h1>RESTFULAPI-Plugin for VDR</h1><br />
-<b>Version 0.1.0</b><br />
+<b>Version 0.1.1</b><br />
 Copyright &copy; 2011 yavdr-Team, Michael Eiler<br /><br />
 Organization/Community: <a href="mailto:team@yavdr.org">team@yavdr.org</a><br />
 Developer: <a href="mailto:eiler.mike@gmail.com">eiler.mike@gmail.com</a> or <a href="mailto:aelo@yavdr.org">aelo@yavdr.org</a><br />
@@ -89,6 +89,7 @@ It would not exist without the help of the following people:<br />
 <li>The developers of the live and vnsisserver Plugins which helper me to learn a lot about the API of VDR.
 <li>The developers of the live plugin where I borrowed parts of the epgsearch-implementation :-)
 <li>Daniel Kuschny: Thank you for fixing my broken regular expressions. Will pay you a beer! :-)
+<li>Keine_Ahnung@vdr-portal for the VDR 1.6 compatibility patch
 </ul>
 <br /><br />
 <b>This document describes the API and how to use it. It contains a lot of examples for the different formats and services but there is still a lot more to discover if you simply try to make a few simple requests. </b>
@@ -394,16 +395,16 @@ This service allows you to search for events.<br />
 <b>The Request:</b>
 <br />
 <br />
-Method: <b>GET</b><br />
+Method: <b>POST</b><br />
 <br />
 <b>Example URL:</b> <br />
 <br />
 <div class="code"><code>
-GET http://&lt;ip&gt;:&lt;port&gt;/events/search.&lt;format&gt;?limit=5&amp;start=0;
+POST http://&lt;ip&gt;:&lt;port&gt;/events/search.&lt;format&gt;?limit=5&amp;start=0;
 </code></div>
 
 <br />
-<b>HTTP-Body-Parameters</b>
+<b>HTTP-Body-Parameters:</b>
 <br />
 <ul>
 <li>query - (required)
@@ -413,6 +414,11 @@ GET http://&lt;ip&gt;:&lt;port&gt;/events/search.&lt;format&gt;?limit=5&amp;star
 <li>use_subtitle - (optional)
 <li>use_description - (optional)
 </ul>
+<br />
+<b>Example:</b>
+<div class="code"><code>
+{"query":"Asterix", "mode":0, "channelid":0,"use_title":true}
+</code></div>
 <br />
 <br />
 
@@ -554,6 +560,7 @@ GET http://127.0.0.1:8002/recordings.xml?start=0&amp;limit=1<br />
 &nbsp;&nbsp;&lt;param name="is_edited"&gt;false&lt;/param&gt;<br />
 &nbsp;&nbsp;&lt;param name="is_pes_recording"&gt;false&lt;/param&gt;<br />
 &nbsp;&nbsp;&lt;param name="duration"&gt;-1&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="frames_per_second"&gt;50&lt;/param&gt;<br />
 &nbsp;&nbsp;&lt;param name="event_title"&gt;Asterix in Amerika&lt;/param&gt;<br />
 &nbsp;&nbsp;&lt;param name="event_short_text"&gt;&lt;/param&gt;<br />
 &nbsp;&nbsp;&lt;param name="event_description"&gt;(Zeichentrickfilm, DEU 1994)&lt;/param&gt;<br />
@@ -575,6 +582,7 @@ GET http://127.0.0.1:8002/recordings.json?start=0&amp;limit=1<br />
 "is_edited":false,<br />
 "is_pes_recording":false,<br />
 "duration":-1,<br />
+"frames_per_second":50,<br />
 "event_title":"Asterix in Amerika",<br />
 "event_short_text":"",<br />
 "event_description":"(Zeichentrickfilm, DEU 1994)",<br />

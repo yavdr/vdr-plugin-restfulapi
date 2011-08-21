@@ -53,6 +53,7 @@ struct SerRecording
   bool IsEdited;
   bool IsPesRecording;
   int Duration;
+  double FramesPerSecond;
   cxxtools::String EventTitle;
   cxxtools::String EventShortText;
   cxxtools::String EventDescription;

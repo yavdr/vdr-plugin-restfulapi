@@ -59,6 +59,16 @@ bool Settings::SetChannelLogoDirectory(std::string v)
   return false;
 }
 
+bool Settings::SetHeaders(std::string v)
+{
+  if ( v == "false" ) {
+     activateHeaders = false;
+  } else {
+     activateHeaders = true;
+  }
+  return true;
+}
+
 Settings* Settings::get() 
 {
   static Settings settings;
@@ -71,6 +81,55 @@ void Settings::initDefault()
   SetIp((std::string)"0.0.0.0");
   SetEpgImageDirectory((std::string)"/var/cache/vdr/epgimages");
   SetChannelLogoDirectory((std::string)"/usr/share/vdr/channel-logos");
+  SetHeaders((std::string)"true");
+}
+
+// --- HtmlHeader --------------------------------------------------------------
+
+void HtmlHeader::ToStream(StreamExtension* se)
+{
+  se->write("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
+  se->write("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n");
+  se->write("<html xml:lang=\"en\" lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\">\n");
+  se->write("<head>\n");
+
+  se->write("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n");
+
+  for (int i=0;i<(int)_metatags.size();i++)
+  {
+    se->write(_metatags[i].c_str());
+    se->write("\n");
+  }
+
+  se->write("<title>");
+  se->write(_title.c_str());
+  se->write("</title>\n");
+
+  se->write("<style type=\"text/css\">\n");
+  for (int i=0;i<(int)_stylesheets.size();i++) 
+  {
+    se->writeBinary(_stylesheets[i]);
+    se->write("\n");
+  }
+  se->write("</style>\n");
+  
+  se->write("<script type=\"text/javascript\">\n//<![CDATA[\n\n");
+
+  for (int i=0;i<(int)_scripts.size();i++) 
+  {
+    se->writeBinary(_scripts[i]);
+  }
+
+  se->write("\n//]]>\n</script>\n");  
+
+  if ( _onload.size() == 0 ) {
+     se->write("</head><body>\n");
+  } else {
+     se->write("<body onload=\"");
+     //f.e. javascript:bootstrap();
+     se->write(_onload.c_str());
+     se->write("\">\n");
+  }
 }
 
 // --- StreamExtension ---------------------------------------------------------
@@ -91,19 +150,17 @@ void StreamExtension::write(const char* str)
   _out->write(str, data.length());
 }
 
-void StreamExtension::writeHtmlHeader(std::string css)
+void StreamExtension::writeHtmlHeader(std::string title)
 {
   write("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
   write("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n");
   write("<html xml:lang=\"en\" lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\">\n");
   write("<head>\n");
   write("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n");
-  if (css.length() >= 0) {
-     write("<style type=\"text/css\">\n");
-     writeBinary(css);
-     write("</style>\n");
-  }
-  write("</head><body>");
+  write("<title>VDR-Plugin-Restfulapi: ");
+  if ( title.length() > 0 ) write(title.c_str());
+  write("</title>");
+  write("</head>\n<body>\n");
 }
 
 void StreamExtension::writeXmlHeader()
@@ -190,7 +247,7 @@ void FileNotifier::Action(void)
              if ( event->len > 0 && !(event->mask & IN_ISDIR) ) {
  
                 if (event->mask & IN_CREATE) {
-                   esyslog("restfulapi: inotify: found new image: %s", event->name);
+                   //esyslog("restfulapi: inotify: found new image: %s", event->name);
                    if ( _mode == FileNotifier::EVENTS )
                       FileCaches::get()->addEventImage((std::string)event->name);
                    else
@@ -198,7 +255,7 @@ void FileNotifier::Action(void)
                 }
              
                 if (event->mask & IN_DELETE)  {
-                   esyslog("restfulapi: inotify: image %s has been removed", event->name);
+                   //esyslog("restfulapi: inotify: image %s has been removed", event->name);
                    if ( _mode == FileNotifier::EVENTS )
                       FileCaches::get()->removeEventImage((std::string)event->name);
                    else
@@ -701,6 +758,12 @@ bool QueryHandler::isFormat(std::string format)
   return false;
 }
 
+void QueryHandler::addHeader(cxxtools::http::Reply& reply)
+{
+  reply.addHeader("Access-Control-Allow-Origin", "*");
+  reply.addHeader("Access-Control-Allow-Methods", "POST, GET, DELETE, PUSH");
+}
+
 // --- BaseList ---------------------------------------------------------------
 
 BaseList::BaseList()
@@ -828,4 +891,20 @@ TaskScheduler::~TaskScheduler()
     }
     bt = tasks.front();
   }while(bt != NULL);
+}
+
+void TaskScheduler::SwitchableChannel(tChannelID channel)
+{
+  _channelMutex.Lock();
+  _channel = channel;
+  _channelMutex.Unlock();
+}
+
+tChannelID TaskScheduler::SwitchableChannel()
+{
+  _channelMutex.Lock();
+  tChannelID tmp = _channel;
+  _channel = tChannelID::InvalidID;
+  _channelMutex.Unlock();
+  return tmp;
 }

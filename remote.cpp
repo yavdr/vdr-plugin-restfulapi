@@ -2,6 +2,7 @@
 
 void RemoteResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
+  QueryHandler::addHeader(reply);
   if (request.method() != "POST") {
      reply.httpReturn(403, "Only POST method is support by the remote control");
      return;
@@ -12,9 +13,13 @@ void RemoteResponder::reply(std::ostream& out, cxxtools::http::Request& request,
      cChannel* channel = VdrExtension::getChannel(q.getParamAsString(0));
      if ( channel == NULL ) {
         reply.httpReturn(404, "Channel-Id is not valid.");
-     } else if ( !Channels.SwitchTo( channel->Number() ) ) {
+     /*} else if ( !Channels.SwitchTo( channel->Number() ) ) {
         reply.httpReturn(404, "Couldn't switch to channel.");
+     }*/
+     } else {
+        TaskScheduler::get()->SwitchableChannel(channel->GetChannelID());
      }
+
      return;
   } 
 

@@ -2,8 +2,12 @@
 
 void SearchTimersResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
+  QueryHandler::addHeader(reply);
   cPlugin* plugin = cPluginManager::GetPlugin("epgsearch");
   if (plugin == NULL) {
+     reply.addHeader("Access-Control-Allow-Origin", "*");
+     reply.addHeader("Access-Control-Allow-Methods", "POST, GET, DELETE, PUSH");
+
      reply.httpReturn(403, "Epgsearch isn't installed!");
      return; 
   }
@@ -18,6 +22,8 @@ void SearchTimersResponder::reply(std::ostream& out, cxxtools::http::Request& re
      } else if (request.method() == "DELETE") {
         replyDelete(out, request, reply);
      } else {
+        reply.addHeader("Access-Control-Allow-Origin", "*");
+        reply.addHeader("Access-Control-Allow-Methods", "POST, GET, DELETE, PUSH");
         reply.httpReturn(404, "The searchtimer-service does only support the following methods: GET, POST and DELETE.");
      }
   }
@@ -130,7 +136,7 @@ void SearchTimersResponder::replySearch(std::ostream& out, cxxtools::http::Reque
   int total = 0;
   
   for (vdrlive::SearchResults::iterator item = searchResults.begin(); item != searchResults.end(); ++item) {
-    eventList->addEvent((cEvent*)item->GetEvent(), (cChannel*)item->GetChannel());
+    eventList->addEvent((cEvent*)item->GetEvent());
     total++;
   }
 
@@ -152,7 +158,7 @@ SearchTimerList::~SearchTimerList()
 
 void HtmlSearchTimerList::init()
 {
-  s->writeHtmlHeader();
+  s->writeHtmlHeader("HtmlSearchTimerList");
   s->write("<ul>");
 }
 

@@ -18,6 +18,7 @@ class OsdResponder : public cxxtools::http::Responder
       { }
 
     virtual void reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+    virtual void printEmptyHtml(std::ostream& out);
     virtual void printTextOsd(std::ostream& out, TextOsd* osd, std::string format, int start_filter, int limit_filter);
 };
 
