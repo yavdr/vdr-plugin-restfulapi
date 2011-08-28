@@ -6,10 +6,15 @@ void RecordingsResponder::reply(std::ostream& out, cxxtools::http::Request& requ
   if ( request.method() == "GET" ) {
      showRecordings(out, request, reply);
   } else if ( request.method() == "DELETE" ) {
-     deleteRecording(out, request, reply);
+     if ( (int)request.url().find("/recordings/marks") != 0) {
+        deleteMarks(out, request, reply);      
+     } else {
+        deleteRecording(out, request, reply);
+     }
+  } else if ((int)request.url().find("/recordings/marks") == 0 && request.method() == "POST") {
+     saveMarks(out, request, reply);
   } else {
-     QueryHandler q("/recordings", request);
-     reply.httpReturn(501, "Only GET and DELETE methods are supported.");
+     reply.httpReturn(501, "Only GET, POST and DELETE methods are supported on these services.");
   }
 }
 
@@ -31,16 +36,17 @@ void RecordingsResponder::showRecordings(std::ostream& out, cxxtools::http::Requ
 {
   QueryHandler q("/recordings", request);
   RecordingList* recordingList;
+  bool read_marks = q.getOptionAsString("marks") == "true";
 
   if ( q.isFormat(".json") ) {
      reply.addHeader("Content-Type", "application/json; charset=utf-8");
-     recordingList = (RecordingList*)new JsonRecordingList(&out);
+     recordingList = (RecordingList*)new JsonRecordingList(&out, read_marks);
   } else if ( q.isFormat(".html") ) {
      reply.addHeader("Content-Type", "text/html; charset=utf-8");
-     recordingList = (RecordingList*)new HtmlRecordingList(&out);
+     recordingList = (RecordingList*)new HtmlRecordingList(&out, read_marks);
   } else if ( q.isFormat(".xml") )  {
      reply.addHeader("Content-Type", "text/xml; charset=utf-8");
-     recordingList = (RecordingList*)new XmlRecordingList(&out);
+     recordingList = (RecordingList*)new XmlRecordingList(&out, read_marks);
   } else {
      reply.httpReturn(404, "Resources are not available for the selected format. (Use: .json or .html)");
      return;
@@ -48,6 +54,8 @@ void RecordingsResponder::showRecordings(std::ostream& out, cxxtools::http::Requ
 
   int start_filter = q.getOptionAsInt("start");
   int limit_filter = q.getOptionAsInt("limit");
+  
+  int requested_item = q.getParamAsInt(0);
 
   if ( start_filter >= 0 && limit_filter >= 1 ) {
      recordingList->activateLimit(start_filter, limit_filter);
@@ -55,17 +63,64 @@ void RecordingsResponder::showRecordings(std::ostream& out, cxxtools::http::Requ
 
   recordingList->init();
   
-  for (cRecording* recording = Recordings.First(); recording; recording = Recordings.Next(recording)) {
-     recordingList->addRecording(recording); 
+  cRecording* recording = NULL;
+  for (int i = 0; i < Recordings.Count();i++) {
+     if ( requested_item == i || requested_item < 0 ) {
+        recording = Recordings.Get(i);
+        recordingList->addRecording(recording, i); 
+     }
   }
   recordingList->setTotal(Recordings.Count());
 
   recordingList->finish();
-  delete recordingList; 
+  delete recordingList;
+}
+
+void RecordingsResponder::saveMarks(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+{
+  QueryHandler q("/recordings/marks", request);
+  int recording = q.getParamAsInt(0);
+  JsonArray* jsonArray = q.getBodyAsArray("marks");
+
+  if (jsonArray == NULL) {
+     reply.httpReturn(503, "Marks in HTTP-Body are missing.");
+  }
+
+  if (recording < 0 && recording >= Recordings.Count()) {
+     reply.httpReturn(504, "Recording number missing or invalid.");
+  }
+
+  std::vector< std::string > marks;
+
+  for(int i=0;i<jsonArray->CountItem();i++) {
+     JsonBase* jsonBase = jsonArray->GetItem(i);
+     if (jsonBase->IsBasicValue()) {
+        JsonBasicValue* jsonBasicValue = (JsonBasicValue*)jsonBase;
+        if (jsonBasicValue->IsString()) {
+           marks.push_back(jsonBasicValue->ValueAsString());
+        }
+     }
+  }
+
+  VdrMarks::get()->saveMarks(Recordings.Get(recording), marks);
+}
+
+void RecordingsResponder::deleteMarks(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+{
+  QueryHandler q("/recordings/marks", request);
+  int rec_number = q.getParamAsInt(0);
+  if (rec_number >= 0 && rec_number < Recordings.Count()) {
+     cRecording* recording = Recordings.Get(rec_number);
+     if (VdrMarks::get()->deleteMarks(recording)) {
+        return;
+     }
+  }
+  reply.httpReturn(503, "Deleting marks failed.");
 }
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerRecording& p)
 {
+  si.addMember("number") <<= p.Number;
   si.addMember("name") <<= p.Name;
   si.addMember("file_name") <<= p.FileName;
   si.addMember("is_new") <<= p.IsNew;
@@ -73,6 +128,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerRecording& p)
   si.addMember("is_pes_recording") <<= p.IsPesRecording;
   si.addMember("duration") <<= p.Duration;
   si.addMember("frames_per_second") <<= p.FramesPerSecond;
+  si.addMember("marks") <<= p.Marks.marks;
   si.addMember("event_title") <<= p.EventTitle;
   si.addMember("event_short_text") <<= p.EventShortText;
   si.addMember("event_description") <<= p.EventDescription;
@@ -80,9 +136,10 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerRecording& p)
   si.addMember("event_duration") <<= p.EventDuration;
 }
 
-RecordingList::RecordingList(std::ostream *out)
+RecordingList::RecordingList(std::ostream *out, bool _read_marks)
 {
   s = new StreamExtension(out);
+  read_marks = _read_marks;
 }
 
 RecordingList::~RecordingList()
@@ -96,7 +153,7 @@ void HtmlRecordingList::init()
   s->write("<ul>");
 }
 
-void HtmlRecordingList::addRecording(cRecording* recording)
+void HtmlRecordingList::addRecording(cRecording* recording, int nr)
 {
   if ( filtered() ) return;
   s->write("<li>");
@@ -109,7 +166,7 @@ void HtmlRecordingList::finish()
   s->write("</body></html>");
 }
 
-void JsonRecordingList::addRecording(cRecording* recording)
+void JsonRecordingList::addRecording(cRecording* recording, int nr)
 {
   if ( filtered() ) return;
 
@@ -132,6 +189,7 @@ void JsonRecordingList::addRecording(cRecording* recording)
   }
 
   SerRecording serRecording;
+  serRecording.Number = nr;
   serRecording.Name = StringExtension::UTF8Decode(recording->Name());
   serRecording.FileName = StringExtension::UTF8Decode(recording->FileName());
   serRecording.IsNew = recording->IsNew();
@@ -144,6 +202,13 @@ void JsonRecordingList::addRecording(cRecording* recording)
   serRecording.EventDescription = eventDescription;
   serRecording.EventStartTime = eventStartTime;
   serRecording.EventDuration = eventDuration;
+
+  SerMarks serMarks;
+  if (read_marks) {
+     serMarks.marks = VdrMarks::get()->readMarks(recording);
+  }
+
+  serRecording.Marks = serMarks;
 
   serRecordings.push_back(serRecording);
 }
@@ -163,7 +228,7 @@ void XmlRecordingList::init()
   s->write("<recordings xmlns=\"http://www.domain.org/restfulapi/2011/recordings-xml\">\n");
 }
 
-void XmlRecordingList::addRecording(cRecording* recording)
+void XmlRecordingList::addRecording(cRecording* recording, int nr)
 {
   if ( filtered() ) return;
 
@@ -185,6 +250,7 @@ void XmlRecordingList::addRecording(cRecording* recording)
   }
 
   s->write(" <recording>\n");
+  s->write(cString::sprintf("  <param name=\"number\">%i</param>\n", nr));
   s->write(cString::sprintf("  <param name=\"name\">%s</param>\n", StringExtension::encodeToXml(recording->Name()).c_str()) );
   s->write(cString::sprintf("  <param name=\"filename\">%s</param>\n", StringExtension::encodeToXml(recording->FileName()).c_str()) );
   s->write(cString::sprintf("  <param name=\"is_new\">%s</param>\n", recording->IsNew() ? "true" : "false" ));
@@ -192,6 +258,16 @@ void XmlRecordingList::addRecording(cRecording* recording)
   s->write(cString::sprintf("  <param name=\"is_pes_recording\">%s</param>\n", recording->IsPesRecording() ? "true" : "false" ));
   s->write(cString::sprintf("  <param name=\"duration\">%i</param>\n", (recording->LengthInSeconds() == -1 ? -1 : recording->LengthInSeconds()/60)));
   s->write(cString::sprintf("  <param name=\"frames_per_second\">%f</param>\n", recording->FramesPerSecond()));
+
+  if (read_marks) {
+     s->write("  <param name=\"marks\">\n");
+     std::vector< std::string > marks = VdrMarks::get()->readMarks(recording);
+     for(int i=0;i<(int)marks.size();i++) {
+        s->write(cString::sprintf("   <mark>%s</mark>\n", marks[i].c_str()));
+     }
+     s->write("  </param>\n");
+  } 
+
   s->write(cString::sprintf("  <param name=\"event_title\">%s</param>\n", StringExtension::encodeToXml(eventTitle).c_str()) );
   s->write(cString::sprintf("  <param name=\"event_short_text\">%s</param>\n", StringExtension::encodeToXml(eventShortText).c_str()) );
   s->write(cString::sprintf("  <param name=\"event_description\">%s</param>\n", StringExtension::encodeToXml(eventDescription).c_str()) );

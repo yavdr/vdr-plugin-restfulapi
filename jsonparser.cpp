@@ -256,7 +256,7 @@ bool JsonParser::SkipEmpty(const char* data, long size, long* position)
 
 std::string JsonParser::ParseString(const char* data, long size, long* position)
 {
-  (*position)++; //ignore "
+  (*position)++; //ignore QUOTATIONMARK
   bool escaped = false;
   std::ostringstream str;
 
@@ -272,8 +272,8 @@ std::string JsonParser::ParseString(const char* data, long size, long* position)
      }
      (*position)++;
   }
-  (*position)++; //ignore " again
-  
+  (*position)++; //ignore QUOTATIONMARK again
+ 
   return str.str();
 }
 
@@ -387,6 +387,7 @@ JsonArray* JsonParser::ParseArray(const char* data, long size, long* position)
          case '\'': 
          case '"': if ( data[*position] == QUOTATIONCHAR ) {
                       item = (JsonBase*)new JsonBasicValue(ParseString(data, size, position));
+                      break;
                    }
                    // go to default if it's not the QUOTATIONCHAR                   
          default:  {
