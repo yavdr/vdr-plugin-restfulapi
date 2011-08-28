@@ -216,7 +216,22 @@ JsonParser::~JsonParser()
 
 JsonObject* JsonParser::Parse(std::string str)
 {
+  bool found = false;
   long position = 0;
+
+  QUOTATIONCHAR='"';
+
+  while(!found && (size_t)position < str.length()) {
+     if ( str[position] == '\'') {
+        QUOTATIONCHAR = '\'';
+        found = true;
+     } else if ( str[position] == '"' ){
+        found = true;
+     }
+     position++;
+  }
+
+  position = 0;
   return ParseJsonObject(str.c_str(), str.length(), &position);
 }
 
@@ -226,6 +241,7 @@ bool JsonParser::SkipEmpty(const char* data, long size, long* position)
   while(*position < size) {
      if ( data[*position] != '\t' && 
           data[*position] != '\n' && 
+          data[*position] != '\r' &&
           data[*position] != ' ' && 
           data[*position] != ':' && 
           data[*position] != ',' ) 
@@ -244,9 +260,12 @@ std::string JsonParser::ParseString(const char* data, long size, long* position)
   bool escaped = false;
   std::ostringstream str;
 
-  while(!(data[*position] == '"' && !escaped) && *position < size) {
+  while(!(data[*position] == QUOTATIONCHAR && !escaped) && *position < size) {
      switch(data[*position]) {
-       case '"': if(escaped) str << data[*position]; break;
+       case '"':
+       case '\'': if ( QUOTATIONCHAR == data[*position]) 
+                  { if(escaped) str << data[*position]; }
+                  else { str << data[*position]; } break;
        case '\\': if(escaped) str << '\\'; else escaped = true; break;
        default: str << data[*position]; escaped = false; break;
      }
@@ -279,10 +298,6 @@ JsonObject* JsonParser::ParseJsonObject(const char* data, long size, long* posit
       switch(data[*position]) {
         case '{': item = ParseJsonObject(data, size, position); 
                   break;
-        case '"': {
-                    item = (JsonBase*)new JsonBasicValue(ParseString(data, size, position));
-		  } 
-                  break;
         case '[': item = (JsonBase*)ParseArray(data, size, position);
                   break;
         case 't': 
@@ -292,6 +307,12 @@ JsonObject* JsonParser::ParseJsonObject(const char* data, long size, long* posit
                      item = NULL; (*position) = (*position)+4;
                      break;
                   }
+        case '"':
+        case '\'': if ( data[*position] == QUOTATIONCHAR) {
+                      item = (JsonBase*)new JsonBasicValue(ParseString(data, size, position));
+                      break;
+                   }
+                   //go to default if char isn't the QUOTATIONCHAR
         default:  if((int)data[*position] >= 48 && (int)data[*position] <= 57)
                   {
                     item = (JsonBase*)ParseDouble(data, size, position);
@@ -353,8 +374,6 @@ JsonArray* JsonParser::ParseArray(const char* data, long size, long* position)
     JsonBase* item = NULL;
     if (data[*position] != ']' && data[*position] != '\0') {
        switch(data[*position]) {
-         case '"': item = (JsonBase*)new JsonBasicValue(ParseString(data, size, position));
-                   break;
          case '{': item = (JsonBase*)ParseJsonObject(data, size, position);
                    break;
          case 'f': 
@@ -364,6 +383,11 @@ JsonArray* JsonParser::ParseArray(const char* data, long size, long* position)
                       item = NULL; (*position) = (*position)+4;
                       break;
                    }
+         case '\'': 
+         case '"': if ( data[*position] == QUOTATIONCHAR ) {
+                      item = (JsonBase*)new JsonBasicValue(ParseString(data, size, position));
+                   }
+                   // go to default if it's not the QUOTATIONCHAR                   
          default:  {
                       if (data[*position] >= 48 && data[*position] <= 57) {
                          item = (JsonBase*)ParseDouble(data, size, position);      

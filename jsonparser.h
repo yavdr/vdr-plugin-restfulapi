@@ -88,6 +88,7 @@ class JsonParser
     ~JsonParser();
     JsonObject* Parse(std::string str);
   private:
+    char QUOTATIONCHAR;
     bool SkipEmpty(const char* data, long size, long* position);
     std::string ParseString(const char* data, long size, long* position);
     JsonObject* ParseJsonObject(const char* data, long size, long* position);

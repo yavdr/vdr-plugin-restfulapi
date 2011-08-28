@@ -594,7 +594,7 @@ QueryHandler::QueryHandler(std::string service, cxxtools::http::Request& request
   bool found_json = false;
  
   int i = 0;
-  while(!found_json) {
+  while(!found_json && body.length() > (size_t)i) {
     if (body[i] == '{') {
        found_json = true;
     } else if (body[i] != '\t' && body[i] != '\n' && body[i] != ' ') {
