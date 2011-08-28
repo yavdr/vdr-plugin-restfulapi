@@ -265,7 +265,8 @@ std::string JsonParser::ParseString(const char* data, long size, long* position)
        case '"':
        case '\'': if ( QUOTATIONCHAR == data[*position]) 
                   { if(escaped) str << data[*position]; }
-                  else { str << data[*position]; } break;
+                  else { str << data[*position]; } 
+                  escaped = false; break;
        case '\\': if(escaped) str << '\\'; else escaped = true; break;
        default: str << data[*position]; escaped = false; break;
      }
