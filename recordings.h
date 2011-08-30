@@ -10,6 +10,7 @@
 #include <sstream>
 #include "tools.h"
 
+#include <vdr/cutter.h>
 #include <vdr/recording.h>
 
 class RecordingsResponder : public cxxtools::http::Responder
@@ -24,6 +25,8 @@ class RecordingsResponder : public cxxtools::http::Responder
     void showRecordings(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void saveMarks(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void deleteMarks(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+    void cutRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+    void showCutterStatus(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
 };
 
 typedef cxxtools::http::CachedService<RecordingsResponder> RecordingsService;

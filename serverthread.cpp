@@ -55,6 +55,8 @@ void cServerThread::Action(void)
   RestfulService* eventsImage = new RestfulService("/events/image", true, 1, events);
   RestfulService* eventsSearch = new RestfulService("/events/search", false, 1, events);
   RestfulService* recordings = new RestfulService("/recordings", true, 1);
+  RestfulService* recordingsCut = new RestfulService("/recordings/cut", true, 1, recordings);
+  RestfulService* recordingsMarks = new RestfulService("/recordings/marks", true, 1, recordings);
   RestfulService* remote = new RestfulService("/remote", true, 1);
   RestfulService* timers = new RestfulService("/timers", true, 1);
   RestfulService* osd = new RestfulService("/osd", true, 1);
@@ -68,6 +70,8 @@ void cServerThread::Action(void)
   services->appendService(eventsImage);
   services->appendService(eventsSearch);
   services->appendService(recordings);
+  services->appendService(recordingsCut);
+  services->appendService(recordingsMarks);
   services->appendService(remote);
   services->appendService(timers);
   services->appendService(osd);

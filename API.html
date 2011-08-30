@@ -56,7 +56,8 @@ Developer: <a href="mailto:eiler.mike@gmail.com">eiler.mike@gmail.com</a> or <a 
 <li><a href="#Info">Info</a>
 <li><a href="#Osd">Osd</a>
 <li><a href="#Recordings">Recordings</a>
-<ul><li><a href="#RecordingsMarks">Marks</a></ul>
+<ul><li><a href="#RecordingCut">Cut</a>
+    <li><a href="#RecordingsMarks">Marks</a></ul>
 <li><a href="#Remote">Remote</a>
 <li><a href="#Timers">Timers</a>
 <ul><li><a href="#ReadingTimers">Reading/Deleting Timers</a>
@@ -599,7 +600,25 @@ GET http://127.0.0.1:8002/recordings.json?start=0&amp;limit=1i&amp;marks=true<br
 }],"count":1,"total":2}
 </code></div>
 <br />
+<br />
+<br />
 
+<h2><a name="RecordingCut">Cut</a></h2>
+
+This service tells your VDR to cut a recording or can tell the client if the vdr cutter is currently cutting a recording:<br />
+<br />
+Method: <b>GET, POST</b><br />
+<br />
+Examples: <br/>
+<br />
+<div class="code"><code>
+POST http://&lt;ip&gt;:&lt;port&gt;/recordings/cut/&lt;recordingnumber&gt;        # do it! (cut the recording)
+GET http://&lt;ip&gt;:&lt;port&gt;/recordings/cut.&lt;format&gt;                  # this will return the status of the VDR Cutter
+</code></div>
+<br />
+
+
+<br />
 <h2><a name="RecordingsMarks">Marks</a></h2>
 
 This service can save and delete marks. To retrieve them use the parameter "marks=true" in the request url for the recordings.<br />
@@ -617,6 +636,7 @@ Examples: <br />
 DELETE http://&lt;ip&gt;:&lt;port&gt;/recordings/marks/&lt;recordingnumber&gt;
 </code></div>
 <br />
+
 
 <b>Create new Cutting Marks: </b><br />
 <br />

@@ -3,18 +3,41 @@
 void RecordingsResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler::addHeader(reply);
-  if ( request.method() == "GET" ) {
-     showRecordings(out, request, reply);
-  } else if ( request.method() == "DELETE" ) {
-     if ( (int)request.url().find("/recordings/marks") != 0) {
-        deleteMarks(out, request, reply);      
+  bool found = false;
+
+  if ((int)request.url().find("/recordings/cut") == 0 ) {
+     if ( request.method() == "GET" ) {
+	showCutterStatus(out, request, reply);
+     } else if (request.method() == "POST") {
+        cutRecording(out, request, reply); 
      } else {
-        deleteRecording(out, request, reply);
+        reply.httpReturn(501, "Only GET and POST methods are supported by the /recordings/cut service.");
      }
-  } else if ((int)request.url().find("/recordings/marks") == 0 && request.method() == "POST") {
-     saveMarks(out, request, reply);
-  } else {
-     reply.httpReturn(501, "Only GET, POST and DELETE methods are supported on these services.");
+     found = true;
+  }
+
+  else if ((int)request.url().find("/recordings/marks") == 0 ) {
+     if ( request.method() == "DELETE" ) {
+        deleteMarks(out, request, reply);
+     } else if (request.method() == "POST" ) {
+        saveMarks(out, request, reply);
+     } else {
+        reply.httpReturn(501, "Only DELETE and POST methods are supported by the /recordings/marks service.");
+     }
+     found = true;
+  }
+
+  // original /recordings service
+  else if ( request.method() == "GET" ) {
+     showRecordings(out, request, reply);
+     found = true;
+  } else if (request.method() == "DELETE" ) {
+     deleteRecording(out, request,reply);
+     found = true;
+  }
+
+  if (!found) {
+     reply.httpReturn(501, "Only GET and DELETE methods are supported by the /recordings service.");
   }
 }
 
@@ -116,6 +139,49 @@ void RecordingsResponder::deleteMarks(std::ostream& out, cxxtools::http::Request
      }
   }
   reply.httpReturn(503, "Deleting marks failed.");
+}
+
+void RecordingsResponder::cutRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+{
+  QueryHandler q("/recordings/cut", request);
+  int rec_number = q.getParamAsInt(0);
+  if (rec_number >= 0 && rec_number < Recordings.Count()) {
+     cRecording* recording = Recordings.Get(rec_number);
+     if (cCutter::Active()) {
+	reply.httpReturn(504, "VDR Cutter currently busy.");
+     } else {
+	cCutter::Start(recording->FileName());
+     }
+     return;
+  }
+  reply.httpReturn(503, "Cutting recordings failed.");
+}
+
+void RecordingsResponder::showCutterStatus(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+{
+  QueryHandler q("/recordings/cut", request);
+  StreamExtension s(&out);
+
+  bool active = cCutter::Active();
+
+  if (q.isFormat(".html")) {
+     reply.addHeader("Content-Type", "text/html; charset=utf-8");
+     s.writeHtmlHeader("HtmlCutterStatus");
+     s.write((active ? "True" : "False"));
+     s.write("</body></html>");
+  } else if (q.isFormat(".json")) {
+     reply.addHeader("Content-Type", "application/json; charset=utf-8");
+     cxxtools::JsonSerializer serializer(out);
+     serializer.serialize(active, "active");
+     serializer.finish();     
+  } else if (q.isFormat(".xml")) {
+     reply.addHeader("Content-Type", "text/xml; charset=utf-8");
+     s.write("<cutter xmlns=\"http://www.domain.org/restfulapi/2011/cutter-xml\">\n");
+     s.write(cString::sprintf(" <param name=\"active\">%s</param>\n", (active ? "true" : "false")));
+     s.write("</cutter>");
+  } else {
+     reply.httpReturn(502, "Only the following formats are supported: .xml, .json and .html");
+  } 
 }
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerRecording& p)
