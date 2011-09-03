@@ -28,16 +28,21 @@ void RecordingsResponder::reply(std::ostream& out, cxxtools::http::Request& requ
   }
 
   // original /recordings service
-  else if ( request.method() == "GET" ) {
-     showRecordings(out, request, reply);
-     found = true;
-  } else if (request.method() == "DELETE" ) {
-     deleteRecording(out, request,reply);
+  else if ((int) request.url().find("/recordings") == 0 ) {
+        if ( request.method() == "GET" ) {
+        showRecordings(out, request, reply);
+        found = true;
+     } else if (request.method() == "DELETE" ) {
+        deleteRecording(out, request,reply);
+        found = true;
+     } else {
+        reply.httpReturn(501, "Only GET and DELETE methods are supported by the /recordings service.");
+     }
      found = true;
   }
 
   if (!found) {
-     reply.httpReturn(501, "Only GET and DELETE methods are supported by the /recordings service.");
+     reply.httpReturn(403, "Service not found");
   }
 }
 

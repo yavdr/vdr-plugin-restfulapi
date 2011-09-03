@@ -554,6 +554,10 @@ std::vector< std::string > VdrMarks::readMarks(cRecording* recording)
 
 bool VdrMarks::saveMarks(cRecording* recording, std::vector< std::string > marks)
 {
+  if (recording == NULL) {
+     return false;
+  }
+
   for(int i=0;i<(int)marks.size();i++)
   {
      if ( !validateMark(marks[i]) ) {
