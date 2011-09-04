@@ -42,9 +42,7 @@ class Settings
     std::string ip;
     std::string epgimage_dir;
     std::string channellogo_dir;
-    std::string cutComment(std::string str);
     bool activateHeaders;
-    bool parseLine(std::string str);
   public:
     Settings() { initDefault(); }
     ~Settings() { };
@@ -154,6 +152,7 @@ class FileCaches
     };
 };
 
+
 class VdrExtension
 {
   public:
@@ -165,6 +164,20 @@ class VdrExtension
     static bool doesFileExistInFolder(std::string wildcardpath, std::string filename);
     static bool IsRadio(cChannel* channel);
     static bool IsRecording(cRecording* recording);
+};
+
+class VdrMarks
+{
+  private:
+    std::string cutComment(std::string str);
+    bool validateMark(std::string mark);
+    std::string getPath(cRecording* recording);
+    bool parseLine(std::vector< std::string >& marks, std::string line);
+  public:
+    static VdrMarks* get();
+    std::vector< std::string > readMarks(cRecording* recording);
+    bool saveMarks(cRecording* recording, std::vector< std::string > marks);
+    bool deleteMarks(cRecording* recording);
 };
 
 class StringExtension
@@ -206,6 +219,7 @@ class QueryHandler
     int getOptionAsInt(std::string name);
     int getBodyAsInt(std::string name);
     bool getBodyAsBool(std::string name);
+    JsonArray* getBodyAsArray(std::string name);
     bool isFormat(std::string format);
     std::string getFormat() { return _format; }
     static void addHeader(cxxtools::http::Reply& reply);

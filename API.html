@@ -56,6 +56,8 @@ Developer: <a href="mailto:eiler.mike@gmail.com">eiler.mike@gmail.com</a> or <a 
 <li><a href="#Info">Info</a>
 <li><a href="#Osd">Osd</a>
 <li><a href="#Recordings">Recordings</a>
+<ul><li><a href="#RecordingCut">Cut</a>
+    <li><a href="#RecordingsMarks">Marks</a></ul>
 <li><a href="#Remote">Remote</a>
 <li><a href="#Timers">Timers</a>
 <ul><li><a href="#ReadingTimers">Reading/Deleting Timers</a>
@@ -310,6 +312,7 @@ Examples: <br />
 <br />
 <div class="code"><code>
 GET http://&lt;ip&gt;:&lt;port&gt;/events/&lt;channelid&gt;/&lt;timespan&gt;.&lt;format&gt;<br />
+GET http://&lt;ip&gt;:&lt;port&gt;/events/&lt;channelid&gt;/&lt;timespan&gt;.&lt;format&gt;?eventid=&lt;eventid&gt;<br />
 GET http://&lt;ip&gt;:&lt;port&gt;/events/&lt;channelid&gt;/&lt;timespan&gt;/&lt;from&gt;.&lt;format&gt;<br />
 GET http://&lt;ip&gt;:&lt;port&gt;/events/&lt;channelid&gt;/&lt;timespan&gt;/&lt;from&gt;.&lt;format&gt;?start=&lt;int&gt;&amp;limit=&lt;int&gt;
 </code></div>
@@ -322,6 +325,7 @@ GET http://&lt;ip&gt;:&lt;port&gt;/events/&lt;channelid&gt;/&lt;timespan&gt;/&lt
  <li>&lt;channelid&gt; - id of the channel
  <li>&lt;timespan&gt; - the timespan from which you want to know the event-details, if set to 0 - all events in the future will be returned
  <li>&lt;from&gt; - (optional) time in the future when the requested events should end/start (default-value: now)
+ <li>&lt;eventid&gt; - (optional) if you only want the details of a specific event
 </ul>
 
 <br />
@@ -527,6 +531,7 @@ Examples: <br/>
 <br />
 <div class="code"><code>
 GET http://&lt;ip&gt;:&lt;port&gt;/recordings/.&lt;format&gt;<br />
+GET http://&lt;ip&gt;:&lt;port&gt;/recordings/&lt;recordingnumber&gt;.&lt;format&gt;?marks=true<br />
 DELETE http://&lt;ip&gt;:&lt;port&gt;/recordings/&lt;number&gt;
 </code></div>
 <br />
@@ -538,6 +543,8 @@ DELETE http://&lt;ip&gt;:&lt;port&gt;/recordings/&lt;number&gt;
 <ul>
 <li>&lt;format&gt; - The requested format: json, xml or html.
 <li>&lt;number&gt; - The number of the recording which you want to delete. (The first recordings has the number 0.)
+<li>&lt;recordingnumber&gt; - The number of the recording you want to retrieve.
+<li>marks=true - add the cutting marks by reading the marks file from the recording directory
 <li>start, limit - These values are used to control the whole list. Start ist the first element you want to retrieve. Limit...
 </ul>
 
@@ -554,6 +561,7 @@ GET http://127.0.0.1:8002/recordings.xml?start=0&amp;limit=1<br />
 &lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;<br />
 &lt;recordings xmlns="http://www.domain.org/restfulapi/2011/recordings-xml"&gt;<br />
 &nbsp;&lt;recording&gt;<br />
+&nbsp;&nbsp;&lt;param name="number"&gt;0&lt;/param&gt;<br />
 &nbsp;&nbsp;&lt;param name="name"&gt;Asterix in Amerika&lt;/param&gt;<br />
 &nbsp;&nbsp;&lt;param name="filename"&gt;/var/lib/video.00/Asterix_in_Amerika/2011-06-19.12.40.1-0.rec&lt;/param&gt;<br />
 &nbsp;&nbsp;&lt;param name="is_new"&gt;false&lt;/param&gt;<br />
@@ -561,6 +569,7 @@ GET http://127.0.0.1:8002/recordings.xml?start=0&amp;limit=1<br />
 &nbsp;&nbsp;&lt;param name="is_pes_recording"&gt;false&lt;/param&gt;<br />
 &nbsp;&nbsp;&lt;param name="duration"&gt;-1&lt;/param&gt;<br />
 &nbsp;&nbsp;&lt;param name="frames_per_second"&gt;50&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="marks"&gt;&lt;0:03:17.10&gt;&lt;1:43:07.24&gt;&lt;/param&gt;<br/>
 &nbsp;&nbsp;&lt;param name="event_title"&gt;Asterix in Amerika&lt;/param&gt;<br />
 &nbsp;&nbsp;&lt;param name="event_short_text"&gt;&lt;/param&gt;<br />
 &nbsp;&nbsp;&lt;param name="event_description"&gt;(Zeichentrickfilm, DEU 1994)&lt;/param&gt;<br />
@@ -573,9 +582,10 @@ GET http://127.0.0.1:8002/recordings.xml?start=0&amp;limit=1<br />
 <br />
 
 <div class="code"><code>
-GET http://127.0.0.1:8002/recordings.json?start=0&amp;limit=1<br />
+GET http://127.0.0.1:8002/recordings.json?start=0&amp;limit=1i&amp;marks=true<br />
 <br />
 {"recordings":[{<br />
+"number":0,<br />
 "name":"Asterix in Amerika",<br />
 "file_name":"\/var\/lib\/video.00\/Asterix_in_Amerika\/2011-06-19.12.40.1-0.rec",<br />
 "is_new":false,<br />
@@ -583,6 +593,7 @@ GET http://127.0.0.1:8002/recordings.json?start=0&amp;limit=1<br />
 "is_pes_recording":false,<br />
 "duration":-1,<br />
 "frames_per_second":50,<br />
+"marks":["0:03:17.10", "1:43:07.24"],<br />
 "event_title":"Asterix in Amerika",<br />
 "event_short_text":"",<br />
 "event_description":"(Zeichentrickfilm, DEU 1994)",<br />
@@ -590,6 +601,67 @@ GET http://127.0.0.1:8002/recordings.json?start=0&amp;limit=1<br />
 "event_duration":4611<br />
 }],"count":1,"total":2}
 </code></div>
+<br />
+<br />
+<br />
+
+<h2><a name="RecordingCut">Cut</a></h2>
+
+This service tells your VDR to cut a recording or can tell the client if the vdr cutter is currently cutting a recording:<br />
+<br />
+Method: <b>GET, POST</b><br />
+<br />
+Examples: <br/>
+<br />
+<div class="code"><code>
+POST http://&lt;ip&gt;:&lt;port&gt;/recordings/cut/&lt;recordingnumber&gt;        # do it! (cut the recording)<br />
+GET http://&lt;ip&gt;:&lt;port&gt;/recordings/cut.&lt;format&gt;                  # this will return the status of the VDR Cutter
+</code></div>
+<br />
+
+
+<br />
+<h2><a name="RecordingsMarks">Marks</a></h2>
+
+This service can save and delete marks. To retrieve them use the parameter "marks=true" in the request url for the recordings.<br />
+<br />
+
+<b>Delete Cutting Marks: </b><br />
+<br />
+
+Method: <b>DELETE</b><br />
+<br />
+
+Examples: <br />
+<br />
+<div class="code"><code>
+DELETE http://&lt;ip&gt;:&lt;port&gt;/recordings/marks/&lt;recordingnumber&gt;
+</code></div>
+<br />
+
+
+<b>Create new Cutting Marks: </b><br />
+<br />
+
+Method: <b>POST</b><br />
+<br />
+
+Examples: <br />
+<br />
+<div class="code"><code>
+POST http://&lt;ip&gt;:&lt;port&gt;/recordings/marks/&lt;recordingnumber&gt;
+</code></div>
+<br />
+<br />
+
+Example Body-Content (required, Only JSON supported):<br />
+<br />
+<div class="code"><code>
+{'marks':['0:02:18.10','0:34:08.24']}
+</code></div>
+
+
+<br />
 <br />
 
 <hr />
@@ -672,11 +744,11 @@ GET http://127.0.0.1:8002/timers.xml?start=0&amp;limit=1<br />
 &nbsp;&nbsp;&lt;param name="event_id"&gt;27312&lt;/param&gt;<br />
 &nbsp;&nbsp;&lt;param name="weekdays"&gt;-------&lt;/param&gt;<br />
 &nbsp;&nbsp;&lt;param name="day"&gt;2011-06-26&lt;/param&gt;<br />
-&nbsp;&nbsp;&lt;param name="channel"&gt;1&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="channel"&gt;C-71-71-61920&lt;/param&gt;<br />
 &nbsp;&nbsp;&lt;param name="is_recording"&gt;false&lt;/param&gt;<br />
 &nbsp;&nbsp;&lt;param name="is_pending"&gt;false&gt;/param&gt;<br />
 &nbsp;&nbsp;&lt;param name="filename"&gt;Mad Money&gt;/param&gt;<br />
-&nbsp;&nbsp;&lt;param name="channelname"&gt;ORF1 HD&gt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="channel_name"&gt;ORF1 HD&gt;/param&gt;<br />
 &nbsp;&nbsp;&lt;param name="is_active"&gt;true&gt;/param&gt;<br />
 &nbsp;&lt;/timer&gt;<br />
 &nbsp;&lt;count&gt;1&lt;/count&gt;&lt;total&gt;2&lt;/total&gt;<br />

@@ -10,6 +10,7 @@
 #include <sstream>
 #include "tools.h"
 
+#include <vdr/cutter.h>
 #include <vdr/recording.h>
 
 class RecordingsResponder : public cxxtools::http::Responder
@@ -19,34 +20,26 @@ class RecordingsResponder : public cxxtools::http::Responder
       : cxxtools::http::Responder(service)
       { }
 
-    virtual void reply(std::ostream&, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
-    virtual void deleteRecording(std::ostream&, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
-    virtual void showRecordings(std::ostream&, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+    virtual void reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+    void deleteRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+    void showRecordings(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+    void saveMarks(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+    void deleteMarks(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+    void cutRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+    void showCutterStatus(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
 };
 
 typedef cxxtools::http::CachedService<RecordingsResponder> RecordingsService;
 
-int getRecordingDuration(cRecording* m_recording);
-
-struct RecordingCacheItem
+class SerMarks
 {
-  std::string Name;
-  int Duration;
-};
-
-class RecordingCache
-{
-  private:
-    std::vector< struct RecordingCacheItem > _items;
   public:
-    RecordingCache();
-    ~RecordingCache() { };
-    static RecordingCache* get();
-    int Duration(cRecording* recording);
+    std::vector< std::string > marks;
 };
 
 struct SerRecording
 {
+  int Number;
   cxxtools::String Name;
   cxxtools::String FileName;
   bool IsNew;
@@ -54,6 +47,7 @@ struct SerRecording
   bool IsPesRecording;
   int Duration;
   double FramesPerSecond;
+  SerMarks Marks;
   cxxtools::String EventTitle;
   cxxtools::String EventShortText;
   cxxtools::String EventDescription;
@@ -66,13 +60,14 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerRecording& p);
 class RecordingList : public BaseList
 {
   protected:
+    bool read_marks;
     int total;
     StreamExtension *s;
   public:
-    RecordingList(std::ostream* _out);
+    RecordingList(std::ostream* _out, bool _read_marks);
     ~RecordingList();
     virtual void init() { };
-    virtual void addRecording(cRecording* recording) { };
+    virtual void addRecording(cRecording* recording, int nr) { };
     virtual void finish() { };
     virtual void setTotal(int _total) { total = _total; }
 };
@@ -80,10 +75,10 @@ class RecordingList : public BaseList
 class HtmlRecordingList : RecordingList
 {
   public:
-    HtmlRecordingList(std::ostream* _out) : RecordingList(_out) { };
+    HtmlRecordingList(std::ostream* _out, bool _read_marks) : RecordingList(_out, _read_marks) { };
     ~HtmlRecordingList() { };
     virtual void init();
-    virtual void addRecording(cRecording* recording);
+    virtual void addRecording(cRecording* recording, int nr);
     virtual void finish();
 };
 
@@ -92,18 +87,18 @@ class JsonRecordingList : RecordingList
   private:
     std::vector < struct SerRecording > serRecordings;
   public:
-    JsonRecordingList(std::ostream* _out) : RecordingList(_out) { };
+    JsonRecordingList(std::ostream* _out, bool _read_marks) : RecordingList(_out, _read_marks) { };
     ~JsonRecordingList() { };
-    virtual void addRecording(cRecording* recording);
+    virtual void addRecording(cRecording* recording, int nr);
     virtual void finish();
 };
 
 class XmlRecordingList : RecordingList
 {
   public:
-    XmlRecordingList(std::ostream* _out) : RecordingList(_out) { };
+    XmlRecordingList(std::ostream* _out, bool _read_marks) : RecordingList(_out, _read_marks) { };
     ~XmlRecordingList() { };
     virtual void init();
-    virtual void addRecording(cRecording* recording);
+    virtual void addRecording(cRecording* recording, int nr);
     virtual void finish();
 };

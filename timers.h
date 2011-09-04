@@ -42,7 +42,7 @@ struct SerTimer
   int EventID;
   cxxtools::String WeekDays;
   cxxtools::String Day;
-  int Channel;
+  cxxtools::String Channel;
   bool IsRecording;
   bool IsPending;
   bool IsActive;
@@ -51,7 +51,6 @@ struct SerTimer
 };
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerTimer& t);
-void operator>>= (const cxxtools::SerializationInfo& si, SerTimer& t);
 
 class TimerList : public BaseList
 {

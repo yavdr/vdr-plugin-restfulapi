@@ -211,7 +211,7 @@ void FileNotifier::Initialize(int mode)
   _wd = -1;
 
   if ( dir.length() == 0 ) {
-     esyslog("restfulapi: Initializing inotify for epgimages failed! (Check restfulapi-settings!)");
+     esyslog("restfulapi: Initializing inotify for epgimages or channellogos failed! (Check restfulapi-settings!)");
      _wd = -1;
   } else {
      _wd = inotify_add_watch( _filedescriptor, dir.c_str(), IN_CREATE | IN_DELETE );
@@ -472,6 +472,133 @@ bool VdrExtension::IsRecording(cRecording* recording)
   return false;
 }
 
+// --- VdrMarks ---------------------------------------------------------------
+
+VdrMarks* VdrMarks::get()
+{
+  static VdrMarks vdrMarks;
+  return &vdrMarks;
+}
+
+std::string VdrMarks::cutComment(std::string str)
+{
+  bool esc = false;
+  char c;
+  int counter = 0;
+  while ( counter < (int)str.length() ) {
+    c = str[counter];
+    switch(c) {
+      case '\\': if (!esc) esc = true; else esc = false;
+                  break;
+      case ' ': if (!esc) return str.substr(0, counter);
+                  break;
+      default: esc = false;
+                  break;
+    }
+    counter++;
+  }
+  return str;
+}
+
+bool VdrMarks::validateMark(std::string mark)
+{
+  static cxxtools::Regex regex("[0-9]{1,2}:[0-9]{2,2}:[0-9]{2,2}[.]{0,1}[0-9]{0,2}");
+  return regex.match(mark);
+}
+
+std::string VdrMarks::getPath(cRecording* recording)
+{
+  std::string filename = recording->FileName();
+  return filename + "/marks";
+}
+
+bool VdrMarks::parseLine(std::vector< std::string >& marks, std::string line)
+{
+  line = cutComment(line);
+  if ( validateMark(line) ) {
+     marks.push_back(line);
+     return true;
+  }
+  return false;
+}
+
+std::vector< std::string > VdrMarks::readMarks(cRecording* recording)
+{
+  std::vector< std::string > marks;
+  std::string path = getPath(recording);
+
+  if ( path.length() == 0 ) {
+     return marks;
+  }
+
+  FILE* f = fopen(path.c_str(), "r");
+  if ( f != NULL ) {
+     std::ostringstream data;
+     char c;
+     while ( !feof(f) ) {
+       c = fgetc(f);
+       if ( c == '\n' ) {
+          parseLine(marks, data.str());
+          data.str(""); //.clear() is inherited from std::ios and does only clear the error state
+       } else {
+          if (!feof(f)) //don't add EOF-char to string
+             data << c;
+       }
+     }
+     parseLine(marks, data.str());
+     fclose(f);
+  }
+
+  return marks;
+}
+
+bool VdrMarks::saveMarks(cRecording* recording, std::vector< std::string > marks)
+{
+  if (recording == NULL) {
+     return false;
+  }
+
+  for(int i=0;i<(int)marks.size();i++)
+  {
+     if ( !validateMark(marks[i]) ) {
+        return false;
+     }
+  }
+
+  std::string path = getPath(recording);
+  if ( path.length() == 0 ) {
+     return false;
+  }
+
+  deleteMarks(recording);
+
+  FILE* file = fopen(path.c_str(), "w");
+  if ( file != NULL ) {
+     for(int i=0;i<(int)marks.size();i++) {
+        for(int k=0;k<(int)marks[i].length();k++)
+        {
+           fputc( (int)marks[i][k], file );
+        }
+        fputc( (int)'\n', file );
+     }
+
+     fclose(file);
+     return true;
+  }
+
+  return false;
+}
+
+bool VdrMarks::deleteMarks(cRecording* recording)
+{
+  std::string marksfile = getPath(recording);
+
+  if ( remove( marksfile.c_str() ) != 0 ) {
+     return false;
+  }
+  return true;
+}
+
 // --- StringExtension --------------------------------------------------------
 
 std::string StringExtension::itostr(int i)
@@ -594,7 +721,7 @@ QueryHandler::QueryHandler(std::string service, cxxtools::http::Request& request
   bool found_json = false;
  
   int i = 0;
-  while(!found_json) {
+  while(!found_json && body.length() > (size_t)i) {
     if (body[i] == '{') {
        found_json = true;
     } else if (body[i] != '\t' && body[i] != '\n' && body[i] != ' ') {
@@ -749,6 +876,18 @@ bool QueryHandler::getBodyAsBool(std::string name)
   if (result == "false") return false;
   if (result == "1") return true;
   return false;
+}
+
+JsonArray* QueryHandler::getBodyAsArray(std::string name)
+{
+  if ( jsonObject == NULL ) {
+     return NULL;
+  }
+  JsonValue* jsonValue = jsonObject->GetItem(name);
+  if ( jsonValue == NULL || jsonValue->Value() == NULL || !jsonValue->Value()->IsArray() ) {
+     return NULL;
+  }
+  return (JsonArray*)jsonValue->Value();
 }
 
 bool QueryHandler::isFormat(std::string format)

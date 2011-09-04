@@ -195,28 +195,10 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerTimer& t)
   si.addMember("day") <<= t.Day;
   si.addMember("channel") <<= t.Channel;
   si.addMember("filename") <<= t.FileName;
-  si.addMember("channelname") <<= t.ChannelName;
+  si.addMember("channel_name") <<= t.ChannelName;
   si.addMember("is_pending") <<= t.IsPending;
   si.addMember("is_recording") <<= t.IsRecording;
   si.addMember("is_active") <<= t.IsActive;
-}
-
-void operator>>= (const cxxtools::SerializationInfo& si, SerTimer& t)
-{
-  si.getMember("start") >>= t.Id;
-  si.getMember("start") >>= t.Start;
-  si.getMember("stop") >>= t.Stop;
-  si.getMember("priority") >>= t.Priority;
-  si.getMember("lifetime") >>= t.Lifetime;
-  si.getMember("event_id") >>= t.EventID;
-  si.getMember("weekdays") >>= t.WeekDays;
-  si.getMember("day") >>= t.Day;
-  si.getMember("channel") >>= t.Channel;
-  si.getMember("filename") >>= t.FileName;
-  si.getMember("channel_name") >>= t.ChannelName;
-  si.getMember("is_pending") >>= t.IsPending;
-  si.getMember("is_recording") >>= t.IsRecording;
-  si.getMember("is_active") >>= t.IsActive;
 }
 
 TimerList::TimerList(std::ostream *out)
@@ -263,7 +245,7 @@ void JsonTimerList::addTimer(cTimer* timer)
   serTimer.EventID = timer->Event() != NULL ? timer->Event()->EventID() : -1;
   serTimer.WeekDays = StringExtension::UTF8Decode(v.ConvertWeekdays(timer->WeekDays()));
   serTimer.Day = StringExtension::UTF8Decode(v.ConvertDay(timer->Day()));
-  serTimer.Channel = timer->Channel()->Number();
+  serTimer.Channel = StringExtension::UTF8Decode((const char*)timer->Channel()->GetChannelID().ToString());
   serTimer.IsRecording = timer->Recording();
   serTimer.IsPending = timer->Pending();
   serTimer.FileName = StringExtension::UTF8Decode(timer->File());
@@ -302,11 +284,11 @@ void XmlTimerList::addTimer(cTimer* timer)
   s->write((const char*)cString::sprintf("  <param name=\"event_id\">%i</param>\n", timer->Event() != NULL ? timer->Event()->EventID() : -1) );
   s->write((const char*)cString::sprintf("  <param name=\"weekdays\">%s</param>\n", StringExtension::encodeToXml(v.ConvertWeekdays(timer->WeekDays())).c_str()));
   s->write((const char*)cString::sprintf("  <param name=\"day\">%s</param>\n", StringExtension::encodeToXml(v.ConvertDay(timer->Day())).c_str()));
-  s->write((const char*)cString::sprintf("  <param name=\"channel\">%i</param>\n", timer->Channel()->Number()) );
+  s->write((const char*)cString::sprintf("  <param name=\"channel\">%s</param>\n", StringExtension::encodeToXml((const char*)timer->Channel()->GetChannelID().ToString()).c_str()) );
   s->write((const char*)cString::sprintf("  <param name=\"is_recording\">%s</param>\n", timer->Recording() ? "true" : "false" ) );
   s->write((const char*)cString::sprintf("  <param name=\"is_pending\">%s</param>\n", timer->Pending() ? "true" : "false" ));
-  s->write((const char*)cString::sprintf("  <param name=\"filename\">%s</param>\n", StringExtension::encodeToXml(timer->File()).c_str()) );
-  s->write((const char*)cString::sprintf("  <param name=\"channelname\">%s</param>\n", StringExtension::encodeToXml(timer->Channel()->Name()).c_str()));
+  s->write((const char*)cString::sprintf("  <param name=\"file_name\">%s</param>\n", StringExtension::encodeToXml(timer->File()).c_str()) );
+  s->write((const char*)cString::sprintf("  <param name=\"channel_name\">%s</param>\n", StringExtension::encodeToXml(timer->Channel()->Name()).c_str()));
   s->write((const char*)cString::sprintf("  <param name=\"is_active\">%s</param>\n", timer->Flags() & 0x01 == 0x01 ? "true" : "false" ));
   s->write(" </timer>\n");
 }
