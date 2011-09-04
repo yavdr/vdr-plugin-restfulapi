@@ -165,6 +165,7 @@ class VdrExtension
     static bool doesFileExistInFolder(std::string wildcardpath, std::string filename);
     static bool IsRadio(cChannel* channel);
     static bool IsRecording(cRecording* recording);
+    static cTimer* TimerExists(cEvent* event);
 };
 
 class VdrMarks

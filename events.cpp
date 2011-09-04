@@ -242,6 +242,8 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)
   si.addMember("start_time") <<= e.StartTime;
   si.addMember("duration") <<= e.Duration;
   si.addMember("images") <<= e.Images;
+  si.addMember("timer_exists") <<= e.TimerExists;
+  si.addMember("timer_active") <<= e.TimerActive;
 }
 
 EventList::EventList(std::ostream *_out) {
@@ -297,6 +299,9 @@ void JsonEventList::addEvent(cEvent* event)
   serEvent.Channel = channelStr;
   serEvent.StartTime = event->StartTime();
   serEvent.Duration = event->Duration();
+  cTimer* timer = VdrExtension::TimerExists(event);
+  serEvent.TimerExists = timer != NULL ? true : false;
+  if ( timer != NULL ) serEvent.TimerActive = timer->Flags() & 0x01 == 0x01 ? true : false;
 
   std::vector< std::string > images;
   FileCaches::get()->searchEventImages((int)event->EventID(), images);
@@ -346,6 +351,12 @@ void XmlEventList::addEvent(cEvent* event)
   std::vector< std::string > images;
   FileCaches::get()->searchEventImages((int)event->EventID(), images);
   s->write(cString::sprintf("  <param name=\"images\">%i</param>\n", (int)images.size()));
+  cTimer* timer = VdrExtension::TimerExists(event);
+  bool timer_exists = timer != NULL ? true : false;
+  bool timer_active = false;
+  if ( timer_exists ) timer_active = timer->Flags() & 0x01 == 0x01 ? true : false;
+  s->write(cString::sprintf("  <param name=\"timer_exists\">%s</param>\n", (timer_exists ? "true" : "false")));
+  s->write(cString::sprintf("  <param name=\"timer_active\">%s</param>\n", (timer_active ? "true" : "false")));
 
   s->write(" </event>\n");
 }
