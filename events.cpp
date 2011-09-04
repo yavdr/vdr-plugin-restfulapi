@@ -240,6 +240,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)
   si.addMember("short_text") <<= e.ShortText;
   si.addMember("description") <<= e.Description;
   si.addMember("start_time") <<= e.StartTime;
+  si.addMember("channel") <<= e.Channel;
   si.addMember("duration") <<= e.Duration;
   si.addMember("images") <<= e.Images;
   si.addMember("timer_exists") <<= e.TimerExists;
