@@ -266,7 +266,7 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
   serRecording.IsNew = recording->IsNew();
   serRecording.IsEdited = recording->IsEdited();
   serRecording.IsPesRecording = recording->IsPesRecording();
-  serRecording.Duration = recording->LengthInSeconds() == -1 ? -1 : recording->LengthInSeconds()/60;
+  serRecording.Duration = recording->LengthInSeconds() == -1 ? -1 : recording->LengthInSeconds();
   serRecording.FramesPerSecond = recording->FramesPerSecond();
   serRecording.EventTitle = eventTitle;
   serRecording.EventShortText = eventShortText;
@@ -327,7 +327,7 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr)
   s->write(cString::sprintf("  <param name=\"is_new\">%s</param>\n", recording->IsNew() ? "true" : "false" ));
   s->write(cString::sprintf("  <param name=\"is_edited\">%s</param>\n", recording->IsEdited() ? "true" : "false" ));
   s->write(cString::sprintf("  <param name=\"is_pes_recording\">%s</param>\n", recording->IsPesRecording() ? "true" : "false" ));
-  s->write(cString::sprintf("  <param name=\"duration\">%i</param>\n", (recording->LengthInSeconds() == -1 ? -1 : recording->LengthInSeconds()/60)));
+  s->write(cString::sprintf("  <param name=\"duration\">%i</param>\n", (recording->LengthInSeconds() == -1 ? -1 : recording->LengthInSeconds())));
   s->write(cString::sprintf("  <param name=\"frames_per_second\">%f</param>\n", recording->FramesPerSecond()));
 
   if (read_marks) {

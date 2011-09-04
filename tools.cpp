@@ -472,6 +472,34 @@ bool VdrExtension::IsRecording(cRecording* recording)
   return false;
 }
 
+cTimer* VdrExtension::TimerExists(cEvent* event)
+{
+  for(int i=0;i<Timers.Count();i++) {
+     cTimer* timer = Timers.Get(i);
+     if ( timer->Event() != NULL ) {
+        if ( timer->Event()->EventID() == event->EventID() ) {
+           return timer;
+        }
+
+        if ( timer->Channel()->GetChannelID() == event->ChannelID() ) {
+           int timer_start = (int)timer->Day() - ((int)timer->Day()) % 86400;
+           int timer_stop = timer_start;
+           timer_start += ((int)(timer->Start() / 100)) * 60 * 60;
+           timer_start += (timer->Start() % 100) * 60;
+
+           if ( timer->Stop() < timer->Start() ) timer_stop += 24 * 60 * 60;
+           timer_stop += ((int)(timer->Stop() / 100)) * 60 * 60;
+           timer_stop += (timer->Stop() % 100) * 60;
+
+           if ( timer_stop >= (int)event->EndTime() && timer_start <= (int)event->StartTime() ) {
+              return timer;
+           }
+        }
+     }
+  }
+  return NULL;
+}
+
 // --- VdrMarks ---------------------------------------------------------------
 
 VdrMarks* VdrMarks::get()
