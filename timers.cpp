@@ -186,6 +186,7 @@ void TimersResponder::showTimers(std::ostream& out, cxxtools::http::Request& req
 void operator<<= (cxxtools::SerializationInfo& si, const SerTimer& t)
 {
   si.addMember("id") <<= t.Id;
+  si.addMember("flags") <<= t.Flags;
   si.addMember("start") <<= t.Start;
   si.addMember("stop") <<= t.Stop;
   si.addMember("priority") <<= t.Priority;
@@ -238,6 +239,7 @@ void JsonTimerList::addTimer(cTimer* timer)
 
   SerTimer serTimer;
   serTimer.Id = StringExtension::UTF8Decode(VdrExtension::getTimerID(timer));
+  serTimer.Flags = timer->Flags();
   serTimer.Start = timer->Start();
   serTimer.Stop = timer->Stop();
   serTimer.Priority = timer->Priority();
@@ -277,6 +279,7 @@ void XmlTimerList::addTimer(cTimer* timer)
 
   s->write(" <timer>\n");
   s->write((const char*)cString::sprintf("  <param name=\"id\">%s</param>\n", StringExtension::encodeToXml(VdrExtension::getTimerID(timer)).c_str()));
+  s->write((const char*)cString::sprintf("  <param name=\"flags\">%i</param>\n", timer->Flags()));
   s->write((const char*)cString::sprintf("  <param name=\"start\">%i</param>\n", timer->Start()) );
   s->write((const char*)cString::sprintf("  <param name=\"stop\">%i</param>\n", timer->Stop()) );
   s->write((const char*)cString::sprintf("  <param name=\"priority\">%i</param>\n", timer->Priority()) );

@@ -35,6 +35,7 @@ typedef cxxtools::http::CachedService<TimersResponder> TimersService;
 struct SerTimer
 {
   cxxtools::String Id;
+  int Flags;
   int Start;
   int Stop;
   int Priority;
