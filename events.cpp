@@ -45,6 +45,8 @@ void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& re
 
   int start_filter = q.getOptionAsInt("start");
   int limit_filter = q.getOptionAsInt("limit");
+  
+  int event_id = q.getOptionAsInt("eventid");
 
   cChannel* channel = VdrExtension::getChannel(channel_id);
   if ( channel == NULL ) { 
@@ -83,7 +85,9 @@ void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& re
     int ts = event->StartTime();
     int te = ts + event->Duration();
     if ( (ts <= to && te > from) || (te > from && timespan == 0) ) {
-       eventList->addEvent(event);
+       if ( event_id < 0 || event_id == (int)event->EventID()) {
+          eventList->addEvent(event);
+       }
     }else{
       if(ts > to) break;
       if(te <= from) {

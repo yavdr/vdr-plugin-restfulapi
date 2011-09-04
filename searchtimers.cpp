@@ -184,6 +184,8 @@ void JsonSearchTimerList::finish()
 {
   cxxtools::JsonSerializer serializer(*s->getBasicStream());
   serializer.serialize(_items, "searchtimers");
+  serializer.serialize(Count(), "count");
+  serializer.serialize(total, "total");
   serializer.finish();
 }
 
@@ -201,6 +203,7 @@ void XmlSearchTimerList::addSearchTimer(SerSearchTimerContainer searchTimer)
 
 void XmlSearchTimerList::finish()
 {
+  s->write(cString::sprintf(" <count>%i</count><total>%i</total>\n", Count(), total));
   s->write("</searchtimers>\n");
 }
 
