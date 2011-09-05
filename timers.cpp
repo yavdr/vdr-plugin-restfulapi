@@ -172,16 +172,14 @@ void TimersResponder::showTimers(std::ostream& out, cxxtools::http::Request& req
 
   timerList->init();
 
-  int timer_count = Timers.Count();
-  cTimer *timer;
-  for (int i=0;i<timer_count;i++)
+  std::vector< cTimer* > timers = VdrExtension::SortedTimers();
+  for (int i=0;i<(int)timers.size();i++)
   {
-     timer = Timers.Get(i);
-     if ( VdrExtension::getTimerID(timer) == timer_id || timer_id.length() == 0 ) {
-        timerList->addTimer(timer);   
+     if ( VdrExtension::getTimerID(timers[i]) == timer_id || timer_id.length() == 0 ) {
+        timerList->addTimer(timers[i]);   
      }
   }
-  timerList->setTotal(timer_count);
+  timerList->setTotal((int)timers.size());
 
   timerList->finish();
   delete timerList;   
