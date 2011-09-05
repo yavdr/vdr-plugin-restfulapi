@@ -164,6 +164,8 @@ void TimersResponder::showTimers(std::ostream& out, cxxtools::http::Request& req
   int start_filter = q.getOptionAsInt("start");
   int limit_filter = q.getOptionAsInt("limit");
 
+  std::string timer_id = q.getParamAsString(0);
+
   if ( start_filter >= 0 && limit_filter >= 1 ) {
      timerList->activateLimit(start_filter, limit_filter);
   }
@@ -175,7 +177,9 @@ void TimersResponder::showTimers(std::ostream& out, cxxtools::http::Request& req
   for (int i=0;i<timer_count;i++)
   {
      timer = Timers.Get(i);
-     timerList->addTimer(timer);   
+     if ( VdrExtension::getTimerID(timer) == timer_id || timer_id.length() == 0 ) {
+        timerList->addTimer(timer);   
+     }
   }
   timerList->setTotal(timer_count);
 

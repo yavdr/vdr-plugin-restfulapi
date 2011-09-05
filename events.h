@@ -40,6 +40,7 @@ struct SerEvent
   int Images;
   bool TimerExists;
   bool TimerActive;
+  cxxtools::String TimerId;
 };
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e);

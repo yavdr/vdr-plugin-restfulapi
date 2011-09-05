@@ -40,13 +40,13 @@ void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& re
   }
 
   std::string channel_id = q.getParamAsString(0);
-  int timespan = q.getParamAsInt(1);
-  int from = q.getParamAsInt(2);
+  int timespan = q.getOptionAsInt("timespan");//q.getParamAsInt(1);
+  int from = q.getOptionAsInt("from");//q.getParamAsInt(2);
 
   int start_filter = q.getOptionAsInt("start");
   int limit_filter = q.getOptionAsInt("limit");
   
-  int event_id = q.getOptionAsInt("eventid");
+  int event_id = q.getParamAsInt(1);//q.getOptionAsInt("eventid");
 
   cChannel* channel = VdrExtension::getChannel(channel_id);
   if ( channel == NULL ) { 
@@ -56,7 +56,7 @@ void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& re
   }
 
   if ( from <= -1 ) from = time(NULL); // default time is now
-  if ( timespan <= -1 ) timespan = 3600; // default timespan is one hour
+  if ( timespan <= -1 ) timespan = 0; // default timespan is 0, which means all entries will be returned
   int to = from + timespan;
 
   cSchedulesLock MutexLock;
@@ -245,6 +245,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)
   si.addMember("images") <<= e.Images;
   si.addMember("timer_exists") <<= e.TimerExists;
   si.addMember("timer_active") <<= e.TimerActive;
+  si.addMember("timer_id") <<= e.TimerId;
 }
 
 EventList::EventList(std::ostream *_out) {
@@ -302,7 +303,10 @@ void JsonEventList::addEvent(cEvent* event)
   serEvent.Duration = event->Duration();
   cTimer* timer = VdrExtension::TimerExists(event);
   serEvent.TimerExists = timer != NULL ? true : false;
-  if ( timer != NULL ) serEvent.TimerActive = timer->Flags() & 0x01 == 0x01 ? true : false;
+  if ( timer != NULL ) {
+     serEvent.TimerActive = timer->Flags() & 0x01 == 0x01 ? true : false;
+     serEvent.TimerId = StringExtension::UTF8Decode(VdrExtension::getTimerID(timer));
+  }
 
   std::vector< std::string > images;
   FileCaches::get()->searchEventImages((int)event->EventID(), images);
@@ -352,18 +356,26 @@ void XmlEventList::addEvent(cEvent* event)
   std::vector< std::string > images;
   FileCaches::get()->searchEventImages((int)event->EventID(), images);
   s->write(cString::sprintf("  <param name=\"images\">%i</param>\n", (int)images.size()));
+
   cTimer* timer = VdrExtension::TimerExists(event);
   bool timer_exists = timer != NULL ? true : false;
   bool timer_active = false;
-  if ( timer_exists ) timer_active = timer->Flags() & 0x01 == 0x01 ? true : false;
+  std::string timer_id = "";
+  if ( timer_exists ) {
+     timer_active = timer->Flags() & 0x01 == 0x01 ? true : false;
+     timer_id = VdrExtension::getTimerID(timer);
+  }
+
+
   s->write(cString::sprintf("  <param name=\"timer_exists\">%s</param>\n", (timer_exists ? "true" : "false")));
   s->write(cString::sprintf("  <param name=\"timer_active\">%s</param>\n", (timer_active ? "true" : "false")));
+  s->write(cString::sprintf("  <param name=\"timer_id\">%s</param>\n", timer_id.c_str()));
 
   s->write(" </event>\n");
 }
 
 void XmlEventList::finish()
 {
-  s->write(cString::sprintf(" <count>%i</count><total>%i</total>", Count(), total));
+  s->write(cString::sprintf(" <count>%i</count><total>%i</total>\n", Count(), total));
   s->write("</events>");
 }

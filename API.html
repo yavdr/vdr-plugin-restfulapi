@@ -311,10 +311,10 @@ Method: <b>GET</b><br />
 Examples: <br />
 <br />
 <div class="code"><code>
-GET http://&lt;ip&gt;:&lt;port&gt;/events/&lt;channelid&gt;/&lt;timespan&gt;.&lt;format&gt;<br />
-GET http://&lt;ip&gt;:&lt;port&gt;/events/&lt;channelid&gt;/&lt;timespan&gt;.&lt;format&gt;?eventid=&lt;eventid&gt;<br />
-GET http://&lt;ip&gt;:&lt;port&gt;/events/&lt;channelid&gt;/&lt;timespan&gt;/&lt;from&gt;.&lt;format&gt;<br />
-GET http://&lt;ip&gt;:&lt;port&gt;/events/&lt;channelid&gt;/&lt;timespan&gt;/&lt;from&gt;.&lt;format&gt;?start=&lt;int&gt;&amp;limit=&lt;int&gt;
+GET http://&lt;ip&gt;:&lt;port&gt;/events/&lt;channelid&gt;.&lt;format&gt;?timespan=&lt;timespan&gt;<br />
+GET http://&lt;ip&gt;:&lt;port&gt;/events/&lt;channelid&gt;/&lt;eventid&gt;.&lt;format&gt;<br />
+GET http://&lt;ip&gt;:&lt;port&gt;/events/&lt;channelid&gt;.&lt;format&gt;?timespan=&lt;timespan&gt;<br />
+GET http://&lt;ip&gt;:&lt;port&gt;/events/&lt;channelid&gt;.&lt;format&gt;?timespan=&lt;timespan&gt;&amp;from=&lt;from&gt;&amp;start=&lt;int&gt;&amp;limit=&lt;int&gt;
 </code></div>
 <br />
 <br />
@@ -347,6 +347,9 @@ GET http://&lt;ip&gt;:&lt;port&gt;/events/C-1-1011-11110/3600.xml?start=0&amp;li
 &nbsp;&nbsp;&lt;param name="start_time"&gt;1308845100&lt;/param&gt;<br />
 &nbsp;&nbsp;&lt;param name="duration"&gt;3300&lt;/param&gt;<br />
 &nbsp;&nbsp;&lt;param name="images"&gt;1&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="timer_exists"&gt;true&lt;/param&gt;
+&nbsp;&nbsp;&lt;param name="timer_active"&gt;true&lt;/param&gt;
+&nbsp;&nbsp;&lt;param name="timer_id"&gt;C-71-71-61920:0:1315173600:2100:2300&lt;/param&gt;
 &nbsp;&lt;/event&gt;<br />
 &nbsp;&lt;count&gt;1&lt;/count&gt;<br />
 &nbsp;&lt;total&gt;236&lt;/total&gt;<br />
@@ -708,6 +711,7 @@ Examples: <br/>
 <br />
 <div class="code"><code>
 GET http://&lt;ip&gt;:&lt;port&gt;/timers.&lt;format&gt;<br />
+GET http://&lt;ip&gt;:&lt;port&gt;/timers/&lt;timerid&gt;.&lt;format&gt;<br />
 GET http://&lt;ip&gt;:&lt;port&gt;/timers.&lt;format&gt;?start=&lt;int&gt;&amp;limit=&lt;int&gt;<br />
 DELETE http://&lt;ip&gt;:&lt;port&gt;/timers/&lt;timerid&gt;
 </code></div>
