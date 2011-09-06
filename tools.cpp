@@ -550,6 +550,15 @@ bool VdrExtension::CompareTimers(cTimer* timer1, cTimer* timer2)
   return false;
 }
 
+int VdrExtension::RecordingLengthInSeconds(cRecording* recording)
+{
+  int nf = recording->NumFrames();
+  if (nf >= 0)
+     return int(((double)nf / recording->FramesPerSecond()));
+  return -1;
+}
+
+
 // --- VdrMarks ---------------------------------------------------------------
 
 VdrMarks* VdrMarks::get()

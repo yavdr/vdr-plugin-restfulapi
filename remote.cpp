@@ -82,7 +82,9 @@ KeyPairList::KeyPairList()
   append( "recordings" , 	kRecordings 	);
   append( "setup" , 		kSetup 		);
   append( "commands" ,		kCommands 	);
+  #if APIVERSNUM >= 10715
   append( "user0" , 		kUser0 		);
+  #endif
   append( "user1" , 		kUser1 		);
   append( "user2" , 		kUser2 		);
   append( "user3" , 		kUser3 		);

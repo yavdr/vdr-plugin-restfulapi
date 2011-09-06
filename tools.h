@@ -168,6 +168,7 @@ class VdrExtension
     static cTimer* TimerExists(cEvent* event);
     static std::vector< cTimer* > SortedTimers();
     static bool CompareTimers(cTimer* timer1, cTimer* timer2);
+    static int RecordingLengthInSeconds(cRecording* recording);
 };
 
 class VdrMarks
