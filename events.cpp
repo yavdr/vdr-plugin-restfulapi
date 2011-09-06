@@ -246,6 +246,30 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)
   si.addMember("timer_exists") <<= e.TimerExists;
   si.addMember("timer_active") <<= e.TimerActive;
   si.addMember("timer_id") <<= e.TimerId;
+
+  std::vector< SerComponent > components;
+  if ( e.Components != NULL ) {
+     for(int i=0;i<e.Components->NumComponents();i++) {
+        tComponent* comp = e.Components->Component(i);
+        SerComponent component;
+        component.Stream = (int)comp->stream;
+        component.Type = (int)comp->type;
+        component.Language = StringExtension::UTF8Decode(std::string(comp->language));
+        component.Description = StringExtension::UTF8Decode(std::string(comp->description));
+        components.push_back(component); 
+     }
+  }
+
+  si.addMember("components") <<= components;
+
+}
+
+void operator<<= (cxxtools::SerializationInfo& si, const SerComponent& c)
+{
+  si.addMember("stream") <<= c.Stream;
+  si.addMember("type") <<= c.Type;
+  si.addMember("language") <<= c.Language;
+  si.addMember("description") <<= c.Description;
 }
 
 EventList::EventList(std::ostream *_out) {
@@ -301,6 +325,7 @@ void JsonEventList::addEvent(cEvent* event)
   serEvent.Channel = channelStr;
   serEvent.StartTime = event->StartTime();
   serEvent.Duration = event->Duration();
+  serEvent.Components = (cComponents*)event->Components();
   cTimer* timer = VdrExtension::TimerExists(event);
   serEvent.TimerExists = timer != NULL ? true : false;
   if ( timer != NULL ) {
@@ -318,6 +343,7 @@ void JsonEventList::addEvent(cEvent* event)
 void JsonEventList::finish()
 {
   cxxtools::JsonSerializer serializer(*s->getBasicStream());
+  serializer.beautify();
   serializer.serialize(serEvents, "events");
   serializer.serialize(serEvents.size(), "count");
   serializer.serialize(total, "total");
@@ -365,6 +391,17 @@ void XmlEventList::addEvent(cEvent* event)
      timer_active = timer->Flags() & 0x01 == 0x01 ? true : false;
      timer_id = VdrExtension::getTimerID(timer);
   }
+
+  s->write("  <param name=\"components\">\n");
+  if (event->Components() != NULL) {
+     cComponents* components = (cComponents*)event->Components();
+     for(int i=0;i<components->NumComponents();i++) {
+        tComponent* component = components->Component(i);
+        s->write(cString::sprintf("   <component stream=\"%i\" type=\"%i\" language=\"%s\" description=\"%s\" />\n", 
+                                  (int)component->stream, (int)component->type, component->language, component->description));
+     }
+  }
+  s->write("  </param>\n");
 
 
   s->write(cString::sprintf("  <param name=\"timer_exists\">%s</param>\n", (timer_exists ? "true" : "false")));
