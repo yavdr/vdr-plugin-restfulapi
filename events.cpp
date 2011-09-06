@@ -254,8 +254,10 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)
         SerComponent component;
         component.Stream = (int)comp->stream;
         component.Type = (int)comp->type;
-        component.Language = StringExtension::UTF8Decode(std::string(comp->language));
-        component.Description = StringExtension::UTF8Decode(std::string(comp->description));
+        component.Language = StringExtension::UTF8Decode("");
+        if(comp->language != NULL) component.Language = StringExtension::UTF8Decode(std::string(comp->language));
+        component.Description = StringExtension::UTF8Decode("");
+        if(comp->description != NULL) component.Description = StringExtension::UTF8Decode(std::string(comp->description));
         components.push_back(component); 
      }
   }
@@ -397,8 +399,15 @@ void XmlEventList::addEvent(cEvent* event)
      cComponents* components = (cComponents*)event->Components();
      for(int i=0;i<components->NumComponents();i++) {
         tComponent* component = components->Component(i);
+
+        std::string language = ""; 
+        if (component->language != NULL) language = std::string(component->language);
+
+        std::string description = "";
+        if (component->description != NULL) description = std::string(component->description);
+
         s->write(cString::sprintf("   <component stream=\"%i\" type=\"%i\" language=\"%s\" description=\"%s\" />\n", 
-                                  (int)component->stream, (int)component->type, component->language, component->description));
+                                  (int)component->stream, (int)component->type, language.c_str(), description.c_str()));
      }
   }
   s->write("  </param>\n");
