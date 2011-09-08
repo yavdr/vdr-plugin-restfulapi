@@ -1,45 +1,37 @@
-#! /bin/sh /usr/share/dpatch/dpatch-run
-## opt-98_vdr-1.7.20-reclength.dpatch by Holger Schvestka <hotzenplotz5@gmx.de>
-##
-## All lines beginning with `## DP:' are a description of the patch.
-## DP: No description.
-
-@DPATCH@
-diff -urNad '--exclude=CVS' '--exclude=.svn' '--exclude=.git' '--exclude=.arch' '--exclude=.hg' '--exclude=_darcs' '--exclude=.bzr' vdr-1.7.20~/recording.c vdr-1.7.20/recording.c
---- vdr-1.7.20~/recording.c	2011-08-13 14:37:25.000000000 +0200
-+++ vdr-1.7.20/recording.c	2011-08-22 20:23:51.935296780 +0200
-@@ -60,6 +60,7 @@
+--- recording.c.org	2011-09-06 21:24:53.162929000 +0200
++++ recording.c	2011-09-06 22:41:25.034516000 +0200
+@@ -53,6 +53,7 @@
+ #define DELETEDLIFETIME   300 // seconds after which a deleted recording will be actually removed
  #define DISKCHECKDELTA    100 // seconds between checks for free disk space
  #define REMOVELATENCY      10 // seconds to wait until next check after removing a file
- #define MARKSUPDATEDELTA   10 // seconds between checks for updating editing marks
 +#define MININDEXAGE      3600 // seconds before an index file is considered no longer to be written
  
- #define MAX_SUBTITLE_LENGTH  40
- 
-@@ -617,6 +618,7 @@
-   instanceId = InstanceId;
-   isPesRecording = false;
-   framesPerSecond = DEFAULTFRAMESPERSECOND;
+ #define TIMERMACRO_TITLE    "TITLE"
+ #define TIMERMACRO_EPISODE  "EPISODE"
+@@ -495,6 +496,7 @@
+   fileName = NULL;
+   name = NULL;
+   fileSizeMB = -1; // unknown
 +  numFrames = -1;
    deleted = 0;
    // set up the actual name:
    const char *Title = Event ? Event->Title() : NULL;
-@@ -676,6 +678,7 @@
-   lifetime = MAXLIFETIME;
-   isPesRecording = false;
-   framesPerSecond = DEFAULTFRAMESPERSECOND;
+@@ -546,6 +548,7 @@
+ {
+   resume = RESUME_NOT_INITIALIZED;
+   fileSizeMB = -1; // unknown
 +  numFrames = -1;
    deleted = 0;
    titleBuffer = NULL;
    sortBuffer = NULL;
-@@ -1024,6 +1027,25 @@
+@@ -864,6 +867,25 @@
    resume = RESUME_NOT_INITIALIZED;
  }
  
 +int cRecording::NumFrames(void) const
 +{
 +  if (numFrames < 0) {
-+     int nf = cIndexFile::GetLength(FileName(), IsPesRecording());
++     int nf = cIndexFile::GetLength(FileName());
 +     if (time(NULL) - LastModifiedTime(FileName()) < MININDEXAGE)
 +        return nf; // check again later for ongoing recordings
 +     numFrames = nf;
@@ -51,14 +43,14 @@ diff -urNad '--exclude=CVS' '--exclude=.svn' '--exclude=.git' '--exclude=.arch' 
 +{
 +  int nf = NumFrames();
 +  if (nf >= 0)
-+     return int((nf / FramesPerSecond() + 30) / 60) * 60;
++     return int((nf / FRAMESPERSEC + 30) / 60) * 60;
 +  return -1;
 +}
 +
  // --- cRecordings -----------------------------------------------------------
  
  cRecordings Recordings;
-@@ -1095,6 +1117,7 @@
+@@ -935,6 +957,7 @@
                   if (endswith(buffer, deleted ? DELEXT : RECEXT)) {
                      cRecording *r = new cRecording(buffer);
                      if (r->Name()) {
@@ -66,31 +58,51 @@ diff -urNad '--exclude=CVS' '--exclude=.svn' '--exclude=.git' '--exclude=.arch' 
                         Lock();
                         Add(r);
                         ChangeState();
-@@ -1509,9 +1532,6 @@
+@@ -1180,9 +1203,6 @@
  // The maximum time to wait before giving up while catching up on an index file:
  #define MAXINDEXCATCHUP   8 // seconds
  
 -// The minimum age of an index file for considering it no longer to be written:
 -#define MININDEXAGE    3600 // seconds
 -
- struct tIndexPes {
-   uint32_t offset;
-   uchar type;
-diff -urNad '--exclude=CVS' '--exclude=.svn' '--exclude=.git' '--exclude=.arch' '--exclude=.hg' '--exclude=_darcs' '--exclude=.bzr' vdr-1.7.20~/recording.h vdr-1.7.20/recording.h
---- vdr-1.7.20~/recording.h	2011-08-13 14:51:23.000000000 +0200
-+++ vdr-1.7.20/recording.h	2011-08-22 20:20:09.495296772 +0200
-@@ -87,6 +87,7 @@
+ cIndexFile::cIndexFile(const char *FileName, bool Record)
+ :resumeFile(FileName)
+ {
+@@ -1349,6 +1369,20 @@
+   return false;
+ }
+ 
++cString cIndexFile::IndexFileName(const char *FileName)
++{
++  return cString::sprintf("%s%s", FileName, INDEXFILESUFFIX);
++}
++
++int cIndexFile::GetLength(const char *FileName)
++{
++  struct stat buf;
++  cString s = IndexFileName(FileName);
++  if (*s && stat(s, &buf) == 0)
++     return buf.st_size / sizeof(tIndex);
++  return -1;
++}
++
+ int cIndexFile::GetNextIFrame(int Index, bool Forward, uchar *FileNumber, int *FileOffset, int *Length, bool StayOffEnd)
+ {
+   if (CatchUp()) {
+--- recording.h.org	2007-10-14 12:11:34.000000000 +0200
++++ recording.h	2011-09-06 22:50:20.453868000 +0200
+@@ -71,6 +71,7 @@
    mutable char *fileName;
    mutable char *name;
    mutable int fileSizeMB;
 +  mutable int numFrames;
-   int channel;
-   int instanceId;
-   bool isPesRecording;
-@@ -114,6 +115,11 @@
+   cRecordingInfo *info;
+   cRecording(const cRecording&); // can't copy cRecording
+   cRecording &operator=(const cRecording &); // can't assign cRecording
+@@ -93,6 +94,11 @@
+   const char *PrefixFileName(char Prefix);
    int HierarchyLevels(void) const;
    void ResetResume(void) const;
-   double FramesPerSecond(void) const { return framesPerSecond; }
 +  int NumFrames(void) const;
 +       ///< Returns the number of frames in this recording.
 +       ///< If the number of frames is unknown, -1 will be returned.
@@ -98,4 +110,13 @@ diff -urNad '--exclude=CVS' '--exclude=.svn' '--exclude=.git' '--exclude=.arch' 
 +       ///< Returns the length (in seconds) of this recording, or -1 in case of error.
    bool IsNew(void) const { return GetResume() <= 0; }
    bool IsEdited(void) const;
-   bool IsPesRecording(void) const { return isPesRecording; }
+   bool WriteInfo(void);
+@@ -218,6 +224,8 @@
+   int Last(void) { CatchUp(); return last; }
+   int GetResume(void) { return resumeFile.Read(); }
+   bool StoreResume(int Index) { return resumeFile.Save(Index); }
++  static cString IndexFileName(const char *FileName);
++  static int GetLength(const char *FileName);
+   bool IsStillRecording(void);
+   };
+ 

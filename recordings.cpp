@@ -265,9 +265,16 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
   serRecording.FileName = StringExtension::UTF8Decode(recording->FileName());
   serRecording.IsNew = recording->IsNew();
   serRecording.IsEdited = recording->IsEdited();
+
+  #if APIVERSNUM >= 10703
   serRecording.IsPesRecording = recording->IsPesRecording();
-  serRecording.Duration = recording->LengthInSeconds() == -1 ? -1 : recording->LengthInSeconds();
   serRecording.FramesPerSecond = recording->FramesPerSecond();
+  #else
+  serRecording.IsPesRecording = true;
+  serRecording.FramesPerSecond = FRAMESPERSEC;
+  #endif
+
+  serRecording.Duration = VdrExtension::RecordingLengthInSeconds(recording);
   serRecording.EventTitle = eventTitle;
   serRecording.EventShortText = eventShortText;
   serRecording.EventDescription = eventDescription;
@@ -326,9 +333,16 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr)
   s->write(cString::sprintf("  <param name=\"filename\">%s</param>\n", StringExtension::encodeToXml(recording->FileName()).c_str()) );
   s->write(cString::sprintf("  <param name=\"is_new\">%s</param>\n", recording->IsNew() ? "true" : "false" ));
   s->write(cString::sprintf("  <param name=\"is_edited\">%s</param>\n", recording->IsEdited() ? "true" : "false" ));
+
+  #if APIVERSNUM >= 10703
   s->write(cString::sprintf("  <param name=\"is_pes_recording\">%s</param>\n", recording->IsPesRecording() ? "true" : "false" ));
-  s->write(cString::sprintf("  <param name=\"duration\">%i</param>\n", (recording->LengthInSeconds() == -1 ? -1 : recording->LengthInSeconds())));
   s->write(cString::sprintf("  <param name=\"frames_per_second\">%f</param>\n", recording->FramesPerSecond()));
+  #else
+  s->write(cString::sprintf("  <param name=\"is_pes_recording\">%s</param>\n", true ? "true" : "false" ));
+  s->write(cString::sprintf("  <param name=\"frames_per_second\">%i</param>\n", FRAMESPERSEC));
+  #endif
+
+  s->write(cString::sprintf("  <param name=\"duration\">%i</param>\n", VdrExtension::RecordingLengthInSeconds(recording)));
 
   if (read_marks) {
      s->write("  <param name=\"marks\">\n");

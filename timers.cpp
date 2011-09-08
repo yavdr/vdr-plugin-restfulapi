@@ -164,20 +164,22 @@ void TimersResponder::showTimers(std::ostream& out, cxxtools::http::Request& req
   int start_filter = q.getOptionAsInt("start");
   int limit_filter = q.getOptionAsInt("limit");
 
+  std::string timer_id = q.getParamAsString(0);
+
   if ( start_filter >= 0 && limit_filter >= 1 ) {
      timerList->activateLimit(start_filter, limit_filter);
   }
 
   timerList->init();
 
-  int timer_count = Timers.Count();
-  cTimer *timer;
-  for (int i=0;i<timer_count;i++)
+  std::vector< cTimer* > timers = VdrExtension::SortedTimers();
+  for (int i=0;i<(int)timers.size();i++)
   {
-     timer = Timers.Get(i);
-     timerList->addTimer(timer);   
+     if ( VdrExtension::getTimerID(timers[i]) == timer_id || timer_id.length() == 0 ) {
+        timerList->addTimer(timers[i]);   
+     }
   }
-  timerList->setTotal(timer_count);
+  timerList->setTotal((int)timers.size());
 
   timerList->finish();
   delete timerList;   
@@ -186,6 +188,7 @@ void TimersResponder::showTimers(std::ostream& out, cxxtools::http::Request& req
 void operator<<= (cxxtools::SerializationInfo& si, const SerTimer& t)
 {
   si.addMember("id") <<= t.Id;
+  si.addMember("flags") <<= t.Flags;
   si.addMember("start") <<= t.Start;
   si.addMember("stop") <<= t.Stop;
   si.addMember("priority") <<= t.Priority;
@@ -238,6 +241,7 @@ void JsonTimerList::addTimer(cTimer* timer)
 
   SerTimer serTimer;
   serTimer.Id = StringExtension::UTF8Decode(VdrExtension::getTimerID(timer));
+  serTimer.Flags = timer->Flags();
   serTimer.Start = timer->Start();
   serTimer.Stop = timer->Stop();
   serTimer.Priority = timer->Priority();
@@ -277,6 +281,7 @@ void XmlTimerList::addTimer(cTimer* timer)
 
   s->write(" <timer>\n");
   s->write((const char*)cString::sprintf("  <param name=\"id\">%s</param>\n", StringExtension::encodeToXml(VdrExtension::getTimerID(timer)).c_str()));
+  s->write((const char*)cString::sprintf("  <param name=\"flags\">%i</param>\n", timer->Flags()));
   s->write((const char*)cString::sprintf("  <param name=\"start\">%i</param>\n", timer->Start()) );
   s->write((const char*)cString::sprintf("  <param name=\"stop\">%i</param>\n", timer->Stop()) );
   s->write((const char*)cString::sprintf("  <param name=\"priority\">%i</param>\n", timer->Priority()) );

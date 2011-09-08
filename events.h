@@ -28,6 +28,14 @@ class EventsResponder : public cxxtools::http::Responder
 
 typedef cxxtools::http::CachedService<EventsResponder> EventsService;
 
+struct SerComponent
+{
+  int Stream;
+  int Type;
+  cxxtools::String Language;
+  cxxtools::String Description;
+};
+
 struct SerEvent
 {
   int Id;
@@ -40,9 +48,12 @@ struct SerEvent
   int Images;
   bool TimerExists;
   bool TimerActive;
+  cxxtools::String TimerId;
+  cComponents* Components;
 };
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e);
+void operator<<= (cxxtools::SerializationInfo& si, const SerComponent& c);
 
 class EventList : public BaseList
 {

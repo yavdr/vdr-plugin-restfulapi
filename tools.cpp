@@ -476,29 +476,88 @@ cTimer* VdrExtension::TimerExists(cEvent* event)
 {
   for(int i=0;i<Timers.Count();i++) {
      cTimer* timer = Timers.Get(i);
-     if ( timer->Event() != NULL ) {
-        if ( timer->Event()->EventID() == event->EventID() ) {
+
+     if ( timer->Event() != NULL &&  timer->Event()->EventID() == event->EventID() ) {
+        return timer;
+     }
+    
+     if ( timer->Channel()->GetChannelID() == event->ChannelID() ) {
+        int timer_start = (int)timer->Day() - ((int)timer->Day()) % 3600;
+        int timer_stop = timer_start;
+        timer_start += ((int)(timer->Start() / 100)) * 60 * 60;
+        timer_start += (timer->Start() % 100) * 60;
+
+        if ( timer->Stop() < timer->Start() ) timer_stop += 24 * 60 * 60;
+        timer_stop += ((int)(timer->Stop() / 100)) * 60 * 60;
+        timer_stop += (timer->Stop() % 100) * 60;
+
+        if ( timer_stop >= (int)event->EndTime() && timer_start <= (int)event->StartTime() ) {
            return timer;
-        }
-
-        if ( timer->Channel()->GetChannelID() == event->ChannelID() ) {
-           int timer_start = (int)timer->Day() - ((int)timer->Day()) % 86400;
-           int timer_stop = timer_start;
-           timer_start += ((int)(timer->Start() / 100)) * 60 * 60;
-           timer_start += (timer->Start() % 100) * 60;
-
-           if ( timer->Stop() < timer->Start() ) timer_stop += 24 * 60 * 60;
-           timer_stop += ((int)(timer->Stop() / 100)) * 60 * 60;
-           timer_stop += (timer->Stop() % 100) * 60;
-
-           if ( timer_stop >= (int)event->EndTime() && timer_start <= (int)event->StartTime() ) {
-              return timer;
-           }
         }
      }
   }
   return NULL;
 }
+
+std::vector< cTimer* > VdrExtension::SortedTimers()
+{
+  std::vector< cTimer* > timers;
+  for(int i=0;i<Timers.Count();i++)
+  {
+     timers.push_back(Timers.Get(i));
+  }
+
+  for(int i=0;i<(int)timers.size() - 1;i++)
+  {
+     bool changed = false;
+     for(int k=0;k<(int)timers.size() - i - 1;k++)
+     {
+         if (VdrExtension::CompareTimers(timers[k], timers[k+1])) 
+         {
+            cTimer* swap = timers[k];
+            timers[k] = timers[k+1];
+            timers[k+1] = swap;
+            changed = true;
+         }
+     }
+     if(!changed) break;
+  }
+
+  return timers;
+}
+
+bool VdrExtension::CompareTimers(cTimer* timer1, cTimer* timer2)
+{
+  int day1 = (int)timer1->Day() - ((int)timer1->Day() % 3600);
+  int day2 = (int)timer2->Day() - ((int)timer2->Day() % 3600);
+
+  if (day1 > day2) {
+     return true;
+  } else if ( day1 < day2) {
+     return false;
+  } else {
+     if (timer1->StartTime() > timer2->StartTime()) {
+        return true;
+     } else if (timer1->StartTime() < timer2->StartTime()) {
+        return false;
+     }
+  }
+
+  if ( ( (std::string)timer1->File() ).compare( (std::string)timer2->File() ) > 0 ) {
+     return true;
+  }
+
+  return false;
+}
+
+int VdrExtension::RecordingLengthInSeconds(cRecording* recording)
+{
+  int nf = recording->NumFrames();
+  if (nf >= 0)
+     return int(((double)nf / recording->FramesPerSecond()));
+  return -1;
+}
+
 
 // --- VdrMarks ---------------------------------------------------------------
 
