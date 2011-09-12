@@ -300,17 +300,17 @@ void XmlTimerList::addTimer(cTimer* timer)
   s->write(cString::sprintf("  <param name=\"start_timestamp\">%s</param>\n", StringExtension::encodeToXml(StringExtension::dateToString(tstart)).c_str()));
   s->write(cString::sprintf("  <param name=\"stop_timestamp\">%s</param>\n", StringExtension::encodeToXml(StringExtension::dateToString(tstop)).c_str()));
 
-  s->write((const char*)cString::sprintf("  <param name=\"priority\">%i</param>\n", timer->Priority()) );
-  s->write((const char*)cString::sprintf("  <param name=\"lifetime\">%i</param>\n", timer->Lifetime()) );
-  s->write((const char*)cString::sprintf("  <param name=\"event_id\">%i</param>\n", timer->Event() != NULL ? timer->Event()->EventID() : -1) );
-  s->write((const char*)cString::sprintf("  <param name=\"weekdays\">%s</param>\n", StringExtension::encodeToXml(v.ConvertWeekdays(timer->WeekDays())).c_str()));
-  s->write((const char*)cString::sprintf("  <param name=\"day\">%s</param>\n", StringExtension::encodeToXml(v.ConvertDay(timer->Day())).c_str()));
-  s->write((const char*)cString::sprintf("  <param name=\"channel\">%s</param>\n", StringExtension::encodeToXml((const char*)timer->Channel()->GetChannelID().ToString()).c_str()) );
-  s->write((const char*)cString::sprintf("  <param name=\"is_recording\">%s</param>\n", timer->Recording() ? "true" : "false" ) );
-  s->write((const char*)cString::sprintf("  <param name=\"is_pending\">%s</param>\n", timer->Pending() ? "true" : "false" ));
-  s->write((const char*)cString::sprintf("  <param name=\"file_name\">%s</param>\n", StringExtension::encodeToXml(timer->File()).c_str()) );
-  s->write((const char*)cString::sprintf("  <param name=\"channel_name\">%s</param>\n", StringExtension::encodeToXml(timer->Channel()->Name()).c_str()));
-  s->write((const char*)cString::sprintf("  <param name=\"is_active\">%s</param>\n", timer->Flags() & 0x01 == 0x01 ? "true" : "false" ));
+  s->write(cString::sprintf("  <param name=\"priority\">%i</param>\n", timer->Priority()) );
+  s->write(cString::sprintf("  <param name=\"lifetime\">%i</param>\n", timer->Lifetime()) );
+  s->write(cString::sprintf("  <param name=\"event_id\">%i</param>\n", timer->Event() != NULL ? timer->Event()->EventID() : -1) );
+  s->write(cString::sprintf("  <param name=\"weekdays\">%s</param>\n", StringExtension::encodeToXml(v.ConvertWeekdays(timer->WeekDays())).c_str()));
+  s->write(cString::sprintf("  <param name=\"day\">%s</param>\n", StringExtension::encodeToXml(v.ConvertDay(timer->Day())).c_str()));
+  s->write(cString::sprintf("  <param name=\"channel\">%s</param>\n", StringExtension::encodeToXml((const char*)timer->Channel()->GetChannelID().ToString()).c_str()) );
+  s->write(cString::sprintf("  <param name=\"is_recording\">%s</param>\n", timer->Recording() ? "true" : "false" ) );
+  s->write(cString::sprintf("  <param name=\"is_pending\">%s</param>\n", timer->Pending() ? "true" : "false" ));
+  s->write(cString::sprintf("  <param name=\"file_name\">%s</param>\n", StringExtension::encodeToXml(timer->File()).c_str()) );
+  s->write(cString::sprintf("  <param name=\"channel_name\">%s</param>\n", StringExtension::encodeToXml(timer->Channel()->Name()).c_str()));
+  s->write(cString::sprintf("  <param name=\"is_active\">%s</param>\n", timer->Flags() & 0x01 == 0x01 ? "true" : "false" ));
   s->write(" </timer>\n");
 }
 
