@@ -37,7 +37,9 @@ struct SerTimer
   cxxtools::String Id;
   int Flags;
   int Start;
+  cxxtools::String StartTimeStamp;
   int Stop;
+  cxxtools::String StopTimeStamp;
   int Priority;
   int Lifetime;
   int EventID;

@@ -190,6 +190,8 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerTimer& t)
   si.addMember("id") <<= t.Id;
   si.addMember("flags") <<= t.Flags;
   si.addMember("start") <<= t.Start;
+  si.addMember("start_timestamp") <<= t.StartTimeStamp;
+  si.addMember("stop_timestamp") <<= t.StopTimeStamp;
   si.addMember("stop") <<= t.Stop;
   si.addMember("priority") <<= t.Priority;
   si.addMember("lifetime") <<= t.Lifetime;
@@ -255,6 +257,13 @@ void JsonTimerList::addTimer(cTimer* timer)
   serTimer.FileName = StringExtension::UTF8Decode(timer->File());
   serTimer.ChannelName = StringExtension::UTF8Decode(timer->Channel()->Name());
   serTimer.IsActive = timer->Flags() & 0x01 == 0x01 ? true : false;
+
+  int tstart = timer->Day() - ( timer->Day() % 3600 ) + ((int)(timer->Start()/100)) * 3600 + ((int)(timer->Start()%100)) * 60;
+  int tstop = timer->Day() - ( timer->Day() % 3600 ) + ((int)(timer->Stop()/100)) * 3600 + ((int)(timer->Stop()%100)) * 60;
+
+  serTimer.StartTimeStamp = StringExtension::UTF8Decode(StringExtension::dateToString((time_t)tstart));
+  serTimer.StopTimeStamp = StringExtension::UTF8Decode(StringExtension::dateToString((time_t)tstop));
+
   serTimers.push_back(serTimer);
 }
 
@@ -280,10 +289,17 @@ void XmlTimerList::addTimer(cTimer* timer)
   static TimerValues v;
 
   s->write(" <timer>\n");
-  s->write((const char*)cString::sprintf("  <param name=\"id\">%s</param>\n", StringExtension::encodeToXml(VdrExtension::getTimerID(timer)).c_str()));
-  s->write((const char*)cString::sprintf("  <param name=\"flags\">%i</param>\n", timer->Flags()));
-  s->write((const char*)cString::sprintf("  <param name=\"start\">%i</param>\n", timer->Start()) );
-  s->write((const char*)cString::sprintf("  <param name=\"stop\">%i</param>\n", timer->Stop()) );
+  s->write(cString::sprintf("  <param name=\"id\">%s</param>\n", StringExtension::encodeToXml(VdrExtension::getTimerID(timer)).c_str()));
+  s->write(cString::sprintf("  <param name=\"flags\">%i</param>\n", timer->Flags()));
+  s->write(cString::sprintf("  <param name=\"start\">%i</param>\n", timer->Start()) );
+  s->write(cString::sprintf("  <param name=\"stop\">%i</param>\n", timer->Stop()) );
+
+  int tstart = timer->Day() - ( timer->Day() % 3600 ) + ((int)(timer->Start()/100)) * 3600 + ((int)(timer->Start()%100)) * 60;
+  int tstop = timer->Day() - ( timer->Day() % 3600 ) + ((int)(timer->Stop()/100)) * 3600 + ((int)(timer->Stop()%100)) * 60;
+
+  s->write(cString::sprintf("  <param name=\"start_timestamp\">%s</param>\n", StringExtension::encodeToXml(StringExtension::dateToString(tstart)).c_str()));
+  s->write(cString::sprintf("  <param name=\"stop_timestamp\">%s</param>\n", StringExtension::encodeToXml(StringExtension::dateToString(tstop)).c_str()));
+
   s->write((const char*)cString::sprintf("  <param name=\"priority\">%i</param>\n", timer->Priority()) );
   s->write((const char*)cString::sprintf("  <param name=\"lifetime\">%i</param>\n", timer->Lifetime()) );
   s->write((const char*)cString::sprintf("  <param name=\"event_id\">%i</param>\n", timer->Event() != NULL ? timer->Event()->EventID() : -1) );

@@ -796,6 +796,36 @@ std::string StringExtension::timeToString(time_t time)
   return str.str();*/
 }
 
+std::string StringExtension::dateToString(time_t time)
+{
+  if ( time == NULL ) {
+     return "";
+  }
+
+  struct tm *ltime = localtime(&time);
+
+  std::ostringstream data;
+  data << StringExtension::addZeros((ltime->tm_year+1900), 4) << "-"
+       << StringExtension::addZeros((ltime->tm_mon+1), 2) << "-"
+       << StringExtension::addZeros((ltime->tm_mday), 2) << " "
+       << StringExtension::addZeros((ltime->tm_hour), 2) << ":"
+       << StringExtension::addZeros((ltime->tm_min), 2) << ":"
+       << StringExtension::addZeros((ltime->tm_sec), 2);
+  return data.str();
+}
+
+std::string StringExtension::addZeros(int value, int digits)
+{
+  std::string strValue = StringExtension::itostr(value);
+  if ( value < 0 ) return strValue;
+
+  while ( (int)strValue.length() < digits ) {
+    strValue = "0" + strValue;
+  }
+
+  return strValue;
+}
+
 // --- QueryHandler -----------------------------------------------------------
 
 QueryHandler::QueryHandler(std::string service, cxxtools::http::Request& request)

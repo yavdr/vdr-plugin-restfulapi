@@ -197,6 +197,8 @@ class StringExtension
     static std::string trim(std::string str);
     static std::vector< std::string > split(std::string str, std::string s);
     static std::string timeToString(time_t time);
+    static std::string dateToString(time_t time);
+    static std::string addZeros(int value, int digits);
 };
 
 class QueryHandler
