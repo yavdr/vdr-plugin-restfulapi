@@ -558,6 +558,23 @@ int VdrExtension::RecordingLengthInSeconds(cRecording* recording)
   return -1;
 }
 
+cEvent* VdrExtension::GetEventById(tEventID eventID)
+{
+  cSchedulesLock MutexLock;
+  const cSchedules *Schedules = cSchedules::Schedules(MutexLock);
+
+  if ( !Schedules ) return NULL;
+
+  for (cChannel *channel = Channels.First(); channel; channel = Channels.Next(channel)) {
+    const cSchedule *Schedule = Schedules->GetSchedule(channel->GetChannelID());
+    if (Schedule) {
+       cEvent* event = (cEvent*)Schedule->GetEvent(eventID);
+       if ( event != NULL ) return event;
+    }
+  }
+  return NULL;
+}
+
 
 // --- VdrMarks ---------------------------------------------------------------
 
@@ -791,9 +808,6 @@ std::string StringExtension::timeToString(time_t time)
   char buffer[26];
   strftime(buffer, 26, "%H:%M", ltime);
   return (std::string)buffer;
-  /*std::ostringstream str;
-  str << time;
-  return str.str();*/
 }
 
 std::string StringExtension::dateToString(time_t time)

@@ -42,15 +42,52 @@ void TimersResponder::createOrUpdateTimer(std::ostream& out, cxxtools::http::Req
   cTimer* timer_orig = v.ConvertTimer(q.getBodyAsString("timer_id"));
   
   if ( update == false ) { //create
-     if ( !v.IsFlagsValid(flags) ) { error = true; error_values += "flags, "; }
-     if ( !v.IsFileValid(file) ) { error = true; error_values += "file, "; }
-     if ( !v.IsLifetimeValid(lifetime) ) { lifetime = 50; }
-     if ( !v.IsPriorityValid(priority) ) { priority = 99; }
-     if ( !v.IsStopValid(stop) ) { error = true; error_values += "stop, "; }
-     if ( !v.IsStartValid(start) ) { error = true; error_values += "start, "; }
-     if ( !v.IsWeekdaysValid(weekdays) ) { error = true; error_values += "weekdays, "; }
-     if ( !v.IsDayValid(day)&& !day.empty() ) { error = true; error_values += "day, "; }
-     if ( chan == NULL ) { error = true; error_values += "channel, "; }
+     int eventid = q.getBodyAsInt("eventid");
+     int minpre = q.getBodyAsInt("minpre");
+     int minpost = q.getBodyAsInt("minpost");
+     if (eventid >= 0) {
+        cEvent* event = VdrExtension::GetEventById((tEventID)eventid);
+      
+        if (event == NULL) {
+           reply.httpReturn(407, "eventid invalid");
+           return;
+        } else {
+           if (minpre < 0) minpre = 0;
+           if (minpost < 0) minpost = 0;
+           if (!v.IsFlagsValid(flags)) flags = 1;
+           if (!v.IsFileValid(file)) file = (std::string)event->Title();
+           if (!v.IsWeekdaysValid(weekdays)) weekdays = "-------";
+           if (!v.IsLifetimeValid(lifetime)) lifetime = 50;
+           if (!v.IsPriorityValid(priority)) priority = 99;
+           chan = VdrExtension::getChannel((const char*)event->ChannelID().ToString());
+           if (!v.IsStartValid(start) || !v.IsStopValid(stop) || !v.IsDayValid(day)) {
+              time_t estart = event->StartTime();
+              time_t estop = event->EndTime();
+              struct tm *starttime = localtime(&estart);
+            
+              std::ostringstream daystream;
+              daystream << StringExtension::addZeros((starttime->tm_year + 1900), 4) << "-"
+                        << StringExtension::addZeros((starttime->tm_mon + 1), 2) << "-"
+                        << StringExtension::addZeros((starttime->tm_mday), 2);
+              day = daystream.str();
+ 
+              start = starttime->tm_hour * 100 + starttime->tm_min - ((int)(minpre/60))*100 - minpre%60;
+
+              struct tm *stoptime = localtime(&estop);
+              stop = stoptime->tm_hour * 100 + stoptime->tm_min + ((int)(minpost/60))*100 + minpost%60;
+           }
+        }
+     } else {
+        if ( !v.IsFlagsValid(flags) ) { flags = 1; }
+        if ( !v.IsFileValid(file) ) { error = true; error_values += "file, "; }
+        if ( !v.IsLifetimeValid(lifetime) ) { lifetime = 50; }
+        if ( !v.IsPriorityValid(priority) ) { priority = 99; }
+        if ( !v.IsStopValid(stop) ) { error = true; error_values += "stop, "; }
+        if ( !v.IsStartValid(start) ) { error = true; error_values += "start, "; }
+        if ( !v.IsWeekdaysValid(weekdays) ) { error = true; error_values += "weekdays, "; }
+        if ( !v.IsDayValid(day)&& !day.empty() ) { error = true; error_values += "day, "; }
+        if ( chan == NULL ) { error = true; error_values += "channel, "; }
+     }
   } else { //update
      if ( timer_orig == NULL ) { error = true; error_values += "timer_id, "; }
      if ( !error ) {
