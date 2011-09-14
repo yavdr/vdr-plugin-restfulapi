@@ -264,6 +264,9 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)
 
   si.addMember("components") <<= components;
 
+#ifdef EPG_DETAILS_PATCH
+  si.addMember("details") <<= *e.Details;
+#endif
 }
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerComponent& c)
@@ -273,6 +276,14 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerComponent& c)
   si.addMember("language") <<= c.Language;
   si.addMember("description") <<= c.Description;
 }
+
+#ifdef EPG_DETAILS_PATCH
+void operator<<= (cxxtools::SerializationInfo& si, const struct tEpgDetail& e)
+{
+  si.addMember("key") <<= StringExtension::UTF8Decode(e.key);
+  si.addMember("value") <<= StringExtension::UTF8Decode(e.value);
+}
+#endif
 
 EventList::EventList(std::ostream *_out) {
   s = new StreamExtension(_out);
@@ -339,6 +350,10 @@ void JsonEventList::addEvent(cEvent* event)
   FileCaches::get()->searchEventImages((int)event->EventID(), images);
   serEvent.Images = images.size();
 
+#ifdef EPG_DETAILS_PATCH
+  serEvent.Details = (std::vector<tEpgDetail>*)&event->Details();
+#endif
+
   serEvents.push_back(serEvent);
 }
 
@@ -380,6 +395,16 @@ void XmlEventList::addEvent(cEvent* event)
 
   s->write(cString::sprintf("  <param name=\"start_time\">%i</param>\n", (int)event->StartTime()));
   s->write(cString::sprintf("  <param name=\"duration\">%i</param>\n", event->Duration()));
+  
+#ifdef EPG_DETAILS_PATCH
+  s->write("  <param name=\"details\">\n");
+  for(int i=0;i<(int)event->Details().size();i++) {
+     std::string key = event->Details()[i].key;
+     std::string value = event->Details()[i].value;
+     s->write(cString::sprintf("   <detail key=\"%s\">%s</detail>\n", StringExtension::encodeToXml(key.c_str()).c_str(), StringExtension::encodeToXml(value.c_str()).c_str()));
+  }
+  s->write("  </param>\n");
+#endif
 
   std::vector< std::string > images;
   FileCaches::get()->searchEventImages((int)event->EventID(), images);
