@@ -131,11 +131,13 @@ void TimersResponder::createOrUpdateTimer(std::ostream& out, cxxtools::http::Req
            delete timer;
            reply.httpReturn(403, "Timer already defined!"); 
            esyslog("restfulapi: Timer already defined!");
+        } else {
+           replyCreatedId(timer, request, reply, out);
+           timer->SetEventFromSchedule();
+           Timers.Add(timer);
+           Timers.SetModified();
+           esyslog("restfulapi: timer created!");
         }
-        timer->SetEventFromSchedule();
-        Timers.Add(timer);
-        Timers.SetModified();
-        esyslog("restfulapi: timer created!");
      } else {
         reply.httpReturn(403, "Creating timer failed!");
         esyslog("restfulapi: timer creation failed!");
@@ -144,12 +146,36 @@ void TimersResponder::createOrUpdateTimer(std::ostream& out, cxxtools::http::Req
      if ( timer_orig->Parse(builder.str().c_str()) ) {
         timer_orig->SetEventFromSchedule();
         Timers.SetModified();
+        replyCreatedId(timer_orig, request, reply, out);
         esyslog("restfulapi: updating timer successful!");
      } else { 
         reply.httpReturn(403, "updating timer failed!");
         esyslog("restfulapi: updating timer failed!");
      }
   }
+}
+
+void TimersResponder::replyCreatedId(cTimer* timer, cxxtools::http::Request& request, cxxtools::http::Reply& reply, std::ostream& out)
+{
+  QueryHandler q("/timers", request);
+  TimerList* timerList;
+
+  if ( q.isFormat(".html") ) {
+     reply.addHeader("Content-Type", "text/html; charset=utf-8");
+     timerList = (TimerList*)new HtmlTimerList(&out);
+  } else if ( q.isFormat(".xml") ) {
+     reply.addHeader("Content-Type", "text/xml; charset=utf-8");
+     timerList = (TimerList*)new XmlTimerList(&out);
+  } else {
+     reply.addHeader("Content-Type", "application/json; charset=utf-8");
+     timerList = (TimerList*)new JsonTimerList(&out);
+  }
+
+  timerList->init();
+  timerList->addTimer(timer);
+  timerList->setTotal(1);
+  timerList->finish();
+  delete timerList;
 }
 
 void TimersResponder::deleteTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
