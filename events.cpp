@@ -341,6 +341,7 @@ void JsonEventList::addEvent(cEvent* event)
   serEvent.Components = (cComponents*)event->Components();
   cTimer* timer = VdrExtension::TimerExists(event);
   serEvent.TimerExists = timer != NULL ? true : false;
+  serEvent.TimerActive = false;
   if ( timer != NULL ) {
      serEvent.TimerActive = timer->Flags() & 0x01 == 0x01 ? true : false;
      serEvent.TimerId = StringExtension::UTF8Decode(VdrExtension::getTimerID(timer));

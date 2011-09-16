@@ -9,9 +9,6 @@
 # IMPORTANT: the presence of this macro is important for the Make.config
 # file. So it must be defined, even if it is not used here!
 #
-
-EPG_DETAILS_PATCH = 1
-
 PLUGIN = restfulapi
 
 ### The version number of this plugin (taken from the main source file):
