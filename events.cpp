@@ -249,9 +249,9 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)
   si.addMember("parental_rating") <<= e.ParentalRating;
 
   std::vector< SerComponent > components;
-  if ( e.Components != NULL ) {
-     for(int i=0;i<e.Components->NumComponents();i++) {
-        tComponent* comp = e.Components->Component(i);
+  if ( e.Instance->Components() != NULL ) {
+     for(int i=0;i<e.Instance->Components()->NumComponents();i++) {
+        tComponent* comp = e.Instance->Components()->Component(i);
         SerComponent component;
         component.Stream = (int)comp->stream;
         component.Type = (int)comp->type;
@@ -264,6 +264,15 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)
   }
 
   si.addMember("components") <<= components;
+
+  std::vector< cxxtools::String > contents;
+  int counter = 0;
+  uchar content = e.Instance->Contents(counter);
+  while (content != 0) {
+     contents.push_back(StringExtension::UTF8Decode(cEvent::ContentToString(content)));
+     counter++;
+     content = e.Instance->Contents(counter);
+  }
 
 #ifdef EPG_DETAILS_PATCH
   si.addMember("details") <<= *e.Details;
@@ -340,7 +349,8 @@ void JsonEventList::addEvent(cEvent* event)
   serEvent.StartTime = event->StartTime();
   serEvent.Duration = event->Duration();
   serEvent.ParentalRating = event->ParentalRating();
-  serEvent.Components = (cComponents*)event->Components();
+  serEvent.Instance = event;
+
   cTimer* timer = VdrExtension::TimerExists(event);
   serEvent.TimerExists = timer != NULL ? true : false;
   serEvent.TimerActive = false;
@@ -438,6 +448,16 @@ void XmlEventList::addEvent(cEvent* event)
         s->write(cString::sprintf("   <component stream=\"%i\" type=\"%i\" language=\"%s\" description=\"%s\" />\n", 
                                   (int)component->stream, (int)component->type, language.c_str(), description.c_str()));
      }
+  }
+  s->write("  </param>\n");
+
+  s->write("  <param name=\"contents\">\n");
+  int counter = 0;
+  uchar content = event->Contents(counter);
+  while(content != 0) {
+    counter++;
+    s->write(cString::sprintf("   <content name=\"%s\" />\n", cEvent::ContentToString(content)));
+    content = event->Contents(counter);
   }
   s->write("  </param>\n");
 

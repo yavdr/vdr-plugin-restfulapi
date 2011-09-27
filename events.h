@@ -50,7 +50,7 @@ struct SerEvent
   bool TimerActive;
   int ParentalRating;
   cxxtools::String TimerId;
-  cComponents* Components;
+  cEvent* Instance;
 #ifdef EPG_DETAILS_PATCH
   std::vector< tEpgDetail >* Details;
 #endif
