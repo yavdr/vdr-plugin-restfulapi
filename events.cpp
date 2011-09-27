@@ -246,6 +246,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)
   si.addMember("timer_exists") <<= e.TimerExists;
   si.addMember("timer_active") <<= e.TimerActive;
   si.addMember("timer_id") <<= e.TimerId;
+  si.addMember("parental_rating") <<= e.ParentalRating;
 
   std::vector< SerComponent > components;
   if ( e.Components != NULL ) {
@@ -338,6 +339,7 @@ void JsonEventList::addEvent(cEvent* event)
   serEvent.Channel = channelStr;
   serEvent.StartTime = event->StartTime();
   serEvent.Duration = event->Duration();
+  serEvent.ParentalRating = event->ParentalRating();
   serEvent.Components = (cComponents*)event->Components();
   cTimer* timer = VdrExtension::TimerExists(event);
   serEvent.TimerExists = timer != NULL ? true : false;
@@ -396,6 +398,7 @@ void XmlEventList::addEvent(cEvent* event)
 
   s->write(cString::sprintf("  <param name=\"start_time\">%i</param>\n", (int)event->StartTime()));
   s->write(cString::sprintf("  <param name=\"duration\">%i</param>\n", event->Duration()));
+  s->write(cString::sprintf("  <param name=\"parental_rating\">%i</param>\n", event->ParentalRating()));
   
 #ifdef EPG_DETAILS_PATCH
   s->write("  <param name=\"details\">\n");

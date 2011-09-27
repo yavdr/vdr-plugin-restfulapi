@@ -48,6 +48,7 @@ struct SerEvent
   int Images;
   bool TimerExists;
   bool TimerActive;
+  int ParentalRating;
   cxxtools::String TimerId;
   cComponents* Components;
 #ifdef EPG_DETAILS_PATCH
