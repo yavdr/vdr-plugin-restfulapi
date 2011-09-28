@@ -42,6 +42,7 @@ struct SerRecording
   int Number;
   cxxtools::String Name;
   cxxtools::String FileName;
+  cxxtools::String RelativeFileName;
   bool IsNew;
   bool IsEdited;
   bool IsPesRecording;

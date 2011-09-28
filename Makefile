@@ -54,6 +54,7 @@ INCLUDES += -I$(VDRDIR)/include
 
 DEFINES += -D_GNU_SOURCE -DPLUGIN_NAME_I18N='"$(PLUGIN)"' -DEPG_DETAILS_PATCH
 
+
 ### The object files (add further files here):
 
 OBJS = $(PLUGIN).o serverthread.o tools.o info.o channels.o events.o recordings.o remote.o timers.o statusmonitor.o osd.o jsonparser.o epgsearch.o searchtimers.o

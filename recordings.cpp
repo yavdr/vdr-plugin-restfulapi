@@ -199,6 +199,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerRecording& p)
   si.addMember("number") <<= p.Number;
   si.addMember("name") <<= p.Name;
   si.addMember("file_name") <<= p.FileName;
+  si.addMember("relative_file_name") <<= p.RelativeFileName;
   si.addMember("is_new") <<= p.IsNew;
   si.addMember("is_edited") <<= p.IsEdited;
   si.addMember("is_pes_recording") <<= p.IsPesRecording;
@@ -268,6 +269,7 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
   serRecording.Number = nr;
   serRecording.Name = StringExtension::UTF8Decode(recording->Name());
   serRecording.FileName = StringExtension::UTF8Decode(recording->FileName());
+  serRecording.RelativeFileName = StringExtension::UTF8Decode(VdrExtension::getRelativeVideoPath(recording).c_str());
   serRecording.IsNew = recording->IsNew();
   serRecording.IsEdited = recording->IsEdited();
 
@@ -336,6 +338,7 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr)
   s->write(cString::sprintf("  <param name=\"number\">%i</param>\n", nr));
   s->write(cString::sprintf("  <param name=\"name\">%s</param>\n", StringExtension::encodeToXml(recording->Name()).c_str()) );
   s->write(cString::sprintf("  <param name=\"filename\">%s</param>\n", StringExtension::encodeToXml(recording->FileName()).c_str()) );
+  s->write(cString::sprintf("  <param name=\"relative_filename\">%s</param>\n", StringExtension::encodeToXml(VdrExtension::getRelativeVideoPath(recording).c_str()).c_str()));
   s->write(cString::sprintf("  <param name=\"is_new\">%s</param>\n", recording->IsNew() ? "true" : "false" ));
   s->write(cString::sprintf("  <param name=\"is_edited\">%s</param>\n", recording->IsEdited() ? "true" : "false" ));
 

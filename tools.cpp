@@ -579,6 +579,12 @@ cEvent* VdrExtension::GetEventById(tEventID eventID)
   return NULL;
 }
 
+std::string VdrExtension::getRelativeVideoPath(cRecording* recording)
+{
+  std::string path = (std::string)recording->FileName();
+  std::string VIDEODIR = (std::string)"/var/lib/video.00/";
+  return path.substr(VIDEODIR.length());
+}
 
 // --- VdrMarks ---------------------------------------------------------------
 
