@@ -5,10 +5,6 @@ void RecordingsResponder::reply(std::ostream& out, cxxtools::http::Request& requ
   QueryHandler::addHeader(reply);
   bool found = false;
 
-  //esyslog("restfulapi: recordings responders called");
-  //esyslog("restfulapi: url: /%s/", request.url().c_str());
-  //esyslog("restfulapi: method: /%s/", request.method().c_str());
-
   if ((int)request.url().find("/recordings/cut") == 0 ) {
      if ( request.method() == "GET" ) {
 	showCutterStatus(out, request, reply);
@@ -152,7 +148,6 @@ void RecordingsResponder::deleteMarks(std::ostream& out, cxxtools::http::Request
 
 void RecordingsResponder::cutRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  //esyslog("restfulapi: called recording cutter");
   QueryHandler q("/recordings/cut", request);
   int rec_number = q.getParamAsInt(0);
   if (rec_number >= 0 && rec_number < Recordings.Count()) {
