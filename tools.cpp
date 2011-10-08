@@ -554,10 +554,37 @@ int VdrExtension::RecordingLengthInSeconds(cRecording* recording)
 {
   int nf = recording->NumFrames();
   if (nf >= 0)
+#if APIVERSNUM >= 10703
      return int(((double)nf / recording->FramesPerSecond()));
+#else
+     return int((double)nf / FRAMESPERSEC));
+#endif
   return -1;
 }
 
+cEvent* VdrExtension::GetEventById(tEventID eventID)
+{
+  cSchedulesLock MutexLock;
+  const cSchedules *Schedules = cSchedules::Schedules(MutexLock);
+
+  if ( !Schedules ) return NULL;
+
+  for (cChannel *channel = Channels.First(); channel; channel = Channels.Next(channel)) {
+    const cSchedule *Schedule = Schedules->GetSchedule(channel->GetChannelID());
+    if (Schedule) {
+       cEvent* event = (cEvent*)Schedule->GetEvent(eventID);
+       if ( event != NULL ) return event;
+    }
+  }
+  return NULL;
+}
+
+std::string VdrExtension::getRelativeVideoPath(cRecording* recording)
+{
+  std::string path = (std::string)recording->FileName();
+  std::string VIDEODIR = (std::string)"/var/lib/video.00/";
+  return path.substr(VIDEODIR.length());
+}
 
 // --- VdrMarks ---------------------------------------------------------------
 
@@ -791,9 +818,36 @@ std::string StringExtension::timeToString(time_t time)
   char buffer[26];
   strftime(buffer, 26, "%H:%M", ltime);
   return (std::string)buffer;
-  /*std::ostringstream str;
-  str << time;
-  return str.str();*/
+}
+
+std::string StringExtension::dateToString(time_t time)
+{
+  if ( time == NULL ) {
+     return "";
+  }
+
+  struct tm *ltime = localtime(&time);
+
+  std::ostringstream data;
+  data << StringExtension::addZeros((ltime->tm_year+1900), 4) << "-"
+       << StringExtension::addZeros((ltime->tm_mon+1), 2) << "-"
+       << StringExtension::addZeros((ltime->tm_mday), 2) << " "
+       << StringExtension::addZeros((ltime->tm_hour), 2) << ":"
+       << StringExtension::addZeros((ltime->tm_min), 2) << ":"
+       << StringExtension::addZeros((ltime->tm_sec), 2);
+  return data.str();
+}
+
+std::string StringExtension::addZeros(int value, int digits)
+{
+  std::string strValue = StringExtension::itostr(value);
+  if ( value < 0 ) return strValue;
+
+  while ( (int)strValue.length() < digits ) {
+    strValue = "0" + strValue;
+  }
+
+  return strValue;
 }
 
 // --- QueryHandler -----------------------------------------------------------

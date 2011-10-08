@@ -48,12 +48,19 @@ struct SerEvent
   int Images;
   bool TimerExists;
   bool TimerActive;
+  int ParentalRating;
   cxxtools::String TimerId;
-  cComponents* Components;
+  cEvent* Instance;
+#ifdef EPG_DETAILS_PATCH
+  std::vector< tEpgDetail >* Details;
+#endif
 };
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e);
 void operator<<= (cxxtools::SerializationInfo& si, const SerComponent& c);
+#ifdef EPG_DETAILS_PATCH
+void operator<<= (cxxtools::SerializationInfo& si, const struct tEpgDetail& e);
+#endif
 
 class EventList : public BaseList
 {

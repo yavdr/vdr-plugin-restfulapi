@@ -42,15 +42,52 @@ void TimersResponder::createOrUpdateTimer(std::ostream& out, cxxtools::http::Req
   cTimer* timer_orig = v.ConvertTimer(q.getBodyAsString("timer_id"));
   
   if ( update == false ) { //create
-     if ( !v.IsFlagsValid(flags) ) { error = true; error_values += "flags, "; }
-     if ( !v.IsFileValid(file) ) { error = true; error_values += "file, "; }
-     if ( !v.IsLifetimeValid(lifetime) ) { lifetime = 50; }
-     if ( !v.IsPriorityValid(priority) ) { priority = 99; }
-     if ( !v.IsStopValid(stop) ) { error = true; error_values += "stop, "; }
-     if ( !v.IsStartValid(start) ) { error = true; error_values += "start, "; }
-     if ( !v.IsWeekdaysValid(weekdays) ) { error = true; error_values += "weekdays, "; }
-     if ( !v.IsDayValid(day)&& !day.empty() ) { error = true; error_values += "day, "; }
-     if ( chan == NULL ) { error = true; error_values += "channel, "; }
+     int eventid = q.getBodyAsInt("eventid");
+     int minpre = q.getBodyAsInt("minpre");
+     int minpost = q.getBodyAsInt("minpost");
+     if (eventid >= 0) {
+        cEvent* event = VdrExtension::GetEventById((tEventID)eventid);
+      
+        if (event == NULL) {
+           reply.httpReturn(407, "eventid invalid");
+           return;
+        } else {
+           if (minpre < 0) minpre = 0;
+           if (minpost < 0) minpost = 0;
+           if (!v.IsFlagsValid(flags)) flags = 1;
+           if (!v.IsFileValid(file)) file = (std::string)event->Title();
+           if (!v.IsWeekdaysValid(weekdays)) weekdays = "-------";
+           if (!v.IsLifetimeValid(lifetime)) lifetime = 50;
+           if (!v.IsPriorityValid(priority)) priority = 99;
+           chan = VdrExtension::getChannel((const char*)event->ChannelID().ToString());
+           if (!v.IsStartValid(start) || !v.IsStopValid(stop) || !v.IsDayValid(day)) {
+              time_t estart = event->StartTime();
+              time_t estop = event->EndTime();
+              struct tm *starttime = localtime(&estart);
+            
+              std::ostringstream daystream;
+              daystream << StringExtension::addZeros((starttime->tm_year + 1900), 4) << "-"
+                        << StringExtension::addZeros((starttime->tm_mon + 1), 2) << "-"
+                        << StringExtension::addZeros((starttime->tm_mday), 2);
+              day = daystream.str();
+ 
+              start = starttime->tm_hour * 100 + starttime->tm_min - ((int)(minpre/60))*100 - minpre%60;
+
+              struct tm *stoptime = localtime(&estop);
+              stop = stoptime->tm_hour * 100 + stoptime->tm_min + ((int)(minpost/60))*100 + minpost%60;
+           }
+        }
+     } else {
+        if ( !v.IsFlagsValid(flags) ) { flags = 1; }
+        if ( !v.IsFileValid(file) ) { error = true; error_values += "file, "; }
+        if ( !v.IsLifetimeValid(lifetime) ) { lifetime = 50; }
+        if ( !v.IsPriorityValid(priority) ) { priority = 99; }
+        if ( !v.IsStopValid(stop) ) { error = true; error_values += "stop, "; }
+        if ( !v.IsStartValid(start) ) { error = true; error_values += "start, "; }
+        if ( !v.IsWeekdaysValid(weekdays) ) { error = true; error_values += "weekdays, "; }
+        if ( !v.IsDayValid(day)&& !day.empty() ) { error = true; error_values += "day, "; }
+        if ( chan == NULL ) { error = true; error_values += "channel, "; }
+     }
   } else { //update
      if ( timer_orig == NULL ) { error = true; error_values += "timer_id, "; }
      if ( !error ) {
@@ -94,11 +131,13 @@ void TimersResponder::createOrUpdateTimer(std::ostream& out, cxxtools::http::Req
            delete timer;
            reply.httpReturn(403, "Timer already defined!"); 
            esyslog("restfulapi: Timer already defined!");
+        } else {
+           replyCreatedId(timer, request, reply, out);
+           timer->SetEventFromSchedule();
+           Timers.Add(timer);
+           Timers.SetModified();
+           esyslog("restfulapi: timer created!");
         }
-        timer->SetEventFromSchedule();
-        Timers.Add(timer);
-        Timers.SetModified();
-        esyslog("restfulapi: timer created!");
      } else {
         reply.httpReturn(403, "Creating timer failed!");
         esyslog("restfulapi: timer creation failed!");
@@ -107,12 +146,36 @@ void TimersResponder::createOrUpdateTimer(std::ostream& out, cxxtools::http::Req
      if ( timer_orig->Parse(builder.str().c_str()) ) {
         timer_orig->SetEventFromSchedule();
         Timers.SetModified();
+        replyCreatedId(timer_orig, request, reply, out);
         esyslog("restfulapi: updating timer successful!");
      } else { 
         reply.httpReturn(403, "updating timer failed!");
         esyslog("restfulapi: updating timer failed!");
      }
   }
+}
+
+void TimersResponder::replyCreatedId(cTimer* timer, cxxtools::http::Request& request, cxxtools::http::Reply& reply, std::ostream& out)
+{
+  QueryHandler q("/timers", request);
+  TimerList* timerList;
+
+  if ( q.isFormat(".html") ) {
+     reply.addHeader("Content-Type", "text/html; charset=utf-8");
+     timerList = (TimerList*)new HtmlTimerList(&out);
+  } else if ( q.isFormat(".xml") ) {
+     reply.addHeader("Content-Type", "text/xml; charset=utf-8");
+     timerList = (TimerList*)new XmlTimerList(&out);
+  } else {
+     reply.addHeader("Content-Type", "application/json; charset=utf-8");
+     timerList = (TimerList*)new JsonTimerList(&out);
+  }
+
+  timerList->init();
+  timerList->addTimer(timer);
+  timerList->setTotal(1);
+  timerList->finish();
+  delete timerList;
 }
 
 void TimersResponder::deleteTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
@@ -190,6 +253,8 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerTimer& t)
   si.addMember("id") <<= t.Id;
   si.addMember("flags") <<= t.Flags;
   si.addMember("start") <<= t.Start;
+  si.addMember("start_timestamp") <<= t.StartTimeStamp;
+  si.addMember("stop_timestamp") <<= t.StopTimeStamp;
   si.addMember("stop") <<= t.Stop;
   si.addMember("priority") <<= t.Priority;
   si.addMember("lifetime") <<= t.Lifetime;
@@ -255,6 +320,13 @@ void JsonTimerList::addTimer(cTimer* timer)
   serTimer.FileName = StringExtension::UTF8Decode(timer->File());
   serTimer.ChannelName = StringExtension::UTF8Decode(timer->Channel()->Name());
   serTimer.IsActive = timer->Flags() & 0x01 == 0x01 ? true : false;
+
+  int tstart = timer->Day() - ( timer->Day() % 3600 ) + ((int)(timer->Start()/100)) * 3600 + ((int)(timer->Start()%100)) * 60;
+  int tstop = timer->Day() - ( timer->Day() % 3600 ) + ((int)(timer->Stop()/100)) * 3600 + ((int)(timer->Stop()%100)) * 60;
+
+  serTimer.StartTimeStamp = StringExtension::UTF8Decode(StringExtension::dateToString((time_t)tstart));
+  serTimer.StopTimeStamp = StringExtension::UTF8Decode(StringExtension::dateToString((time_t)tstop));
+
   serTimers.push_back(serTimer);
 }
 
@@ -280,21 +352,28 @@ void XmlTimerList::addTimer(cTimer* timer)
   static TimerValues v;
 
   s->write(" <timer>\n");
-  s->write((const char*)cString::sprintf("  <param name=\"id\">%s</param>\n", StringExtension::encodeToXml(VdrExtension::getTimerID(timer)).c_str()));
-  s->write((const char*)cString::sprintf("  <param name=\"flags\">%i</param>\n", timer->Flags()));
-  s->write((const char*)cString::sprintf("  <param name=\"start\">%i</param>\n", timer->Start()) );
-  s->write((const char*)cString::sprintf("  <param name=\"stop\">%i</param>\n", timer->Stop()) );
-  s->write((const char*)cString::sprintf("  <param name=\"priority\">%i</param>\n", timer->Priority()) );
-  s->write((const char*)cString::sprintf("  <param name=\"lifetime\">%i</param>\n", timer->Lifetime()) );
-  s->write((const char*)cString::sprintf("  <param name=\"event_id\">%i</param>\n", timer->Event() != NULL ? timer->Event()->EventID() : -1) );
-  s->write((const char*)cString::sprintf("  <param name=\"weekdays\">%s</param>\n", StringExtension::encodeToXml(v.ConvertWeekdays(timer->WeekDays())).c_str()));
-  s->write((const char*)cString::sprintf("  <param name=\"day\">%s</param>\n", StringExtension::encodeToXml(v.ConvertDay(timer->Day())).c_str()));
-  s->write((const char*)cString::sprintf("  <param name=\"channel\">%s</param>\n", StringExtension::encodeToXml((const char*)timer->Channel()->GetChannelID().ToString()).c_str()) );
-  s->write((const char*)cString::sprintf("  <param name=\"is_recording\">%s</param>\n", timer->Recording() ? "true" : "false" ) );
-  s->write((const char*)cString::sprintf("  <param name=\"is_pending\">%s</param>\n", timer->Pending() ? "true" : "false" ));
-  s->write((const char*)cString::sprintf("  <param name=\"file_name\">%s</param>\n", StringExtension::encodeToXml(timer->File()).c_str()) );
-  s->write((const char*)cString::sprintf("  <param name=\"channel_name\">%s</param>\n", StringExtension::encodeToXml(timer->Channel()->Name()).c_str()));
-  s->write((const char*)cString::sprintf("  <param name=\"is_active\">%s</param>\n", timer->Flags() & 0x01 == 0x01 ? "true" : "false" ));
+  s->write(cString::sprintf("  <param name=\"id\">%s</param>\n", StringExtension::encodeToXml(VdrExtension::getTimerID(timer)).c_str()));
+  s->write(cString::sprintf("  <param name=\"flags\">%i</param>\n", timer->Flags()));
+  s->write(cString::sprintf("  <param name=\"start\">%i</param>\n", timer->Start()) );
+  s->write(cString::sprintf("  <param name=\"stop\">%i</param>\n", timer->Stop()) );
+
+  int tstart = timer->Day() - ( timer->Day() % 3600 ) + ((int)(timer->Start()/100)) * 3600 + ((int)(timer->Start()%100)) * 60;
+  int tstop = timer->Day() - ( timer->Day() % 3600 ) + ((int)(timer->Stop()/100)) * 3600 + ((int)(timer->Stop()%100)) * 60;
+
+  s->write(cString::sprintf("  <param name=\"start_timestamp\">%s</param>\n", StringExtension::encodeToXml(StringExtension::dateToString(tstart)).c_str()));
+  s->write(cString::sprintf("  <param name=\"stop_timestamp\">%s</param>\n", StringExtension::encodeToXml(StringExtension::dateToString(tstop)).c_str()));
+
+  s->write(cString::sprintf("  <param name=\"priority\">%i</param>\n", timer->Priority()) );
+  s->write(cString::sprintf("  <param name=\"lifetime\">%i</param>\n", timer->Lifetime()) );
+  s->write(cString::sprintf("  <param name=\"event_id\">%i</param>\n", timer->Event() != NULL ? timer->Event()->EventID() : -1) );
+  s->write(cString::sprintf("  <param name=\"weekdays\">%s</param>\n", StringExtension::encodeToXml(v.ConvertWeekdays(timer->WeekDays())).c_str()));
+  s->write(cString::sprintf("  <param name=\"day\">%s</param>\n", StringExtension::encodeToXml(v.ConvertDay(timer->Day())).c_str()));
+  s->write(cString::sprintf("  <param name=\"channel\">%s</param>\n", StringExtension::encodeToXml((const char*)timer->Channel()->GetChannelID().ToString()).c_str()) );
+  s->write(cString::sprintf("  <param name=\"is_recording\">%s</param>\n", timer->Recording() ? "true" : "false" ) );
+  s->write(cString::sprintf("  <param name=\"is_pending\">%s</param>\n", timer->Pending() ? "true" : "false" ));
+  s->write(cString::sprintf("  <param name=\"file_name\">%s</param>\n", StringExtension::encodeToXml(timer->File()).c_str()) );
+  s->write(cString::sprintf("  <param name=\"channel_name\">%s</param>\n", StringExtension::encodeToXml(timer->Channel()->Name()).c_str()));
+  s->write(cString::sprintf("  <param name=\"is_active\">%s</param>\n", timer->Flags() & 0x01 == 0x01 ? "true" : "false" ));
   s->write(" </timer>\n");
 }
 

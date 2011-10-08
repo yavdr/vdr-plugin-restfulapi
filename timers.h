@@ -28,6 +28,7 @@ class TimersResponder : public cxxtools::http::Responder
      void createOrUpdateTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply, bool update);
      void deleteTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
      void showTimers(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+     void replyCreatedId(cTimer* timer, cxxtools::http::Request& request, cxxtools::http::Reply& reply, std::ostream& out);
 };
 
 typedef cxxtools::http::CachedService<TimersResponder> TimersService;
@@ -37,7 +38,9 @@ struct SerTimer
   cxxtools::String Id;
   int Flags;
   int Start;
+  cxxtools::String StartTimeStamp;
   int Stop;
+  cxxtools::String StopTimeStamp;
   int Priority;
   int Lifetime;
   int EventID;

@@ -168,6 +168,8 @@ class VdrExtension
     static std::vector< cTimer* > SortedTimers();
     static bool CompareTimers(cTimer* timer1, cTimer* timer2);
     static int RecordingLengthInSeconds(cRecording* recording);
+    static cEvent* GetEventById(tEventID eventID);
+    static std::string getRelativeVideoPath(cRecording* recording);
 };
 
 class VdrMarks
@@ -196,6 +198,8 @@ class StringExtension
     static std::string trim(std::string str);
     static std::vector< std::string > split(std::string str, std::string s);
     static std::string timeToString(time_t time);
+    static std::string dateToString(time_t time);
+    static std::string addZeros(int value, int digits);
 };
 
 class QueryHandler
