@@ -9,15 +9,17 @@
  
  #define MAXEPGBUGFIXLEVEL 3
  
-@@ -63,6 +65,11 @@
+@@ -63,6 +65,13 @@
                                                                   // In case of an audio stream the 'type' check actually just distinguishes between "normal" and "Dolby Digital"
    };
  
++#ifndef EPG_DETAILS_PATCH
++#define EPG_DETAILS_PATCH
 +struct tEpgDetail {
 +  std::string key;
 +  std::string value;
 + };
-+
++#endif // EPG_DETAILS_PATCH
  class cSchedule;
  
  typedef u_int32_t tEventID;
