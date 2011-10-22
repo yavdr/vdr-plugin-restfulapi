@@ -27,7 +27,7 @@
 #include "utf8_checked.h"
 #include "jsonparser.h"
 
-#define LOWINT 2147483648;
+#define LOWINT 2147483647;
 
 //some defines for inotify memory allocation
 #define EVENT_SIZE ( sizeof (struct inotify_event) )
