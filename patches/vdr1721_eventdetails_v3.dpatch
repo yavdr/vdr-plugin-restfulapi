@@ -1,6 +1,14 @@
-diff -Naur vdrorig/epg.c vdr/epg.c
---- vdrorig/epg.c	2011-10-15 00:52:20.602604884 +0200
-+++ vdr/epg.c	2011-10-15 01:01:26.410603836 +0200
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## eventdetails.dpatch
+##
+## Michael Eiler <eiler.mike@gmail.com>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+
+@DPATCH@
+diff -Naur vdr-1.7.21/epg.c vdrng/epg.c
+--- vdr-1.7.21/epg.c	2011-02-25 16:16:05.000000000 +0100
++++ vdrng/epg.c	2011-10-22 21:48:04.774816379 +0200
 @@ -428,6 +428,21 @@
    return buf;
  }
@@ -54,9 +62,9 @@ diff -Naur vdrorig/epg.c vdr/epg.c
                         break;
               case 'e': if (Event && !Event->Title())
                            Event->SetTitle(tr("No title"));
-diff -Naur vdrorig/epg.h vdr/epg.h
---- vdrorig/epg.h	2011-10-15 00:52:20.602604884 +0200
-+++ vdr/epg.h	2011-10-15 00:56:22.070603817 +0200
+diff -Naur vdr-1.7.21/epg.h vdrng/epg.h
+--- vdr-1.7.21/epg.h	2011-02-25 15:14:38.000000000 +0100
++++ vdrng/epg.h	2011-10-22 21:48:26.750815544 +0200
 @@ -16,6 +16,8 @@
  #include "channels.h"
  #include "thread.h"
@@ -66,21 +74,20 @@ diff -Naur vdrorig/epg.h vdr/epg.h
  
  #define MAXEPGBUGFIXLEVEL 3
  
-@@ -63,6 +65,11 @@
+@@ -63,6 +65,12 @@
                                                                   // In case of an audio stream the 'type' check actually just distinguishes between "normal" and "Dolby Digital"
    };
  
-+#ifndef EPG_DETAILS_PATCH
 +#define EPG_DETAILS_PATCH
 +struct tEpgDetail {
 +  std::string key;
 +  std::string value;
 + };
-+#endif // EPG_DETAILS_PATCH
++
  class cSchedule;
  
  typedef u_int32_t tEventID;
-@@ -86,6 +93,7 @@
+@@ -86,6 +94,7 @@
    int duration;            // Duration of this event in seconds
    time_t vps;              // Video Programming Service timestamp (VPS, aka "Programme Identification Label", PIL)
    time_t seen;             // When this event was last seen in the data stream
@@ -88,7 +95,7 @@ diff -Naur vdrorig/epg.h vdr/epg.h
  public:
    cEvent(tEventID EventID);
    ~cEvent();
-@@ -116,6 +124,7 @@
+@@ -116,6 +125,7 @@
    cString GetTimeString(void) const;
    cString GetEndTimeString(void) const;
    cString GetVpsString(void) const;
@@ -96,7 +103,7 @@ diff -Naur vdrorig/epg.h vdr/epg.h
    void SetEventID(tEventID EventID);
    void SetTableID(uchar TableID);
    void SetVersion(uchar Version);
-@@ -130,6 +139,9 @@
+@@ -130,6 +140,9 @@
    void SetDuration(int Duration);
    void SetVps(time_t Vps);
    void SetSeen(void);
