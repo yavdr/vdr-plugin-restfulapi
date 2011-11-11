@@ -48,7 +48,7 @@ void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& re
   
   int event_id = q.getParamAsInt(1);//q.getOptionAsInt("eventid");
 
-  //bool justCount = q.getOptionAsBool("count");
+  std::string onlyCount = q.getOptionAsString("only_count");
 
   cChannel* channel = VdrExtension::getChannel(channel_id);
   if ( channel == NULL ) { 
@@ -87,7 +87,7 @@ void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& re
     int ts = event->StartTime();
     int te = ts + event->Duration();
     if ( (ts <= to && te > from) || (te > from && timespan == 0) ) {
-       if ( event_id < 0 || event_id == (int)event->EventID()) {
+       if ( (event_id < 0 || event_id == (int)event->EventID()) && onlyCount != "true") {
           eventList->addEvent(event);
        }
     }else{
