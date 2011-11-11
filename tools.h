@@ -170,7 +170,7 @@ class VdrExtension
     static std::vector< cTimer* > SortedTimers();
     static bool CompareTimers(cTimer* timer1, cTimer* timer2);
     static int RecordingLengthInSeconds(cRecording* recording);
-    static cEvent* GetEventById(tEventID eventID);
+    static cEvent* GetEventById(tEventID eventID, cChannel* channel = NULL);
     static std::string getRelativeVideoPath(cRecording* recording);
 };
 

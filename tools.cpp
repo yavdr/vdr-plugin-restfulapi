@@ -562,7 +562,7 @@ int VdrExtension::RecordingLengthInSeconds(cRecording* recording)
   return -1;
 }
 
-cEvent* VdrExtension::GetEventById(tEventID eventID)
+cEvent* VdrExtension::GetEventById(tEventID eventID, cChannel* channel)
 {
   cSchedulesLock MutexLock;
   const cSchedules *Schedules = cSchedules::Schedules(MutexLock);
@@ -573,7 +573,7 @@ cEvent* VdrExtension::GetEventById(tEventID eventID)
     const cSchedule *Schedule = Schedules->GetSchedule(channel->GetChannelID());
     if (Schedule) {
        cEvent* event = (cEvent*)Schedule->GetEvent(eventID);
-       if ( event != NULL ) return event;
+       if ( event != NULL && (channel == NULL || strcmp(channel->GetChannelID().ToString(), event->ChannelID().ToString()) == 0 ) ) return event;
     }
   }
   return NULL;
