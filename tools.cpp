@@ -477,11 +477,11 @@ cTimer* VdrExtension::TimerExists(cEvent* event)
   for(int i=0;i<Timers.Count();i++) {
      cTimer* timer = Timers.Get(i);
 
-     if ( timer->Event() != NULL &&  timer->Event()->EventID() == event->EventID() ) {
+     if ( timer->Event() != NULL &&  timer->Event()->EventID() == event->EventID() && strcmp(timer->Event()->ChannelID().ToString(), event->ChannelID().ToString()) == 0 ) {
         return timer;
      }
     
-     if ( timer->Channel()->GetChannelID() == event->ChannelID() ) {
+     if ( strcmp(timer->Channel()->GetChannelID().ToString(), event->ChannelID().ToString()) == 0 ) {
         int timer_start = (int)timer->Day() - ((int)timer->Day()) % 3600;
         int timer_stop = timer_start;
         timer_start += ((int)(timer->Start() / 100)) * 60 * 60;
