@@ -48,6 +48,8 @@ void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& re
   
   int event_id = q.getParamAsInt(1);//q.getOptionAsInt("eventid");
 
+  //bool justCount = q.getOptionAsBool("count");
+
   cChannel* channel = VdrExtension::getChannel(channel_id);
   if ( channel == NULL ) { 
      std::string error_message = (std::string)"Could not find channel with id: " + channel_id + (std::string)"!";
@@ -273,6 +275,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)
      counter++;
      content = e.Instance->Contents(counter);
   }
+  si.addMember("contents") <<= contents;
 
 #ifdef EPG_DETAILS_PATCH
   si.addMember("details") <<= *e.Details;
