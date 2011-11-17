@@ -73,7 +73,7 @@ void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& re
   for(int i=0;i<Channels.Count();i++) {
      const cSchedule *Schedule = Schedules->GetSchedule(Channels.Get(i)->GetChannelID());
      
-     if ( channel == NULL || strcmp(channel->GetChannelId().ToString(), Channels.Get(i).GetChannelID().ToString()) == 0) {
+     if ( channel == NULL || strcmp(channel->GetChannelID().ToString(), Channels.Get(i).GetChannelID().ToString()) == 0) {
   
         if ( !Schedule ) {
            reply.httpReturn(404, "Could not find schedule!");
@@ -101,7 +101,7 @@ void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& re
               }
            }
         }
-        total += (Schedule()->Events()->Count() - old);
+        total += (Schedule->Events()->Count() - old);
       }
   }
   eventList->setTotal(total);
