@@ -51,11 +51,11 @@ void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& re
   std::string onlyCount = q.getOptionAsString("only_count");
 
   cChannel* channel = VdrExtension::getChannel(channel_id);
-  if ( channel == NULL ) { 
+  /*if ( channel == NULL ) { 
      std::string error_message = (std::string)"Could not find channel with id: " + channel_id + (std::string)"!";
      reply.httpReturn(404, error_message); 
      return; 
-  }
+  }*/
 
   if ( from <= -1 ) from = time(NULL); // default time is now
   if ( timespan <= -1 ) timespan = 0; // default timespan is 0, which means all entries will be returned
@@ -69,35 +69,42 @@ void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& re
      return;
   }
 
-  const cSchedule *Schedule = Schedules->GetSchedule(channel->GetChannelID());
+  int total = 0;
+  for(int i=0;i<Channels.Count();i++) {
+     const cSchedule *Schedule = Schedules->GetSchedule(Channels.Get(i)->GetChannelID());
+     
+     if ( channel == NULL || strcmp(channel->GetChannelId().ToString(), Channels.Get(i).GetChannelID().ToString()) == 0) {
   
-  if ( !Schedule ) {
-     reply.httpReturn(404, "Could not find schedule!");
-     return;
-  }
+        if ( !Schedule ) {
+           reply.httpReturn(404, "Could not find schedule!");
+           return;
+        }
   
-  if ( start_filter >= 0 && limit_filter >= 1 ) {
-     eventList->activateLimit(start_filter, limit_filter);
-  }
+        if ( start_filter >= 0 && limit_filter >= 1 ) {
+           eventList->activateLimit(start_filter, limit_filter);
+        }
 
-  eventList->init();
-  int old = 0;
-  for(cEvent* event = Schedule->Events()->First(); event; event = Schedule->Events()->Next(event))
-  {
-    int ts = event->StartTime();
-    int te = ts + event->Duration();
-    if ( (ts <= to && te > from) || (te > from && timespan == 0) ) {
-       if ( (event_id < 0 || event_id == (int)event->EventID()) && onlyCount != "true") {
-          eventList->addEvent(event);
-       }
-    }else{
-      if(ts > to) break;
-      if(te <= from) {
-        old++;
+        eventList->init();
+        int old = 0;
+        for(cEvent* event = Schedule->Events()->First(); event; event = Schedule->Events()->Next(event))
+        {
+           int ts = event->StartTime();
+           int te = ts + event->Duration();
+           if ( (ts <= to && te > from) || (te > from && timespan == 0) ) {
+              if ( (event_id < 0 || event_id == (int)event->EventID()) && onlyCount != "true") {
+                 eventList->addEvent(event);
+              }
+           }else{
+              if(ts > to) break;
+              if(te <= from) {
+                 old++;
+              }
+           }
+        }
+        total += (Schedule()->Events()->Count() - old);
       }
-    }
   }
-  eventList->setTotal( Schedule->Events()->Count() - old );
+  eventList->setTotal(total);
   eventList->finish();
   delete eventList;
 }
