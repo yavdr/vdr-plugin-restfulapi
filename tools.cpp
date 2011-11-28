@@ -305,7 +305,7 @@ void FileCaches::cacheChannelLogos()
 
 void FileCaches::searchEventImages(int eventid, std::vector< std::string >& files)
 {
-  cxxtools::Regex regex( StringExtension::itostr(eventid) + (std::string)"(_[0-9]+)?.[a-z]{3,4}" );
+  cxxtools::Regex regex( (std::string)"^" + StringExtension::itostr(eventid) + (std::string)"(_[0-9]+)?.[a-z]{3,4}$" );
   for ( int i=0; i < (int)eventImages.size(); i++ ) {
       if ( regex.match(eventImages[i]) ) {
          files.push_back(eventImages[i]);
