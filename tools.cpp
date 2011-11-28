@@ -477,11 +477,11 @@ cTimer* VdrExtension::TimerExists(cEvent* event)
   for(int i=0;i<Timers.Count();i++) {
      cTimer* timer = Timers.Get(i);
 
-     if ( timer->Event() != NULL &&  timer->Event()->EventID() == event->EventID() ) {
+     if ( timer->Event() != NULL &&  timer->Event()->EventID() == event->EventID() && strcmp(timer->Event()->ChannelID().ToString(), event->ChannelID().ToString()) == 0 ) {
         return timer;
      }
     
-     if ( timer->Channel()->GetChannelID() == event->ChannelID() ) {
+     if ( strcmp(timer->Channel()->GetChannelID().ToString(), event->ChannelID().ToString()) == 0 ) {
         int timer_start = (int)timer->Day() - ((int)timer->Day()) % 3600;
         int timer_stop = timer_start;
         timer_start += ((int)(timer->Start() / 100)) * 60 * 60;
@@ -562,7 +562,7 @@ int VdrExtension::RecordingLengthInSeconds(cRecording* recording)
   return -1;
 }
 
-cEvent* VdrExtension::GetEventById(tEventID eventID)
+cEvent* VdrExtension::GetEventById(tEventID eventID, cChannel* channel)
 {
   cSchedulesLock MutexLock;
   const cSchedules *Schedules = cSchedules::Schedules(MutexLock);
@@ -573,7 +573,7 @@ cEvent* VdrExtension::GetEventById(tEventID eventID)
     const cSchedule *Schedule = Schedules->GetSchedule(channel->GetChannelID());
     if (Schedule) {
        cEvent* event = (cEvent*)Schedule->GetEvent(eventID);
-       if ( event != NULL ) return event;
+       if ( event != NULL && (channel == NULL || strcmp(channel->GetChannelID().ToString(), event->ChannelID().ToString()) == 0 ) ) return event;
     }
   }
   return NULL;

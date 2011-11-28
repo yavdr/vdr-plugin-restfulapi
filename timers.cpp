@@ -45,8 +45,8 @@ void TimersResponder::createOrUpdateTimer(std::ostream& out, cxxtools::http::Req
      int eventid = q.getBodyAsInt("eventid");
      int minpre = q.getBodyAsInt("minpre");
      int minpost = q.getBodyAsInt("minpost");
-     if (eventid >= 0) {
-        cEvent* event = VdrExtension::GetEventById((tEventID)eventid);
+     if (eventid >= 0 && chan != NULL) {
+        cEvent* event = VdrExtension::GetEventById((tEventID)eventid, chan);
       
         if (event == NULL) {
            reply.httpReturn(407, "eventid invalid");
