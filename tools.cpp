@@ -217,6 +217,8 @@ void FileNotifier::Initialize(int mode)
      _wd = inotify_add_watch( _filedescriptor, dir.c_str(), IN_CREATE | IN_DELETE );
      if ( _wd < 0 )
         esyslog("restfulapi: Initializing inotify for epgimages failed!");
+     else
+        esyslog("restfulapi: Initializing inotify for %s finished.", dir.c_str());
   }
  
 
@@ -430,6 +432,7 @@ int VdrExtension::scanForFiles(const std::string wildcardpath, std::vector< std:
      }
      globfree(&globbuf);
   }
+  esyslog("restfulapi: found %i files im %s.", found, wildcardpath.c_str());
   return found;
 }
 
