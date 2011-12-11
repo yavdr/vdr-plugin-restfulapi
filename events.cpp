@@ -69,6 +69,12 @@ void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& re
      return;
   }
 
+
+  if ( start_filter >= 0 && limit_filter >= 1 ) {
+     eventList->activateLimit(start_filter, limit_filter);
+  }
+
+  bool initialized = false;
   int total = 0;
   for(int i=0;i<Channels.Count();i++) {
      const cSchedule *Schedule = Schedules->GetSchedule(Channels.Get(i)->GetChannelID());
@@ -76,33 +82,36 @@ void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& re
      if ( channel == NULL || strcmp(channel->GetChannelID().ToString(), Channels.Get(i)->GetChannelID().ToString()) == 0) {
   
         if ( !Schedule ) {
-           reply.httpReturn(404, "Could not find schedule!");
-           return;
-        }
-  
-        if ( start_filter >= 0 && limit_filter >= 1 ) {
-           eventList->activateLimit(start_filter, limit_filter);
-        }
+           if ( channel != NULL) {
+              reply.httpReturn(404, "Could not find schedule!");
+              return;
+           }
+        } else {
 
-        eventList->init();
-        int old = 0;
-        for(cEvent* event = Schedule->Events()->First(); event; event = Schedule->Events()->Next(event))
-        {
-           int ts = event->StartTime();
-           int te = ts + event->Duration();
-           if ( (ts <= to && te > from) || (te > from && timespan == 0) ) {
-              if ( (event_id < 0 || event_id == (int)event->EventID()) && onlyCount != "true") {
-                 eventList->addEvent(event);
-              }
-           }else{
-              if(ts > to) break;
-              if(te <= from) {
-                 old++;
+           if (!initialized) {
+              eventList->init();
+              initialized = true;
+           }
+
+           int old = 0;
+           for(cEvent* event = Schedule->Events()->First(); event; event = Schedule->Events()->Next(event))
+           {
+              int ts = event->StartTime();
+              int te = ts + event->Duration();
+              if ( (ts <= to && te > from) || (te > from && timespan == 0) ) {
+                 if ( (event_id < 0 || event_id == (int)event->EventID()) && onlyCount != "true") {
+                    eventList->addEvent(event);
+                 }
+              }else{
+                 if(ts > to) break;
+                 if(te <= from) {
+                    old++;
+                 }
               }
            }
+           total += (Schedule->Events()->Count() - old);
         }
-        total += (Schedule->Events()->Count() - old);
-      }
+     }
   }
   eventList->setTotal(total);
   eventList->finish();

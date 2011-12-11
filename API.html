@@ -88,7 +88,7 @@ It would not exist without the help of the following people:<br />
 <li>Tommi Mäkitalo: Thank you for implementing the Regex-Support in cxxtools which allows RESTful web services.
 <li>Holger Schvestka: Thank you for improving the package structure.
 <li>All other yaVDR-Members who I haven't already mentioned, just because you are who you are and do your best to improve the VDR experience.
-<li>The developers of the live and vnsisserver Plugins which helper me to learn a lot about the API of VDR.
+<li>The developers of the live and vnsisserver Plugins which helped me to learn a lot about the API of VDR.
 <li>The developers of the live plugin where I borrowed parts of the epgsearch-implementation :-)
 <li>Daniel Kuschny: Thank you for fixing my broken regular expressions. Will pay you a beer! :-)
 <li>Keine_Ahnung@vdr-portal for the VDR 1.6 compatibility patch
@@ -322,7 +322,7 @@ GET http://&lt;ip&gt;:&lt;port&gt;/events/&lt;channelid&gt;.&lt;format&gt;?times
 <br />
 <ul>
  <li>&lt;format&gt; - The requested format: json, xml or html.
- <li>&lt;channelid&gt; - id of the channel
+ <li>&lt;channelid&gt; - (optional) id of the channel, if not set the plugin will return the whole epg sorted by your channel list
  <li>&lt;timespan&gt; - the timespan from which you want to know the event-details, if set to 0 - all events in the future will be returned
  <li>&lt;from&gt; - (optional) time in the future when the requested events should end/start (default-value: now)
  <li>&lt;eventid&gt; - (optional) if you only want the details of a specific event
