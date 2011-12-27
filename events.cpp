@@ -51,11 +51,12 @@ void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& re
   std::string onlyCount = q.getOptionAsString("only_count");
 
   cChannel* channel = VdrExtension::getChannel(channel_id);
-  /*if ( channel == NULL ) { 
-     std::string error_message = (std::string)"Could not find channel with id: " + channel_id + (std::string)"!";
+  if ( channel == NULL ) { 
+     reply.addHeader("Content-Type", "application/octet-stream");
+     /*std::string error_message = (std::string)"Could not find channel with id: " + channel_id + (std::string)"!";
      reply.httpReturn(404, error_message); 
-     return; 
-  }*/
+     return;*/
+  }
 
   if ( from <= -1 ) from = time(NULL); // default time is now
   if ( timespan <= -1 ) timespan = 0; // default timespan is 0, which means all entries will be returned
