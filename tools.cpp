@@ -766,17 +766,25 @@ std::string StringExtension::encodeToXml(const std::string &str)
     }
 
     std::string res = result.str();
-    std::string converted;
-    utf8::replace_invalid(res.begin(), res.end(), back_inserter(converted));
-    return converted;
+    try {
+       std::string converted;
+       utf8::replace_invalid(res.begin(), res.end(), back_inserter(converted));
+       return converted;
+    } catch(utf8::not_enough_room& e) {
+       return (std::string)"Invalid piece of text. (Fixing Unicode failed.)";
+    }
 }
 
 cxxtools::String StringExtension::UTF8Decode(std::string str)
 {
   static cxxtools::Utf8Codec utf8;
   std::string temp;
-  utf8::replace_invalid(str.begin(), str.end(), back_inserter(temp));
-  return utf8.decode(temp);
+  try {
+     utf8::replace_invalid(str.begin(), str.end(), back_inserter(temp));
+     return utf8.decode(temp);
+  } catch (utf8::not_enough_room& e) {
+     return utf8.decode((std::string)"Invalid piece of text. (Fixing Unicode failed.)");
+  }
 }
 
 std::string StringExtension::toLowerCase(std::string str)
