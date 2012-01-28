@@ -589,6 +589,21 @@ std::string VdrExtension::getRelativeVideoPath(cRecording* recording)
   return path.substr(VIDEODIR.length());
 }
 
+cEvent* VdrExtension::getCurrentEventOnChannel(cChannel* channel)
+{
+  if ( channel == NULL ) return NULL; 
+
+  cSchedulesLock MutexLock;
+  const cSchedules *Schedules = cSchedules::Schedules(MutexLock);
+
+  if ( ! Schedules ) { return NULL; }
+  const cSchedule *Schedule = Schedules->GetSchedule(channel->GetChannelID());
+  if ( !Schedule ) { return NULL; }
+
+  time_t now = time(NULL);
+  return (cEvent*)Schedule->GetEventAround(now);
+}
+
 // --- VdrMarks ---------------------------------------------------------------
 
 VdrMarks* VdrMarks::get()

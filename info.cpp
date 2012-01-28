@@ -73,9 +73,28 @@ void InfoResponder::replyJson(StreamExtension& se)
   } else {
      std::string channelid = "";
      cChannel* channel = Channels.GetByNumber(statm->getChannel());
-     if (channel != NULL) channelid = (const char*)channel->GetChannelID().ToString();
+     if (channel != NULL) { 
+        channelid = (const char*)channel->GetChannelID().ToString();
+        serializer.serialize(channelid, "channel");
+        cEvent* event = VdrExtension::getCurrentEventOnChannel(channel);
+                
+        std::string eventTitle = "";
+        int start_time = -1;
+	int duration = -1;
+        int eventId = -1;
 
-     serializer.serialize(channelid, "channel");
+        if ( event != NULL) {
+           eventTitle = event->Title();
+	   start_time = event->StartTime();
+           duration = event->Duration(),
+           eventId = (int)event->EventID();	   
+        }
+
+        serializer.serialize(eventId, "eventid");
+        serializer.serialize(start_time, "start_time");
+	serializer.serialize(duration, "duration");
+        serializer.serialize(StringExtension::UTF8Decode(eventTitle), "title");
+     }
   }
 
   serializer.serialize(pl, "vdr");
@@ -109,9 +128,22 @@ void InfoResponder::replyXml(StreamExtension& se)
   } else {
      cChannel* channel = Channels.GetByNumber(statm->getChannel());
      std::string channelid = "";
-     if (channel != NULL) channelid = (const char*)channel->GetChannelID().ToString();
+     cEvent* event = NULL;
+     if (channel != NULL) { 
+        channelid = (const char*)channel->GetChannelID().ToString();
+        event = VdrExtension::getCurrentEventOnChannel(channel);  
+     }
 
      se.write(cString::sprintf(" <channel>%s</channel>\n", channelid.c_str()));
+     if ( event != NULL) {
+        std::string eventTitle = "";
+        if ( event->Title() != NULL ) { eventTitle = event->Title(); }
+
+	se.write(cString::sprintf(" <eventid>%i</eventid>\n", event->EventID()));
+        se.write(cString::sprintf(" <start_time>%i</start_time>\n", (int)event->StartTime()));
+	se.write(cString::sprintf(" <duration>%i</duration>\n", (int)event->Duration()));
+	se.write(cString::sprintf(" <title>%s</title>\n", StringExtension::encodeToXml(eventTitle).c_str()));
+     }
   }
 
   se.write(" <vdr>\n");
