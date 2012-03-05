@@ -1,6 +1,7 @@
 #include "events.h"
+using namespace std;
 
-void EventsResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+void EventsResponder::reply(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler::addHeader(reply);
   if ( (int)request.url().find("/events/image/") == 0 ) {
@@ -12,7 +13,7 @@ void EventsResponder::reply(std::ostream& out, cxxtools::http::Request& request,
   }
 }
 
-void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+void EventsResponder::replyEvents(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/events", request);
 
@@ -39,7 +40,7 @@ void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& re
      return;
   }
 
-  std::string channel_id = q.getParamAsString(0);
+  string channel_id = q.getParamAsString(0);
   int timespan = q.getOptionAsInt("timespan");//q.getParamAsInt(1);
   int from = q.getOptionAsInt("from");//q.getParamAsInt(2);
 
@@ -48,12 +49,12 @@ void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& re
   
   int event_id = q.getParamAsInt(1);//q.getOptionAsInt("eventid");
 
-  std::string onlyCount = q.getOptionAsString("only_count");
+  string onlyCount = q.getOptionAsString("only_count");
 
   cChannel* channel = VdrExtension::getChannel(channel_id);
   if ( channel == NULL ) { 
      reply.addHeader("Content-Type", "application/octet-stream");
-     /*std::string error_message = (std::string)"Could not find channel with id: " + channel_id + (std::string)"!";
+     /*string error_message = (string)"Could not find channel with id: " + channel_id + (string)"!";
      reply.httpReturn(404, error_message); 
      return;*/
   }
@@ -119,7 +120,7 @@ void EventsResponder::replyEvents(std::ostream& out, cxxtools::http::Request& re
   delete eventList;
 }
 
-void EventsResponder::replyImage(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+void EventsResponder::replyImage(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/events/image", request);
   if ( request.method() != "GET") {
@@ -131,7 +132,7 @@ void EventsResponder::replyImage(std::ostream& out, cxxtools::http::Request& req
   int eventid = q.getParamAsInt(0);
   int number = q.getParamAsInt(1);
   
-  std::vector< std::string > images;
+  vector< string > images;
   
   FileCaches::get()->searchEventImages(eventid, images);
 
@@ -140,10 +141,10 @@ void EventsResponder::replyImage(std::ostream& out, cxxtools::http::Request& req
      return;
   }
 
-  std::string image = images[number];
-  std::string type = image.substr(image.find_last_of(".")+1);
-  std::string contenttype = (std::string)"image/" + type;
-  std::string path = Settings::get()->EpgImageDirectory() + (std::string)"/" + image;
+  string image = images[number];
+  string type = image.substr(image.find_last_of(".")+1);
+  string contenttype = (string)"image/" + type;
+  string path = Settings::get()->EpgImageDirectory() + (string)"/" + image;
  
   if ( se.writeBinary(path) ) {
      reply.addHeader("Content-Type", contenttype.c_str());
@@ -152,7 +153,7 @@ void EventsResponder::replyImage(std::ostream& out, cxxtools::http::Request& req
   }
 }
 
-void EventsResponder::replySearchResult(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+void EventsResponder::replySearchResult(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/events/search", request);
 
@@ -163,10 +164,10 @@ void EventsResponder::replySearchResult(std::ostream& out, cxxtools::http::Reque
 
   StreamExtension se(&out);
 
-  std::string query = q.getBodyAsString("query");
+  string query = q.getBodyAsString("query");
  
   int mode = q.getBodyAsInt("mode");// search mode (0=phrase, 1=and, 2=or, 3=regular expression)
-  std::string channelid = q.getBodyAsString("channel"); //id !!
+  string channelid = q.getBodyAsString("channel"); //id !!
   bool use_title = q.getBodyAsBool("use_title");
   bool use_subtitle = q.getBodyAsBool("use_subtitle");
   bool use_description = q.getBodyAsBool("use_description");
@@ -267,7 +268,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)
   si.addMember("timer_id") <<= e.TimerId;
   si.addMember("parental_rating") <<= e.ParentalRating;
 
-  std::vector< SerComponent > components;
+  vector< SerComponent > components;
   if ( e.Instance->Components() != NULL ) {
      for(int i=0;i<e.Instance->Components()->NumComponents();i++) {
         tComponent* comp = e.Instance->Components()->Component(i);
@@ -275,16 +276,16 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)
         component.Stream = (int)comp->stream;
         component.Type = (int)comp->type;
         component.Language = StringExtension::UTF8Decode("");
-        if(comp->language != NULL) component.Language = StringExtension::UTF8Decode(std::string(comp->language));
+        if(comp->language != NULL) component.Language = StringExtension::UTF8Decode(string(comp->language));
         component.Description = StringExtension::UTF8Decode("");
-        if(comp->description != NULL) component.Description = StringExtension::UTF8Decode(std::string(comp->description));
+        if(comp->description != NULL) component.Description = StringExtension::UTF8Decode(string(comp->description));
         components.push_back(component); 
      }
   }
 
   si.addMember("components") <<= components;
 
-  std::vector< cxxtools::String > contents;
+  vector< cxxtools::String > contents;
   int counter = 0;
   uchar content = e.Instance->Contents(counter);
   while (content != 0) {
@@ -315,7 +316,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const struct tEpgDetail& e)
 }
 #endif
 
-EventList::EventList(std::ostream *_out) {
+EventList::EventList(ostream *_out) {
   s = new StreamExtension(_out);
   total = 0;
 }
@@ -379,12 +380,12 @@ void JsonEventList::addEvent(cEvent* event)
      serEvent.TimerId = StringExtension::UTF8Decode(VdrExtension::getTimerID(timer));
   }
 
-  std::vector< std::string > images;
+  vector< string > images;
   FileCaches::get()->searchEventImages((int)event->EventID(), images);
   serEvent.Images = images.size();
 
 #ifdef EPG_DETAILS_PATCH
-  serEvent.Details = (std::vector<tEpgDetail>*)&event->Details();
+  serEvent.Details = (vector<tEpgDetail>*)&event->Details();
 #endif
 
   serEvents.push_back(serEvent);
@@ -410,9 +411,9 @@ void XmlEventList::addEvent(cEvent* event)
 {
   if ( filtered() ) return;
 
-  std::string eventTitle;
-  std::string eventShortText;
-  std::string eventDescription;
+  string eventTitle;
+  string eventShortText;
+  string eventDescription;
 
   if ( event->Title() == NULL ) { eventTitle = ""; } else { eventTitle = event->Title(); }
   if ( event->ShortText() == NULL ) { eventShortText = ""; } else { eventShortText = event->ShortText(); }
@@ -433,21 +434,21 @@ void XmlEventList::addEvent(cEvent* event)
 #ifdef EPG_DETAILS_PATCH
   s->write("  <param name=\"details\">\n");
   for(int i=0;i<(int)event->Details().size();i++) {
-     std::string key = event->Details()[i].key;
-     std::string value = event->Details()[i].value;
+     string key = event->Details()[i].key;
+     string value = event->Details()[i].value;
      s->write(cString::sprintf("   <detail key=\"%s\">%s</detail>\n", StringExtension::encodeToXml(key.c_str()).c_str(), StringExtension::encodeToXml(value.c_str()).c_str()));
   }
   s->write("  </param>\n");
 #endif
 
-  std::vector< std::string > images;
+  vector< string > images;
   FileCaches::get()->searchEventImages((int)event->EventID(), images);
   s->write(cString::sprintf("  <param name=\"images\">%i</param>\n", (int)images.size()));
 
   cTimer* timer = VdrExtension::TimerExists(event);
   bool timer_exists = timer != NULL ? true : false;
   bool timer_active = false;
-  std::string timer_id = "";
+  string timer_id = "";
   if ( timer_exists ) {
      timer_active = timer->Flags() & 0x01 == 0x01 ? true : false;
      timer_id = VdrExtension::getTimerID(timer);
@@ -459,11 +460,11 @@ void XmlEventList::addEvent(cEvent* event)
      for(int i=0;i<components->NumComponents();i++) {
         tComponent* component = components->Component(i);
 
-        std::string language = ""; 
-        if (component->language != NULL) language = std::string(component->language);
+        string language = ""; 
+        if (component->language != NULL) language = string(component->language);
 
-        std::string description = "";
-        if (component->description != NULL) description = std::string(component->description);
+        string description = "";
+        if (component->description != NULL) description = string(component->description);
 
         s->write(cString::sprintf("   <component stream=\"%i\" type=\"%i\" language=\"%s\" description=\"%s\" />\n", 
                                   (int)component->stream, (int)component->type, language.c_str(), description.c_str()));

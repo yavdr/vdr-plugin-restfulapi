@@ -1,6 +1,7 @@
 #include "channels.h"
+using namespace std;
 
-void ChannelsResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+void ChannelsResponder::reply(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler::addHeader(reply);
 
@@ -20,7 +21,7 @@ void ChannelsResponder::reply(std::ostream& out, cxxtools::http::Request& reques
   }
 }
 
-void ChannelsResponder::replyChannels(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+void ChannelsResponder::replyChannels(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/channels", request);
   
@@ -40,10 +41,10 @@ void ChannelsResponder::replyChannels(std::ostream& out, cxxtools::http::Request
     return;
   }
 
-  std::string channel_details = q.getParamAsString(0);
+  string channel_details = q.getParamAsString(0);
   int start_filter = q.getOptionAsInt("start");
   int limit_filter = q.getOptionAsInt("limit");
-  std::string group_filter = q.getOptionAsString("group");
+  string group_filter = q.getOptionAsString("group");
 
   if (channel_details.length() > 0) {
      cChannel* channel = VdrExtension::getChannel(channel_details);
@@ -54,7 +55,7 @@ void ChannelsResponder::replyChannels(std::ostream& out, cxxtools::http::Request
      } else {
         channelList->init();
         
-        std::string group = "";
+        string group = "";
         int total = 0;
         for (cChannel *channelIt = Channels.First(); channelIt; channelIt = Channels.Next(channelIt))
         { 
@@ -65,7 +66,7 @@ void ChannelsResponder::replyChannels(std::ostream& out, cxxtools::http::Request
                  group = channelIt->Name();
         }
         channelList->setTotal(total);
-        std::string image = FileCaches::get()->searchChannelLogo(channel);
+        string image = FileCaches::get()->searchChannelLogo(channel);
         channelList->addChannel(channel, group, image.length() == 0);
      }
   } else {
@@ -74,12 +75,12 @@ void ChannelsResponder::replyChannels(std::ostream& out, cxxtools::http::Request
      }
      channelList->init();
      int total = 0;
-     std::string group = "";
+     string group = "";
      for (cChannel *channel = Channels.First(); channel; channel = Channels.Next(channel))
      {
        if (!channel->GroupSep()) {
           if ( group_filter.length() == 0 || group == group_filter ) {
-             std::string image = FileCaches::get()->searchChannelLogo(channel);
+             string image = FileCaches::get()->searchChannelLogo(channel);
              channelList->addChannel(channel, group, image.length() != 0);
              total++;
           }
@@ -94,29 +95,29 @@ void ChannelsResponder::replyChannels(std::ostream& out, cxxtools::http::Request
   delete channelList;
 }
 
-void ChannelsResponder::replyImage(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+void ChannelsResponder::replyImage(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   StreamExtension se(&out);
   QueryHandler q("/channels/image/", request);
   
-  std::string channelid = q.getParamAsString(0);
+  string channelid = q.getParamAsString(0);
   cChannel* channel = VdrExtension::getChannel(channelid);
-  std::string imageFolder = Settings::get()->ChannelLogoDirectory() + (std::string)"/";
+  string imageFolder = Settings::get()->ChannelLogoDirectory() + (string)"/";
   
   if (channel == NULL) {
      reply.httpReturn(502, "Channel not found!");
      return;
   }
 
-  std::string imageName = FileCaches::get()->searchChannelLogo(channel);
+  string imageName = FileCaches::get()->searchChannelLogo(channel);
 
   if (imageName.length() == 0 ) {
      reply.httpReturn(502, "No image found!");
      return;
   }
   
-  std::string absolute_path = imageFolder + imageName;
-  std::string contenttype = (std::string)"image/" + imageName.substr( imageName.find_last_of('.') + 1 );
+  string absolute_path = imageFolder + imageName;
+  string contenttype = (string)"image/" + imageName.substr( imageName.find_last_of('.') + 1 );
   if ( se.writeBinary(absolute_path) ) {
      reply.addHeader("Content-Type", contenttype.c_str());
   } else {
@@ -124,7 +125,7 @@ void ChannelsResponder::replyImage(std::ostream& out, cxxtools::http::Request& r
   }
 }
 
-void ChannelsResponder::replyGroups(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+void ChannelsResponder::replyGroups(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 { 
   QueryHandler q("/channels/groups", request);
   ChannelGroupList* channelGroupList;
@@ -182,7 +183,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerChannel& c)
   si.addMember("is_radio") <<= c.IsRadio;
 }
 
-ChannelList::ChannelList(std::ostream* _out)
+ChannelList::ChannelList(ostream* _out)
 {
   s = new StreamExtension(_out);
 }
@@ -198,7 +199,7 @@ void HtmlChannelList::init()
   s->write("<ul>");
 }
 
-void HtmlChannelList::addChannel(cChannel* channel, std::string group, bool image)
+void HtmlChannelList::addChannel(cChannel* channel, string group, bool image)
 {
   if ( filtered() ) return;
 
@@ -213,20 +214,20 @@ void HtmlChannelList::finish()
   s->write("</body></html>");
 }
 
-void JsonChannelList::addChannel(cChannel* channel, std::string group, bool image)
+void JsonChannelList::addChannel(cChannel* channel, string group, bool image)
 {  
   if ( filtered() ) return;
 
-  std::string suffix = (std::string) ".ts";
+  string suffix = (string) ".ts";
 
   SerChannel serChannel;
   serChannel.Name = StringExtension::UTF8Decode(channel->Name());
   serChannel.Number = channel->Number();
-  serChannel.ChannelId = StringExtension::UTF8Decode((std::string)channel->GetChannelID().ToString());
+  serChannel.ChannelId = StringExtension::UTF8Decode((string)channel->GetChannelID().ToString());
   serChannel.Image = image;
   serChannel.Group = StringExtension::UTF8Decode(group);
   serChannel.Transponder = channel->Transponder();
-  serChannel.Stream = StringExtension::UTF8Decode(((std::string)channel->GetChannelID().ToString() + (std::string)suffix).c_str());
+  serChannel.Stream = StringExtension::UTF8Decode(((string)channel->GetChannelID().ToString() + (string)suffix).c_str());
   // TODO: There is an atsc Patch
   #if APIVERSNUM >= 10714
   serChannel.IsAtsc = channel->IsAtsc();
@@ -255,20 +256,20 @@ void XmlChannelList::init()
   s->write("<channels xmlns=\"http://www.domain.org/restfulapi/2011/channels-xml\">\n");
 }
 
-void XmlChannelList::addChannel(cChannel* channel, std::string group, bool image)
+void XmlChannelList::addChannel(cChannel* channel, string group, bool image)
 {
   if ( filtered() ) return;
 
-  std::string suffix = (std::string) ".ts";
+  string suffix = (string) ".ts";
 
   s->write(" <channel>\n");
   s->write(cString::sprintf("  <param name=\"name\">%s</param>\n", StringExtension::encodeToXml(channel->Name()).c_str()));
   s->write(cString::sprintf("  <param name=\"number\">%i</param>\n", channel->Number()));
-  s->write(cString::sprintf("  <param name=\"channel_id\">%s</param>\n",  StringExtension::encodeToXml( (std::string)channel->GetChannelID().ToString()).c_str()));
+  s->write(cString::sprintf("  <param name=\"channel_id\">%s</param>\n",  StringExtension::encodeToXml( (string)channel->GetChannelID().ToString()).c_str()));
   s->write(cString::sprintf("  <param name=\"image\">%s</param>\n", (image ? "true" : "false")));
   s->write(cString::sprintf("  <param name=\"group\">%s</param>\n", StringExtension::encodeToXml( group ).c_str()));
   s->write(cString::sprintf("  <param name=\"transponder\">%i</param>\n", channel->Transponder()));
-  s->write(cString::sprintf("  <param name=\"stream\">%s</param>\n", StringExtension::encodeToXml( ((std::string)channel->GetChannelID().ToString() + (std::string)suffix).c_str()).c_str()));
+  s->write(cString::sprintf("  <param name=\"stream\">%s</param>\n", StringExtension::encodeToXml( ((string)channel->GetChannelID().ToString() + (string)suffix).c_str()).c_str()));
   // TODO: There is an atsc Patch
   #if APIVERSNUM >= 10714
   s->write(cString::sprintf("  <param name=\"is_atsc\">%s</param>\n", channel->IsAtsc() ? "true" : "false"));
@@ -305,7 +306,7 @@ void HtmlChannelGroupList::init()
   s->write("<ul>");
 }
 
-void HtmlChannelGroupList::addGroup(std::string group)
+void HtmlChannelGroupList::addGroup(string group)
 {
   if ( filtered() ) return;
 
@@ -320,7 +321,7 @@ void HtmlChannelGroupList::finish()
   s->write("</body></html>");
 }
 
-void JsonChannelGroupList::addGroup(std::string group)
+void JsonChannelGroupList::addGroup(string group)
 {
   if ( filtered() ) return;
   groups.push_back(StringExtension::UTF8Decode(group));
@@ -341,7 +342,7 @@ void XmlChannelGroupList::init()
   s->write("<groups xmlns=\"http://www.domain.org/restfulapi/2011/groups-xml\">\n");
 }
 
-void XmlChannelGroupList::addGroup(std::string group)
+void XmlChannelGroupList::addGroup(string group)
 {
   if ( filtered() ) return;
   s->write(cString::sprintf(" <group>%s</group>\n", group.c_str()));

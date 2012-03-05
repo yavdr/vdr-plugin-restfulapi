@@ -1,4 +1,5 @@
 #include "tools.h"
+using namespace std;
 
 // --- Settings ----------------------------------------------------------------
 
@@ -15,7 +16,7 @@ bool Settings::SetPort(std::string v)
 
 bool Settings::SetIp(std::string v)
 {
-  std::vector< std::string> parts = StringExtension::split(v, ".");
+  vector<string> parts = StringExtension::split(v, ".");
   if ( parts.size() != 4 ) {
      return false;
   }
@@ -77,11 +78,11 @@ Settings* Settings::get()
 
 void Settings::initDefault()
 {
-  SetPort((std::string)"8002");
-  SetIp((std::string)"0.0.0.0");
-  SetEpgImageDirectory((std::string)"/var/cache/vdr/epgimages");
-  SetChannelLogoDirectory((std::string)"/usr/share/vdr/channel-logos");
-  SetHeaders((std::string)"true");
+  SetPort((string)"8002");
+  SetIp((string)"0.0.0.0");
+  SetEpgImageDirectory((string)"/var/cache/vdr/epgimages");
+  SetChannelLogoDirectory((string)"/usr/share/vdr/channel-logos");
+  SetHeaders((string)"true");
 }
 
 // --- HtmlHeader --------------------------------------------------------------
@@ -170,13 +171,13 @@ void StreamExtension::writeXmlHeader()
 
 bool StreamExtension::writeBinary(std::string path)
 {
-  std::ifstream* in = new std::ifstream(path.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
+  ifstream* in = new ifstream(path.c_str(), ios::in | ios::binary | ios::ate);
   bool result = false;
   if ( in->is_open() ) {
 
      int size = in->tellg();
      char* memory = new char[size];
-     in->seekg(0, std::ios::beg);
+     in->seekg(0, ios::beg);
      in->read(memory, size);
      _out->write(memory, size);
      delete[] memory;
@@ -199,7 +200,7 @@ FileNotifier::~FileNotifier()
 void FileNotifier::Initialize(int mode)
 {
   _mode = mode;
-  std::string dir;
+  string dir;
 
   if ( _mode == FileNotifier::EVENTS) {
      dir = Settings::get()->EpgImageDirectory().c_str();
@@ -293,21 +294,21 @@ FileCaches* FileCaches::get()
 
 void FileCaches::cacheEventImages()
 {
-  std::string imageFolder = Settings::get()->EpgImageDirectory();
-  std::string folderWildcard = imageFolder + (std::string)"/*";
+  string imageFolder = Settings::get()->EpgImageDirectory();
+  string folderWildcard = imageFolder + (string)"/*";
   VdrExtension::scanForFiles(folderWildcard, eventImages);
 }
 
 void FileCaches::cacheChannelLogos()
 {
-  std::string imageFolder = Settings::get()->ChannelLogoDirectory();
-  std::string folderWildcard = imageFolder + (std::string)"/*";
+  string imageFolder = Settings::get()->ChannelLogoDirectory();
+  string folderWildcard = imageFolder + (string)"/*";
   VdrExtension::scanForFiles(folderWildcard, channelLogos);
 }
 
 void FileCaches::searchEventImages(int eventid, std::vector< std::string >& files)
 {
-  cxxtools::Regex regex( (std::string)"^" + StringExtension::itostr(eventid) + (std::string)"(_[0-9]+)?.[a-z]{3,4}$" );
+  cxxtools::Regex regex( (string)"^" + StringExtension::itostr(eventid) + (string)"(_[0-9]+)?.[a-z]{3,4}$" );
   for ( int i=0; i < (int)eventImages.size(); i++ ) {
       if ( regex.match(eventImages[i]) ) {
          files.push_back(eventImages[i]);
@@ -320,7 +321,7 @@ std::string FileCaches::searchChannelLogo(cChannel *channel)
   std::string cname = (std::string)channel->Name();
   
   for ( int i=0; i < (int)channelLogos.size(); i++ ) {
-      std::string name = channelLogos[i];
+      string name = channelLogos[i];
       int delim = name.find_last_of(".");
       if ( delim != -1 ) { name = name.substr(0, delim); }
 
@@ -331,17 +332,17 @@ std::string FileCaches::searchChannelLogo(cChannel *channel)
   return "";
 }
 
-void FileCaches::addEventImage(std::string file)
+void FileCaches::addEventImage(string file)
 {
   eventImages.push_back(file);
 }
 
-void FileCaches::addChannelLogo(std::string file)
+void FileCaches::addChannelLogo(string file)
 {
   channelLogos.push_back(file);
 }
 
-void FileCaches::removeEventImage(std::string file)
+void FileCaches::removeEventImage(string file)
 {
   for (size_t i = 0; i < eventImages.size(); i++) {
       if ( eventImages[i] == file ) {
@@ -351,7 +352,7 @@ void FileCaches::removeEventImage(std::string file)
   }
 }
 
-void FileCaches::removeChannelLogo(std::string file)
+void FileCaches::removeChannelLogo(string file)
 {
   for (size_t i = 0; i < channelLogos.size(); i++) {
       if ( channelLogos[i] == file ) {
@@ -383,20 +384,20 @@ cChannel* VdrExtension::getChannel(int number)
   return result;
 }
 
-cChannel* VdrExtension::getChannel(std::string id)
+cChannel* VdrExtension::getChannel(string id)
 {
   if ( id.length() == 0 ) return NULL;
  
   for (cChannel* channel = Channels.First(); channel; channel= Channels.Next(channel))
   {
-      if ( id == (std::string)channel->GetChannelID().ToString() ) {
+      if ( id == (string)channel->GetChannelID().ToString() ) {
          return channel;
       }
   }
   return NULL;
 }
 
-cTimer* VdrExtension::getTimer(std::string id)
+cTimer* VdrExtension::getTimer(string id)
 {
   cTimer* timer;
   int tc = Timers.Count();
@@ -409,9 +410,9 @@ cTimer* VdrExtension::getTimer(std::string id)
   return NULL;
 }
 
-std::string VdrExtension::getTimerID(cTimer* timer)
+string VdrExtension::getTimerID(cTimer* timer)
 {
-  std::ostringstream str;
+  ostringstream str;
   str << (const char*)timer->Channel()->GetChannelID().ToString() << ":" << timer->WeekDays() << ":"
       << timer->Day() << ":"
       << timer->Start() << ":" << timer->Stop();
@@ -425,24 +426,24 @@ int VdrExtension::scanForFiles(const std::string wildcardpath, std::vector< std:
   globbuf.gl_offs = 0;
   if ( wildcardpath.empty() == false && glob(wildcardpath.c_str(), GLOB_DOOFFS, NULL, &globbuf) == 0) {
      for (size_t i = 0; i < globbuf.gl_pathc; i++) {
-         std::string file(globbuf.gl_pathv[i]);
+         string file(globbuf.gl_pathv[i]);
          size_t delimPos = file.find_last_of('/');
          files.push_back(file.substr(delimPos+1));
          found++;
      }
      globfree(&globbuf);
   }
-  esyslog("restfulapi: found %i files im %s.", found, wildcardpath.c_str());
+  esyslog("restfulapi: found %i files in %s.", found, wildcardpath.c_str());
   return found;
 }
 
-bool VdrExtension::doesFileExistInFolder(std::string wildcardpath, std::string filename)
+bool VdrExtension::doesFileExistInFolder(string wildcardpath, string filename)
 {
   glob_t globbuf;
   globbuf.gl_offs = 0;
   if ( wildcardpath.empty() == false && glob(wildcardpath.c_str(), GLOB_DOOFFS, NULL, &globbuf) == 0) {
      for (size_t i = 0; i < globbuf.gl_pathc; i++) {
-         std::string file(globbuf.gl_pathv[i]);
+         string file(globbuf.gl_pathv[i]);
          size_t delimPos = file.find_last_of('/');
          if (file.substr(delimPos+1) == filename) {
             globfree(&globbuf);
@@ -468,7 +469,7 @@ bool VdrExtension::IsRecording(cRecording* recording)
   for (int i=0;i<Timers.Count();i++)
   {
      timer = Timers.Get(i);
-     if (std::string(timer->File()).compare(recording->Name())) {
+     if (string(timer->File()).compare(recording->Name())) {
         return true;
      }
   }
@@ -502,9 +503,9 @@ cTimer* VdrExtension::TimerExists(cEvent* event)
   return NULL;
 }
 
-std::vector< cTimer* > VdrExtension::SortedTimers()
+vector< cTimer* > VdrExtension::SortedTimers()
 {
-  std::vector< cTimer* > timers;
+  vector< cTimer* > timers;
   for(int i=0;i<Timers.Count();i++)
   {
      timers.push_back(Timers.Get(i));
@@ -546,7 +547,7 @@ bool VdrExtension::CompareTimers(cTimer* timer1, cTimer* timer2)
      }
   }
 
-  if ( ( (std::string)timer1->File() ).compare( (std::string)timer2->File() ) > 0 ) {
+  if ( ( (string)timer1->File() ).compare( (string)timer2->File() ) > 0 ) {
      return true;
   }
 
@@ -582,10 +583,10 @@ cEvent* VdrExtension::GetEventById(tEventID eventID, cChannel* channel)
   return NULL;
 }
 
-std::string VdrExtension::getRelativeVideoPath(cRecording* recording)
+string VdrExtension::getRelativeVideoPath(cRecording* recording)
 {
-  std::string path = (std::string)recording->FileName();
-  std::string VIDEODIR = (std::string)"/var/lib/video.00/";
+  string path = (string)recording->FileName();
+  string VIDEODIR = (string)"/var/lib/video.00/";
   return path.substr(VIDEODIR.length());
 }
 
@@ -612,7 +613,7 @@ VdrMarks* VdrMarks::get()
   return &vdrMarks;
 }
 
-std::string VdrMarks::cutComment(std::string str)
+string VdrMarks::cutComment(string str)
 {
   bool esc = false;
   char c;
@@ -632,19 +633,19 @@ std::string VdrMarks::cutComment(std::string str)
   return str;
 }
 
-bool VdrMarks::validateMark(std::string mark)
+bool VdrMarks::validateMark(string mark)
 {
   static cxxtools::Regex regex("[0-9]{1,2}:[0-9]{2,2}:[0-9]{2,2}[.]{0,1}[0-9]{0,2}");
   return regex.match(mark);
 }
 
-std::string VdrMarks::getPath(cRecording* recording)
+string VdrMarks::getPath(cRecording* recording)
 {
-  std::string filename = recording->FileName();
+  string filename = recording->FileName();
   return filename + "/marks";
 }
 
-bool VdrMarks::parseLine(std::vector< std::string >& marks, std::string line)
+bool VdrMarks::parseLine(std::vector<string >& marks, string line)
 {
   line = cutComment(line);
   if ( validateMark(line) ) {
@@ -654,10 +655,10 @@ bool VdrMarks::parseLine(std::vector< std::string >& marks, std::string line)
   return false;
 }
 
-std::vector< std::string > VdrMarks::readMarks(cRecording* recording)
+vector<string > VdrMarks::readMarks(cRecording* recording)
 {
-  std::vector< std::string > marks;
-  std::string path = getPath(recording);
+  vector<string > marks;
+  string path = getPath(recording);
 
   if ( path.length() == 0 ) {
      return marks;
@@ -665,7 +666,7 @@ std::vector< std::string > VdrMarks::readMarks(cRecording* recording)
 
   FILE* f = fopen(path.c_str(), "r");
   if ( f != NULL ) {
-     std::ostringstream data;
+     ostringstream data;
      char c;
      while ( !feof(f) ) {
        c = fgetc(f);
@@ -697,7 +698,7 @@ bool VdrMarks::saveMarks(cRecording* recording, std::vector< std::string > marks
      }
   }
 
-  std::string path = getPath(recording);
+  string path = getPath(recording);
   if ( path.length() == 0 ) {
      return false;
   }
@@ -723,7 +724,7 @@ bool VdrMarks::saveMarks(cRecording* recording, std::vector< std::string > marks
 
 bool VdrMarks::deleteMarks(cRecording* recording)
 {
-  std::string marksfile = getPath(recording);
+  string marksfile = getPath(recording);
 
   if ( remove( marksfile.c_str() ) != 0 ) {
      return false;
@@ -733,21 +734,21 @@ bool VdrMarks::deleteMarks(cRecording* recording)
 
 // --- StringExtension --------------------------------------------------------
 
-std::string StringExtension::itostr(int i)
+string StringExtension::itostr(int i)
 {
-  std::stringstream str;
+  stringstream str;
   str << i;
   return str.str();
 }
 
-int StringExtension::strtoi(std::string str)
+int StringExtension::strtoi(string str)
 {
   static cxxtools::Regex regex("[0-9]{1,}");
   if(!regex.match(str)) return -LOWINT; // lowest possible integer
   return atoi(str.c_str());
 }
 
-std::string StringExtension::replace(std::string const& text, std::string const& substring, std::string const& replacement)
+string StringExtension::replace(string const& text, string const& substring, string const& replacement)
 {
   std::string result = text;
   std::string::size_type pos = 0;
@@ -758,12 +759,12 @@ std::string StringExtension::replace(std::string const& text, std::string const&
   return result;
 }
 
-std::string StringExtension::encodeToXml(const std::string &str)
+string StringExtension::encodeToXml(const string &str)
 {
     //source: http://www.mdawson.net/misc/xmlescape.php
-    std::ostringstream result;
+    ostringstream result;
 
-    for( std::string::const_iterator iter = str.begin(); iter!=str.end(); iter++ )
+    for( string::const_iterator iter = str.begin(); iter!=str.end(); iter++ )
     {
          unsigned char c = (unsigned char)*iter;
 
@@ -780,39 +781,39 @@ std::string StringExtension::encodeToXml(const std::string &str)
          }
     }
 
-    std::string res = result.str();
+    string res = result.str();
     try {
-       std::string converted;
+       string converted;
        utf8::replace_invalid(res.begin(), res.end(), back_inserter(converted));
        return converted;
     } catch(utf8::not_enough_room& e) {
-       return (std::string)"Invalid piece of text. (Fixing Unicode failed.)";
+       return (string)"Invalid piece of text. (Fixing Unicode failed.)";
     }
 }
 
-cxxtools::String StringExtension::UTF8Decode(std::string str)
+cxxtools::String StringExtension::UTF8Decode(string str)
 {
   static cxxtools::Utf8Codec utf8;
-  std::string temp;
+  string temp;
   try {
      utf8::replace_invalid(str.begin(), str.end(), back_inserter(temp));
      return utf8.decode(temp);
   } catch (utf8::not_enough_room& e) {
-     return utf8.decode((std::string)"Invalid piece of text. (Fixing Unicode failed.)");
+     return utf8.decode((string)"Invalid piece of text. (Fixing Unicode failed.)");
   }
 }
 
-std::string StringExtension::toLowerCase(std::string str)
+string StringExtension::toLowerCase(string str)
 {
-  std::ostringstream res;
+  ostringstream res;
   for (int i=0;i<(int)str.length();i++)
   {
-      res << (char)std::tolower(str[i]);
+      res << (char)tolower(str[i]);
   }
   return res.str();
 }
 
-std::string StringExtension::trim(std::string str)
+string StringExtension::trim(string str)
 {
   int a = str.find_first_not_of(" \t");
   int b = str.find_last_not_of(" \t");
@@ -821,9 +822,9 @@ std::string StringExtension::trim(std::string str)
   return str.substr(a, (b-a)+1);
 }
 
-std::vector< std::string > StringExtension::split(std::string str, std::string s)
+vector<string > StringExtension::split(string str, string s)
 {
-  std::vector< std::string > result;
+  vector< string > result;
   if ( str.length() <= 1 ) return result;
 
   int found = 0;
@@ -838,7 +839,7 @@ std::vector< std::string > StringExtension::split(std::string str, std::string s
   return result;
 }
 
-std::string StringExtension::timeToString(time_t time)
+string StringExtension::timeToString(time_t time)
 {
   struct tm *ltime = localtime(&time);
   char buffer[26];
@@ -846,7 +847,7 @@ std::string StringExtension::timeToString(time_t time)
   return (std::string)buffer;
 }
 
-std::string StringExtension::dateToString(time_t time)
+string StringExtension::dateToString(time_t time)
 {
   if ( time == NULL ) {
      return "";
@@ -854,7 +855,7 @@ std::string StringExtension::dateToString(time_t time)
 
   struct tm *ltime = localtime(&time);
 
-  std::ostringstream data;
+  ostringstream data;
   data << StringExtension::addZeros((ltime->tm_year+1900), 4) << "-"
        << StringExtension::addZeros((ltime->tm_mon+1), 2) << "-"
        << StringExtension::addZeros((ltime->tm_mday), 2) << " "
@@ -864,9 +865,9 @@ std::string StringExtension::dateToString(time_t time)
   return data.str();
 }
 
-std::string StringExtension::addZeros(int value, int digits)
+string StringExtension::addZeros(int value, int digits)
 {
-  std::string strValue = StringExtension::itostr(value);
+  string strValue = StringExtension::itostr(value);
   if ( value < 0 ) return strValue;
 
   while ( (int)strValue.length() < digits ) {
@@ -878,13 +879,13 @@ std::string StringExtension::addZeros(int value, int digits)
 
 // --- QueryHandler -----------------------------------------------------------
 
-QueryHandler::QueryHandler(std::string service, cxxtools::http::Request& request)
+QueryHandler::QueryHandler(string service, cxxtools::http::Request& request)
 {
   _url = request.url();
   _service = service;
   _options.parse_url(request.qparams());
   //workaround for current cxxtools which always appends ascii character #012 at the end? AFAIK!
-  std::string body = request.bodyStr().substr(0,request.bodyStr().length()-1);
+  string body = request.bodyStr().substr(0,request.bodyStr().length()-1);
   bool found_json = false;
  
   int i = 0;
@@ -905,7 +906,7 @@ QueryHandler::QueryHandler(std::string service, cxxtools::http::Request& request
      jsonObject = NULL;
   }
 
-  std::string params = _url.substr(_service.length());
+  string params = _url.substr(_service.length());
   parseRestParams(params);
 
   _format = "";
@@ -933,7 +934,7 @@ void QueryHandler::parseRestParams(std::string params)
       {
         start = i;
       } else {
-        std::string p = params.substr(start+1, (i-1)-(start));
+        string p = params.substr(start+1, (i-1)-(start));
         _params.push_back(p);
         start = i;
       }
@@ -945,7 +946,7 @@ void QueryHandler::parseRestParams(std::string params)
   }
 }
 
-std::string QueryHandler::getJsonString(std::string name)
+string QueryHandler::getJsonString(string name)
 {
   if ( jsonObject == NULL ) return "";
   JsonValue* jsonValue = jsonObject->GetItem(name);
@@ -986,12 +987,12 @@ bool QueryHandler::getJsonBool(std::string name)
   return false;
 }
 
-std::string QueryHandler::getParamAsString(int level)
+string QueryHandler::getParamAsString(int level)
 {
   if ( level >= (int)_params.size() )
      return "";
 
-  std::string param = _params[level];
+  string param = _params[level];
   if ( param == _format ) return "";
   if ( level == ((int)_params.size() -1) && _format != "" && param.length() > _format.length() ) {
      int f = param.find(_format);
@@ -1002,12 +1003,12 @@ std::string QueryHandler::getParamAsString(int level)
   return param;
 }
 
-std::string QueryHandler::getOptionAsString(std::string name)
+string QueryHandler::getOptionAsString(string name)
 {
   return _options.param(name);
 }
 
-std::string QueryHandler::getBodyAsString(std::string name)
+string QueryHandler::getBodyAsString(string name)
 {
   if (jsonObject != NULL) {
      return getJsonString(name);
@@ -1025,7 +1026,7 @@ int QueryHandler::getOptionAsInt(std::string name)
   return StringExtension::strtoi(getOptionAsString(name));
 }
 
-int QueryHandler::getBodyAsInt(std::string name)
+int QueryHandler::getBodyAsInt(string name)
 {
   if (jsonObject != NULL) {
      return getJsonInt(name);
@@ -1033,19 +1034,19 @@ int QueryHandler::getBodyAsInt(std::string name)
   return StringExtension::strtoi(getBodyAsString(name));
 }
 
-bool QueryHandler::getBodyAsBool(std::string name)
+bool QueryHandler::getBodyAsBool(string name)
 {
   if (jsonObject != NULL) {
      return getJsonBool(name);
   }
-  std::string result = getBodyAsString(name);
+  string result = getBodyAsString(name);
   if (result == "true") return true;
   if (result == "false") return false;
   if (result == "1") return true;
   return false;
 }
 
-JsonArray* QueryHandler::getBodyAsArray(std::string name)
+JsonArray* QueryHandler::getBodyAsArray(string name)
 {
   if ( jsonObject == NULL ) {
      return NULL;
@@ -1057,7 +1058,7 @@ JsonArray* QueryHandler::getBodyAsArray(std::string name)
   return (JsonArray*)jsonValue->Value();
 }
 
-bool QueryHandler::isFormat(std::string format)
+bool QueryHandler::isFormat(string format)
 {
   if ((int)_url.find(format) != -1)
      return true;
@@ -1106,7 +1107,7 @@ bool BaseList::filtered()
 
 // --- RestfulService ---------------------------------------------------------
 
-RestfulService::RestfulService(std::string path, bool internal, int version, RestfulService* parent)
+RestfulService::RestfulService(string path, bool internal, int version, RestfulService* parent)
 {
   _path = path;
   _internal = internal;
@@ -1137,7 +1138,7 @@ RestfulServices* RestfulServices::get()
   return &rs;
 }
 
-void RestfulServices::appendService(std::string path, bool internal, int version, RestfulService* parent)
+void RestfulServices::appendService(string path, bool internal, int version, RestfulService* parent)
 {
   appendService(new RestfulService(path, internal, version, parent));
 }
@@ -1147,9 +1148,9 @@ void RestfulServices::appendService(RestfulService* service)
   services.push_back(service);
 }
 
-std::vector< RestfulService* > RestfulServices::Services(bool internal, bool children)
+vector< RestfulService* > RestfulServices::Services(bool internal, bool children)
 {
-  std::vector< RestfulService* > result;
+  vector< RestfulService* > result;
   for (size_t i = 0; i < services.size(); i++) {
     if (((services[i]->Internal() && internal) || !internal) || (children || (!children && services[i]->Parent() == NULL))) {
        result.push_back(services[i]);

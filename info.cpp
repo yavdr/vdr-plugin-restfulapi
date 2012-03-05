@@ -1,6 +1,7 @@
 #include "info.h"
+using namespace std;
 
-void InfoResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+void InfoResponder::reply(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler::addHeader(reply);
   QueryHandler q("/info", request);
@@ -41,8 +42,8 @@ void InfoResponder::replyJson(StreamExtension& se)
   serializer.serialize("0.0.1", "version");
   serializer.serialize((int)now, "time");
   
-  std::vector< struct SerService > services;
-  std::vector< RestfulService* > restful_services = RestfulServices::get()->Services(true, true);
+  vector< struct SerService > services;
+  vector< RestfulService* > restful_services = RestfulServices::get()->Services(true, true);
   struct SerService s;
   for (size_t i = 0; i < restful_services.size(); i++) {
      s.Path = StringExtension::UTF8Decode(restful_services[i]->Path());
@@ -71,14 +72,14 @@ void InfoResponder::replyJson(StreamExtension& se)
      pi.FileName = StringExtension::UTF8Decode(statm->getRecordingFile());
      serializer.serialize(pi, "video");
   } else {
-     std::string channelid = "";
+     string channelid = "";
      cChannel* channel = Channels.GetByNumber(statm->getChannel());
      if (channel != NULL) { 
         channelid = (const char*)channel->GetChannelID().ToString();
         serializer.serialize(channelid, "channel");
         cEvent* event = VdrExtension::getCurrentEventOnChannel(channel);
                 
-        std::string eventTitle = "";
+        string eventTitle = "";
         int start_time = -1;
 	int duration = -1;
         int eventId = -1;
@@ -113,7 +114,7 @@ void InfoResponder::replyXml(StreamExtension& se)
   se.write(cString::sprintf(" <time>%i</time>\n", (int)now)); 
   se.write(" <services>\n");
   
-  std::vector< RestfulService* > restful_services = RestfulServices::get()->Services(true, true);
+  vector< RestfulService* > restful_services = RestfulServices::get()->Services(true, true);
   for (size_t i = 0; i < restful_services.size(); i++) {
     se.write(cString::sprintf("  <service path=\"%s\"  version=\"%i\" internal=\"%s\" />\n", 
               restful_services[i]->Path().c_str(),
@@ -127,7 +128,7 @@ void InfoResponder::replyXml(StreamExtension& se)
      se.write(cString::sprintf(" <video name=\"%s\">%s</video>\n", StringExtension::encodeToXml(statm->getRecordingName()).c_str(), StringExtension::encodeToXml(statm->getRecordingFile()).c_str()));
   } else {
      cChannel* channel = Channels.GetByNumber(statm->getChannel());
-     std::string channelid = "";
+     string channelid = "";
      cEvent* event = NULL;
      if (channel != NULL) { 
         channelid = (const char*)channel->GetChannelID().ToString();
@@ -136,7 +137,7 @@ void InfoResponder::replyXml(StreamExtension& se)
 
      se.write(cString::sprintf(" <channel>%s</channel>\n", channelid.c_str()));
      if ( event != NULL) {
-        std::string eventTitle = "";
+        string eventTitle = "";
         if ( event->Title() != NULL ) { eventTitle = event->Title(); }
 
 	se.write(cString::sprintf(" <eventid>%i</eventid>\n", event->EventID()));

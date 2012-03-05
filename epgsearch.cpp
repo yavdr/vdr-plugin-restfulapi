@@ -1,5 +1,6 @@
 #include "epgsearch.h"
 
+using namespace std;
 
 void operator<<= (cxxtools::SerializationInfo& si, SerSearchTimerContainer s)
 {
@@ -54,11 +55,10 @@ void operator<<= (cxxtools::SerializationInfo& si, SerSearchTimerContainer s)
 
 namespace vdrlive {
 
-using namespace std;
 
-std::string SearchTimer::ToXml()
+string SearchTimer::ToXml()
 {
-  std::ostringstream s;
+  ostringstream s;
   s << "<searchtimer>\n"
   << "<id>" << Id() << "</id>\n"
   << "<search>" << StringExtension::encodeToXml(Search()) << "</search>\n"
@@ -89,7 +89,7 @@ std::string SearchTimer::ToXml()
   << "<switch_min_before>" << SwitchMinBefore() << "</switch_min_before>\n"
   << "<use_ext_epg_info>" << UseExtEPGInfo() << "</use_ext_epg_info>\n"
   << "<ext_epg_info>\n";
-  std::vector< std::string > epg_infos = ExtEPGInfo();
+  vector<string > epg_infos = ExtEPGInfo();
   for (int i=0;i<(int)epg_infos.size();i++)
   {
     s << " <info>" << epg_infos[i] << "</info>\n";
@@ -115,14 +115,14 @@ std::string SearchTimer::ToXml()
   return s.str();
 }
 
-std::string SearchTimer::ToHtml()
+string SearchTimer::ToHtml()
 {
   return Search();
 }
 
-std::string SearchTimer::LoadFromQuery(QueryHandler& q)
+string SearchTimer::LoadFromQuery(QueryHandler& q)
 {
-  std::string search = q.getBodyAsString("search");
+  string search = q.getBodyAsString("search");
   if ( search.length() > 0 ) { m_search = search; } else { return "Search required."; }
 
   m_useTime = q.getBodyAsBool("use_time");
@@ -200,7 +200,7 @@ std::string SearchTimer::LoadFromQuery(QueryHandler& q)
   int action = q.getBodyAsInt("search_timer_action");
   if ( action >= 0 ) m_action = action;
 
-  std::string directory = q.getBodyAsString("directory");
+  string directory = q.getBodyAsString("directory");
   if ( directory.length() > 0 ) m_directory = directory;
 
   int del_after_days = q.getBodyAsInt("del_recs_after_days");
@@ -284,7 +284,7 @@ istream& operator>>( istream& is, tChannelID& ret )
 template< typename To, typename From >
 To lexical_cast( From const& from )
 {
-   std::stringstream parser;
+   stringstream parser;
    parser << from;
    To result;
    parser >> result;
@@ -299,8 +299,8 @@ bool operator<( SearchTimer const& left, SearchTimer const& right )
 {
    string leftlower = left.m_search;
    string rightlower = right.m_search;
-   std::transform(leftlower.begin(), leftlower.end(), leftlower.begin(), (int(*)(int)) tolower);
-   std::transform(rightlower.begin(), rightlower.end(), rightlower.begin(), (int(*)(int)) tolower);
+   transform(leftlower.begin(), leftlower.end(), leftlower.begin(), (int(*)(int)) tolower);
+   transform(rightlower.begin(), rightlower.end(), rightlower.begin(), (int(*)(int)) tolower);
    return leftlower < rightlower;
 }
 
@@ -422,17 +422,17 @@ SearchTimer::SearchTimer( string const& data )
 	}
 }
 
-std::string SearchTimer::ToText()
+string SearchTimer::ToText()
 {
-   std::string tmp_Start;
-   std::string tmp_Stop;
-   std::string tmp_minDuration;
-   std::string tmp_maxDuration;
-   std::string tmp_chanSel;
-   std::string tmp_search;
-   std::string tmp_directory;
-   std::string tmp_catvalues;
-   std::string tmp_blacklists;
+   string tmp_Start;
+   string tmp_Stop;
+   string tmp_minDuration;
+   string tmp_maxDuration;
+   string tmp_chanSel;
+   string tmp_search;
+   string tmp_directory;
+   string tmp_catvalues;
+   string tmp_blacklists;
 
    tmp_search = StringExtension::replace(StringExtension::replace(m_search, "|", "!^pipe^!"), ":", "|");
    tmp_directory = StringExtension::replace(StringExtension::replace(m_directory, "|", "!^pipe^!"), ":", "|");
@@ -462,7 +462,7 @@ std::string SearchTimer::ToText()
       cChannel const* channelMax = Channels.GetByChannelID( m_channelMax );
 
       if (channelMax && channelMin->Number() < channelMax->Number())
-         tmp_chanSel = *m_channelMin.ToString() + std::string("|") + *m_channelMax.ToString();
+         tmp_chanSel = *m_channelMin.ToString() + string("|") + *m_channelMax.ToString();
       else
          tmp_chanSel = *m_channelMin.ToString();
    }
@@ -611,7 +611,7 @@ bool SearchTimers::Save(SearchTimer* searchtimer)
 	}
 }
 
-SearchTimer* SearchTimers::GetByTimerId( std::string const& id )
+SearchTimer* SearchTimers::GetByTimerId( string const& id )
 {
    for (SearchTimers::iterator timer = m_timers.begin(); timer != m_timers.end(); ++timer) 
       if (timer->Id() == lexical_cast< int >(id)) 
@@ -620,7 +620,7 @@ SearchTimer* SearchTimers::GetByTimerId( std::string const& id )
       
 }
 
-bool SearchTimers::ToggleActive(std::string const& id)
+bool SearchTimers::ToggleActive(string const& id)
 {
 	SearchTimer* search = GetByTimerId( id );
 	if (!search) return false;
@@ -628,7 +628,7 @@ bool SearchTimers::ToggleActive(std::string const& id)
 	return Save(search);
 }
 
-bool SearchTimers::Delete(std::string const& id)
+bool SearchTimers::Delete(string const& id)
 {
 	SearchTimer* search = GetByTimerId( id );
 	if (!search) return false;
@@ -681,7 +681,7 @@ void ExtEPGInfo::ParseValues( string const& data )
    m_values = StringExtension::split( data, "," );
 }
 
-bool ExtEPGInfo::Selected(unsigned int index, std::string const& values)
+bool ExtEPGInfo::Selected(unsigned int index, string const& values)
 {
    if (index >= m_values.size()) return false;
    string extepgvalue = StringExtension::trim(m_values[index]);
@@ -791,7 +791,7 @@ const cEvent* SearchResult::GetEvent()
 	return Schedule->GetEvent(m_eventId);	
 }
 
-std::set<std::string> SearchResults::querySet;
+set<string> SearchResults::querySet;
 
 void SearchResults::GetByID(int id)
 {
@@ -803,7 +803,7 @@ void SearchResults::GetByID(int id)
    m_list.sort();
 }
 
-void SearchResults::GetByQuery(std::string const& query)
+void SearchResults::GetByQuery(string const& query)
 {
    Epgsearch_services_v1_0 service;
    cPluginManager::CallFirstService(ServiceInterface, &service); 
@@ -831,14 +831,14 @@ RecordingDirs::RecordingDirs(bool shortList)
     }
 }
 
-std::string EPGSearchSetupValues::ReadValue(const std::string& entry)
+string EPGSearchSetupValues::ReadValue(const string& entry)
 {
    Epgsearch_services_v1_0 service;
    cPluginManager::CallFirstService(ServiceInterface, &service);
    return service.handler->ReadSetupValue(entry);
 }
 
-bool EPGSearchSetupValues::WriteValue(const std::string& entry, const std::string& value)
+bool EPGSearchSetupValues::WriteValue(const string& entry, const string& value)
 {
    Epgsearch_services_v1_0 service;
    cPluginManager::CallFirstService(ServiceInterface, &service);
@@ -846,7 +846,7 @@ bool EPGSearchSetupValues::WriteValue(const std::string& entry, const std::strin
    return service.handler->WriteSetupValue(entry, value);
 }
 
-std::string EPGSearchExpr::EvaluateExpr(const std::string& expr, const cEvent* event)
+string EPGSearchExpr::EvaluateExpr(const string& expr, const cEvent* event)
 {
    Epgsearch_services_v1_2 service;
    cPluginManager::CallFirstService(ServiceInterface, &service);

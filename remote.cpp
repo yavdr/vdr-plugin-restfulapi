@@ -1,6 +1,7 @@
 #include "remote.h"
+using namespace std;
 
-void RemoteResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+void RemoteResponder::reply(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler::addHeader(reply);
   if (request.method() != "POST") {
@@ -24,7 +25,7 @@ void RemoteResponder::reply(std::ostream& out, cxxtools::http::Request& request,
   } 
 
   QueryHandler q("/remote", request);
-  std::string key = q.getParamAsString(0);
+  string key = q.getParamAsString(0);
 
   if (key.length() == 0) {
      reply.httpReturn(404, "Please add a key to the parameter list, see API-file for more details.");
@@ -103,15 +104,15 @@ KeyPairList::~KeyPairList()
 
 }
 
-bool KeyPairList::hitKey(std::string key)
+bool KeyPairList::hitKey(string key)
 { 
   for (int i=0;i<(int)key.length();i++) {
-    key[i] = std::tolower(key[i]);
+    key[i] = tolower(key[i]);
   }
   
   for (int i=0;i<(int)keys.size();i++)
   {
-    if (std::string(keys[i].str) == key) {
+    if (string(keys[i].str) == key) {
        cRemote::Put(keys[i].key);
        return true;
     }

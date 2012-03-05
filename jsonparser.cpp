@@ -1,4 +1,5 @@
 #include "jsonparser.h"
+using namespace std;
 
 // --- JsonBase ----------------------------------------------------------
 
@@ -62,7 +63,7 @@ JsonValue* JsonObject::GetItem(int i)
   return NULL;
 }
 
-JsonValue* JsonObject::GetItem(std::string str)
+JsonValue* JsonObject::GetItem(string str)
 {
   for(int i=0;i<(int)_items.size();i++) {
     if (_items[i]->IsValue()) {
@@ -77,7 +78,7 @@ JsonValue* JsonObject::GetItem(std::string str)
 
 JsonValue* JsonObject::GetItem(const char* str)
 {
-  return GetItem((std::string)str);
+  return GetItem((string)str);
 }
 
 int JsonObject::CountItem()
@@ -87,7 +88,7 @@ int JsonObject::CountItem()
 
 // --- JsonValue ---------------------------------------------------------
 
-JsonValue::JsonValue(std::string identifier) : JsonBase(0x02)
+JsonValue::JsonValue(string identifier) : JsonBase(0x02)
 {
   _identifier = identifier;
   _value = NULL;
@@ -101,7 +102,7 @@ JsonValue::~JsonValue()
   }
 }
 
-std::string JsonValue::Identifier()
+string JsonValue::Identifier()
 {
   return _identifier;
 }
@@ -118,7 +119,7 @@ JsonBase* JsonValue::Value()
 
 // --- JsonBasicValue ----------------------------------------------------
 
-JsonBasicValue::JsonBasicValue(std::string value) : JsonBase(0x03)
+JsonBasicValue::JsonBasicValue(string value) : JsonBase(0x03)
 {
   _str = value;
   _type = 0x11;
@@ -156,7 +157,7 @@ bool JsonBasicValue::IsDouble()
   return _type == 0x12;
 }
 
-std::string JsonBasicValue::ValueAsString()
+string JsonBasicValue::ValueAsString()
 {
   return _str;
 }
@@ -214,7 +215,7 @@ JsonParser::~JsonParser()
 
 }
 
-JsonObject* JsonParser::Parse(std::string str)
+JsonObject* JsonParser::Parse(string str)
 {
   bool found = false;
   long position = 0;
@@ -254,11 +255,11 @@ bool JsonParser::SkipEmpty(const char* data, long size, long* position)
   return false;
 }
 
-std::string JsonParser::ParseString(const char* data, long size, long* position)
+string JsonParser::ParseString(const char* data, long size, long* position)
 {
   (*position)++; //ignore QUOTATIONMARK
   bool escaped = false;
-  std::ostringstream str;
+  ostringstream str;
 
   while(!(data[*position] == QUOTATIONCHAR && !escaped) && *position < size) {
      switch(data[*position]) {
@@ -283,7 +284,7 @@ JsonObject* JsonParser::ParseJsonObject(const char* data, long size, long* posit
   if ( data[*position] != '{' ) return NULL;
   (*position)++; //skip '{'
   bool finished = false;
-  std::string error = "";
+  string error = "";
   JsonObject* jsonObject = new JsonObject();
   
   while (!finished && error.length() == 0 && *position < size) {
@@ -292,7 +293,7 @@ JsonObject* JsonParser::ParseJsonObject(const char* data, long size, long* posit
        finished = true;
        (*position)++; // skip '}'
     } else {
-      std::string name = ParseString(data, size, position);
+       string name = ParseString(data, size, position);
       SkipEmpty(data, size, position);
       JsonBase* item = NULL;
 
@@ -351,7 +352,7 @@ JsonBasicValue* JsonParser::ParseBool(const char* data, long size, long* positio
 
 JsonBasicValue* JsonParser::ParseDouble(const char* data, long size, long* position)
 {
-  std::ostringstream str;
+  ostringstream str;
   while(((data[(*position)] >= 48 && data[(*position)] <= 57) || data[(*position)] == '.') && *position < size) {
     str << data[(*position)];
     (*position)++;
@@ -368,7 +369,7 @@ JsonArray* JsonParser::ParseArray(const char* data, long size, long* position)
   SkipEmpty(data, size, position);
   JsonArray* jsonArray = new JsonArray();
   bool finished = false;
-  std::string error = "";
+  string error = "";
 
   while (!finished && *position < size && error == "") {
     SkipEmpty(data, size, position);

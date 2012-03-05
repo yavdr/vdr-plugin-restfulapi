@@ -1,6 +1,7 @@
 #include "searchtimers.h"
+using namespace std;
 
-void SearchTimersResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+void SearchTimersResponder::reply(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler::addHeader(reply);
   cPlugin* plugin = cPluginManager::GetPlugin("epgsearch");
@@ -29,7 +30,7 @@ void SearchTimersResponder::reply(std::ostream& out, cxxtools::http::Request& re
   }
 }
 
-void SearchTimersResponder::replyShow(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+void SearchTimersResponder::replyShow(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/searchtimers", request);
   vdrlive::SearchTimers service;
@@ -70,12 +71,12 @@ void SearchTimersResponder::replyShow(std::ostream& out, cxxtools::http::Request
   delete stList;
 }
 
-void SearchTimersResponder::replyCreate(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+void SearchTimersResponder::replyCreate(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/searchtimers", request);
   vdrlive::SearchTimer* searchTimer = new vdrlive::SearchTimer();
   vdrlive::SearchTimers searchTimers;
-  std::string result = searchTimer->LoadFromQuery(q);
+  string result = searchTimer->LoadFromQuery(q);
 
   if (result.length() > 0)
   { 
@@ -92,18 +93,18 @@ void SearchTimersResponder::replyCreate(std::ostream& out, cxxtools::http::Reque
   delete searchTimer;
 }
 
-void SearchTimersResponder::replyDelete(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+void SearchTimersResponder::replyDelete(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/searchtimers", request);
   vdrlive::SearchTimers searchTimers;
-  std::string id = q.getParamAsString(0);
+  string id = q.getParamAsString(0);
   bool result = searchTimers.Delete(id);
 
   if (!result)
      reply.httpReturn(408, "Deleting searchtimer failed!");
 }
 
-void SearchTimersResponder::replySearch(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+void SearchTimersResponder::replySearch(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/searchtimers/search", request);
   vdrlive::SearchResults searchResults;
@@ -145,7 +146,7 @@ void SearchTimersResponder::replySearch(std::ostream& out, cxxtools::http::Reque
   delete eventList;
 }
 
-SearchTimerList::SearchTimerList(std::ostream* _out)
+SearchTimerList::SearchTimerList(ostream* _out)
 {
   s = new StreamExtension(_out);
   total = 0;

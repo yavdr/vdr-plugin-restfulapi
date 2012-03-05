@@ -1,6 +1,7 @@
 #include "recordings.h"
+using namespace std;
 
-void RecordingsResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+void RecordingsResponder::reply(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler::addHeader(reply);
   bool found = false;
@@ -46,7 +47,7 @@ void RecordingsResponder::reply(std::ostream& out, cxxtools::http::Request& requ
   }
 }
 
-void RecordingsResponder::deleteRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+void RecordingsResponder::deleteRecording(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/recordings", request);
   int recording_number = q.getParamAsInt(0);
@@ -60,7 +61,7 @@ void RecordingsResponder::deleteRecording(std::ostream& out, cxxtools::http::Req
   }
 }
 
-void RecordingsResponder::showRecordings(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+void RecordingsResponder::showRecordings(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/recordings", request);
   RecordingList* recordingList;
@@ -104,7 +105,7 @@ void RecordingsResponder::showRecordings(std::ostream& out, cxxtools::http::Requ
   delete recordingList;
 }
 
-void RecordingsResponder::saveMarks(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+void RecordingsResponder::saveMarks(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/recordings/marks", request);
   int recording = q.getParamAsInt(0);
@@ -118,7 +119,7 @@ void RecordingsResponder::saveMarks(std::ostream& out, cxxtools::http::Request& 
      reply.httpReturn(504, "Recording number missing or invalid.");
   }
 
-  std::vector< std::string > marks;
+  vector< string > marks;
 
   for(int i=0;i<jsonArray->CountItem();i++) {
      JsonBase* jsonBase = jsonArray->GetItem(i);
@@ -133,7 +134,7 @@ void RecordingsResponder::saveMarks(std::ostream& out, cxxtools::http::Request& 
   VdrMarks::get()->saveMarks(Recordings.Get(recording), marks);
 }
 
-void RecordingsResponder::deleteMarks(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+void RecordingsResponder::deleteMarks(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/recordings/marks", request);
   int rec_number = q.getParamAsInt(0);
@@ -146,7 +147,7 @@ void RecordingsResponder::deleteMarks(std::ostream& out, cxxtools::http::Request
   reply.httpReturn(503, "Deleting marks failed.");
 }
 
-void RecordingsResponder::cutRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+void RecordingsResponder::cutRecording(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/recordings/cut", request);
   int rec_number = q.getParamAsInt(0);
@@ -162,7 +163,7 @@ void RecordingsResponder::cutRecording(std::ostream& out, cxxtools::http::Reques
   reply.httpReturn(503, "Cutting recordings failed.");
 }
 
-void RecordingsResponder::showCutterStatus(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+void RecordingsResponder::showCutterStatus(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/recordings/cut", request);
   StreamExtension s(&out);
@@ -208,7 +209,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerRecording& p)
   si.addMember("event_duration") <<= p.EventDuration;
 }
 
-RecordingList::RecordingList(std::ostream *out, bool _read_marks)
+RecordingList::RecordingList(ostream *out, bool _read_marks)
 {
   s = new StreamExtension(out);
   read_marks = _read_marks;
@@ -312,9 +313,9 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr)
 {
   if ( filtered() ) return;
 
-  std::string eventTitle = "";
-  std::string eventShortText = "";
-  std::string eventDescription = "";
+  string eventTitle = "";
+  string eventShortText = "";
+  string eventDescription = "";
   int eventStartTime = -1;
   int eventDuration = -1;
 
@@ -349,7 +350,7 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr)
 
   if (read_marks) {
      s->write("  <param name=\"marks\">\n");
-     std::vector< std::string > marks = VdrMarks::get()->readMarks(recording);
+     vector< string > marks = VdrMarks::get()->readMarks(recording);
      for(int i=0;i<(int)marks.size();i++) {
         s->write(cString::sprintf("   <mark>%s</mark>\n", marks[i].c_str()));
      }

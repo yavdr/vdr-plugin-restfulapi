@@ -1,6 +1,7 @@
 #include "timers.h"
+using namespace std;
 
-void TimersResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+void TimersResponder::reply(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler::addHeader(reply);
   if ( request.method() == "GET" ) {
@@ -16,7 +17,7 @@ void TimersResponder::reply(std::ostream& out, cxxtools::http::Request& request,
   }
 }
 
-void TimersResponder::createOrUpdateTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply, bool update)
+void TimersResponder::createOrUpdateTimer(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply, bool update)
 {
   QueryHandler q("/timers", request);
 
@@ -26,18 +27,18 @@ void TimersResponder::createOrUpdateTimer(std::ostream& out, cxxtools::http::Req
   }
 
   int error = false;
-  std::string error_values = "";
+  string error_values = "";
   static TimerValues v;
 
   int flags = v.ConvertFlags(q.getBodyAsString("flags"));
-  std::string aux = v.ConvertAux(q.getBodyAsString("aux"));
-  std::string file = v.ConvertFile(q.getBodyAsString("file"));
+  string aux = v.ConvertAux(q.getBodyAsString("aux"));
+  string file = v.ConvertFile(q.getBodyAsString("file"));
   int lifetime = v.ConvertLifetime(q.getBodyAsString("lifetime"));
   int priority = v.ConvertPriority(q.getBodyAsString("priority"));
   int stop = v.ConvertStop(q.getBodyAsString("stop"));
   int start = v.ConvertStart(q.getBodyAsString("start"));
-  std::string weekdays = q.getBodyAsString("weekdays");
-  std::string day = v.ConvertDay(q.getBodyAsString("day"));
+  string weekdays = q.getBodyAsString("weekdays");
+  string day = v.ConvertDay(q.getBodyAsString("day"));
   cChannel* chan = v.ConvertChannel(q.getBodyAsString("channel"));
   cTimer* timer_orig = v.ConvertTimer(q.getBodyAsString("timer_id"));
   
@@ -55,7 +56,7 @@ void TimersResponder::createOrUpdateTimer(std::ostream& out, cxxtools::http::Req
            if (minpre < 0) minpre = 0;
            if (minpost < 0) minpost = 0;
            if (!v.IsFlagsValid(flags)) flags = 1;
-           if (!v.IsFileValid(file)) file = (std::string)event->Title();
+           if (!v.IsFileValid(file)) file = (string)event->Title();
            if (!v.IsWeekdaysValid(weekdays)) weekdays = "-------";
            if (!v.IsLifetimeValid(lifetime)) lifetime = 50;
            if (!v.IsPriorityValid(priority)) priority = 99;
@@ -65,7 +66,7 @@ void TimersResponder::createOrUpdateTimer(std::ostream& out, cxxtools::http::Req
               time_t estop = event->EndTime();
               struct tm *starttime = localtime(&estart);
             
-              std::ostringstream daystream;
+              ostringstream daystream;
               daystream << StringExtension::addZeros((starttime->tm_year + 1900), 4) << "-"
                         << StringExtension::addZeros((starttime->tm_mon + 1), 2) << "-"
                         << StringExtension::addZeros((starttime->tm_mday), 2);
@@ -92,7 +93,7 @@ void TimersResponder::createOrUpdateTimer(std::ostream& out, cxxtools::http::Req
      if ( timer_orig == NULL ) { error = true; error_values += "timer_id, "; }
      if ( !error ) {
         if ( !v.IsFlagsValid(flags) ) { flags = timer_orig->Flags(); }
-        if ( !v.IsFileValid(file) ) { file = (std::string)timer_orig->File(); }
+        if ( !v.IsFileValid(file) ) { file = (string)timer_orig->File(); }
         if ( !v.IsLifetimeValid(lifetime) ) { lifetime = timer_orig->Lifetime(); }
         if ( !v.IsPriorityValid(priority) ) { priority = timer_orig->Priority(); }
         if ( !v.IsStopValid(stop) ) { stop = timer_orig->Stop(); }
@@ -104,12 +105,12 @@ void TimersResponder::createOrUpdateTimer(std::ostream& out, cxxtools::http::Req
   }
 
   if (error) {
-     std::string error_message = (std::string)"The following parameters aren't valid: " + error_values.substr(0, error_values.length()-2) + (std::string)"!";
+     string error_message = (string)"The following parameters aren't valid: " + error_values.substr(0, error_values.length()-2) + (string)"!";
      reply.httpReturn(403, error_message);
      return;
   }
  
-  std::ostringstream builder;
+  ostringstream builder;
   builder << flags << ":"
           << (const char*)chan->GetChannelID().ToString() << ":"
 	  << ( weekdays != "-------" ? weekdays : "" )
@@ -155,7 +156,7 @@ void TimersResponder::createOrUpdateTimer(std::ostream& out, cxxtools::http::Req
   }
 }
 
-void TimersResponder::replyCreatedId(cTimer* timer, cxxtools::http::Request& request, cxxtools::http::Reply& reply, std::ostream& out)
+void TimersResponder::replyCreatedId(cTimer* timer, cxxtools::http::Request& request, cxxtools::http::Reply& reply, ostream& out)
 {
   QueryHandler q("/timers", request);
   TimerList* timerList;
@@ -178,7 +179,7 @@ void TimersResponder::replyCreatedId(cTimer* timer, cxxtools::http::Request& req
   delete timerList;
 }
 
-void TimersResponder::deleteTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+void TimersResponder::deleteTimer(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/timers", request);
 
@@ -203,7 +204,7 @@ void TimersResponder::deleteTimer(std::ostream& out, cxxtools::http::Request& re
   }
 }
 
-void TimersResponder::showTimers(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+void TimersResponder::showTimers(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/timers", request);
   TimerList* timerList;
@@ -227,7 +228,7 @@ void TimersResponder::showTimers(std::ostream& out, cxxtools::http::Request& req
   int start_filter = q.getOptionAsInt("start");
   int limit_filter = q.getOptionAsInt("limit");
 
-  std::string timer_id = q.getParamAsString(0);
+  string timer_id = q.getParamAsString(0);
 
   if ( start_filter >= 0 && limit_filter >= 1 ) {
      timerList->activateLimit(start_filter, limit_filter);
@@ -235,7 +236,7 @@ void TimersResponder::showTimers(std::ostream& out, cxxtools::http::Request& req
 
   timerList->init();
 
-  std::vector< cTimer* > timers = VdrExtension::SortedTimers();
+  vector< cTimer* > timers = VdrExtension::SortedTimers();
   for (int i=0;i<(int)timers.size();i++)
   {
      if ( VdrExtension::getTimerID(timers[i]) == timer_id || timer_id.length() == 0 ) {
@@ -269,7 +270,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerTimer& t)
   si.addMember("is_active") <<= t.IsActive;
 }
 
-TimerList::TimerList(std::ostream *out)
+TimerList::TimerList(ostream *out)
 {
   s = new StreamExtension(out);
 }
@@ -385,10 +386,10 @@ void XmlTimerList::finish()
 
 // --- TimerValues class ------------------------------------------------------------
 
-std::stack<int> TimerValues::ConvertToBinary(int v)
+stack<int> TimerValues::ConvertToBinary(int v)
 {
    int b;
-   std::stack <int> res;
+   stack <int> res;
 
    while ( v != 0) {
      b = v % 2;
@@ -398,7 +399,7 @@ std::stack<int> TimerValues::ConvertToBinary(int v)
    return res;
 }
 
-bool TimerValues::IsDayValid(std::string v)
+bool TimerValues::IsDayValid(string v)
 {
   static cxxtools::Regex regex("[0-9]{4,4}-[0-9]{1,2}-[0-9]{1,2}");
   return regex.match(v);
@@ -411,7 +412,7 @@ bool TimerValues::IsFlagsValid(int v)
   return false;
 }
 
-bool TimerValues::IsFileValid(std::string v) 
+bool TimerValues::IsFileValid(string v) 
 {
   if ( v.length() > 0 && v.length() <= 40 ) 
      return true;
@@ -445,7 +446,7 @@ bool TimerValues::IsStartValid(int v)
   return IsStopValid(v); //uses the syntax as start time, f.e. 2230 means half past ten in the evening
 }
 
-bool TimerValues::IsWeekdaysValid(std::string v)
+bool TimerValues::IsWeekdaysValid(string v)
 {
   /*static cxxtools::Regex regex("[\\-M][\\-T][\\-W][\\-T][\\-F][\\-S][\\-S]");
   return regex.match(v);*/
@@ -461,12 +462,12 @@ bool TimerValues::IsWeekdaysValid(std::string v)
   return true;
 }
 
-int TimerValues::ConvertFlags(std::string v)
+int TimerValues::ConvertFlags(string v)
 {
   return StringExtension::strtoi(v);
 }
 
-cEvent* TimerValues::ConvertEvent(std::string event_id, cChannel* channel)
+cEvent* TimerValues::ConvertEvent(string event_id, cChannel* channel)
 {
   if ( channel == NULL ) return NULL;
 
@@ -484,41 +485,41 @@ cEvent* TimerValues::ConvertEvent(std::string event_id, cChannel* channel)
   return (cEvent*)Schedule->GetEvent(eventid);
 }
 
-std::string TimerValues::ConvertFile(std::string v)
+string TimerValues::ConvertFile(string v)
 {
   return StringExtension::replace(v, ":", "|");
 }
 
-std::string TimerValues::ConvertAux(std::string v)
+string TimerValues::ConvertAux(string v)
 {
   return ConvertFile(v);
 }
 
-int TimerValues::ConvertLifetime(std::string v)
+int TimerValues::ConvertLifetime(string v)
 {
   return StringExtension::strtoi(v);
 }
 
-int TimerValues::ConvertPriority(std::string v)
+int TimerValues::ConvertPriority(string v)
 {
   return StringExtension::strtoi(v);
 }
 
-int TimerValues::ConvertStop(std::string v)
+int TimerValues::ConvertStop(string v)
 {
   return StringExtension::strtoi(v);
 }
 
-int TimerValues::ConvertStart(std::string v)
+int TimerValues::ConvertStart(string v)
 {
   return StringExtension::strtoi(v);
 }
 
-std::string TimerValues::ConvertDay(time_t v)
+string TimerValues::ConvertDay(time_t v)
 {
   if (v==0) return "";
   struct tm *timeinfo = localtime(&v); //must not be deleted because it's statically allocated by localtime
-  std::ostringstream str;
+  ostringstream str;
   int year = timeinfo->tm_year + 1900;
   int month = timeinfo->tm_mon + 1; //append 0, vdr wants two digits!
   int day = timeinfo->tm_mday; //append 0, vdr wants two digits!
@@ -528,39 +529,39 @@ std::string TimerValues::ConvertDay(time_t v)
   return str.str();
 }
 
-std::string TimerValues::ConvertDay(std::string v)
+string TimerValues::ConvertDay(string v)
 {
   if ( !IsDayValid(v) ) return "wrong format";
   //now append 0 (required by vdr) if month/day don't already have two digits
   int a = v.find_first_of('-');
   int b = v.find_last_of('-');
 
-  std::string year = v.substr(0, a);
-  std::string month = v.substr(a+1, b-a-1);
-  std::string day = v.substr(b+1);
+  string year = v.substr(0, a);
+  string month = v.substr(a+1, b-a-1);
+  string day = v.substr(b+1);
 
-  std::ostringstream res;
+  ostringstream res;
   res << year << "-"
       << (month.length() == 1 ? "0" : "") << month << "-"
       << (day.length() == 1 ? "0" : "") << day;
   return res.str();
 }
 
-cChannel* TimerValues::ConvertChannel(std::string v)
+cChannel* TimerValues::ConvertChannel(string v)
 {
   return VdrExtension::getChannel(v);
 }
 
-cTimer* TimerValues::ConvertTimer(std::string v)
+cTimer* TimerValues::ConvertTimer(string v)
 {
   return VdrExtension::getTimer(v);
 }
 
-std::string TimerValues::ConvertWeekdays(int v)
+string TimerValues::ConvertWeekdays(int v)
 {
-  std::stack<int> b = ConvertToBinary(v);
+  stack<int> b = ConvertToBinary(v);
   int counter = 0;
-  std::ostringstream res;
+  ostringstream res;
   while ( !b.empty() && counter < 7 ) {
      int val = b.top();
      switch(counter) {
@@ -582,7 +583,7 @@ std::string TimerValues::ConvertWeekdays(int v)
   return res.str();
 }
 
-int TimerValues::ConvertWeekdays(std::string v)
+int TimerValues::ConvertWeekdays(string v)
 {
   const char* str = v.c_str();
   int res = 0;

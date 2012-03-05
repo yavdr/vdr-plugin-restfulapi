@@ -1,6 +1,7 @@
 #include "osd.h"
+using namespace std;
 
-void OsdResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+void OsdResponder::reply(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/osd", request);
 
@@ -22,7 +23,7 @@ void OsdResponder::reply(std::ostream& out, cxxtools::http::Request& request, cx
      }
   }
 
-  std::string format = "";
+  string format = "";
   if ( q.isFormat(".json") ) {
      reply.addHeader("Content-Type", "application/json; charset=utf-8");
      format = ".json";
@@ -84,7 +85,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerProgrammeOsd& o)
   si.addMember("following_subtitle") <<= o.FollowingSubtitle;
 }
 
-void OsdResponder::printEmptyHtml(std::ostream& out)
+void OsdResponder::printEmptyHtml(ostream& out)
 {
   StreamExtension se(&out);
 
@@ -99,7 +100,7 @@ void OsdResponder::printEmptyHtml(std::ostream& out)
   se.write("</body></html>");
 }
 
-void OsdResponder::printTextOsd(std::ostream& out, TextOsd* osd, std::string format, int start_filter, int limit_filter)
+void OsdResponder::printTextOsd(ostream& out, TextOsd* osd, string format, int start_filter, int limit_filter)
 {
   TextOsdList* osdList = NULL;
 
@@ -132,8 +133,8 @@ void XmlTextOsdList::printTextOsd(TextOsd* osd)
   s->write(cString::sprintf(" <yellow>%s</yellow>\n", StringExtension::encodeToXml(osd->Yellow()).c_str()));
   s->write(cString::sprintf(" <blue>%s</blue>\n", StringExtension::encodeToXml(osd->Blue()).c_str()));
 
-  std::list<TextOsdItem*>::iterator it;
-  std::list<TextOsdItem*> items = osd->GetItems();
+  list<TextOsdItem*>::iterator it;
+  list<TextOsdItem*> items = osd->GetItems();
 
   s->write(" <items>\n");
   for( it = items.begin(); it != items.end(); ++it ) {
@@ -162,8 +163,8 @@ void JsonTextOsdList::printTextOsd(TextOsd* textOsd)
 
   SerTextOsdItemContainer* itemContainer = new SerTextOsdItemContainer();
 
-  std::list<TextOsdItem*>::iterator it;
-  std::list<TextOsdItem*> items = textOsd->GetItems();
+  list<TextOsdItem*>::iterator it;
+  list<TextOsdItem*> items = textOsd->GetItems();
 
   for(it = items.begin(); it != items.end(); ++it)
   {
@@ -208,8 +209,8 @@ void HtmlTextOsdList::printTextOsd(TextOsd* textOsd)
   s->write("</div><!-- closing header container -->\n");
 
   s->write("<div id=\"content\">\n");
-    std::list< TextOsdItem* > items = textOsd->GetItems();
-    std::list< TextOsdItem* >::iterator it;
+    list< TextOsdItem* > items = textOsd->GetItems();
+    list< TextOsdItem* >::iterator it;
     s->write("<ul type=\"none\">\n");
     for(it = items.begin(); it != items.end(); ++it) {
        if (!filtered()) {
@@ -250,7 +251,7 @@ void HtmlTextOsdList::printTextOsd(TextOsd* textOsd)
 
 // --- ProgrammeOsdWrapper ---------------------------------------------------------------------------
 
-void ProgrammeOsdWrapper::print(ProgrammeOsd* osd, std::string format)
+void ProgrammeOsdWrapper::print(ProgrammeOsd* osd, string format)
 {
   if ( format == ".json" ) {
      printJson(osd);
@@ -311,7 +312,7 @@ StringExtension::timeToString(osd->FollowingTime()).c_str()));
 
 // --- ChannelOsdWrapper -----------------------------------------------------------------------------
 
-void ChannelOsdWrapper::print(ChannelOsd* osd, std::string format)
+void ChannelOsdWrapper::print(ChannelOsd* osd, string format)
 {
   if ( format == ".json" ) {
      printJson(osd);
