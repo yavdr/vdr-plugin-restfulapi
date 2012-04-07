@@ -1,0 +1,34 @@
+# TODO: Is a fixed gid and uid good?
+
+_USER=vdr
+_GROUP=vdr
+_DIRS="/etc/vdr/plugins/live /var/lib/vdr/plugins/live" # No whitespace in pathes allowed
+
+# arg 1:  the new package version
+post_install() {
+  local dir
+
+  echo ">>> - Set filesystem permissions for user \"$_USER\": "
+  for dir in $_DIRS; do
+    echo -n ">>>   $dir "
+    if [ -e "$dir" ] && chown -R $_USER:$_GROUP "$dir"; then
+      echo "done"
+    else
+      echo "failed"
+    fi
+  done
+  echo ">>>"
+}
+
+# arg 1:  the new package version
+# arg 2:  the old package version
+post_upgrade() {
+  post_install
+}
+
+# arg 1:  the old package version
+post_remove() {
+  id $_USER &>/dev/null
+}
+
+# vim:set ts=2 sw=2 et:

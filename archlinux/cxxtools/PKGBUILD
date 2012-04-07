@@ -1,0 +1,25 @@
+# Maintainer : <gimli at dark-green dot com>
+# Contributor: Jan Willies <jan@willies.info>
+
+pkgname="cxxtools"
+pkgver="2.1"
+pkgrel="3"
+pkgdesc="Cxxtools is a collection of general-purpose C++ classes"
+url="http://www.tntnet.org/cxxtools.hms"
+license=("LGPL")
+arch=("i686" "x86_64")
+source=(http://www.tntnet.org/download/$pkgname-$pkgver.tar.gz)
+md5sums=('e1b67eeec3f78bef9cce3c337076c120')
+depends=('gcc-libs' 'gcc')
+makedepends=('gcc')
+
+build() {
+  cd "$srcdir/$pkgname-$pkgver"
+
+  MAKEFLAGS="-j1"
+
+  ./configure --prefix=/usr
+  make || return 1
+  make DESTDIR="$pkgdir" install
+}
+

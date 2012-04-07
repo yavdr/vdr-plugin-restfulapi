@@ -1,0 +1,64 @@
+# Maintainer  : Edgar Hucek <gimli at dark-green dot com>
+
+_pluginname=live
+pkgname=vdr-plugin-${_pluginname}-git
+pkgver=0.2.0.git
+pkgrel=16
+gitid=94a0a210a485ce1fc95c47a6bc67c4c16c89a0f9
+pkgdesc="The LIVE Interactive VDR Environment, allows a comfortable operation of VDR and some of its plugins trough a web interface."
+arch=('i686' 'x86_64')
+url="http://live.vdr-developer.org"
+license=('GPL2')
+depends=('gcc' 'vdr' 'tntnet>=1.6.0.6' 'cxxtools>=1.4.3' 'git')
+optdepends=('vdr-plugin-streamdev-server: streaming support'
+            'vdr-plugin-epgsearch: Search in EPG data')
+backup=('etc/vdr/plugins/plugin.live.conf')
+source=(plugin.live.conf
+        fix_typo.patch)
+install=vdr-plugin-$_pluginname-git.install
+conflicts=(vdr-plugin-$_pluginname)
+md5sums=('90f93b9d138b85deef022d4559f3f1dc'
+         '5803ce45303698cd7489d6f8d1b80094')
+
+build() {
+  cd "$srcdir/"	|| return 1
+  
+  _githost="git://projects.vdr-developer.org"
+  _gitrepo="vdr-plugin-live.git"
+
+  if [ -e $srcdir/vdr-plugin-${_pluginname} ]; then	  
+    cd $srcdir/vdr-plugin-${_pluginname}
+    git rebase origin
+    git checkout $gitid
+  else
+    git clone ${_githost}/${_gitrepo}
+    cd $srcdir/vdr-plugin-${_pluginname}
+    git checkout $gitid
+  fi
+
+  if [ -e $srcdir/vdr-plugin-${_pluginname}-build ]; then
+    rm -rf $srcdir/vdr-plugin-${_pluginname}-build
+  fi
+
+  cp -r $srcdir/vdr-plugin-${_pluginname} $srcdir/vdr-plugin-${_pluginname}-build
+
+  cd $srcdir/vdr-plugin-${_pluginname}-build
+
+  #patch -p1 -i ${srcdir}/fix_typo.patch || return 1
+
+  make VDRDIR="/usr/include/vdr"  LIBDIR="." \
+    LOCALEDIR="$pkgdir/usr/share/locale" all || return 1
+  
+  mkdir -p $pkgdir/etc/vdr/plugins						|| return 1
+  install -m 644 ../plugin.live.conf		$pkgdir/etc/vdr/plugins		|| return 1
+
+  mkdir -p $pkgdir/usr/lib/vdr/plugins						|| return 1
+  install -m 755 libvdr-*.so.*	$pkgdir/usr/lib/vdr/plugins/			|| return 1
+  
+  mkdir -p $pkgdir/usr/share/vdr-plugin-live					|| return 1
+  cp -r live/*		$pkgdir/usr/share/vdr-plugin-live/ 			|| return 1
+
+  mkdir -p $pkgdir/var/lib/vdr/plugins/live					|| return 1
+  cd $pkgdir/var/lib/vdr/plugins/live						|| return 1
+  ln -s ../../../../../usr/share/vdr-plugin-live/* .				|| return 1
+}
