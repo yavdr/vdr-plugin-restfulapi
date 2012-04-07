@@ -66,7 +66,7 @@ class RecordingList : public BaseList
     StreamExtension *s;
   public:
     RecordingList(std::ostream* _out, bool _read_marks);
-    ~RecordingList();
+    virtual ~RecordingList();
     virtual void init() { };
     virtual void addRecording(cRecording* recording, int nr) { };
     virtual void finish() { };

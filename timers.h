@@ -63,8 +63,8 @@ class TimerList : public BaseList
     StreamExtension *s;
     int total;
   public:
-    TimerList(std::ostream* _out);
-    ~TimerList();
+    explicit TimerList(std::ostream* _out);
+    virtual ~TimerList();
     virtual void init() { };
     virtual void addTimer(cTimer* timer) { };
     virtual void finish() { };
@@ -74,7 +74,7 @@ class TimerList : public BaseList
 class HtmlTimerList : TimerList
 {
   public:
-    HtmlTimerList(std::ostream* _out) : TimerList(_out) { };
+    explicit HtmlTimerList(std::ostream* _out) : TimerList(_out) { };
     ~HtmlTimerList() { };
     virtual void init();
     virtual void addTimer(cTimer* timer);
@@ -86,7 +86,7 @@ class JsonTimerList : TimerList
   private:
     std::vector < struct SerTimer > serTimers;
   public:
-    JsonTimerList(std::ostream* _out) : TimerList(_out) { };
+    explicit JsonTimerList(std::ostream* _out) : TimerList(_out) { };
     ~JsonTimerList() { };
     virtual void addTimer(cTimer* timer);
     virtual void finish();
@@ -95,7 +95,7 @@ class JsonTimerList : TimerList
 class XmlTimerList : TimerList
 {
   public:
-    XmlTimerList(std::ostream* _out) : TimerList(_out) { };
+    explicit XmlTimerList(std::ostream* _out) : TimerList(_out) { };
     ~XmlTimerList() { };
     virtual void init();
     virtual void addTimer(cTimer* timer);

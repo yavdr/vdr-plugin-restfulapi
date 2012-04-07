@@ -68,8 +68,8 @@ class EventList : public BaseList
     StreamExtension *s;
     int total;
   public:
-    EventList(std::ostream* _out);
-    ~EventList();
+    explicit EventList(std::ostream* _out);
+    virtual ~EventList();
     virtual void init() { };
     virtual void addEvent(cEvent* event) { };
     virtual void finish() { };
@@ -79,7 +79,7 @@ class EventList : public BaseList
 class HtmlEventList : EventList
 {
   public:
-    HtmlEventList(std::ostream* _out) : EventList(_out) { };
+    explicit HtmlEventList(std::ostream* _out) : EventList(_out) { };
     ~HtmlEventList() { };
     virtual void init();
     virtual void addEvent(cEvent* event);
@@ -91,7 +91,7 @@ class JsonEventList : EventList
   private:
     std::vector < struct SerEvent > serEvents;
   public:
-    JsonEventList(std::ostream* _out) : EventList(_out) { };
+    explicit JsonEventList(std::ostream* _out) : EventList(_out) { };
     ~JsonEventList() { };
     virtual void addEvent(cEvent* event);
     virtual void finish();
@@ -100,7 +100,7 @@ class JsonEventList : EventList
 class XmlEventList : EventList
 {
   public:
-    XmlEventList(std::ostream* _out) : EventList(_out) { };
+    explicit XmlEventList(std::ostream* _out) : EventList(_out) { };
     ~XmlEventList() { };
     virtual void init();
     virtual void addEvent(cEvent* event);

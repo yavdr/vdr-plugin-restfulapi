@@ -47,8 +47,8 @@ class ChannelList : public BaseList
     StreamExtension *s;
     int total;
   public:
-    ChannelList(std::ostream* _out);
-    ~ChannelList();
+    explicit ChannelList(std::ostream* _out);
+    virtual ~ChannelList();
     virtual void init() { };
     virtual void addChannel(cChannel* channel, std::string group, bool image) { };
     virtual void finish() { };
@@ -58,7 +58,7 @@ class ChannelList : public BaseList
 class HtmlChannelList : ChannelList
 {
   public:
-    HtmlChannelList(std::ostream* _out) : ChannelList(_out) { };
+    explicit HtmlChannelList(std::ostream* _out) : ChannelList(_out) { };
     ~HtmlChannelList() { };
     virtual void init();
     virtual void addChannel(cChannel* channel, std::string group, bool image);
@@ -70,7 +70,7 @@ class JsonChannelList : ChannelList
   private:
     std::vector < struct SerChannel > serChannels;
   public:
-    JsonChannelList(std::ostream* _out) : ChannelList(_out) { };
+    explicit JsonChannelList(std::ostream* _out) : ChannelList(_out) { };
     ~JsonChannelList() { };
     virtual void addChannel(cChannel* channel, std::string group, bool image);
     virtual void finish();
@@ -79,7 +79,7 @@ class JsonChannelList : ChannelList
 class XmlChannelList : ChannelList
 {
   public:
-    XmlChannelList(std::ostream* _out) : ChannelList(_out) { };
+    explicit XmlChannelList(std::ostream* _out) : ChannelList(_out) { };
     ~XmlChannelList() { };
     virtual void init();
     virtual void addChannel(cChannel* channel, std::string group, bool image);
@@ -92,8 +92,8 @@ class ChannelGroupList : public BaseList
     StreamExtension *s;
     int total;
   public:
-    ChannelGroupList(std::ostream* _out);
-    ~ChannelGroupList();
+    explicit ChannelGroupList(std::ostream* _out);
+    virtual ~ChannelGroupList();
     virtual void init() { };
     virtual void addGroup(std::string group) { };
     virtual void finish() { };
@@ -103,7 +103,7 @@ class ChannelGroupList : public BaseList
 class HtmlChannelGroupList : ChannelGroupList
 {
   public:
-    HtmlChannelGroupList(std::ostream* _out) : ChannelGroupList(_out) { };
+    explicit HtmlChannelGroupList(std::ostream* _out) : ChannelGroupList(_out) { };
     ~HtmlChannelGroupList() { };
     virtual void init();
     virtual void addGroup(std::string group);
@@ -115,7 +115,7 @@ class JsonChannelGroupList : ChannelGroupList
   private:
     std::vector< cxxtools::String > groups;
   public:
-    JsonChannelGroupList(std::ostream* _out) : ChannelGroupList(_out) { };
+    explicit JsonChannelGroupList(std::ostream* _out) : ChannelGroupList(_out) { };
     ~JsonChannelGroupList() { };
     virtual void init() { };
     virtual void addGroup(std::string group);
@@ -125,7 +125,7 @@ class JsonChannelGroupList : ChannelGroupList
 class XmlChannelGroupList : ChannelGroupList
 {
   public:
-    XmlChannelGroupList(std::ostream* _out) : ChannelGroupList(_out) { };
+    explicit XmlChannelGroupList(std::ostream* _out) : ChannelGroupList(_out) { };
     ~XmlChannelGroupList() { };
     virtual void init();
     virtual void addGroup(std::string group);

@@ -245,7 +245,7 @@ class BaseList
     int limit;
   public:
     BaseList();
-    ~BaseList() { };
+    virtual ~BaseList() { };
     virtual void activateLimit(int _start, int _limit);
     virtual bool filtered();
     virtual int Count() { return counter; }
@@ -291,7 +291,7 @@ class BasicOsd
 {
   public:
     BasicOsd() { };
-    ~BasicOsd() { };
+    virtual ~BasicOsd() { };
     virtual int Type() { return 0x00; };
 };
 
@@ -306,7 +306,7 @@ class BaseTask
     int created; //time in s
   public:
     BaseTask() { created = (int)time(NULL); };
-    ~BaseTask() { };
+    virtual ~BaseTask() { };
     int Created() { return created; };
 };
 
