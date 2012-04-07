@@ -561,7 +561,7 @@ int VdrExtension::RecordingLengthInSeconds(cRecording* recording)
 #if APIVERSNUM >= 10703
      return int(((double)nf / recording->FramesPerSecond()));
 #else
-     return int((double)nf / FRAMESPERSEC));
+     return int((double)nf / FRAMESPERSEC);
 #endif
   return -1;
 }
