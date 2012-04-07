@@ -1,0 +1,16 @@
+Be sure you've installed an updated version of cxxtools (>= rev. 1232 or >= Release 2.1).
+On archlinux you'll find a PKGBUILD file in the appropriate folder.
+On Debian/Ubuntu you have to download the package-source from the yavdr-repository and rebuild it.
+
+How to build on Debian/Ubuntu:
+ Clone the git repository or download a copy of it and move to the root directory.
+ Install all dependencies.
+ Type: dpkg-buildpackage -tc -us -uc
+
+How to install on Arch-Linux:
+ Clone the git repository, move to archlinux/vdr-plugin-restfulapi-local/ and type "makepkg PKGBUILD".
+
+Alternate way on Arch-Linux:
+ Move to archlinux/vdr-plugin-resfulapi-git/ on github and download the PKGBUILD and vdr-plugin-restfulapi-git.install in it.
+ Move to the directory where you've downloaded them and execute "makepkg PKGBUILD".
+
