@@ -563,7 +563,7 @@ string TimerValues::ConvertWeekdays(int v)
   int counter = 0;
   ostringstream res;
   while ( !b.empty() && counter < 7 ) {
-     int val = b.top();
+     int val = b.front();
      switch(counter) {
        case 0: res << (val == 1 ? 'M' : '-'); break;
        case 1: res << (val == 1 ? 'T' : '-'); break;
