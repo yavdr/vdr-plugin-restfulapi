@@ -896,7 +896,7 @@ QueryHandler::QueryHandler(string service, cxxtools::http::Request& request)
 
   if ( found_json ) {
      jsonObject = jsonParser.Parse(body);
-     esyslog("restfulapi: JSON parsed sucessfully: %s", jsonObject == NULL ? "no" : "yes");
+     esyslog("restfulapi: JSON parsed successfully: %s", jsonObject == NULL ? "no" : "yes");
   } else {
      _body.parse_url(body);
      jsonObject = NULL;
