@@ -1,39 +1,34 @@
 # Maintainer  : Edgar Hucek <gimli at dark-green dot com>
 
-_pluginname=live
+_pluginname=restfulapi
 pkgname=vdr-plugin-${_pluginname}-git
-pkgver=0.2.0.git
-pkgrel=16
+pkgver=0.1.1.git
+pkgrel=1
 gitid=94a0a210a485ce1fc95c47a6bc67c4c16c89a0f9
-pkgdesc="The LIVE Interactive VDR Environment, allows a comfortable operation of VDR and some of its plugins trough a web interface."
+pkgdesc="RESTful api for VDR >1.7.21"
 arch=('i686' 'x86_64')
-url="http://live.vdr-developer.org"
-license=('GPL2')
-depends=('gcc' 'vdr' 'tntnet>=1.6.0.6' 'cxxtools>=1.4.3' 'git')
-optdepends=('vdr-plugin-streamdev-server: streaming support'
-            'vdr-plugin-epgsearch: Search in EPG data')
-backup=('etc/vdr/plugins/plugin.live.conf')
-source=(plugin.live.conf
-        fix_typo.patch)
-install=vdr-plugin-$_pluginname-git.install
-conflicts=(vdr-plugin-$_pluginname)
-md5sums=('90f93b9d138b85deef022d4559f3f1dc'
-         '5803ce45303698cd7489d6f8d1b80094')
+url="http://github.com/yavdr/vdr-plugin-restfulapi"
+depends=('gcc' 'vdr>=1.7.21' 'cxxtools>=2.1' 'git')
+optdepends=('vdr-plugin-epgsearch: Search in EPG data')
+backup=('etc/vdr/plugins/plugin.restfulapi.conf')
+source=(plugin.restfulapi.conf)
+install=vdr-plugin-${_pluginname}-git.install
+md5sums=('daa324f1a52cc08315678cdd2dae0ac2')
 
 build() {
   cd "$srcdir/"	|| return 1
   
-  _githost="git://projects.vdr-developer.org"
-  _gitrepo="vdr-plugin-live.git"
+  _githost="git://github.com/yavdr"
+  _gitrepo="vdr-plugin-restfulapi.git"
 
   if [ -e $srcdir/vdr-plugin-${_pluginname} ]; then	  
     cd $srcdir/vdr-plugin-${_pluginname}
     git rebase origin
-    git checkout $gitid
+    git pull
   else
     git clone ${_githost}/${_gitrepo}
     cd $srcdir/vdr-plugin-${_pluginname}
-    git checkout $gitid
+    git pull
   fi
 
   if [ -e $srcdir/vdr-plugin-${_pluginname}-build ]; then
@@ -44,21 +39,21 @@ build() {
 
   cd $srcdir/vdr-plugin-${_pluginname}-build
 
-  #patch -p1 -i ${srcdir}/fix_typo.patch || return 1
+  #apply patches here
 
   make VDRDIR="/usr/include/vdr"  LIBDIR="." \
     LOCALEDIR="$pkgdir/usr/share/locale" all || return 1
   
   mkdir -p $pkgdir/etc/vdr/plugins						|| return 1
-  install -m 644 ../plugin.live.conf		$pkgdir/etc/vdr/plugins		|| return 1
+  install -m 644 ../plugin.restfulapi.conf	$pkgdir/etc/vdr/plugins		|| return 1
 
   mkdir -p $pkgdir/usr/lib/vdr/plugins						|| return 1
   install -m 755 libvdr-*.so.*	$pkgdir/usr/lib/vdr/plugins/			|| return 1
   
-  mkdir -p $pkgdir/usr/share/vdr-plugin-live					|| return 1
-  cp -r live/*		$pkgdir/usr/share/vdr-plugin-live/ 			|| return 1
+  mkdir -p $pkgdir/usr/share/vdr-plugin-restfulapi				|| return 1
+  cp -r restfulapi/*	$pkgdir/usr/share/vdr-plugin-restfulapi/		|| return 1
 
-  mkdir -p $pkgdir/var/lib/vdr/plugins/live					|| return 1
-  cd $pkgdir/var/lib/vdr/plugins/live						|| return 1
-  ln -s ../../../../../usr/share/vdr-plugin-live/* .				|| return 1
+  mkdir -p $pkgdir/var/lib/vdr/plugins/restfulapi				|| return 1
+  cd $pkgdir/var/lib/vdr/plugins/restfulapi					|| return 1
+  ln -s ../../../../../usr/share/vdr-plugin-restfulapi/* .			|| return 1
 }

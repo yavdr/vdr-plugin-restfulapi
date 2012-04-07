@@ -171,7 +171,11 @@ void StatusMonitor::TimerChange(const cTimer *Timer, eTimerChange Change)
   //not important for restfulapi because of timer_server already being available?
 }
 
+#if APIVERSNUM >= 10726
+void StatusMonitor::ChannelSwitch(const cDevice *Device, int ChannelNumber, bool LiveView)
+#else
 void StatusMonitor::ChannelSwitch(const cDevice *Device, int ChannelNumber)
+#endif
 {
   if (ChannelNumber != 0) {
      channel_number = ChannelNumber;

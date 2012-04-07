@@ -2,7 +2,7 @@
 
 _USER=vdr
 _GROUP=vdr
-_DIRS="/etc/vdr/plugins/live /var/lib/vdr/plugins/live" # No whitespace in pathes allowed
+_DIRS="/etc/vdr/plugins/restfulapi /var/lib/vdr/plugins/restfulapi" # No whitespace in pathes allowed
 
 # arg 1:  the new package version
 post_install() {
