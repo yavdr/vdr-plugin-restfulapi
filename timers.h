@@ -105,7 +105,7 @@ class XmlTimerList : TimerList
 class TimerValues
 {
   private:
-    std::stack<int>  ConvertToBinary(int v);
+    std::queue<int>  ConvertToBinary(int v);
   public:
     TimerValues() { };
     ~TimerValues() { };

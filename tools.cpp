@@ -849,10 +849,6 @@ string StringExtension::timeToString(time_t time)
 
 string StringExtension::dateToString(time_t time)
 {
-  if ( time == NULL ) {
-     return "";
-  }
-
   struct tm *ltime = localtime(&time);
 
   ostringstream data;
