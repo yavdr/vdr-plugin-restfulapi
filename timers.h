@@ -14,6 +14,7 @@
 #include <iostream>
 #include <sstream>
 #include <stack>
+#include <queue>
 #include <time.h>
 #include "tools.h"
 

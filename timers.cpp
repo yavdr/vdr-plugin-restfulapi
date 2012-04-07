@@ -386,10 +386,10 @@ void XmlTimerList::finish()
 
 // --- TimerValues class ------------------------------------------------------------
 
-stack<int> TimerValues::ConvertToBinary(int v)
+queue<int> TimerValues::ConvertToBinary(int v)
 {
    int b;
-   stack <int> res;
+   queue <int> res;
 
    while ( v != 0) {
      b = v % 2;
@@ -559,7 +559,7 @@ cTimer* TimerValues::ConvertTimer(string v)
 
 string TimerValues::ConvertWeekdays(int v)
 {
-  stack<int> b = ConvertToBinary(v);
+  queue<int> b = ConvertToBinary(v);
   int counter = 0;
   ostringstream res;
   while ( !b.empty() && counter < 7 ) {
