@@ -6,6 +6,15 @@ void RecordingsResponder::reply(ostream& out, cxxtools::http::Request& request, 
   QueryHandler::addHeader(reply);
   bool found = false;
 
+  if ((int)request.url().find("/recordings/play") == 0 ) {
+     if ( request.method() == "GET" ) {
+        playRecording(out, request, reply);
+     } else {
+        reply.httpReturn(501, "Only GET method is supported by the /recordings/play service.");
+     }
+     found = true;
+  }
+
   if ((int)request.url().find("/recordings/cut") == 0 ) {
      if ( request.method() == "GET" ) {
 	showCutterStatus(out, request, reply);
@@ -44,6 +53,22 @@ void RecordingsResponder::reply(ostream& out, cxxtools::http::Request& request, 
 
   if (!found) {
      reply.httpReturn(403, "Service not found");
+  }
+}
+
+void RecordingsResponder::playRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+{
+  QueryHandler q("/recordings/play", request);
+  int recording_number = q.getParamAsInt(0);
+  if ( recording_number < 0 || recording_number >= Recordings.Count() ) {
+     reply.httpReturn(404, "Wrong recording number!");
+  } else {
+     cRecording* recording = Recordings.Get(recording_number);
+     if ( recording != NULL ) {
+        TaskScheduler::get()->SwitchableRecording(recording);
+     } else {
+        reply.httpReturn(404, "Wrong recording number!");
+     }
   }
 }
 

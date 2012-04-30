@@ -155,8 +155,17 @@ void cPluginRestfulapi::MainThreadHook(void)
   
   if (!( channelID == tChannelID::InvalidID )) {
      cChannel* channel = Channels.GetByChannelID(channelID);
-     if (channel != NULL)
+     if (channel != NULL) {
         Channels.SwitchTo( channel->Number() );
+	scheduler->SwitchableChannel(tChannelID::InvalidID);
+     }
+  }
+
+  cRecording* recording = scheduler->SwitchableRecording();
+
+  if (recording != NULL) {
+     cReplayControl::SetRecording(recording->FileName(), recording->Title());
+     scheduler->SwitchableRecording(NULL);
   }
 }
 

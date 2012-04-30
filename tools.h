@@ -315,15 +315,18 @@ class TaskScheduler
   protected:
     std::list<BaseTask*> tasks;
     tChannelID _channel;
+    cRecording* _recording;
     cMutex     _channelMutex;
   public:
-    TaskScheduler() { _channel = tChannelID::InvalidID; };
+    TaskScheduler() { _channel = tChannelID::InvalidID; _recording = NULL; };
     ~TaskScheduler();
     static TaskScheduler* get();
     void AddTask(BaseTask* task) { tasks.push_back(task); };
     void DoTasks();
     void SwitchableChannel(tChannelID channel);
     tChannelID SwitchableChannel();
+    void SwitchableRecording(cRecording* recording) { _recording = recording; }
+    cRecording* SwitchableRecording() { return _recording; }
 };
 
 #endif
