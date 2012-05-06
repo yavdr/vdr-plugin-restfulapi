@@ -164,7 +164,6 @@ void cPluginRestfulapi::MainThreadHook(void)
   cRecording* recording = scheduler->SwitchableRecording();
 
   if (recording != NULL) {
-     esyslog("restfulapi: Switch recording %s", recording->FileName());
      cReplayControl::SetRecording(recording->FileName(), recording->Title());
      scheduler->SwitchableRecording(NULL);
      cControl::Shutdown();
