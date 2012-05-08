@@ -9,6 +9,7 @@ void RecordingsResponder::reply(ostream& out, cxxtools::http::Request& request, 
   if ((int)request.url().find("/recordings/play") == 0 ) {
      if ( request.method() == "GET" ) {
         playRecording(out, request, reply);
+        reply.addHeader("Content-Type", "text/plain; charset=utf-8");
      } else {
         reply.httpReturn(501, "Only GET method is supported by the /recordings/play service.");
      }
