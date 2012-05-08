@@ -16,7 +16,7 @@ void RecordingsResponder::reply(ostream& out, cxxtools::http::Request& request, 
      found = true;
   }
 
-  if ((int)request.url().find("/recordings/cut") == 0 ) {
+  else if ((int)request.url().find("/recordings/cut") == 0 ) {
      if ( request.method() == "GET" ) {
 	showCutterStatus(out, request, reply);
      } else if (request.method() == "POST") {

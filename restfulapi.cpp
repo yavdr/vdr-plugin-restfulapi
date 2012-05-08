@@ -166,6 +166,8 @@ void cPluginRestfulapi::MainThreadHook(void)
   if (recording != NULL) {
      cReplayControl::SetRecording(recording->FileName(), recording->Title());
      scheduler->SwitchableRecording(NULL);
+     cControl::Shutdown();
+     cControl::Launch(new cReplayControl);
   }
 }
 
