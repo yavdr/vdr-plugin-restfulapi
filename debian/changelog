@@ -1,3 +1,10 @@
+vdr-plugin-restfulapi (0.1.1-2yavdr0~precise) precise; urgency=medium
+
+  * add new Makefile for vdr 1.7.36
+  * add german translation file
+
+ -- Lars Hanisch <dvb@flensrocker.de>  Sat, 09 Feb 2013 11:16:57 +0100
+
 vdr-plugin-restfulapi (0.1.1-1yavdr0~precise) precise; urgency=medium
 
   * new upstream snapshot
