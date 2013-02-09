@@ -52,10 +52,13 @@ INCLUDES +=
 DEFINES += -DPLUGIN_NAME_I18N='"$(PLUGIN)"'
 
 LIBS    += $(shell cxxtools-config --libs) -lcxxtools-http
+CONFDIR  = $(call PKGCFG,configdir)
+PLGCONFDIR = $(CONFDIR)/plugins/$(PLUGIN)
 
 ### The object files (add further files here):
 
 OBJS = $(PLUGIN).o serverthread.o tools.o info.o channels.o events.o recordings.o remote.o timers.o statusmonitor.o osd.o jsonparser.o epgsearch.o searchtimers.o
+CFGS = API.html
 
 ### The main target:
 
@@ -109,7 +112,10 @@ $(SOFILE): $(OBJS)
 install-lib: $(SOFILE)
 	install -D $^ $(DESTDIR)$(LIBDIR)/$^.$(APIVERSION)
 
-install: install-lib install-i18n
+install-cfg: $(CFGS)
+	install -D $^ $(DESTDIR)$(PLGCONFDIR)/$^
+
+install: install-lib install-i18n install-cfg
 
 dist: $(I18Npo) clean
 	@-rm -rf $(TMPDIR)/$(ARCHIVE)
