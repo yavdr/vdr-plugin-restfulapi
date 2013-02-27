@@ -18,7 +18,7 @@ void RecordingsResponder::reply(ostream& out, cxxtools::http::Request& request, 
 
   else if ((int)request.url().find("/recordings/cut") == 0 ) {
      if ( request.method() == "GET" ) {
-	showCutterStatus(out, request, reply);
+        showCutterStatus(out, request, reply);
      } else if (request.method() == "POST") {
         cutRecording(out, request, reply); 
      } else {
@@ -180,9 +180,9 @@ void RecordingsResponder::cutRecording(ostream& out, cxxtools::http::Request& re
   if (rec_number >= 0 && rec_number < Recordings.Count()) {
      cRecording* recording = Recordings.Get(rec_number);
      if (cCutter::Active()) {
-	reply.httpReturn(504, "VDR Cutter currently busy.");
+        reply.httpReturn(504, "VDR Cutter currently busy.");
      } else {
-	cCutter::Start(recording->FileName());
+        cCutter::Start(recording->FileName());
      }
      return;
   }
