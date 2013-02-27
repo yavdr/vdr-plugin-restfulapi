@@ -1,0 +1,15 @@
+If you use the VDR Extensions Patch activate STREAMDEVEXT
+http://www.zulu-entertainment.de/content.php?f=VDR-Patches&sub=Extensions
+
+If you dont't want use the VDR Extensions Patch use the following patch
+
+--- recording.h.old	2012-05-31 22:47:30.091729100 +0200
++++ recording.h	2012-05-31 22:47:50.013433934 +0200
+@@ -56,6 +56,7 @@
+   const char *Title(void) const { return event->Title(); }
+   const char *ShortText(void) const { return event->ShortText(); }
+   const char *Description(void) const { return event->Description(); }
++  const cEvent *GetEvent(void) const { return event; }
+   const cComponents *Components(void) const { return event->Components(); }
+   const char *Aux(void) const { return aux; }
+   bool Read(FILE *f);
