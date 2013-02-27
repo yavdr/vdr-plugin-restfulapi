@@ -1,4 +1,5 @@
 #include "tools.h"
+#include <vdr/videodir.h>
 using namespace std;
 
 // --- Settings ----------------------------------------------------------------
@@ -586,7 +587,7 @@ cEvent* VdrExtension::GetEventById(tEventID eventID, cChannel* channel)
 string VdrExtension::getRelativeVideoPath(cRecording* recording)
 {
   string path = (string)recording->FileName();
-  string VIDEODIR = (string)"/var/lib/video.00/";
+  string VIDEODIR(VideoDirectory);
   return path.substr(VIDEODIR.length());
 }
 
