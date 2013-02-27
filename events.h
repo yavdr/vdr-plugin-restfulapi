@@ -45,10 +45,15 @@ struct SerEvent
   cxxtools::String Channel;
   int StartTime;
   int Duration;
+  int TableID;
+  int Version;
   int Images;
   bool TimerExists;
   bool TimerActive;
+#if APIVERSNUM > 10710 || EPGHANDLER
   int ParentalRating;
+#endif
+  int Vps;
   cxxtools::String TimerId;
   cEvent* Instance;
 #ifdef EPG_DETAILS_PATCH

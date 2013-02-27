@@ -262,11 +262,16 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)
   si.addMember("start_time") <<= e.StartTime;
   si.addMember("channel") <<= e.Channel;
   si.addMember("duration") <<= e.Duration;
+  si.addMember("table_id") <<= e.TableID;
+  si.addMember("version") <<= e.Version;
   si.addMember("images") <<= e.Images;
   si.addMember("timer_exists") <<= e.TimerExists;
   si.addMember("timer_active") <<= e.TimerActive;
   si.addMember("timer_id") <<= e.TimerId;
+#if APIVERSNUM > 10710 || EPGHANDLER
   si.addMember("parental_rating") <<= e.ParentalRating;
+#endif
+  si.addMember("vps") <<= e.Vps;
 
   vector< SerComponent > components;
   if ( e.Instance->Components() != NULL ) {
@@ -285,6 +290,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)
 
   si.addMember("components") <<= components;
 
+#if APIVERSNUM > 10710 || EPGHANDLER
   vector< cxxtools::String > contents;
   int counter = 0;
   uchar content = e.Instance->Contents(counter);
@@ -294,6 +300,17 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)
      content = e.Instance->Contents(counter);
   }
   si.addMember("contents") <<= contents;
+
+  vector< int > raw_contents;
+  counter = 0;
+  uchar raw_content = e.Instance->Contents(counter);
+  while (raw_content != 0) {
+     raw_contents.push_back(raw_content);
+     counter++;
+     raw_content = e.Instance->Contents(counter);
+  }
+  si.addMember("raw_contents") <<= raw_contents;
+#endif
 
 #ifdef EPG_DETAILS_PATCH
   si.addMember("details") <<= *e.Details;
@@ -369,7 +386,12 @@ void JsonEventList::addEvent(cEvent* event)
   serEvent.Channel = channelStr;
   serEvent.StartTime = event->StartTime();
   serEvent.Duration = event->Duration();
+  serEvent.TableID = (int)event->TableID();
+  serEvent.Version = (int)event->Version();
+#if APIVERSNUM > 10710 || EPGHANDLER
   serEvent.ParentalRating = event->ParentalRating();
+#endif
+  serEvent.Vps = event->Vps();
   serEvent.Instance = event;
 
   cTimer* timer = VdrExtension::TimerExists(event);
@@ -429,7 +451,12 @@ void XmlEventList::addEvent(cEvent* event)
 
   s->write(cString::sprintf("  <param name=\"start_time\">%i</param>\n", (int)event->StartTime()));
   s->write(cString::sprintf("  <param name=\"duration\">%i</param>\n", event->Duration()));
+  s->write(cString::sprintf("  <param name=\"table_id\">%i</param>\n", (int)event->TableID()));
+  s->write(cString::sprintf("  <param name=\"version\">%i</param>\n", (int)event->Version()));
+#if APIVERSNUM > 10710 || EPGHANDLER
   s->write(cString::sprintf("  <param name=\"parental_rating\">%i</param>\n", event->ParentalRating()));
+#endif
+  s->write(cString::sprintf("  <param name=\"vps\">%i</param>\n", (int)event->Vps()));
   
 #ifdef EPG_DETAILS_PATCH
   s->write("  <param name=\"details\">\n");
@@ -472,6 +499,7 @@ void XmlEventList::addEvent(cEvent* event)
   }
   s->write("  </param>\n");
 
+#if APIVERSNUM > 10710 || EPGHANDLER
   s->write("  <param name=\"contents\">\n");
   int counter = 0;
   uchar content = event->Contents(counter);
@@ -482,6 +510,16 @@ void XmlEventList::addEvent(cEvent* event)
   }
   s->write("  </param>\n");
 
+  s->write("  <param name=\"raw_contents\">\n");
+  counter = 0;
+  content = event->Contents(counter);
+  while(content != 0) {
+    counter++;
+    s->write(cString::sprintf("   <raw_content name=\"%i\" />\n", content));
+    content = event->Contents(counter);
+  }
+  s->write("  </param>\n");
+#endif
 
   s->write(cString::sprintf("  <param name=\"timer_exists\">%s</param>\n", (timer_exists ? "true" : "false")));
   s->write(cString::sprintf("  <param name=\"timer_active\">%s</param>\n", (timer_active ? "true" : "false")));
