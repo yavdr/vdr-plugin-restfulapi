@@ -795,10 +795,25 @@ string StringExtension::encodeToXml(const string &str)
 cxxtools::String StringExtension::UTF8Decode(string str)
 {
   static cxxtools::Utf8Codec utf8;
-  string temp;
+  ostringstream result;
+  for( string::const_iterator iter = str.begin(); iter!=str.end(); iter++ )
+  {
+    unsigned char c = (unsigned char)*iter;
+    // filter invalid utf8 bytes
+    // http://en.wikipedia.org/wiki/UTF-8#Codepage_layout
+    if (c == 0xc0 || c == 0xc1 || (c >= 0xf5 && c <= 0xff))
+    {
+       //TODO: result << "\\u00"; and hex digits
+    }
+    else
+       result << c;
+  }
+  string res = result.str();
+     
   try {
-     utf8::replace_invalid(str.begin(), str.end(), back_inserter(temp));
-     return utf8.decode(temp);
+     string converted;
+     utf8::replace_invalid(res.begin(), res.end(), back_inserter(converted));
+     return utf8.decode(converted);
   } catch (utf8::not_enough_room& e) {
      return utf8.decode((string)"Invalid piece of text. (Fixing Unicode failed.)");
   }
