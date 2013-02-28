@@ -289,7 +289,7 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
 
   SerRecording serRecording;
   serRecording.Number = nr;
-  serRecording.Name = StringExtension::UTF8Decode(recording->Name());
+  serRecording.Name = StringExtension::encodeToJson(recording->Name());
   serRecording.FileName = StringExtension::UTF8Decode(recording->FileName());
   serRecording.RelativeFileName = StringExtension::UTF8Decode(VdrExtension::getRelativeVideoPath(recording).c_str());
   serRecording.IsNew = recording->IsNew();

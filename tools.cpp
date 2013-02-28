@@ -768,6 +768,9 @@ string StringExtension::encodeToXml(const string &str)
     for( string::const_iterator iter = str.begin(); iter!=str.end(); iter++ )
     {
          unsigned char c = (unsigned char)*iter;
+         // filter invalid bytes in xml
+         if (c < 0x20 && c != 0x09 && c != 0x0a && c != 0x0d)
+            continue;
 
          switch( c )
          {
@@ -792,27 +795,41 @@ string StringExtension::encodeToXml(const string &str)
     }
 }
 
-cxxtools::String StringExtension::UTF8Decode(string str)
+
+cxxtools::String StringExtension::encodeToJson(const string &str)
 {
-  static cxxtools::Utf8Codec utf8;
+  // http://en.wikipedia.org/wiki/UTF-8#Codepage_layout
   ostringstream result;
+
   for( string::const_iterator iter = str.begin(); iter!=str.end(); iter++ )
   {
-    unsigned char c = (unsigned char)*iter;
-    // filter invalid utf8 bytes
-    // http://en.wikipedia.org/wiki/UTF-8#Codepage_layout
-    if (c == 0xc0 || c == 0xc1 || (c >= 0xf5 && c <= 0xff))
-    {
-       //TODO: result << "\\u00"; and hex digits
-    }
-    else
-       result << c;
+       unsigned char c = (unsigned char)*iter;
+       if (c < 0x20)
+          continue;
+       else if (c == 0xc0 || c == 0xc1 || (c >= 0xf5 && c <= 0xff))
+          result << (0xc0 | (c >> 6)) << (0x80 | (c & 0x3f));
+       else
+          result << c;
   }
+
   string res = result.str();
-     
+  static cxxtools::Utf8Codec utf8;
   try {
      string converted;
      utf8::replace_invalid(res.begin(), res.end(), back_inserter(converted));
+     return utf8.decode(converted);
+  } catch(utf8::not_enough_room& e) {
+     return utf8.decode((string)"Invalid piece of text. (Fixing Unicode failed.)");
+  }
+}
+
+
+cxxtools::String StringExtension::UTF8Decode(string str)
+{
+  static cxxtools::Utf8Codec utf8;
+  try {
+     string converted;
+     utf8::replace_invalid(str.begin(), str.end(), back_inserter(converted));
      return utf8.decode(converted);
   } catch (utf8::not_enough_room& e) {
      return utf8.decode((string)"Invalid piece of text. (Fixing Unicode failed.)");

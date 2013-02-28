@@ -196,6 +196,7 @@ class StringExtension
     static int strtoi(std::string str);
     static std::string replace(std::string const& text, std::string const& substring, std::string const& replacement);
     static std::string encodeToXml(const std::string &str);
+    static cxxtools::String encodeToJson(const std::string &str);
     static cxxtools::String UTF8Decode(std::string str);
     static std::string toLowerCase(std::string str);
     static std::string trim(std::string str);
