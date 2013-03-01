@@ -261,6 +261,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)
   si.addMember("description") <<= e.Description;
   si.addMember("start_time") <<= e.StartTime;
   si.addMember("channel") <<= e.Channel;
+  si.addMember("channel_name") <<= e.ChannelName;
   si.addMember("duration") <<= e.Duration;
   si.addMember("table_id") <<= e.TableID;
   si.addMember("version") <<= e.Version;
@@ -372,6 +373,7 @@ void JsonEventList::addEvent(cEvent* event)
   cxxtools::String eventDescription;
   cxxtools::String empty = StringExtension::UTF8Decode("");
   cxxtools::String channelStr = StringExtension::UTF8Decode((const char*)event->ChannelID().ToString());
+  cxxtools::String channelName = StringExtension::UTF8Decode((const char*)Channels.GetByChannelID(event->ChannelID(), true)->Name());
 
   SerEvent serEvent;
 
@@ -384,6 +386,7 @@ void JsonEventList::addEvent(cEvent* event)
   serEvent.ShortText = eventShortText;
   serEvent.Description = eventDescription;
   serEvent.Channel = channelStr;
+  serEvent.ChannelName = channelName;
   serEvent.StartTime = event->StartTime();
   serEvent.Duration = event->Duration();
   serEvent.TableID = (int)event->TableID();
@@ -448,6 +451,7 @@ void XmlEventList::addEvent(cEvent* event)
   s->write(cString::sprintf("  <param name=\"description\">%s</param>\n", StringExtension::encodeToXml(eventDescription).c_str()));
 
   s->write(cString::sprintf("  <param name=\"channel\">%s</param>\n", StringExtension::encodeToXml((const char*)event->ChannelID().ToString()).c_str()));
+  s->write(cString::sprintf("  <param name=\"channel_name\">%s</param>\n", StringExtension::encodeToXml((const char*)Channels.GetByChannelID(event->ChannelID(), true)->Name()).c_str()));
 
   s->write(cString::sprintf("  <param name=\"start_time\">%i</param>\n", (int)event->StartTime()));
   s->write(cString::sprintf("  <param name=\"duration\">%i</param>\n", event->Duration()));

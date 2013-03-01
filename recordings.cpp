@@ -6,12 +6,19 @@ void RecordingsResponder::reply(ostream& out, cxxtools::http::Request& request, 
   QueryHandler::addHeader(reply);
   bool found = false;
 
+  if (request.method() == "OPTIONS") {
+     return;
+  }
+
   if ((int)request.url().find("/recordings/play") == 0 ) {
      if ( request.method() == "GET" ) {
         playRecording(out, request, reply);
         reply.addHeader("Content-Type", "text/plain; charset=utf-8");
+     } else if (request.method() == "POST") {
+        rewindRecording(out, request, reply);
+        reply.addHeader("Content-Type", "text/plain; charset=utf-8");
      } else {
-        reply.httpReturn(501, "Only GET method is supported by the /recordings/play service.");
+        reply.httpReturn(501, "Only GET and POST method is supported by the /recordings/play service.");
      }
      found = true;
   }
@@ -66,6 +73,25 @@ void RecordingsResponder::playRecording(std::ostream& out, cxxtools::http::Reque
   } else {
      cRecording* recording = Recordings.Get(recording_number);
      if ( recording != NULL ) {
+        TaskScheduler::get()->SwitchableRecording(recording);
+     } else {
+        reply.httpReturn(404, "Wrong recording number!");
+     }
+  }
+}
+
+void RecordingsResponder::rewindRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+{
+  QueryHandler q("/recordings/play", request);
+  int recording_number = q.getParamAsInt(0);
+  if ( recording_number < 0 || recording_number >= Recordings.Count() ) {
+     reply.httpReturn(404, "Wrong recording number!");
+  } else {
+     cRecording* recording = Recordings.Get(recording_number);
+     if ( recording != NULL ) {
+        cDevice::PrimaryDevice()->StopReplay(); // must do this first to be able to rewind the currently replayed recording
+        cResumeFile ResumeFile(recording->FileName(), recording->IsPesRecording());
+        ResumeFile.Delete();
         TaskScheduler::get()->SwitchableRecording(recording);
      } else {
         reply.httpReturn(404, "Wrong recording number!");
