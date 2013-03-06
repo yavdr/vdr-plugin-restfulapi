@@ -11,13 +11,13 @@ body
 
 /* osd_container - main wrapper element */
 
-div#osd_container
+div#osd_bg
 {
   position: absolute;
-  width:90%;
-  height: 90%;
+  width: 100%;
+  height: 100%;
   margin: 0%;
-  padding: 5%;
+  padding: 0%;
   overflow: hidden;
   background: #d8e0de; /* Old browsers */
   background: -moz-linear-gradient(top, #d8e0de 0%, #aebfbc 22%, #99afab 33%, #8ea6a2 50%, #829d98 67%, #4e5c5a 82%, #0e0e0e 100%); /* FF3.6+ */
@@ -27,6 +27,16 @@ div#osd_container
   background: -ms-linear-gradient(top, #d8e0de 0%,#aebfbc 22%,#99afab 33%,#8ea6a2 50%,#829d98 67%,#4e5c5a 82%,#0e0e0e 100%); /* IE10+ */
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#d8e0de', endColorstr='#0e0e0e',GradientType=0 ); /* IE6-9 */
   background: linear-gradient(top, #d8e0de 0%,#aebfbc 22%,#99afab 33%,#8ea6a2 50%,#829d98 67%,#4e5c5a 82%,#0e0e0e 100%); /* W3C */
+}
+
+div#osd_container
+{
+  position: absolute;
+  width: 90%;
+  height: 90%;
+  margin: 0%;
+  padding: 5%;
+  overflow: hidden;
 }
 
 /* header */

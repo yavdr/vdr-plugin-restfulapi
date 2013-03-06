@@ -43,6 +43,7 @@ struct SerEvent
   cxxtools::String ShortText;
   cxxtools::String Description;
   cxxtools::String Channel;
+  cxxtools::String ChannelName;
   int StartTime;
   int Duration;
   int TableID;
