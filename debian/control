@@ -2,7 +2,7 @@ Source: vdr-plugin-restfulapi
 Section: video
 Priority: extra
 Maintainer: Michael Eiler <michael@unknown.de>
-Build-Depends: debhelper (>= 7.0.50~), vdr-dev (>= 1.7.18), gettext, libcxxtools-dev
+Build-Depends: debhelper (>= 8), vdr-dev (>= 1.7.18), gettext, libcxxtools-dev
 Standards-Version: 3.9.1
 Homepage: https://github.com/yavdr/vdr-plugin-restfulapi
 
@@ -11,3 +11,13 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${vdr:Depends}, libcxxtools7
 Description: VDR restfulapi
  VDR restfulapi Plugin
+
+Package: vdr-plugin-restfulapi-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends: vdr-plugin-restfulapi (= ${binary:Version}), ${misc:Depends}
+Description: debugging symbols for vdr-plugin-restfulapi
+ .
+ This package contains only the debugging symbols for vdr-plugin-restfulapi
+

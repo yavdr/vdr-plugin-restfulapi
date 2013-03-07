@@ -3,18 +3,14 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-MAKE_OPTIONS = VDRDIR=/usr/include/vdr LIBDIR=. LOCALEDIR=locale
+.PHONY: override_dh_strip override_dh_auto_install
+
+override_dh_strip:
+	dh_strip --dbg-package=vdr-plugin-restfulapi-dbg
+
+override_dh_auto_install:
+	LIBDIR=. dh_auto_install --destdir=debian/vdr-plugin-restfulapi
 
 %:
 	dh $@
 
-override_dh_auto_build:
-	dh_auto_build -- all $(MAKE_OPTIONS)
-
-override_dh_auto_clean:
-	$(MAKE) -o .dependencies clean $(MAKE_OPTIONS)
-	rm -rf locale libvdr-*.so.*
-
-override_dh_gencontrol:
-	sh /usr/share/vdr-dev/dependencies.sh
-	dh_gencontrol
