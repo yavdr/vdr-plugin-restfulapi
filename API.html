@@ -57,7 +57,8 @@ Developer: <a href="mailto:eiler.mike@gmail.com">eiler.mike@gmail.com</a> or <a 
 <li><a href="#Osd">Osd</a>
 <li><a href="#Recordings">Recordings</a>
 <ul><li><a href="#RecordingCut">Cut</a>
-    <li><a href="#RecordingsMarks">Marks</a></ul>
+    <li><a href="#RecordingsMarks">Marks</a>
+	<li><a href="#RecordingPlay">Play</a></ul>
 <li><a href="#Remote">Remote</a>
 <li><a href="#Timers">Timers</a>
 <ul><li><a href="#ReadingTimers">Reading/Deleting Timers</a>
@@ -162,7 +163,6 @@ GET http://&lt;ip&gt;:&lt;port&gt;/channels/.&lt;format&gt;?start=&lt;int&gt;&am
 <br />
 <b>Description of the Parameters:</b>
 <br />
-<br />
 
 <ul>
 <li>&lt;format&gt; - The requested format: json, xml or html.
@@ -174,7 +174,6 @@ GET http://&lt;ip&gt;:&lt;port&gt;/channels/.&lt;format&gt;?start=&lt;int&gt;&am
 <br />
 
 <b>Example Result:</b>
-<br />
 <br />
 
 <div class="code"><code>
@@ -320,12 +319,16 @@ GET http://&lt;ip&gt;:&lt;port&gt;/events/&lt;channelid&gt;.&lt;format&gt;?times
 <br />
 <b>Description of the Parameters:</b><br />
 <br />
+
 <ul>
  <li>&lt;format&gt; - The requested format: json, xml or html.
  <li>&lt;channelid&gt; - (optional) id of the channel, if not set the plugin will return the whole epg sorted by your channel list
  <li>&lt;timespan&gt; - the timespan from which you want to know the event-details, if set to 0 - all events in the future will be returned
  <li>&lt;from&gt; - (optional) time in the future when the requested events should end/start (default-value: now)
  <li>&lt;eventid&gt; - (optional) if you only want the details of a specific event
+ <li>&lt;chevents&gt; - (optional) the count of events for each channel
+ <li>&lt;chfrom&gt; - (optional) start number of the channel, from where events will be returned
+ <li>&lt;chto&gt; - (optional) end number of the channel, through events will be returned 
  <li>&lt;only_count&gt; - (optional) if you just want to know the amount of available epg items
 </ul>
 
@@ -345,6 +348,7 @@ GET http://&lt;ip&gt;:&lt;port&gt;/events/C-1-1011-11110/3600.xml?start=0&amp;li
 &nbsp;&nbsp;&lt;param name="short_text"&gt;Der Episodentitel&lt;/param&gt;<br />
 &nbsp;&nbsp;&lt;param name="description"&gt;Die Beschreibung&lt;/param&gt;<br />
 &nbsp;&nbsp;&lt;param name="channel"&gt;C-1-1011-11110&lt;/param&gt;<br />
+&nbsp;&nbsp;&lt;param name="channel_name"&gt;ZDF HD&lt;/param&gt;<br />
 &nbsp;&nbsp;&lt;param name="start_time"&gt;1308845100&lt;/param&gt;<br />
 &nbsp;&nbsp;&lt;param name="duration"&gt;3300&lt;/param&gt;<br />
 &nbsp;&nbsp;&lt;param name="images"&gt;1&lt;/param&gt;<br />
@@ -372,6 +376,8 @@ GET http://&lt;ip&gt;:&lt;port&gt;/events/C-1-1011-11110/3600.json?start=0&amp;l
 "short_text":"Der Episodentitel",<br />
 "description":"Die Beschreibung",<br />
 "start_time":1308845100,<br />
+"channel":"C-1-1011-11110",<br />
+"channel_name":"ZDF HD",<br />
 "duration":3300, <br />
 "images":3,<br />
 "count":1,<br />
@@ -401,7 +407,6 @@ GET http://&lt;ip&gt;:&lt;port&gt;/events/image/&lt;eventid&gt;/&lt;imagenumber&
 </code></div>
 <br />
 <br />
-
 <b>Description of the Parameters:</b><br />
 <br />
 
@@ -556,7 +561,6 @@ DELETE http://&lt;ip&gt;:&lt;port&gt;/recordings/&lt;number&gt;
 <br />
 <b>Description of the Parameters:</b>
 <br />
-<br />
 
 <ul>
 <li>&lt;format&gt; - The requested format: json, xml or html.
@@ -570,7 +574,6 @@ DELETE http://&lt;ip&gt;:&lt;port&gt;/recordings/&lt;number&gt;
 <br />
 
 <b>Example Result:</b>
-<br />
 <br />
 
 <div class="code"><code>
@@ -619,7 +622,6 @@ GET http://127.0.0.1:8002/recordings.json?start=0&amp;limit=1i&amp;marks=true<br
 "event_duration":4611<br />
 }],"count":1,"total":2}
 </code></div>
-<br />
 <br />
 <br />
 
@@ -677,8 +679,31 @@ Example Body-Content (required, Only JSON supported):<br />
 <div class="code"><code>
 {'marks':['0:02:18.10','0:34:08.24']}
 </code></div>
+<br />
+<br />
 
 
+<h2><a name="RecordingPlay">Play</a></h2>
+
+This service tells your VDR to play or rewind a recording:<br />
+<br />
+Method: <b>GET, POST</b><br />
+<br />
+Examples: <br/>
+<br />
+<div class="code"><code>
+GET http://&lt;ip&gt;:&lt;port&gt;/recordings/play/&lt;number&gt;<br />
+POST http://&lt;ip&gt;:&lt;port&gt;/recordings/play/&lt;number&gt;
+</code></div>
+<br />
+<br />
+<b>Description of the Parameters:</b>
+<br />
+
+<ul>
+<li>&lt;number&gt; - The number of the recording you want to play (GET).
+<li>&lt;number&gt; - The number of the recording you want to rewind (POST).
+</ul>
 <br />
 <br />
 
@@ -734,7 +759,6 @@ DELETE http://&lt;ip&gt;:&lt;port&gt;/timers/&lt;timerid&gt;
 <br />
 <b>Description of the Parameters:</b>
 <br />
-<br />
 
 <ul>
 <li>&lt;format&gt; - The requested format: json, xml or html.
@@ -746,7 +770,6 @@ DELETE http://&lt;ip&gt;:&lt;port&gt;/timers/&lt;timerid&gt;
 <br />
 
 <b>Example Result:</b>
-<br />
 <br />
 
 <div class="code"><code>
@@ -892,6 +915,7 @@ Possible parameters:<br />
 <ul>
  <li>search - (required)
  <li>mode - (required) 0=phrase, 1=all words, 2=at least one word, 3=match exactly, 4=regex, 5=fuzzy
+ <li>id - used to edit an existing timer
  <li>tolerance - used in fuzzy mode
  <li>match_case - 0=false, 1=true
  <li>use_time

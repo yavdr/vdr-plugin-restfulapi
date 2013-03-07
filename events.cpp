@@ -59,6 +59,15 @@ void EventsResponder::replyEvents(ostream& out, cxxtools::http::Request& request
      return;*/
   }
 
+  int channel_limit = q.getOptionAsInt("chevents");
+  if ( channel_limit <= -1 ) channel_limit = 0; // default channel events is 0 -> all
+  
+  int channel_from = q.getOptionAsInt("chfrom");
+  if ( channel_from <= -1 || channel != NULL ) channel_from = 0; // default channel number is 0
+  
+  int channel_to = q.getOptionAsInt("chto");
+  if ( channel_to <= 0 || channel != NULL ) channel_to = Channels.Count();
+ 
   if ( from <= -1 ) from = time(NULL); // default time is now
   if ( timespan <= -1 ) timespan = 0; // default timespan is 0, which means all entries will be returned
   int to = from + timespan;
@@ -78,37 +87,36 @@ void EventsResponder::replyEvents(ostream& out, cxxtools::http::Request& request
 
   bool initialized = false;
   int total = 0;
-  for(int i=0;i<Channels.Count();i++) {
+  for(int i=0; i<Channels.Count(); i++) {
      const cSchedule *Schedule = Schedules->GetSchedule(Channels.Get(i)->GetChannelID());
      
-     if ( channel == NULL || strcmp(channel->GetChannelID().ToString(), Channels.Get(i)->GetChannelID().ToString()) == 0) {
-  
-        if ( !Schedule ) {
-           if ( channel != NULL) {
+     if ((channel == NULL || strcmp(channel->GetChannelID().ToString(), Channels.Get(i)->GetChannelID().ToString()) == 0) && (i >= channel_from && i <= channel_to)) {
+        if (!Schedule) {
+           if (channel != NULL) {
               reply.httpReturn(404, "Could not find schedule!");
               return;
            }
         } else {
-
            if (!initialized) {
               eventList->init();
               initialized = true;
            }
 
            int old = 0;
-           for(cEvent* event = Schedule->Events()->First(); event; event = Schedule->Events()->Next(event))
-           {
+           int channel_events = 0;
+           for(cEvent* event = Schedule->Events()->First(); event; event = Schedule->Events()->Next(event)) {
               int ts = event->StartTime();
               int te = ts + event->Duration();
-              if ( (ts <= to && te > from) || (te > from && timespan == 0) ) {
-                 if ( (event_id < 0 || event_id == (int)event->EventID()) && onlyCount != "true") {
-                    eventList->addEvent(event);
+              if ((ts <= to && te > from) || (te > from && timespan == 0)) {
+                 if (channel_limit == 0 || channel_limit > channel_events) {
+                    if ((event_id < 0 || event_id == (int)event->EventID()) && onlyCount != "true") {
+                       eventList->addEvent(event);
+                       channel_events++;
+                    }
                  }
-              }else{
-                 if(ts > to) break;
-                 if(te <= from) {
-                    old++;
-                 }
+              } else {
+                 if (ts > to) break;
+                 if (te <= from) old++;
               }
            }
            total += (Schedule->Events()->Count() - old);
@@ -261,6 +269,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)
   si.addMember("description") <<= e.Description;
   si.addMember("start_time") <<= e.StartTime;
   si.addMember("channel") <<= e.Channel;
+  si.addMember("channel_name") <<= e.ChannelName;
   si.addMember("duration") <<= e.Duration;
   si.addMember("table_id") <<= e.TableID;
   si.addMember("version") <<= e.Version;
@@ -372,6 +381,7 @@ void JsonEventList::addEvent(cEvent* event)
   cxxtools::String eventDescription;
   cxxtools::String empty = StringExtension::UTF8Decode("");
   cxxtools::String channelStr = StringExtension::UTF8Decode((const char*)event->ChannelID().ToString());
+  cxxtools::String channelName = StringExtension::UTF8Decode((const char*)Channels.GetByChannelID(event->ChannelID(), true)->Name());
 
   SerEvent serEvent;
 
@@ -384,6 +394,7 @@ void JsonEventList::addEvent(cEvent* event)
   serEvent.ShortText = eventShortText;
   serEvent.Description = eventDescription;
   serEvent.Channel = channelStr;
+  serEvent.ChannelName = channelName;
   serEvent.StartTime = event->StartTime();
   serEvent.Duration = event->Duration();
   serEvent.TableID = (int)event->TableID();
@@ -448,6 +459,7 @@ void XmlEventList::addEvent(cEvent* event)
   s->write(cString::sprintf("  <param name=\"description\">%s</param>\n", StringExtension::encodeToXml(eventDescription).c_str()));
 
   s->write(cString::sprintf("  <param name=\"channel\">%s</param>\n", StringExtension::encodeToXml((const char*)event->ChannelID().ToString()).c_str()));
+  s->write(cString::sprintf("  <param name=\"channel_name\">%s</param>\n", StringExtension::encodeToXml((const char*)Channels.GetByChannelID(event->ChannelID(), true)->Name()).c_str()));
 
   s->write(cString::sprintf("  <param name=\"start_time\">%i</param>\n", (int)event->StartTime()));
   s->write(cString::sprintf("  <param name=\"duration\">%i</param>\n", event->Duration()));

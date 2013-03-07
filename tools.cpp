@@ -96,7 +96,11 @@ void HtmlHeader::ToStream(StreamExtension* se)
   se->write("<head>\n");
 
   se->write("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n");
-
+  // WebApp support
+  se->write("<meta name=\"apple-mobile-web-app-capable\" content=\"yes\" />\n");
+  se->write("<meta name=\"apple-mobile-web-app-status-bar-style\" content=\"default\" />\n");
+  se->write("<meta name=\"viewport\" content=\"width=device-width\" id=\"viewport\" />\n");
+  
   for (int i=0;i<(int)_metatags.size();i++)
   {
     se->write(_metatags[i].c_str());
@@ -159,6 +163,11 @@ void StreamExtension::writeHtmlHeader(std::string title)
   write("<html xml:lang=\"en\" lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\">\n");
   write("<head>\n");
   write("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n");
+  // WebApp support
+  write("<meta name=\"apple-mobile-web-app-capable\" content=\"yes\" />\n");
+  write("<meta name=\"apple-mobile-web-app-status-bar-style\" content=\"default\" />\n");
+  write("<meta name=\"viewport\" content=\"width=device-width\" id=\"viewport\" />\n");
+    
   write("<title>VDR-Plugin-Restfulapi: ");
   if ( title.length() > 0 ) write(title.c_str());
   write("</title>");
