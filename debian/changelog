@@ -1,3 +1,9 @@
+vdr-plugin-restfulapi (0.1.1-6-gf7e266a-0yavdr0~precise) precise; urgency=medium
+
+  * new upstream snapshot
+
+ -- Lars Hanisch <dvb@flensrocker.de>  Thu, 07 Mar 2013 02:47:52 +0100
+
 vdr-plugin-restfulapi (0.1.1-4yavdr0~precise) precise; urgency=medium
 
   * refactored to-json-encoder
