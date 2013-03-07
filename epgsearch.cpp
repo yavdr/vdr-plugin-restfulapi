@@ -122,6 +122,9 @@ string SearchTimer::ToHtml()
 
 string SearchTimer::LoadFromQuery(QueryHandler& q)
 {
+  int searchtimer_id = q.getBodyAsInt("id");
+  if ( searchtimer_id >= 0 ) m_id = searchtimer_id;
+
   string search = q.getBodyAsString("search");
   if ( search.length() > 0 ) { m_search = search; } else { return "Search required."; }
 
