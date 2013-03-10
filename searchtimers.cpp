@@ -6,9 +6,6 @@ void SearchTimersResponder::reply(ostream& out, cxxtools::http::Request& request
   QueryHandler::addHeader(reply);
   cPlugin* plugin = cPluginManager::GetPlugin("epgsearch");
   if (plugin == NULL) {
-     reply.addHeader("Access-Control-Allow-Origin", "*");
-     reply.addHeader("Access-Control-Allow-Methods", "POST, GET, DELETE, PUT");
-
      reply.httpReturn(403, "Epgsearch isn't installed!");
      return; 
   }
@@ -22,9 +19,9 @@ void SearchTimersResponder::reply(ostream& out, cxxtools::http::Request& request
         replyCreate(out, request, reply);
      } else if (request.method() == "DELETE") {
         replyDelete(out, request, reply);
+     } else if (request.method() == "OPTIONS") {
+        return;	
      } else {
-        reply.addHeader("Access-Control-Allow-Origin", "*");
-        reply.addHeader("Access-Control-Allow-Methods", "POST, GET, DELETE, PUT");
         reply.httpReturn(404, "The searchtimer-service does only support the following methods: GET, POST and DELETE.");
      }
   }
@@ -102,6 +99,8 @@ void SearchTimersResponder::replyDelete(ostream& out, cxxtools::http::Request& r
 
   if (!result)
      reply.httpReturn(408, "Deleting searchtimer failed!");
+  else
+     reply.httpReturn(200, "Searchtimer deleted.");  
 }
 
 void SearchTimersResponder::replySearch(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)

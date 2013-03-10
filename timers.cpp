@@ -12,6 +12,8 @@ void TimersResponder::reply(ostream& out, cxxtools::http::Request& request, cxxt
      createOrUpdateTimer(out, request, reply, false);
   } else if ( request.method() == "PUT" ) {
      createOrUpdateTimer(out, request, reply, true);
+  } else if (request.method() == "OPTIONS") {
+     return;		 
   } else {
      reply.httpReturn(501, "Only GET, DELETE, POST and PUT methods are supported.");
   }
@@ -201,6 +203,7 @@ void TimersResponder::deleteTimer(ostream& out, cxxtools::http::Request& request
      }
      Timers.Del(timer);
      Timers.SetModified();
+     reply.httpReturn(200, "Timer deleted."); 
   }
 }
 
@@ -414,7 +417,7 @@ bool TimerValues::IsFlagsValid(int v)
 
 bool TimerValues::IsFileValid(string v) 
 {
-  if ( v.length() > 0 && v.length() <= 40 ) 
+  if ( v.length() > 0 && v.length() <= 99 ) 
      return true;
   return false;
 }

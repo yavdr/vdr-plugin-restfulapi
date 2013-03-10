@@ -92,11 +92,11 @@ void OsdResponder::printEmptyHtml(ostream& out)
   HtmlHeader htmlHeader;
   htmlHeader.Title("VDR Restfulapi: No OSD opened!");
   htmlHeader.Stylesheet("/var/lib/vdr/plugins/restfulapi/osd.css");
-  //htmlHeader.Script("/var/lib/vdr/plugins/restfulapi/osd.js");
-  htmlHeader.MetaTag("<meta http-equiv=\"refresh\" content=\"1\">");
+  htmlHeader.Script("/var/lib/vdr/plugins/restfulapi/osd.js");
+  htmlHeader.MetaTag("<meta http-equiv=\"refresh\" content=\"1\" />");
   htmlHeader.ToStream(&se);
 
-  se.write("\n<div id=\"osd_container\">&nbsp;</div>\n");
+  se.write("\n<div id=\"osd_bg\"><div id=\"osd_container\">&nbsp;</div></div>\n");
   se.write("</body></html>");
 }
 
@@ -194,10 +194,10 @@ void HtmlTextOsdList::printTextOsd(TextOsd* textOsd)
   htmlHeader.Title("HtmlTextOsdList");
   htmlHeader.Stylesheet("/var/lib/vdr/plugins/restfulapi/osd.css");
   htmlHeader.Script("/var/lib/vdr/plugins/restfulapi/osd.js");
-  htmlHeader.MetaTag("<meta http-equiv=\"refresh\" content=\"1\">");
+  htmlHeader.MetaTag("<meta http-equiv=\"refresh\" content=\"1\" />");
   htmlHeader.ToStream(s);
 
-  s->write("\n<div id=\"osd_container\">");
+  s->write("\n<div id=\"osd_bg\"><div id=\"osd_container\">");
   s->write("\n<div id=\"header\">");
     if (textOsd->Title().length() > 0)
        s->write(textOsd->Title().c_str());
@@ -245,7 +245,7 @@ void HtmlTextOsdList::printTextOsd(TextOsd* textOsd)
      s->write("<div id=\"blue\" class=\"fourth inactive\">&nbsp;</div>\n");
 
   s->write("<br class=\"clear\">\n</div><!-- closing color_buttons container -->\n");
-  s->write("</div><!-- closing osd_container -->\n");
+  s->write("</div></div><!-- closing osd_container -->\n");
   s->write("</body></html>");
 }
 
@@ -294,9 +294,10 @@ void ProgrammeOsdWrapper::printHtml(ProgrammeOsd* osd)
   HtmlHeader htmlHeader;
   htmlHeader.Title("ProgrammeOsdWrapper");
   htmlHeader.Stylesheet("/var/lib/vdr/plugins/restfulapi/osd.css");
-  htmlHeader.MetaTag("<meta http-equiv=\"refresh\" content=\"1\">");
+  htmlHeader.Script("/var/lib/vdr/plugins/restfulapi/osd.js");
+  htmlHeader.MetaTag("<meta http-equiv=\"refresh\" content=\"1\" />");
   htmlHeader.ToStream(s);
-
+  s->write("<div id=\"osd_bg\"><div id=\"osd_container\">\n");
   s->write("<div id=\"content2\"><div id=\"innercontent\">");
   s->write(cString::sprintf("<div id=\"eventtitle\">%s</div>", osd->PresentTitle().c_str()));
   s->write(cString::sprintf("<div id=\"eventsubtitle\">%s - %s</div>",
@@ -306,6 +307,7 @@ StringExtension::timeToString(osd->PresentTime()).c_str()));
   s->write(cString::sprintf("<div id=\"eventsubtitle\">%s - %s</div>",
 osd->FollowingSubtitle().c_str(),
 StringExtension::timeToString(osd->FollowingTime()).c_str()));
+  s->write("</div></div>\n");
   s->write("</div></div>\n");
   s->write("</body></html>\n");
 }
@@ -343,7 +345,8 @@ void ChannelOsdWrapper::printHtml(ChannelOsd* osd)
   HtmlHeader htmlHeader;
   htmlHeader.Title("ChannelOsdWrapper");
   htmlHeader.Stylesheet("/var/lib/vdr/plugins/restfulapi/osd.css");
-  htmlHeader.MetaTag("<meta http-equiv=\"refresh\" content=\"1\">");
+  htmlHeader.Script("/var/lib/vdr/plugins/restfulapi/osd.js");
+  htmlHeader.MetaTag("<meta http-equiv=\"refresh\" content=\"1\" />");
   htmlHeader.ToStream(s);
 
   s->write("<div id=\"header\">");
