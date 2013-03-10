@@ -11,7 +11,7 @@
 #include "serverthread.h"
 #include "statusmonitor.h"
 
-static const char *VERSION        = "0.1.1";
+static const char *VERSION        = "0.1.2";
 static const char *DESCRIPTION    = "Offers a RESTful-API to retrieve data from VDR";
 static const char *MAINMENUENTRY  = NULL;//"Restfulapi";
 

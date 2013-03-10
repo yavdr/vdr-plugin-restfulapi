@@ -121,6 +121,7 @@ dist: $(I18Npo) clean
 	@-rm -rf $(TMPDIR)/$(ARCHIVE)
 	@mkdir $(TMPDIR)/$(ARCHIVE)
 	@cp -a * $(TMPDIR)/$(ARCHIVE)
+	@-rm -rf $(TMPDIR)/$(ARCHIVE)/debian
 	@tar czf $(PACKAGE).tgz -C $(TMPDIR) $(ARCHIVE)
 	@-rm -rf $(TMPDIR)/$(ARCHIVE)
 	@echo Distribution package created as $(PACKAGE).tgz
