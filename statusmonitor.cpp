@@ -173,11 +173,13 @@ void StatusMonitor::TimerChange(const cTimer *Timer, eTimerChange Change)
 
 #if APIVERSNUM >= 10726
 void StatusMonitor::ChannelSwitch(const cDevice *Device, int ChannelNumber, bool LiveView)
+{
+  if (ChannelNumber != 0 && LiveView) {
 #else
 void StatusMonitor::ChannelSwitch(const cDevice *Device, int ChannelNumber)
-#endif
 {
   if (ChannelNumber != 0) {
+#endif
      channel_number = ChannelNumber;
   }
 }
