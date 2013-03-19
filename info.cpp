@@ -53,6 +53,7 @@ void InfoResponder::replyJson(StreamExtension& se)
   }
 
   struct SerPluginList pl;
+  pl.Version = StringExtension::UTF8Decode(VDRVERSION);
 
   cPlugin* p = NULL;
   int counter = 0;
@@ -81,23 +82,25 @@ void InfoResponder::replyJson(StreamExtension& se)
                 
         string eventTitle = "";
         int start_time = -1;
-	int duration = -1;
+        int duration = -1;
         int eventId = -1;
 
-        if ( event != NULL) {
+        if (event != NULL) {
            eventTitle = event->Title();
-	   start_time = event->StartTime();
+           start_time = event->StartTime();
            duration = event->Duration(),
            eventId = (int)event->EventID();	   
         }
 
         serializer.serialize(eventId, "eventid");
         serializer.serialize(start_time, "start_time");
-	serializer.serialize(duration, "duration");
+        serializer.serialize(duration, "duration");
         serializer.serialize(StringExtension::UTF8Decode(eventTitle), "title");
      }
   }
 
+  serializer.serialize(StringExtension::UTF8Decode(VdrExtension::getVideoDiskSpace()), "diskspace");
+  
   serializer.serialize(pl, "vdr");
   serializer.finish();  
 }
@@ -106,7 +109,6 @@ void InfoResponder::replyXml(StreamExtension& se)
 {
   time_t now = time(0);
   StatusMonitor* statm = StatusMonitor::get();
-
 
   se.writeXmlHeader();
   se.write("<info xmlns=\"http://www.domain.org/restfulapi/2011/info-xml\">\n");
@@ -122,7 +124,6 @@ void InfoResponder::replyXml(StreamExtension& se)
               restful_services[i]->Internal() ? "true" : "false"));
   }
   se.write(" </services>\n");
-
   
   if ( statm->getRecordingName().length() > 0 || statm->getRecordingFile().length() > 0 ) {
      se.write(cString::sprintf(" <video name=\"%s\">%s</video>\n", StringExtension::encodeToXml(statm->getRecordingName()).c_str(), StringExtension::encodeToXml(statm->getRecordingFile()).c_str()));
@@ -140,14 +141,17 @@ void InfoResponder::replyXml(StreamExtension& se)
         string eventTitle = "";
         if ( event->Title() != NULL ) { eventTitle = event->Title(); }
 
-	se.write(cString::sprintf(" <eventid>%i</eventid>\n", event->EventID()));
+        se.write(cString::sprintf(" <eventid>%i</eventid>\n", event->EventID()));
         se.write(cString::sprintf(" <start_time>%i</start_time>\n", (int)event->StartTime()));
-	se.write(cString::sprintf(" <duration>%i</duration>\n", (int)event->Duration()));
-	se.write(cString::sprintf(" <title>%s</title>\n", StringExtension::encodeToXml(eventTitle).c_str()));
+        se.write(cString::sprintf(" <duration>%i</duration>\n", (int)event->Duration()));
+        se.write(cString::sprintf(" <title>%s</title>\n", StringExtension::encodeToXml(eventTitle).c_str()));
      }
   }
+  
+  se.write(cString::sprintf("  <diskspace>%s</diskspace>\n", StringExtension::encodeToXml(VdrExtension::getVideoDiskSpace()).c_str())); 
 
-  se.write(" <vdr>\n");
+  se.write(" <vdr>\n"); 
+  se.write(cString::sprintf("  <version>%s</version>\n", VDRVERSION));
   se.write("  <plugins>\n");
  
   cPlugin* p = NULL; 
@@ -177,6 +181,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerPlugin& p)
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerPluginList& pl)
 {
+  si.addMember("version") <<= pl.Version;
   si.addMember("plugins") <<= pl.plugins;
 }
 

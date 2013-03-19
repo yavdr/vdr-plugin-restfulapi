@@ -23,6 +23,7 @@ struct SerPlugin
 
 struct SerPluginList
 {
+  cxxtools::String Version;
   std::vector< struct SerPlugin > plugins;
 };
 
