@@ -615,6 +615,15 @@ cEvent* VdrExtension::getCurrentEventOnChannel(cChannel* channel)
   return (cEvent*)Schedule->GetEventAround(now);
 }
 
+string VdrExtension::getVideoDiskSpace()
+{
+  int FreeMB, UsedMB;
+  int Percent = VideoDiskSpace(&FreeMB, &UsedMB);
+  ostringstream str;
+  str << FreeMB + UsedMB << "MB " << FreeMB << "MB " << Percent << "%";
+  return str.str();  
+}
+
 // --- VdrMarks ---------------------------------------------------------------
 
 VdrMarks* VdrMarks::get()
