@@ -8,7 +8,7 @@ Homepage: https://github.com/yavdr/vdr-plugin-restfulapi
 
 Package: vdr-plugin-restfulapi
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${vdr:Depends}, libcxxtools7
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${vdr:Depends}
 Description: VDR restfulapi
  VDR restfulapi Plugin
 
