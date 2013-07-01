@@ -2,7 +2,6 @@
 #include <list>
 #include <vdr/status.h>
 
-
 #ifndef __STATUSMONITOR_H
 #define __STATUSMONITOR_H
 
@@ -41,7 +40,7 @@ class TextOsd : BasicOsd
     bool        ReplaceItem(TextOsdItem* item, int i);
     int         CountItems();
     void        ClearItems();
-    void	AddItem(TextOsdItem* item);
+    void        AddItem(TextOsdItem* item);
     void        RemoveItem(TextOsdItem* item);
     void        RemoveItem(std::string item);
 
@@ -115,9 +114,15 @@ class StatusMonitor : public cStatus
     int osd_type;
     int channel_number;
     cDevice *device;
+    bool record;
     std::string recording_name;
     std::string recording_file;
+    std::string audio_track;
+    std::string subtitle_track;
     int volume;
+    int audioTrack;
+    int audioChannel;
+    int subtitleTrack;
     void OsdCreate(void);
     void OsdDestroy(void);
   protected:
@@ -148,6 +153,13 @@ class StatusMonitor : public cStatus
     static StatusMonitor* get();
     BasicOsd* getOsd() { return _osd; }
     int getChannel() { return channel_number; }
+    int getVolume() { return volume; }
+    int getAudioTrack() { return audioTrack; }
+    std::string getAudioTrackDesc() { return audio_track; }
+    int getAudioChannel() { return audioChannel; }
+    int getSubtitleTrack() { return subtitleTrack; }
+    std::string getSubtitleTrackDesc() { return subtitle_track; }
+    bool isRecord() { return record; }
     std::string getRecordingName() { return recording_name; }
     std::string getRecordingFile() { return recording_file; }
 };

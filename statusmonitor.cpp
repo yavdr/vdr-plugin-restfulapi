@@ -186,7 +186,15 @@ void StatusMonitor::ChannelSwitch(const cDevice *Device, int ChannelNumber)
 
 void StatusMonitor::Recording(const cDevice *Device, const char *Name, const char *FileName, bool On)
 {
-  //to be implemented
+  if (On) {
+     record = true;
+     if(Name != NULL) recording_name = std::string(Name); else recording_name = "";
+     if(FileName != NULL) recording_file = std::string(FileName); else recording_file = "";
+  } else {
+     record = false;
+     recording_name = "";
+     recording_file = "";
+  }
 }
 
 void StatusMonitor::Replaying(const cControl *Control, const char *Name, const char *FileName, bool On)
@@ -202,26 +210,28 @@ void StatusMonitor::Replaying(const cControl *Control, const char *Name, const c
 
 void StatusMonitor::SetVolume(int Volume, bool Absolute)
 {
-  if(Absolute) {
-    volume = Volume;
+  if (Absolute) {
+     volume = Volume;
   } else {
-    volume += Volume;
+     volume += Volume;
   }
 }
 
 void StatusMonitor::SetAudioTrack(int Index, const char * const *Tracks)
 {
-  //to be implemented
+  audioTrack = Index;
+  audio_track = Tracks[Index];
 }
 
 void StatusMonitor::SetAudioChannel(int AudioChannel)
 {
-  //to be implemented
+  audioChannel = AudioChannel;
 }
 
 void StatusMonitor::SetSubtitleTrack(int Index, const char * const *Tracks)
 {
-  //to be implemented
+  subtitleTrack = Index;
+  subtitle_track = Tracks[Index];
 }
 
 void StatusMonitor::OsdClear(void)
