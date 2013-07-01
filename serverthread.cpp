@@ -44,6 +44,7 @@ void cServerThread::Action(void)
   TimersService timersService;
   OsdService osdService;
   SearchTimersService searchTimersService;
+  AudioService audioService;
   
   RestfulServices* services = RestfulServices::get();
   
@@ -61,6 +62,7 @@ void cServerThread::Action(void)
   RestfulService* timers = new RestfulService("/timers", true, 1);
   RestfulService* osd = new RestfulService("/osd", true, 1);
   RestfulService* searchtimers = new RestfulService("/searchtimers", false, 1);
+  RestfulService* audio = new RestfulService("/audio", true, 1);
   
   services->appendService(info);
   services->appendService(channels);
@@ -76,6 +78,7 @@ void cServerThread::Action(void)
   services->appendService(timers);
   services->appendService(osd);
   services->appendService(searchtimers);
+  services->appendService(audio);
 
   server->addService(*info->Regex(), infoService);
   server->addService(*channels->Regex(), channelsService);
@@ -85,6 +88,7 @@ void cServerThread::Action(void)
   server->addService(*timers->Regex(), timersService);
   server->addService(*osd->Regex(), osdService);
   server->addService(*searchtimers->Regex(), searchTimersService);
+  server->addService(*audio->Regex(), audioService);
 
   try {
     loop.run();
