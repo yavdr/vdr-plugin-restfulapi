@@ -5,7 +5,7 @@ void AudioResponder::reply(ostream& out, cxxtools::http::Request& request, cxxto
 {
   QueryHandler::addHeader(reply);
   
-  if (request.method() == "GET") { 
+  if (request.method() == "POST") { 
      QueryHandler q("/audio", request);
      string vol = q.getOptionAsString("volume");
      int level = q.getOptionAsInt("volume");
@@ -64,7 +64,7 @@ void AudioResponder::reply(ostream& out, cxxtools::http::Request& request, cxxto
      delete audioList;
 
   } else {
-     reply.httpReturn(403, "Only GET methods are supported by the audio control");
+     reply.httpReturn(403, "Only POST method is supported by the audio control");
   }
 }
 
