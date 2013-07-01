@@ -11,17 +11,24 @@ void RecordingsResponder::reply(ostream& out, cxxtools::http::Request& request, 
   }
 
   if ((int)request.url().find("/recordings/play") == 0 ) {
-     if ( request.method() == "GET" ) {
+     if (request.method() == "POST") {
         playRecording(out, request, reply);
         reply.addHeader("Content-Type", "text/plain; charset=utf-8");
-     } else if (request.method() == "POST") {
+     } else {
+        reply.httpReturn(501, "Only POST method is supported by the /recordings/play service.");
+     }
+     found = true;
+  }  
+  
+  else if ((int)request.url().find("/recordings/rewind") == 0 ) {
+     if (request.method() == "POST") {
         rewindRecording(out, request, reply);
         reply.addHeader("Content-Type", "text/plain; charset=utf-8");
      } else {
-        reply.httpReturn(501, "Only GET and POST method is supported by the /recordings/play service.");
+        reply.httpReturn(501, "Only POST method is supported by the /recordings/rewind service.");
      }
      found = true;
-  }
+  }  
 
   else if ((int)request.url().find("/recordings/cut") == 0 ) {
      if ( request.method() == "GET" ) {
@@ -82,7 +89,7 @@ void RecordingsResponder::playRecording(std::ostream& out, cxxtools::http::Reque
 
 void RecordingsResponder::rewindRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  QueryHandler q("/recordings/play", request);
+  QueryHandler q("/recordings/rewind", request);
   int recording_number = q.getParamAsInt(0);
   if ( recording_number < 0 || recording_number >= Recordings.Count() ) {
      reply.httpReturn(404, "Wrong recording number!");
