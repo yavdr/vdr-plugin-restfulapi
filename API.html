@@ -58,7 +58,8 @@ Developer: <a href="mailto:eiler.mike@gmail.com">eiler.mike@gmail.com</a> or <a 
 <li><a href="#Recordings">Recordings</a>
 <ul><li><a href="#RecordingCut">Cut</a>
     <li><a href="#RecordingsMarks">Marks</a>
-	<li><a href="#RecordingPlay">Play</a></ul>
+	<li><a href="#RecordingPlay">Play</a>
+	<li><a href="#RecordingRewind">Rewind</a></ul>
 <li><a href="#Remote">Remote</a>
 <li><a href="#Timers">Timers</a>
 <ul><li><a href="#ReadingTimers">Reading/Deleting Timers</a>
@@ -685,14 +686,13 @@ Example Body-Content (required, Only JSON supported):<br />
 
 <h2><a name="RecordingPlay">Play</a></h2>
 
-This service tells your VDR to play or rewind a recording:<br />
+This service tells your VDR to play a recording:<br />
 <br />
-Method: <b>GET, POST</b><br />
+Method: <b>POST</b><br />
 <br />
 Examples: <br/>
 <br />
 <div class="code"><code>
-GET http://&lt;ip&gt;:&lt;port&gt;/recordings/play/&lt;number&gt;<br />
 POST http://&lt;ip&gt;:&lt;port&gt;/recordings/play/&lt;number&gt;
 </code></div>
 <br />
@@ -701,7 +701,28 @@ POST http://&lt;ip&gt;:&lt;port&gt;/recordings/play/&lt;number&gt;
 <br />
 
 <ul>
-<li>&lt;number&gt; - The number of the recording you want to play (GET).
+<li>&lt;number&gt; - The number of the recording you want to play (POST).
+</ul>
+<br />
+<br />
+
+<h2><a name="RecordingRewind">Rewind</a></h2>
+
+This service tells your VDR to play a recording from the beginning:<br />
+<br />
+Method: <b>POST</b><br />
+<br />
+Examples: <br/>
+<br />
+<div class="code"><code>
+POST http://&lt;ip&gt;:&lt;port&gt;/recordings/rewind/&lt;number&gt;
+</code></div>
+<br />
+<br />
+<b>Description of the Parameters:</b>
+<br />
+
+<ul>
 <li>&lt;number&gt; - The number of the recording you want to rewind (POST).
 </ul>
 <br />
