@@ -243,7 +243,7 @@ string SearchTimer::LoadFromQuery(QueryHandler& q)
   if (repeatsWithinDays > 0) m_repeatsWithinDays = repeatsWithinDays;
 
   //int m_blacklistmode
-  //std::vecotr< std::string > m_blacklist_IDs;
+  //std::vector< std::string > m_blacklist_IDs;
   //m_blacklistmode: 0=no, 1=Selection, 2=all
   //to be implemented, requires array-support in QueryHandler for xml/html and json -> html param-parser has to be impelemented???
   //and blacklist ids should be added to the webservice output 
