@@ -4,9 +4,9 @@ using namespace std;
 void AudioResponder::reply(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler::addHeader(reply);
+  QueryHandler q("/audio", request);
   
   if (request.method() == "POST") { 
-     QueryHandler q("/audio", request);
      string vol = q.getOptionAsString("volume");
      int level = q.getOptionAsInt("volume");
      int mute = q.getOptionAsInt("mute");
@@ -45,7 +45,9 @@ void AudioResponder::reply(ostream& out, cxxtools::http::Request& request, cxxto
      if (channel >= 0 && channel < 3) {
         cDevice::PrimaryDevice()->SetAudioChannel(channel);
      }
-
+  }
+  
+  if (request.method() == "POST" || request.method() == "GET") {
      AudioList* audioList;
      if ( q.isFormat(".html") ) {
         reply.addHeader("Content-Type", "text/html; charset=utf-8");
@@ -62,9 +64,8 @@ void AudioResponder::reply(ostream& out, cxxtools::http::Request& request, cxxto
      audioList->addContent();
      audioList->finish();
      delete audioList;
-
   } else {
-     reply.httpReturn(403, "Only POST method is supported by the audio control");
+     reply.httpReturn(403, "Only GET and POST methods are supported by the audio control");
   }
 }
 
