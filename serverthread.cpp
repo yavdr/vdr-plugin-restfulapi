@@ -36,59 +36,63 @@ void cServerThread::Action(void)
 {
   active = true;
 
-  InfoService infoService;
+  AudioService audioService; 
   ChannelsService channelsService;
-  EventsService eventsService;
+  EventsService eventsService;  
+  InfoService infoService;
+  OsdService osdService;  
   RecordingsService recordingsService;
   RemoteService remoteService;
+  SearchTimersService searchTimersService;  
   TimersService timersService;
-  OsdService osdService;
-  SearchTimersService searchTimersService;
-  AudioService audioService;
   
   RestfulServices* services = RestfulServices::get();
   
-  RestfulService* info = new RestfulService("/info", true, 1);
+  RestfulService* audio = new RestfulService("/audio", true, 1);  
   RestfulService* channels = new RestfulService("/channels", true, 1);
   RestfulService* channelGroups = new RestfulService("/channels/groups", true, 1, channels);
   RestfulService* channelImage = new RestfulService("/channels/image", true, 1, channels);
   RestfulService* events = new RestfulService("/events", true, 1);
   RestfulService* eventsImage = new RestfulService("/events/image", true, 1, events);
   RestfulService* eventsSearch = new RestfulService("/events/search", false, 1, events);
+  RestfulService* info = new RestfulService("/info", true, 1);  
+  RestfulService* osd = new RestfulService("/osd", true, 1); 
   RestfulService* recordings = new RestfulService("/recordings", true, 1);
   RestfulService* recordingsCut = new RestfulService("/recordings/cut", true, 1, recordings);
   RestfulService* recordingsMarks = new RestfulService("/recordings/marks", true, 1, recordings);
+  RestfulService* recordingsPlay = new RestfulService("/recordings/play", true, 1, recordings);
+  RestfulService* recordingsRewind = new RestfulService("/recordings/rewind", true, 1, recordings);
   RestfulService* remote = new RestfulService("/remote", true, 1);
+  RestfulService* searchtimers = new RestfulService("/searchtimers", false, 1);  
   RestfulService* timers = new RestfulService("/timers", true, 1);
-  RestfulService* osd = new RestfulService("/osd", true, 1);
-  RestfulService* searchtimers = new RestfulService("/searchtimers", false, 1);
-  RestfulService* audio = new RestfulService("/audio", true, 1);
   
-  services->appendService(info);
+  services->appendService(audio);  
   services->appendService(channels);
   services->appendService(channelGroups);
   services->appendService(channelImage);
   services->appendService(events);
   services->appendService(eventsImage);
   services->appendService(eventsSearch);
+  services->appendService(info);  
+  services->appendService(osd);  
   services->appendService(recordings);
   services->appendService(recordingsCut);
   services->appendService(recordingsMarks);
+  services->appendService(recordingsPlay);
+  services->appendService(recordingsRewind);
   services->appendService(remote);
+  services->appendService(searchtimers);  
   services->appendService(timers);
-  services->appendService(osd);
-  services->appendService(searchtimers);
-  services->appendService(audio);
 
-  server->addService(*info->Regex(), infoService);
+  server->addService(*audio->Regex(), audioService);
   server->addService(*channels->Regex(), channelsService);
   server->addService(*events->Regex(), eventsService);
+  server->addService(*info->Regex(), infoService); 
+  server->addService(*osd->Regex(), osdService);  
   server->addService(*recordings->Regex(), recordingsService);
   server->addService(*remote->Regex(), remoteService);
+  server->addService(*searchtimers->Regex(), searchTimersService); 
   server->addService(*timers->Regex(), timersService);
-  server->addService(*osd->Regex(), osdService);
-  server->addService(*searchtimers->Regex(), searchTimersService);
-  server->addService(*audio->Regex(), audioService);
 
   try {
     loop.run();
