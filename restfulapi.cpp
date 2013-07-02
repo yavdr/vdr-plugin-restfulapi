@@ -142,7 +142,7 @@ void cPluginRestfulapi::Housekeeping(void)
 {
   // Perform any cleanup or other regular tasks.
 }
-bool bRewind;
+
 void cPluginRestfulapi::MainThreadHook(void)
 {
   // Perform actions in the context of the main program thread.
