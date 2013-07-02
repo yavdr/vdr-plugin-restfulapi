@@ -142,7 +142,7 @@ void cPluginRestfulapi::Housekeeping(void)
 {
   // Perform any cleanup or other regular tasks.
 }
-
+bool bRewind;
 void cPluginRestfulapi::MainThreadHook(void)
 {
   // Perform actions in the context of the main program thread.
@@ -152,8 +152,7 @@ void cPluginRestfulapi::MainThreadHook(void)
   scheduler->DoTasks();
  
   tChannelID channelID = scheduler->SwitchableChannel();
-  
-  if (!( channelID == tChannelID::InvalidID )) {
+   if (!( channelID == tChannelID::InvalidID )) {
      cChannel* channel = Channels.GetByChannelID(channelID);
      if (channel != NULL) {
         Channels.SwitchTo( channel->Number() );
@@ -162,8 +161,13 @@ void cPluginRestfulapi::MainThreadHook(void)
   }
 
   cRecording* recording = scheduler->SwitchableRecording();
-
   if (recording != NULL) {
+     if (scheduler->IsRewind()) {
+        cDevice::PrimaryDevice()->StopReplay(); // must do this first to be able to rewind the currently replayed recording
+        cResumeFile ResumeFile(recording->FileName(), recording->IsPesRecording());
+        ResumeFile.Delete();
+        scheduler->SetRewind(false);
+     }
      #if APIVERSNUM > 10727
      cReplayControl::SetRecording(recording->FileName());
      #else

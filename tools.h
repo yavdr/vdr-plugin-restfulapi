@@ -319,6 +319,7 @@ class TaskScheduler
     tChannelID _channel;
     cRecording* _recording;
     cMutex     _channelMutex;
+    bool _bRewind;
   public:
     TaskScheduler() { _channel = tChannelID::InvalidID; _recording = NULL; };
     ~TaskScheduler();
@@ -329,6 +330,8 @@ class TaskScheduler
     tChannelID SwitchableChannel();
     void SwitchableRecording(cRecording* recording) { _recording = recording; }
     cRecording* SwitchableRecording() { return _recording; }
+    void SetRewind(bool bRewind) { _bRewind = bRewind; }
+    bool IsRewind() { return _bRewind; }
 };
 
 #endif

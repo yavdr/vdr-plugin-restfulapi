@@ -96,9 +96,7 @@ void RecordingsResponder::rewindRecording(std::ostream& out, cxxtools::http::Req
   } else {
      cRecording* recording = Recordings.Get(recording_number);
      if ( recording != NULL ) {
-        cDevice::PrimaryDevice()->StopReplay(); // must do this first to be able to rewind the currently replayed recording
-        cResumeFile ResumeFile(recording->FileName(), recording->IsPesRecording());
-        ResumeFile.Delete();
+        TaskScheduler::get()->SetRewind(true);
         TaskScheduler::get()->SwitchableRecording(recording);
      } else {
         reply.httpReturn(404, "Wrong recording number!");
