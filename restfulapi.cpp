@@ -152,7 +152,7 @@ void cPluginRestfulapi::MainThreadHook(void)
   scheduler->DoTasks();
  
   tChannelID channelID = scheduler->SwitchableChannel();
-   if (!( channelID == tChannelID::InvalidID )) {
+  if (!( channelID == tChannelID::InvalidID )) {
      cChannel* channel = Channels.GetByChannelID(channelID);
      if (channel != NULL) {
         Channels.SwitchTo( channel->Number() );
