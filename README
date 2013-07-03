@@ -4,8 +4,8 @@ vdr-plugin-restfulapi
 A plugin for Klaus Schmidingers Video Disk Recorder.
 
 
-Preface
-
+Preface:
+---------
 This plugin has been developed to offer a modern API for other developers to communicate with the VDR.
 The plugin supports the following outputs formats: xml, json and html.
 It also supports the folloing input formats: json and html.
@@ -14,26 +14,26 @@ For a detailed API description, see API.html
 
 Someone who wants to install the plugin on his/her VDR needs following applications and libraries:
 
-    VDR 1.7.18
+    VDR >= 1.7.18
     libcxxtools Rev. >= 1231, which is available as package for Ubuntu in the yavdr-PPA's 
+
+    The plugin can be installed like any other standard plugin (unpack, soft link, make plugins).
+    For Ubuntu it is available as package in the yavdr-PPA's
 
 Someone who wants to develop an application which uses this API:
 
     XML or JSON Parser (Depends on which format you want to use! - You can also use the html-format, but that one is more a proof for the restful concept and does not show all information!)
     URL Decoder or JSON Serializer (to send data to the webservice, required f.e. to create timers, searchtimers usw...) 
 
-Configuration
+Configuration:
+---------------
+With yaVDR create a new file called plugin.restfulapi.conf in /etc/vdr/plugins/ .
 
-Create a new file called plugin.restfulapi.conf in /etc/vdr/plugins/ .
+### Command line parameters for vdr-plugin-restfulapi 
+--port=8002 --ip=0.0.0.0 --epgimages=/var/cache/vdr/epgimages --channellogos=/usr/share/vdr/channel-logos
 
-# # Command line parameters for vdr-plugin-restfulapi # --port=8002 --ip=0.0.0.0 --epgimages=/var/cache/vdr/epgimages --channellogos=/usr/share/vdr/channel-logos
 
 Links:
-
-Installation: http://www.yavdr.org/installation/
-Configuration: http://www.yavdr.org/configuration/
-Features: http://www.yavdr.org/features/
-Issue tracker: https://bugs.yavdr.com/projects/yavdr/issues/new
+-------
+Issue tracker: https://bugs.yavdr.com/projects/vdr-restfulapi/
 Package source: https://github.com/yavdr/vdr-plugin-restfulapi
-Team members: http://www.yavdr.org/developer-zone/team-members/
-
