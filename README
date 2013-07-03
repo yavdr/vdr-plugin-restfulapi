@@ -1,15 +1,770 @@
-yaVDR - vdr-plugin-restfulapi
+vdr-plugin-restfulapi
 ---------------------------------------
 
-"yet another VDR" (yaVDR) is a Linux distribution focussed on Klaus Schmidingers Video Disk Recorder and based on Ubuntu.
+A plugin for Klaus Schmidingers Video Disk Recorder.
 
-yaVDR tries to let you:
 
- * Watch and record TV easily and enjoy your media in a smart way: Quickly set up a digital video recorder (PVR) on your HTPC, receive SD and HD channels, manage it simply with a remote control. Furthermore, take advantage of the full blown media center software XBMC to listen to music, watch videos, check the weather.
+Preface
 
- * Enjoy High Definition without high CPU load: HDTV normally needs a strong CPU to be displayed flawlessly. If you own a Nvidia ION based nettop or a HTPC with a Nvidia GPU that supports VDPAU, your CPU will remain cool and your energy bill won't hurt you. yaVDR relies on VDPAU which is currently the only simple way to get GPU based HD video decoding on Linux.
+This plugin has been developed to offer a modern API for other developers to communicate with the VDR.
+The plugin supports the following outputs formats: xml, json and html.
+It also supports the folloing input formats: json and html.
 
- * Start immediately after turning on the HTPC: yaVDR wants to compete with other living room devices as much as possible using upstart to speed up the boot. Besides that, the shutdown method S3 (Suspend to RAM) is enabled by default to bypass cold boot. It is possible to let the system automatically wake up on timers and go to sleep after a configurable timeout.
+It would not exist without the help of the following people:
+
+    Klaus Schmidinger: Of course because of the VDR itself. Thank you also for the nice and clean layout for the API-Documentation which I "borrowed" from your PLUGINS.html.
+    Gerald Dachs: Thank you for the intial idea and the initial jsonapi-Plugin.
+    Volker Richert: Thank you for fixing the UTF8-Support.
+    Tommi Mäkitalo: Thank you for implementing the Regex-Support in cxxtools which allows RESTful web services.
+    Holger Schvestka: Thank you for improving the package structure.
+    All other yaVDR-Members who I haven't already mentioned, just because you are who you are and do your best to improve the VDR experience.
+    The developers of the live and vnsisserver Plugins which helped me to learn a lot about the API of VDR.
+    The developers of the live plugin where I borrowed parts of the epgsearch-implementation :-)
+    Daniel Kuschny: Thank you for fixing my broken regular expressions. Will pay you a beer! :-)
+    Keine_Ahnung@vdr-portal for the VDR 1.6 compatibility patch 
+
+
+
+This document describes the API and how to use it. It contains a lot of examples for the different formats and services but there is still a lot more to discover if you simply try to make a few simple requests.
+Requirements
+
+Someone who wants to install the plugin on his/her VDR needs following applications and libraries:
+
+    VDR 1.7.18
+    libcxxtools Rev. >= 1231, which is available as package for Ubuntu in the yavdr-PPA's 
+
+Someone who wants to develop an application which uses this API:
+
+    XML or JSON Parser (Depends on which format you want to use! - You can also use the html-format, but that one is more a proof for the restful concept and does not show all information!)
+    URL Decoder or JSON Serializer (to send data to the webservice, required f.e. to create timers, searchtimers usw...) 
+
+Configuration
+
+Create a new file called plugin.restfulapi.conf in /etc/vdr/plugins/ .
+
+# # Command line parameters for vdr-plugin-restfulapi # --port=8002 --ip=0.0.0.0 --epgimages=/var/cache/vdr/epgimages --channellogos=/usr/share/vdr/channel-logos
+
+
+Audio
+
+This service retrieves audio commands, sends them to VDR and returns the result:
+
+Methods: POST, GET (for simple requests)
+
+Syntax:
+
+GET http://127.0.0.1:8002/audio.<format>
+POST http://<ip>:<port>/audio.<format>?mute=<int>
+POST http://<ip>:<port>/audio.<format>?volume=<int>&track=<int>
+
+Description of the POST Parameters:
+
+    <format> - The requested format: json, xml or html.
+    <volume>
+        volume=180 // 180 absolute
+        volume=020 // +20
+        volume=-20 // -20 
+    <mute> - 0 (mute), 1 (unmute) or 2(toggle).
+    <track> - track number.
+    <channel> - 0 (mono left), 1 (mono right) or 2(stereo). 
+
+
+
+Example Result:
+GET http://127.0.0.1:8002/audio.xml
+POST http://127.0.0.1:8002/audio.xml?volume=230&track=33
+
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<audio xmlns="http://www.domain.org/restfulapi/2011/channels-xml">
+ <volume>230</volume>
+ <mute>0</mute>
+ <tracks count="3">
+  <track type="1" description="französisch"/>
+  <track type="2" description="ohne Audiodeskription"/>
+  <track type="33" description="Dolby Digital 5.1"/>
+ </tracks>
+ <type>33</type>
+ <description>Dolby Digital 5.1</description>
+ <channel>dd 5.1</channel>
+</audio>
+
+
+
+Channels
+
+This service returns a list of channels.
+
+The Request:
+
+Method: GET
+
+Examples:
+
+GET http://<ip>:<port>/channels/.<format>
+GET http://<ip>:<port>/channels/<channelid>.<format>
+GET http://<ip>:<port>/channels/.<format>?start=<int>&limit=<int>
+
+
+Description of the Parameters:
+
+    <format> - The requested format: json, xml or html.
+    <channelid> - Id of the requested channel.
+    start, limit - These values are used to control the whole list. Start ist the first element you want to retrieve. Limit... 
+
+
+
+Example Result:
+GET http://127.0.0.1:8002/channels.xml?start=0&limit=1
+
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<channels xmlns="http://www.domain.org/restfulapi/2011/channels-xml">
+ <channel>
+  <param name="name"<ORF1 HD</param>
+  <param name="number">1</param>
+  <param name="channel_id">C-71-71-61920</param<
+  <param name="image">true</param>
+  <param name="group">hd</param>
+  <param name="transponder">330</param>
+  <param name="stream">C-71-71-61920.ts</param>
+  <param name="is_atsc">false</param>
+  <param name="is_cable">true</param>
+  <param name="is_sat">false</param>
+  <param name="is_terr">false</param>
+ </channel>
+ <count>1</count>
+ <total>259</total>
+</channels>
+
+GET http://127.0.0.1:8002/channels.json?start=0&limit=1
+
+{ "channels": [
+{
+"name":"ORF1 HD",
+"number":1,
+"channel_id":"C-71-71-61920",
+"image":true,
+"group":"hd",
+"transponder":330,
+"stream":"C-71-71-61920.ts",
+"is_atsc":false,
+"is_cable":true,
+"is_terr":false,
+"is_sat":false
+}],
+"count":1,
+"total":259
+}
+Groups
+
+This service will return a list containing all channel groups.
+
+The Request:
+
+Method: GET
+
+Examples:
+
+GET http://<ip>:<port>/channels/groups
+GET http://<ip>:<port>/channels/groups?start=<int>&limit=<int>
+GET http://<ip>:<port>/channels.<format>?group=<group>
+
+
+Description of the Parameters
+
+    <group> - returns the channels of the requested group 
+
+
+
+Example Result:
+
+GET http://<ip>:<port>/channels/groups?start=0&limit=3
+
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<groups xmlns="http://www.domain.org/restfulapi/2011/groups-xml">
+ <group>hd</group>
+ <group>main</group>
+ <group>stuff</group>
+ <count>3</count>
+ <total>3</total>
+</groups>
+
+GET http://<ip>:<port>/channels/groups?start=0&limit=3
+
+{
+"groups":
+[
+"hd",
+"main",
+"stuff"
+],
+"count":3,
+"total":3
+}
+Images / Channel-Logos
+
+This service returns the requested channel-logo.
+
+XML or JSON Parser (Depends on which format you want to use!) URL Decoder Method: GET
+
+Examples:
+
+GET http://<ip>:<port>/channels/image/<channelid>
+
+
+Events / EPG
+
+This service returns the epg information.
+
+Method: GET
+
+Examples:
+
+GET http://<ip>:<port>/events/<channelid>.<format>?timespan=<timespan>
+GET http://<ip>:<port>/events/<channelid>/<eventid>.<format>
+GET http://<ip>:<port>/events/<channelid>.<format>?timespan=<timespan>
+GET http://<ip>:<port>/events/<channelid>.<format>?timespan=<timespan>&from=<from>&start=<int>&limit=<int>
+
+
+Description of the Parameters:
+
+    <format> - The requested format: json, xml or html.
+    <channelid> - (optional) id of the channel, if not set the plugin will return the whole epg sorted by your channel list
+    <timespan> - the timespan from which you want to know the event-details, if set to 0 - all events in the future will be returned
+    <from> - (optional) time in the future when the requested events should end/start (default-value: now)
+    <eventid> - (optional) if you only want the details of a specific event
+    <chevents> - (optional) the count of events for each channel
+    <chfrom> - (optional) start number of the channel, from where events will be returned
+    <chto> - (optional) end number of the channel, through events will be returned
+    <only_count> - (optional) if you just want to know the amount of available epg items 
+
+
+
+Example Result:
+
+GET http://<ip>:<port>/events/C-1-1011-11110/3600.xml?start=0&limit=1
+
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<events xmlns="http://www.domain.org/restfulapi/2011/events-xml">
+ <event>
+  <param name="id">51514</param>
+  <param name="title">Eine Serie</param>
+  <param name="short_text">Der Episodentitel</param>
+  <param name="description">Die Beschreibung</param>
+  <param name="channel">C-1-1011-11110</param>
+  <param name="channel_name">ZDF HD</param>
+  <param name="start_time">1308845100</param>
+  <param name="duration">3300</param>
+  <param name="images">1</param>
+  <param name="components">    <component stream="5" type="11" language="deu" description="H.264/AVC high definition Video, 16:9 aspect ratio," />    <component stream="2" type="3" language="deu" description="stereo deutsch" />    <component stream="2" type="3" language="eng" description="stereo englisch" />    <component stream="2" type="5" language="deu" description="Dolby Digital 2.0" />   </param>   <param name="timer_exists">true</param>   <param name="timer_active">true</param>   <param name="timer_id">C-71-71-61920:0:1315173600:2100:2300</param>  </event>
+ <count>1</count>
+ <total>236</total>
+</events>
+
+GET http://<ip>:<port>/events/C-1-1011-11110/3600.json?start=0&limit=1
+
+{"events":[{
+"id":51514,
+"title":"Eine Serie",
+"short_text":"Der Episodentitel",
+"description":"Die Beschreibung",
+"start_time":1308845100,
+"channel":"C-1-1011-11110",
+"channel_name":"ZDF HD",
+"duration":3300,
+"images":3,
+"count":1,
+"timer_exists":true,
+"timer_active":true,
+"timer_id":"C-71-71-61920:0:1315173600:2100:2300",
+"components":[
+{"stream":5, "type":11, "language":"deu", "description":"H.264\/AVC high definition Video, 16:9 aspect ratio,"},
+{"stream":2,"type":3,"language":"deu","description":"stereo deutsch"},
+{"stream":2,"type":3,"language":"eng","description":"stereo englisch"},
+{"stream":2,"type":5,"language":"deu","description":"Dolby Digital 2.0"}],
+"total":236}
+
+Images
+
+This service returns the requested epg image.
+
+Method: GET
+
+Examples:
+
+GET http://<ip>:<port>/events/image/<eventid>/<imagenumber>
+
+
+Description of the Parameters:
+
+    <eventid> - Id of the event
+    <imagenumber> - the number of the image, in the above mentioned examples it would be 0,1 or 2 
+
+Search
+This service allows you to search for events.
+
+The Request:
+
+Method: POST
+
+Example URL:
+
+POST http://<ip>:<port>/events/search.<format>?limit=5&start=0;
+
+HTTP-Body-Parameters:
+
+    query - (required)
+    mode - (required) 0=phrase, 1=and, 2=or, 3=regex
+    channelid - (optional) if id invalid, the plugin will search on every channel
+    use_title - (optional, default) search in the title
+    use_subtitle - (optional)
+    use_description - (optional) 
+
+
+Example:
+{"query":"Asterix", "mode":0, "channelid":0,"use_title":true}
+
+
+Info
+General Information about the plugin and vdr.
+
+Examples:
+
+GET http://<ip>:<port>/info.<format>
+
+
+Description of the Parameters:
+
+    <format> - The requested format: json, xml or html. 
+
+
+Example Results:
+
+
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<info xmlns="http://www.domain.org/restfulapi/2011/info-xml">
+ <version>0.0.1</version>
+ <time>1372855585</time>
+ <services>
+  <service path="/audio" version="1" internal="true" />
+  <service path="/channels" version="1" internal="true" />
+  <service path="/channels/groups" version="1" internal="true" />
+  <service path="/channels/image" version="1" internal="true" />
+  <service path="/events" version="1" internal="true" />
+  <service path="/events/image" version="1" internal="true" />
+  <service path="/events/search" version="1" internal="false" />
+  <service path="/info" version="1" internal="true" />
+  <service path="/osd" version="1" internal="true" />
+  <service path="/recordings" version="1" internal="true" />
+  <service path="/recordings/cut" version="1" internal="true" />
+  <service path="/recordings/marks" version="1" internal="true" />
+  <service path="/recordings/play" version="1" internal="true" />
+  <service path="/recordings/rewind" version="1" internal="true" />
+  <service path="/remote" version="1" internal="true" />
+  <service path="/searchtimers" version="1" internal="false" />
+  <service path="/timers" version="1" internal="true" />
+ </services>
+ <channel>S19.2E-1-1019-10302</channel>
+ <channel_name>arte HD</channel_name>
+ <channel_number>4</channel_number>
+ <eventid>64734</eventid>
+ <start_time>1372853100</start_time>
+ <duration>5700</duration>
+ <title>Die schönsten Augen von Portugal</title>
+ <recording>false</recording>
+ <diskspace>1405401MB 156536MB 88%</diskspace>
+ <vdr>
+  <version>2.0.2</version>
+  <plugins>
+   <plugin name="softhddevice" version="0.6.0" />
+   <plugin name="dbus2vdr" version="12e" />
+   <plugin name="skinnopacity" version="0.1.2" />
+   <plugin name="play" version="0.0.14" />
+   <plugin name="menuorg" version="0.5.1" />
+   <plugin name="channellists" version="0.0.5" />
+   <plugin name="markad" version="0.1.5pre" />
+   <plugin name="tvguide" version="0.0.5" />
+   <plugin name="music" version="0.9.9-dev2" />
+   <plugin name="epgsearch" version="1.0.1.beta5" />
+   <plugin name="yaepghd" version="0.0.5_pre1" />
+   <plugin name="extrecmenu" version="1.2.2" />
+   <plugin name="streamdev-server" version="0.6.0-git" />
+   <plugin name="cinebars" version="0.1.0" />
+   <plugin name="conflictcheckonly" version="0.0.1" />
+   <plugin name="live" version="0.3.0" />
+   <plugin name="osdserver" version="0.1.3" />
+   <plugin name="quickepgsearch" version="0.0.1" />
+   <plugin name="restfulapi" version="0.1.2" />
+   <plugin name="sleeptimer" version="0.8.3-201205011650dev" />
+   <plugin name="vnsiserver3" version="0.9.1" />
+   <plugin name="femon" version="2.0.0" />
+   <plugin name="epgsearchonly" version="0.0.1" />
+  </plugins>
+ </vdr>
+</info>
+
+Instead of the channel it can also contain the currently playing video file:
+
+<video name="Asterix in Amerika">/var/lib/video.00/Asterix_in_Amerika/2011-06-19.12.40.1-0.rec</video>
+
+
+Osd
+OSD
+
+Examples:
+
+GET http://<ip>:<port>/osd.<format>
+
+Example Results:
+
+{"TextOsd":{"type":"TextOsd","title":"VDR - Disk 68% - 57:53 free","message":"","red":"","green":"Audio","yellow":"","blue":"Stop","items":[{"content":" 1 Schedule","is_selected":true},{"content":" 2 Channels","is_selected":false},{"content":" 3 Timers","is_selected":false},{"content":" 4 Recordings","is_selected":false},{"content":" 5 Search","is_selected":false},{"content":" 6 Media Player","is_selected":false},{"content":" 7 Program guide","is_selected":false},{"content":" 8 Quick search","is_selected":false},{"content":" 9 Timer conflicts","is_selected":false},{"content":" 10 Setup","is_selected":false},{"content":" 11 Commands","is_selected":false},{"content":" Stop replaying","is_selected":false}]}}
+
+
+{"ProgrammeOsd":{"present_time":1311710264,"present_title":"Der letzte Bulle","present_subtitle":"Ich hab sie alle gehabt","following_time":1311713161,"following_title":"direkt - das magazin","following_subtitle":""}}
+
+
+Recordings
+
+This service can delete recordings and can also return all the recordings as a list.
+
+The Request:
+
+Method: GET, DELETE
+
+Examples:
+
+GET http://<ip>:<port>/recordings/.<format>
+GET http://<ip>:<port>/recordings/<recordingnumber>.<format>?marks=true
+DELETE http://<ip>:<port>/recordings/<number>
+
+
+Description of the Parameters:
+
+    <format> - The requested format: json, xml or html.
+    <number> - The number of the recording which you want to delete. (The first recordings has the number 0.)
+    <recordingnumber> - The number of the recording you want to retrieve.
+    marks=true - add the cutting marks by reading the marks file from the recording directory
+    start, limit - These values are used to control the whole list. Start ist the first element you want to retrieve. Limit... 
+
+
+
+Example Result:
+GET http://127.0.0.1:8002/recordings.xml?start=0&limit=1
+
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<recordings xmlns="http://www.domain.org/restfulapi/2011/recordings-xml">
+ <recording>
+  <param name="number">0</param>
+  <param name="name">Asterix in Amerika</param>
+  <param name="filename">/var/lib/video.00/Asterix_in_Amerika/2011-06-19.12.40.1-0.rec</param>
+  <param name="is_new">false</param>
+  <param name="is_edited">false</param>
+  <param name="is_pes_recording">false</param>
+  <param name="duration">-1</param>
+  <param name="frames_per_second">50</param>
+  <param name="marks"><0:03:17.10><1:43:07.24></param>
+  <param name="event_title">Asterix in Amerika</param>
+  <param name="event_short_text"></param>
+  <param name="event_description">(Zeichentrickfilm, DEU 1994)</param>
+  <param name="event_start_time">1308480705</param>
+  <param name="event_duration">4611</param>
+ </recording>
+ <count>2</count><total>2</total>
+</recordings>
+
+GET http://127.0.0.1:8002/recordings.json?start=0&limit=1&marks=true
+
+{"recordings":[{
+"number":0,
+"name":"Asterix in Amerika",
+"file_name":"\/var\/lib\/video.00\/Asterix_in_Amerika\/2011-06-19.12.40.1-0.rec",
+"is_new":false,
+"is_edited":false,
+"is_pes_recording":false,
+"duration":-1,
+"frames_per_second":50,
+"marks":["0:03:17.10", "1:43:07.24"],
+"event_title":"Asterix in Amerika",
+"event_short_text":"",
+"event_description":"(Zeichentrickfilm, DEU 1994)",
+"event_start_time":1308480705,
+"event_duration":4611
+}],"count":1,"total":2}
+
+
+Cut
+This service tells your VDR to cut a recording or can tell the client if the vdr cutter is currently cutting a recording:
+
+Method: GET, POST
+
+Examples:
+
+POST http://<ip>:<port>/recordings/cut/<recordingnumber> # do it! (cut the recording)
+GET http://<ip>:<port>/recordings/cut.<format> # this will return the status of the VDR Cutter
+
+
+Marks
+This service can save and delete marks. To retrieve them use the parameter "marks=true" in the request url for the recordings.
+
+Delete Cutting Marks:
+
+Method: DELETE
+
+Examples:
+
+DELETE http://<ip>:<port>/recordings/marks/<recordingnumber>
+
+Create new Cutting Marks:
+
+Method: POST
+
+Examples:
+
+POST http://<ip>:<port>/recordings/marks/<recordingnumber>
+
+
+Example Body-Content (required, Only JSON supported):
+
+{'marks':['0:02:18.10','0:34:08.24']}
+
+
+Play
+This service tells your VDR to play a recording:
+
+Method: POST
+
+Examples:
+
+POST http://<ip>:<port>/recordings/play/<number>
+
+
+Description of the Parameters:
+
+    <number> - The number of the recording you want to play (POST). 
+
+
+
+Rewind
+This service tells your VDR to play a recording from the beginning:
+
+Method: POST
+
+Examples:
+
+POST http://<ip>:<port>/recordings/rewind/<number>
+
+
+Description of the Parameters:
+
+    <number> - The number of the recording you want to rewind (POST). 
+
+
+
+Remote
+
+This service retrieves remote commands and sends them to VDR:
+
+Method: POST
+
+Syntax:
+
+POST http://<ip>:<port>/remote/<key>
+POST http://<ip>:<port>/remote/switch/<channelid>
+
+The parameter <key> can be set to the following remote control commands:
+
+Up, Down, Menu, Ok, Back, Left, Right, Red, Green, Yellow, Blue, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, Info, Play, Pause, Stop, Record, FastFwd, FastRew, Next, Prev, Power, ChanUp, ChanDn, ChanPrev, VolUp, VolDn, Mute, Audio, Subtitles, Schedule, Channels, Timers, Recordings, Setup, Commands, User0, User1, User2, User3, User4, User5, User6, User7, User8, User9, None, Kbd
+
+The second address allows to directly switch to a specific channel.
+
+Timers
+
+Reading/Deleting Timers
+
+This service returns a list of timers.
+
+The Request:
+
+Method: GET, DELETE
+
+Examples:
+
+GET http://<ip>:<port>/timers.<format>
+GET http://<ip>:<port>/timers/<timerid>.<format>
+GET http://<ip>:<port>/timers.<format>?start=<int>&limit=<int>
+DELETE http://<ip>:<port>/timers/<timerid>
+
+
+Description of the Parameters:
+
+    <format> - The requested format: json, xml or html.
+    <timerid> - Id of the timer if you want to delete one.
+    start, limit - These values are used to control the whole list. Start ist the first element you want to retrieve. Limit... 
+
+
+
+Example Result:
+GET http://127.0.0.1:8002/timers.xml?start=0&limit=1
+
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<timers xmlns="http://www.domain.org/restfulapi/2011/timers-xml">
+ <timer>
+  <param name="id">C-71-71-61920:0:1309039200:2013:2200</param>
+  <param name="start">2013</param>
+  <param name="stop">2200</param>
+  <param name="start_timestamp">2011-12-24 19:00:00</param>   <param name="stop_timestamp">2011-12-24 20:00:00</param>   <param name="priority">50</param>
+  <param name="lifetime">99</param>
+  <param name="event_id">27312</param>
+  <param name="weekdays">-------</param>
+  <param name="day">2011-06-26</param>
+  <param name="channel">C-71-71-61920</param>
+  <param name="is_recording">false</param>
+  <param name="is_pending">false>/param>
+  <param name="filename">Mad Money>/param>
+  <param name="channel_name">ORF1 HD>/param>
+  <param name="is_active">true>/param>
+ </timer>
+ <count>1</count><total>2</total>
+</timers>
+
+GET http://127.0.0.1:8002/timers.json?start=0&limit=1
+
+
+Creating Timers
+
+This service can create new timers.
+
+Method: POST
+
+Example:
+
+POST http:/<ip>:<ip>/timers
+
+Required Body Parameters:
+
+    flags - set it to 1 for an active timer
+    file - name of the recording (use an url-encoder for this text if you special characters)
+    stop - the time when the recording should be start - in the 24 hour system, f.e. 2015 means quarter past ten in the evening
+    start - the time when the recording sholud be stoped, f.e. 2230 (half past ten in the evening)
+    day - YYYY-MM-DD, f.e. 2011-12-24 -> christmas :-)
+    channel - ID of the channel
+    weekdays - MTWTFSS, used for repeating timers -> just use '-' if you don't want the timer to run on the specific day
+    minpre, minpost can be used together with a channel and eventid to create a timer without giving the other information to the api 
+
+
+Example Request (including HTTP-Header):
+
+POST /timers HTTP/1.1
+Content-Length: 98
+Connection: close
+
+file=Ein%20Film&flags=1&start=1400&stop=1615&day=2011-12-24&channel=C-71-71-61920&weekdays=-------
+
+Example Response (including HTTP-Header):
+
+HTTP/1.1 200 OK
+Content-Length: 0
+Server: cxxtools-Http-Server 2.0
+Connection: close
+Date: Sun, 26 Jun 2011 19:03:48 GMT
+
+Updating Timers
+
+This service can update the previously created timers.
+
+Method: PUT
+
+Example:
+
+PUT http://<ip>:<port>/timers
+
+Required Body Parameters:
+
+    timer_id - the id of the timer 
+
+
+Optional Body Parameters are the ones you use to create the timer and now want to update.
+
+Example Request (including HTTP-Header):
+
+PUT /timers HTTP/1.1
+Content-Length: 81
+Connection: close
+
+timer_id=C-71-71-61920:0:1324681200:1400:1615&start=2015&stop=2230
+
+Example Response (including HTTP-Header):
+
+HTTP/1.1 200 OK
+Content-Length: 0
+Server: cxxtools-Http-Server 2.0
+Connection: close
+Date: Sun, 26 Jun 2011 19:20:03 GMT
+
+
+SearchTimers
+
+Create a SearchTimer
+
+
+POST http://<ip>:<port>/searchtimers
+
+Possible parameters:
+
+    search - (required)
+    mode - (required) 0=phrase, 1=all words, 2=at least one word, 3=match exactly, 4=regex, 5=fuzzy
+    id - used to edit an existing timer
+    tolerance - used in fuzzy mode
+    match_case - 0=false, 1=true
+    use_time
+    start_time
+    stop_time
+    use_title
+    use_subtitle
+    use_channel - 0=no, 1=interval, 2=channel group, 3=only FTA
+    channel_min - id of the minimal channel (channelid)
+    channel_max - id of the maximum channel (channelid)
+    channels - f.e. All
+    use_as_searchtimer - 0=no, 1=yes, 2=user defined
+    use_duration - 0=false, 1=true
+    duration_min
+    duration_max
+    use_dayofweek - 0=false, 1=true
+    dayofweek - 7bits to represent the seven weekdays
+    use_in_favorites
+    directory
+    del_recs_after_days
+    keep_recs
+    pause_on_recs
+    blacklist_mode - always 0, blacklist currently not supported
+    switch_min_before
+    avoid_repeats
+    allowed_repeats
+    repeats_within_days
+    compare_title - 0=false, 1=true
+    compare_subtitle
+    compare_summary
+    compare_categories 
+
+
+
+Delete a SearchTimer
+
+DELETE http://<ip>:<port>/searchtimers/<id>
+
+
+Show one SearchTimer
+
+GET http://<ip>:<port>/searchtimers.<format>
+
+
+Search Events of a SearchTimer
+
+GET http://<ip>:<port>/searchtimers/search/<id>
+
+
+
+ 
+ 
 
 Links:
 
