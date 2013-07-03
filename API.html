@@ -47,6 +47,7 @@ Developer: <a href="mailto:eiler.mike@gmail.com">eiler.mike@gmail.com</a> or <a 
 <li><a href="#Preface">Preface</a>
 <li><a href="#Requirements">Requirements</a>
 <li><a href="#Configuration">Configuration</a>
+<li><a href="#Audio">Audio</a>
 <li><a href="#Channels">Channels</a>
 <ul><li><a href="#ChannelGroups">Groups</a>
     <li><a href="#ChannelImages">Images / Channel-Logos</a></ul>
@@ -139,6 +140,66 @@ Create a new file called plugin.restfulapi.conf in /etc/vdr/plugins/ .<br />
 <br />
 <br />
 
+<hr />
+<h1 class="center"><a name="Audio">Audio</a></h1>
+<hr />
+<br />
+
+This service retrieves audio commands, sends them to VDR and returns the result:<br />
+<br />
+Methods: <b>POST, GET</b> (for simple requests) <br />
+<br />
+<b>Syntax:</b><br />
+<br />
+<div class="code"><code>
+GET  http://127.0.0.1:8002/audio.&lt;format&gt;<br />
+POST http://&lt;ip&gt;:&lt;port&gt;/audio.&lt;format&gt;?mute=&lt;int&gt;<br />
+POST http://&lt;ip&gt;:&lt;port&gt;/audio.&lt;format&gt;?volume=&lt;int&gt;&amp;track=&lt;int&gt;<br />
+</code></div>
+<br />
+<b>Description of the POST Parameters:</b>
+<br />
+
+<ul>
+<li>&lt;format&gt; - The requested format: json, xml or html.
+<li>&lt;volume&gt;
+<ul>
+<li>volume=180 // 180 absolute
+<li>volume=020 // +20
+<li>volume=-20 // -20
+</ul>
+<li>&lt;mute&gt; - 0 (mute), 1 (unmute) or 2(toggle).
+<li>&lt;track&gt; - track number.
+<li>&lt;channel&gt; - 0 (mono left), 1 (mono right) or 2(stereo).
+</ul>
+
+<br />
+<br />
+
+<b>Example Result:</b>
+<br />
+
+<div class="code"><code>
+GET  http://127.0.0.1:8002/audio.xml<br />
+POST http://127.0.0.1:8002/audio.xml?volume=230&amp;track=33<br /><br />
+&lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;<br />
+&lt;audio xmlns="http://www.domain.org/restfulapi/2011/channels-xml"&gt;<br />
+&nbsp;&lt;volume>230&lt;/volume&gt;<br />
+&nbsp;&lt;mute&gt;0&lt;/mute&gt;<br />
+&nbsp;&lt;tracks count="3"&gt;<br />
+&nbsp;&nbsp;&lt;track type="1" description="französisch"/&gt;<br />
+&nbsp;&nbsp;&lt;track type="2" description="ohne Audiodeskription"/&gt;<br />
+&nbsp;&nbsp;&lt;track type="33" description="Dolby Digital 5.1"/&gt;<br />
+&nbsp;&lt;/tracks&gt;<br />
+&nbsp;&lt;type&gt;33&lt;/type&gt;<br />
+&nbsp;&lt;description&gt;Dolby Digital 5.1&lt;/description&gt;<br />
+&nbsp;&lt;channel&gt;dd 5.1&lt;/channel&gt;<br />
+&lt;/audio&gt;<br />
+</code></div>
+<br />
+
+<br />
+<br />
 
 <hr />
 <h1 class="center"><a name="Channels">Channels</a></h1>
@@ -462,46 +523,79 @@ General Information about the plugin and vdr.<br />
 GET http://&lt;ip&gt;:&lt;port&gt;/info.&lt;format&gt;
 </code></div>
 <br />
+<br />
+<b>Description of the Parameters:</b>
+<br />
+
+<ul>
+<li>&lt;format&gt; - The requested format: json, xml or html.
+</ul>
+<br />
 <b>Example Results:</b><br />
 <br />
 <div class="code"><code>
 <br />
-&lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;
-&lt;info xmlns="http://www.domain.org/restfulapi/2011/info-xml"&gt;
- &lt;version&gt;0.0.1&lt;/version&gt;
- &lt;time&gt;1311710291&lt;/time&gt;
- &lt;services&gt;
-  &lt;service path="/info"  version="1" internal="true" /&gt;
-  &lt;service path="/channels"  version="1" internal="true" /&gt;
-  &lt;service path="/channels/groups"  version="1" internal="true" /&gt;
-  &lt;service path="/channels/image"  version="1" internal="true" /&gt;
-  &lt;service path="/events"  version="1" internal="true" /&gt;
-  &lt;service path="/events/image"  version="1" internal="true" /&gt;
-  &lt;service path="/events/search"  version="1" internal="false" /&gt;
-  &lt;service path="/recordings"  version="1" internal="true" /&gt;
-  &lt;service path="/remote"  version="1" internal="true" /&gt;
-  &lt;service path="/timers"  version="1" internal="true" /&gt;
-  &lt;service path="/osd"  version="1" internal="true" /&gt;
-  &lt;service path="/searchtimers"  version="1" internal="false" /&gt;
- &lt;/services&gt;
- &lt;channel&gt;C-71-71-61920&lt;/channel&gt;
- &lt;vdr&gt;
-  &lt;plugins&gt;
-   &lt;plugin name="restfulapi" version="0.0.1" /&gt;
-   &lt;plugin name="shutdown" version="0.0.2" /&gt;
-   &lt;plugin name="vnsiserver" version="0.9.0" /&gt;
-   &lt;plugin name="live" version="0.2.0" /&gt;
-   &lt;plugin name="epgsearchonly" version="0.0.1" /&gt;
-   &lt;plugin name="svdrposd" version="0.1.0" /&gt;
-   &lt;plugin name="xineliboutput" version="1.0.90-cvs" /&gt;
-   &lt;plugin name="streamdev-server" version="0.5.1-git" /&gt;
-   &lt;plugin name="epgsearch" version="0.9.25.beta22" /&gt;
-   &lt;plugin name="quickepgsearch" version="0.0.1" /&gt;
-   &lt;plugin name="text2skin" version="1.3.1" /&gt;
-   &lt;plugin name="conflictcheckonly" version="0.0.1" /&gt;
-  &lt;/plugins&gt;
- &lt;/vdr&gt;
-&lt;/info&gt;
+&lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;<br />
+&lt;info xmlns="http://www.domain.org/restfulapi/2011/info-xml"&gt;<br />
+&nbsp;&lt;version&gt;0.0.1&lt;/version&gt;<br />
+&nbsp;&lt;time&gt;1372855585&lt;/time&gt;<br />
+&nbsp;&lt;services&gt;<br />
+&nbsp;&nbsp;&lt;service path="/audio"  version="1" internal="true" /&gt;<br />
+&nbsp;&nbsp;&lt;service path="/channels"  version="1" internal="true" /&gt;<br />
+&nbsp;&nbsp;&lt;service path="/channels/groups"  version="1" internal="true" /&gt;<br />
+&nbsp;&nbsp;&lt;service path="/channels/image"  version="1" internal="true" /&gt;<br />
+&nbsp;&nbsp;&lt;service path="/events"  version="1" internal="true" /&gt;<br />
+&nbsp;&nbsp;&lt;service path="/events/image"  version="1" internal="true" /&gt;<br />
+&nbsp;&nbsp;&lt;service path="/events/search"  version="1" internal="false" /&gt;<br />
+&nbsp;&nbsp;&lt;service path="/info"  version="1" internal="true" /&gt;<br />
+&nbsp;&nbsp;&lt;service path="/osd"  version="1" internal="true" /&gt;<br />
+&nbsp;&nbsp;&lt;service path="/recordings"  version="1" internal="true" /&gt;<br />
+&nbsp;&nbsp;&lt;service path="/recordings/cut"  version="1" internal="true" /&gt;<br />
+&nbsp;&nbsp;&lt;service path="/recordings/marks"  version="1" internal="true" /&gt;<br />
+&nbsp;&nbsp;&lt;service path="/recordings/play"  version="1" internal="true" /&gt;<br />
+&nbsp;&nbsp;&lt;service path="/recordings/rewind"  version="1" internal="true" /&gt;<br />
+&nbsp;&nbsp;&lt;service path="/remote"  version="1" internal="true" /&gt;<br />
+&nbsp;&nbsp;&lt;service path="/searchtimers"  version="1" internal="false" /&gt;<br />
+&nbsp;&nbsp;&lt;service path="/timers"  version="1" internal="true" /&gt;<br />
+&nbsp;&lt;/services&gt;<br />
+&nbsp;&lt;channel&gt;S19.2E-1-1019-10302&lt;/channel&gt;<br />
+&nbsp;&lt;channel_name&gt;arte HD&lt;/channel_name&gt;<br />
+&nbsp;&lt;channel_number&gt;4&lt;/channel_number&gt;<br />
+&nbsp;&lt;eventid&gt;64734&lt;/eventid&gt;<br />
+&nbsp;&lt;start_time&gt;1372853100&lt;/start_time&gt;<br />
+&nbsp;&lt;duration&gt;5700&lt;/duration&gt;<br />
+&nbsp;&lt;title&gt;Die schönsten Augen von Portugal&lt;/title&gt;<br />
+&nbsp;&lt;recording&gt;false&lt;/recording&gt;<br />
+&nbsp;&lt;diskspace&gt;1405401MB 156536MB 88%&lt;/diskspace&gt;<br />
+&nbsp;&lt;vdr&gt;<br />
+&nbsp;&nbsp;&lt;version&gt;2.0.2&lt;/version&gt;<br />
+&nbsp;&nbsp;&lt;plugins&gt;<br />
+&nbsp;&nbsp;&nbsp;&lt;plugin name="softhddevice" version="0.6.0" /&gt;<br />
+&nbsp;&nbsp;&nbsp;&lt;plugin name="dbus2vdr" version="12e" /&gt;<br />
+&nbsp;&nbsp;&nbsp;&lt;plugin name="skinnopacity" version="0.1.2" /&gt;<br />
+&nbsp;&nbsp;&nbsp;&lt;plugin name="play" version="0.0.14" /&gt;<br />
+&nbsp;&nbsp;&nbsp;&lt;plugin name="menuorg" version="0.5.1" /&gt;<br />
+&nbsp;&nbsp;&nbsp;&lt;plugin name="channellists" version="0.0.5" /&gt;<br />
+&nbsp;&nbsp;&nbsp;&lt;plugin name="markad" version="0.1.5pre" /&gt;<br />
+&nbsp;&nbsp;&nbsp;&lt;plugin name="tvguide" version="0.0.5" /&gt;<br />
+&nbsp;&nbsp;&nbsp;&lt;plugin name="music" version="0.9.9-dev2" /&gt;<br />
+&nbsp;&nbsp;&nbsp;&lt;plugin name="epgsearch" version="1.0.1.beta5" /&gt;<br />
+&nbsp;&nbsp;&nbsp;&lt;plugin name="yaepghd" version="0.0.5_pre1" /&gt;<br />
+&nbsp;&nbsp;&nbsp;&lt;plugin name="extrecmenu" version="1.2.2" /&gt;<br />
+&nbsp;&nbsp;&nbsp;&lt;plugin name="streamdev-server" version="0.6.0-git" /&gt;<br />
+&nbsp;&nbsp;&nbsp;&lt;plugin name="cinebars" version="0.1.0" /&gt;<br />
+&nbsp;&nbsp;&nbsp;&lt;plugin name="conflictcheckonly" version="0.0.1" /&gt;<br />
+&nbsp;&nbsp;&nbsp;&lt;plugin name="live" version="0.3.0" /&gt;<br />
+&nbsp;&nbsp;&nbsp;&lt;plugin name="osdserver" version="0.1.3" /&gt;<br />
+&nbsp;&nbsp;&nbsp;&lt;plugin name="quickepgsearch" version="0.0.1" /&gt;<br />
+&nbsp;&nbsp;&nbsp;&lt;plugin name="restfulapi" version="0.1.2" /&gt;<br />
+&nbsp;&nbsp;&nbsp;&lt;plugin name="sleeptimer" version="0.8.3-201205011650dev" /&gt;<br />
+&nbsp;&nbsp;&nbsp;&lt;plugin name="vnsiserver3" version="0.9.1" /&gt;<br />
+&nbsp;&nbsp;&nbsp;&lt;plugin name="femon" version="2.0.0" /&gt;<br />
+&nbsp;&nbsp;&nbsp;&lt;plugin name="epgsearchonly" version="0.0.1" /&gt;<br />
+&nbsp;&nbsp;&lt;/plugins&gt;<br />
+&nbsp;&lt;/vdr&gt;<br />
+&lt;/info&gt;<br />
 </code></div>
 <br />
 Instead of the channel it can also contain the currently playing video file:<br />
@@ -604,7 +698,7 @@ GET http://127.0.0.1:8002/recordings.xml?start=0&amp;limit=1<br />
 <br />
 
 <div class="code"><code>
-GET http://127.0.0.1:8002/recordings.json?start=0&amp;limit=1i&amp;marks=true<br />
+GET http://127.0.0.1:8002/recordings.json?start=0&amp;limit=1&amp;marks=true<br />
 <br />
 {"recordings":[{<br />
 "number":0,<br />
