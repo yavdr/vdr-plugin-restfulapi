@@ -60,7 +60,7 @@ void cServerThread::Action(void)
   RestfulService* recordings = new RestfulService("/recordings", true, 1);
   RestfulService* recordingsCut = new RestfulService("/recordings/cut", true, 1, recordings);
   RestfulService* recordingsMarks = new RestfulService("/recordings/marks", true, 1, recordings);
-  RestfulService* recordingsPlay = new RestfulService("/recordings/play", true, 1, recordings);
+  RestfulService* recordingsPlay = new RestfulService("/recordings/play", true, 2, recordings);
   RestfulService* recordingsRewind = new RestfulService("/recordings/rewind", true, 1, recordings);
   RestfulService* remote = new RestfulService("/remote", true, 1);
   RestfulService* searchtimers = new RestfulService("/searchtimers", false, 1);  
