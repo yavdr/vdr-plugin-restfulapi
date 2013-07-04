@@ -39,7 +39,7 @@ void InfoResponder::replyJson(StreamExtension& se)
   StatusMonitor* statm = StatusMonitor::get();
 
   cxxtools::JsonSerializer serializer(*se.getBasicStream());
-  serializer.serialize("0.0.1", "version");
+  serializer.serialize("0.0.2", "version");
   serializer.serialize((int)now, "time");
   
   vector< struct SerService > services;
@@ -122,7 +122,7 @@ void InfoResponder::replyXml(StreamExtension& se)
 
   se.writeXmlHeader();
   se.write("<info xmlns=\"http://www.domain.org/restfulapi/2011/info-xml\">\n");
-  se.write(" <version>0.1.3</version>\n");
+  se.write(" <version>0.0.2</version>\n");
   se.write(cString::sprintf(" <time>%i</time>\n", (int)now)); 
   se.write(" <services>\n");
   
