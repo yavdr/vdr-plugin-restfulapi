@@ -327,6 +327,9 @@ void JsonTimerList::addTimer(cTimer* timer)
 
   int tstart = timer->Day() - ( timer->Day() % 3600 ) + ((int)(timer->Start()/100)) * 3600 + ((int)(timer->Start()%100)) * 60;
   int tstop = timer->Day() - ( timer->Day() % 3600 ) + ((int)(timer->Stop()/100)) * 3600 + ((int)(timer->Stop()%100)) * 60;
+   // if a timer starts before and ends after midnight, add a day to tstop
+  if ( (int)(timer->Start()) > (int)(timer->Stop()) )
+     tstop += 86400;
 
   serTimer.StartTimeStamp = StringExtension::UTF8Decode(StringExtension::dateToString((time_t)tstart));
   serTimer.StopTimeStamp = StringExtension::UTF8Decode(StringExtension::dateToString((time_t)tstop));
@@ -363,6 +366,9 @@ void XmlTimerList::addTimer(cTimer* timer)
 
   int tstart = timer->Day() - ( timer->Day() % 3600 ) + ((int)(timer->Start()/100)) * 3600 + ((int)(timer->Start()%100)) * 60;
   int tstop = timer->Day() - ( timer->Day() % 3600 ) + ((int)(timer->Stop()/100)) * 3600 + ((int)(timer->Stop()%100)) * 60;
+   // if a timer starts before and ends after midnight, add a day to tstop
+  if ( (int)(timer->Start()) > (int)(timer->Stop()) )
+     tstop += 86400;
 
   s->write(cString::sprintf("  <param name=\"start_timestamp\">%s</param>\n", StringExtension::encodeToXml(StringExtension::dateToString(tstart)).c_str()));
   s->write(cString::sprintf("  <param name=\"stop_timestamp\">%s</param>\n", StringExtension::encodeToXml(StringExtension::dateToString(tstop)).c_str()));
