@@ -334,8 +334,6 @@ void JsonTimerList::addTimer(cTimer* timer)
 
   serTimer.StartTimeStamp = StringExtension::UTF8Decode(StringExtension::dateToString((time_t)tstart));
   serTimer.StopTimeStamp = StringExtension::UTF8Decode(StringExtension::dateToString((time_t)tstop));
-  serTimer.StartTimeStampInt = tstart;
-  serTimer.StopTimeStampInt = tstop;
 
   serTimers.push_back(serTimer);
 }
