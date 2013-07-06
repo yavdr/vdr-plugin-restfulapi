@@ -74,18 +74,7 @@ void TimersResponder::createOrUpdateTimer(ostream& out, cxxtools::http::Request&
                         << StringExtension::addZeros((starttime->tm_mday), 2);
               day = daystream.str();
  
-              if ( minpre > starttime->tm_min ) {
-                 starttime->tm_hour -= (int)(minpre/60) + (minpre%60 > starttime->tm_min ? 1: 0);
-                 minpre = minpre%60;
-              }
-
-              int start_minutes = 0;
-
-              start_minutes = starttime->tm_min - ((int)(minpre/60))*100 - minpre%60;
-              if ( start_minutes < 0 ) {
-                 starttime->tm_hour = starttime->tm_hour - (int)(start_minutes/60);
-              }
-              start = (starttime->tm_hour - ( start_minutes < 0 ) ?  ) * 100 + start_minutes;
+              start = starttime->tm_hour * 100 + starttime->tm_min - ((int)(minpre/60))*100 - minpre%60;
 
               struct tm *stoptime = localtime(&estop);
               stop = stoptime->tm_hour * 100 + stoptime->tm_min + ((int)(minpost/60))*100 + minpost%60;
