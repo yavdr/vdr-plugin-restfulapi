@@ -66,7 +66,7 @@ void InfoResponder::replyJson(StreamExtension& se)
   }
 
   serializer.serialize(services, "services");
-  
+
   if ( statm->getRecordingName().length() > 0 || statm->getRecordingFile().length() > 0 ) {
      SerPlayerInfo pi;
      pi.Name = StringExtension::UTF8Decode(statm->getRecordingName());
@@ -78,8 +78,8 @@ void InfoResponder::replyJson(StreamExtension& se)
      string sPlay = " ";
      if (cControl *Control = cControl::Control(true)) {
         Control->GetIndex(iCurrent, iTotal);
-		// Returns the current and total frame index
-		Control->GetReplayMode(bPlay, bForward, iSpeed);
+        // Returns the current and total frame index
+        Control->GetReplayMode(bPlay, bForward, iSpeed);
         // Returns the current replay mode (if applicable).
         // 'Play' tells whether we are playing or pausing, 'Forward' tells whether
         // we are going forward or backward and 'Speed' is -1 if this is normal
@@ -103,7 +103,7 @@ void InfoResponder::replyJson(StreamExtension& se)
            else
               sPlay = "backward x "+StringExtension::itostr(iSpeed);
         }		   
-	 }
+     }
      serializer.serialize(StringExtension::UTF8Decode(sPlay), "replay_mode");
      serializer.serialize(iCurrent, "current_frame");
      serializer.serialize(iTotal, "total_frames");
@@ -173,7 +173,7 @@ void InfoResponder::replyXml(StreamExtension& se)
               restful_services[i]->Internal() ? "true" : "false"));
   }
   se.write(" </services>\n");
-  
+
   if ( statm->getRecordingName().length() > 0 || statm->getRecordingFile().length() > 0 ) {
      se.write(cString::sprintf(" <video name=\"%s\">%s</video>\n", StringExtension::encodeToXml(statm->getRecordingName()).c_str(), StringExtension::encodeToXml(statm->getRecordingFile()).c_str()));
      int iCurrent = 0, iTotal = 0, iSpeed = -1;
@@ -181,8 +181,8 @@ void InfoResponder::replyXml(StreamExtension& se)
      string sPlay = " ";
      if (cControl *Control = cControl::Control(true)) {
         Control->GetIndex(iCurrent, iTotal);
-		// Returns the current and total frame index
-		Control->GetReplayMode(bPlay, bForward, iSpeed);
+        // Returns the current and total frame index
+        Control->GetReplayMode(bPlay, bForward, iSpeed);
         // Returns the current replay mode (if applicable).
         // 'Play' tells whether we are playing or pausing, 'Forward' tells whether
         // we are going forward or backward and 'Speed' is -1 if this is normal
@@ -206,7 +206,7 @@ void InfoResponder::replyXml(StreamExtension& se)
            else
               sPlay = "backward x "+StringExtension::itostr(iSpeed);
         }		   
-	 }	 
+     }	 
      se.write(cString::sprintf(" <replay_mode>%s</replay_mode>\n", sPlay.c_str()));     
      se.write(cString::sprintf(" <current_frame>%d</current_frame>\n", iCurrent));
      se.write(cString::sprintf(" <total_frames>%d</total_frames>\n", iTotal));
