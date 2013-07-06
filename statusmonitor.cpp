@@ -188,12 +188,12 @@ void StatusMonitor::Recording(const cDevice *Device, const char *Name, const cha
 {
   if (On) {
      record = true;
-     if(Name != NULL) recording_name = std::string(Name); else recording_name = "";
-     if(FileName != NULL) recording_file = std::string(FileName); else recording_file = "";
+//     if(Name != NULL) recording_name = std::string(Name); else recording_name = "";
+//     if(FileName != NULL) recording_file = std::string(FileName); else recording_file = "";
   } else {
      record = false;
-     recording_name = "";
-     recording_file = "";
+//     recording_name = "";
+//     recording_file = "";
   }
 }
 
