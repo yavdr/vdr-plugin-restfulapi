@@ -107,14 +107,24 @@ void InfoResponder::replyJson(StreamExtension& se)
      serializer.serialize(StringExtension::UTF8Decode(sPlay), "replay_mode");
      serializer.serialize(iCurrent, "current_frame");
      serializer.serialize(iTotal, "total_frames");
-     cRecording *recording = Recordings.GetByName(statm->getRecordingFile().c_str()); 
+
+     cRecording *recording = Recordings.GetByName(statm->getRecordingFile().c_str());
 #if APIVERSNUM >= 10703
-     serializer.serialize(recording->IsPesRecording(), "is_pes_recording");
-     serializer.serialize(recording->FramesPerSecond(), "frames_per_second");
+     if (recording) {
+        serializer.serialize(recording->IsPesRecording(), "is_pes_recording");
+        serializer.serialize(recording->FramesPerSecond(), "frames_per_second");
+     } else {
+        serializer.serialize(false, "is_pes_recording");
+        serializer.serialize(DEFAULTFRAMESPERSECOND, "frames_per_second");
+     }	
 #else
-     serializer.serialize(true, "is_pes_recording");
+     if (recording) {
+        serializer.serialize(true, "is_pes_recording");
+     } else {
+        serializer.serialize(false, "is_pes_recording");
+     }		
      serializer.serialize(FRAMESPERSEC, "frames_per_second");
-#endif	 
+#endif 
   } else {
      string channelid = "";
      string channelname = "";
@@ -211,12 +221,21 @@ void InfoResponder::replyXml(StreamExtension& se)
      se.write(cString::sprintf(" <current_frame>%d</current_frame>\n", iCurrent));
      se.write(cString::sprintf(" <total_frames>%d</total_frames>\n", iTotal));
 	 
-     cRecording *recording = Recordings.GetByName(statm->getRecordingFile().c_str());  
+     cRecording *recording = Recordings.GetByName(statm->getRecordingFile().c_str());
 #if APIVERSNUM >= 10703
-     se.write(cString::sprintf(" <is_pes_recording>%s</is_pes_recording>\n", recording->IsPesRecording() ? "true" : "false" ));
-     se.write(cString::sprintf(" <frames_per_second>%0.0f</frames_per_second>\n", recording->FramesPerSecond()));
+     if (recording) {
+        se.write(cString::sprintf(" <is_pes_recording>%s</is_pes_recording>\n", recording->IsPesRecording() ? "true" : "false" ));
+        se.write(cString::sprintf(" <frames_per_second>%0.0f</frames_per_second>\n", recording->FramesPerSecond()));
+     } else {
+        se.write(cString::sprintf(" <is_pes_recording>false</is_pes_recording>\n"));
+        se.write(cString::sprintf(" <frames_per_second>%0.0f</frames_per_second>\n", DEFAULTFRAMESPERSECOND));
+     }		
 #else
-     se.write(cString::sprintf(" <is_pes_recording>%s</is_pes_recording>\n", true ? "true" : "false" ));
+     if (recording) {
+        se.write(cString::sprintf(" <is_pes_recording>true</is_pes_recording>\n"));
+     } else {
+        se.write(cString::sprintf(" <is_pes_recording>false</is_pes_recording>\n"));
+     }
      se.write(cString::sprintf(" <frames_per_second>%i</frames_per_second>\n", FRAMESPERSEC));
 #endif
   } else {
