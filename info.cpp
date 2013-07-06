@@ -66,12 +66,55 @@ void InfoResponder::replyJson(StreamExtension& se)
   }
 
   serializer.serialize(services, "services");
-	 
+  
   if ( statm->getRecordingName().length() > 0 || statm->getRecordingFile().length() > 0 ) {
      SerPlayerInfo pi;
      pi.Name = StringExtension::UTF8Decode(statm->getRecordingName());
      pi.FileName = StringExtension::UTF8Decode(statm->getRecordingFile());
      serializer.serialize(pi, "video");
+	 
+     int iCurrent = 0, iTotal = 0, iSpeed = -1;
+     bool bPlay, bForward;
+     string sPlay = " ";
+     if (cControl *Control = cControl::Control(true)) {
+        Control->GetIndex(iCurrent, iTotal);
+		// Returns the current and total frame index
+		Control->GetReplayMode(bPlay, bForward, iSpeed);
+        // Returns the current replay mode (if applicable).
+        // 'Play' tells whether we are playing or pausing, 'Forward' tells whether
+        // we are going forward or backward and 'Speed' is -1 if this is normal
+        // play/pause mode, 0 if it is single speed fast/slow forward/back mode
+        // and >0 if this is multi speed mode.
+        if (iSpeed == -1) {
+           if (bPlay)
+              sPlay = "playing";
+           else
+              sPlay = "pausing";
+        }
+        else if (iSpeed == 0) {
+           if (bForward)
+              sPlay = "forward";
+           else
+              sPlay = "backward";
+        }
+        else if (iSpeed > 0) {		   
+           if (bForward)
+              sPlay = "forward x "+StringExtension::itostr(iSpeed);
+           else
+              sPlay = "backward x "+StringExtension::itostr(iSpeed);
+        }		   
+	 }
+     serializer.serialize(StringExtension::UTF8Decode(sPlay), "replay_mode");
+     serializer.serialize(iCurrent, "current_frame");
+     serializer.serialize(iTotal, "total_frames");
+     cRecording *recording = Recordings.GetByName(statm->getRecordingFile().c_str()); 
+#if APIVERSNUM >= 10703
+     serializer.serialize(recording->IsPesRecording(), "is_pes_recording");
+     serializer.serialize(recording->FramesPerSecond(), "frames_per_second");
+#else
+     serializer.serialize(true, "is_pes_recording");
+     serializer.serialize(FRAMESPERSEC, "frames_per_second");
+#endif	 
   } else {
      string channelid = "";
      string channelname = "";
@@ -104,11 +147,7 @@ void InfoResponder::replyJson(StreamExtension& se)
      }
   }
   
-  if (statm->isRecord())
-	 serializer.serialize("true", "recording");
-  else
-     serializer.serialize("false", "recording"); 
-
+  serializer.serialize(statm->isRecord(), "recording");
   serializer.serialize(StringExtension::UTF8Decode(VdrExtension::getVideoDiskSpace()), "diskspace");
   
   serializer.serialize(pl, "vdr");
@@ -134,9 +173,52 @@ void InfoResponder::replyXml(StreamExtension& se)
               restful_services[i]->Internal() ? "true" : "false"));
   }
   se.write(" </services>\n");
-
+  
   if ( statm->getRecordingName().length() > 0 || statm->getRecordingFile().length() > 0 ) {
      se.write(cString::sprintf(" <video name=\"%s\">%s</video>\n", StringExtension::encodeToXml(statm->getRecordingName()).c_str(), StringExtension::encodeToXml(statm->getRecordingFile()).c_str()));
+     int iCurrent = 0, iTotal = 0, iSpeed = -1;
+     bool bPlay, bForward;
+     string sPlay = " ";
+     if (cControl *Control = cControl::Control(true)) {
+        Control->GetIndex(iCurrent, iTotal);
+		// Returns the current and total frame index
+		Control->GetReplayMode(bPlay, bForward, iSpeed);
+        // Returns the current replay mode (if applicable).
+        // 'Play' tells whether we are playing or pausing, 'Forward' tells whether
+        // we are going forward or backward and 'Speed' is -1 if this is normal
+        // play/pause mode, 0 if it is single speed fast/slow forward/back mode
+        // and >0 if this is multi speed mode.
+        if (iSpeed == -1) {
+           if (bPlay)
+              sPlay = "playing";
+           else
+              sPlay = "pausing";
+        }
+        else if (iSpeed == 0) {
+           if (bForward)
+              sPlay = "forward";
+           else
+              sPlay = "backward";
+        }
+        else if (iSpeed > 0) {		   
+           if (bForward)
+              sPlay = "forward x "+StringExtension::itostr(iSpeed);
+           else
+              sPlay = "backward x "+StringExtension::itostr(iSpeed);
+        }		   
+	 }	 
+     se.write(cString::sprintf(" <replay_mode>%s</replay_mode>\n", sPlay.c_str()));     
+     se.write(cString::sprintf(" <current_frame>%d</current_frame>\n", iCurrent));
+     se.write(cString::sprintf(" <total_frames>%d</total_frames>\n", iTotal));
+	 
+     cRecording *recording = Recordings.GetByName(statm->getRecordingFile().c_str());  
+#if APIVERSNUM >= 10703
+     se.write(cString::sprintf(" <is_pes_recording>%s</is_pes_recording>\n", recording->IsPesRecording() ? "true" : "false" ));
+     se.write(cString::sprintf(" <frames_per_second>%0.0f</frames_per_second>\n", recording->FramesPerSecond()));
+#else
+     se.write(cString::sprintf(" <is_pes_recording>%s</is_pes_recording>\n", true ? "true" : "false" ));
+     se.write(cString::sprintf(" <frames_per_second>%i</frames_per_second>\n", FRAMESPERSEC));
+#endif
   } else {
      string channelid = "";
      string channelname = "";  
@@ -162,12 +244,8 @@ void InfoResponder::replyXml(StreamExtension& se)
         se.write(cString::sprintf(" <title>%s</title>\n", StringExtension::encodeToXml(eventTitle).c_str()));
      }
   }
-  
-  if (statm->isRecord())
-     se.write(cString::sprintf(" <recording>true</recording>\n"));
-  else
-     se.write(cString::sprintf(" <recording>false</recording>\n")); 
-  
+
+  se.write(cString::sprintf(" <recording>%s</recording>\n", statm->isRecord() ? "true" : "false" ));  
   se.write(cString::sprintf(" <diskspace>%s</diskspace>\n", StringExtension::encodeToXml(VdrExtension::getVideoDiskSpace()).c_str())); 
 
   se.write(" <vdr>\n"); 
