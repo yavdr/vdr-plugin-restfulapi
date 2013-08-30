@@ -327,7 +327,7 @@ void JsonTimerList::addTimer(cTimer* timer)
 
   int tstart = timer->Day() - ( timer->Day() % 3600 ) + ((int)(timer->Start()/100)) * 3600 + ((int)(timer->Start()%100)) * 60;
   int tstop = timer->Day() - ( timer->Day() % 3600 ) + ((int)(timer->Stop()/100)) * 3600 + ((int)(timer->Stop()%100)) * 60;
-   // if a timer starts before and ends after midnight, add a day to tstop
+  // if a timer starts before and ends after midnight, add a day to tstop
   if ( (int)(timer->Start()) > (int)(timer->Stop()) )
      tstop += 86400;
 
@@ -366,7 +366,7 @@ void XmlTimerList::addTimer(cTimer* timer)
 
   int tstart = timer->Day() - ( timer->Day() % 3600 ) + ((int)(timer->Start()/100)) * 3600 + ((int)(timer->Start()%100)) * 60;
   int tstop = timer->Day() - ( timer->Day() % 3600 ) + ((int)(timer->Stop()/100)) * 3600 + ((int)(timer->Stop()%100)) * 60;
-   // if a timer starts before and ends after midnight, add a day to tstop
+  // if a timer starts before and ends after midnight, add a day to tstop
   if ( (int)(timer->Start()) > (int)(timer->Stop()) )
      tstop += 86400;
 
