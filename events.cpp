@@ -88,8 +88,13 @@ void EventsResponder::replyEvents(ostream& out, cxxtools::http::Request& request
   bool initialized = false;
   int total = 0;
   for(int i=0; i<Channels.Count(); i++) {
+     if (Channels.Get(i)->GroupSep()) { // we have a group-separator
+	    if (channel_from > 0) channel_from += 1;
+	    if (channel_to > 0 && channel_to < Channels.Count()) channel_to += 1;
+        continue;
+     }
+
      const cSchedule *Schedule = Schedules->GetSchedule(Channels.Get(i)->GetChannelID());
-     
      if ((channel == NULL || strcmp(channel->GetChannelID().ToString(), Channels.Get(i)->GetChannelID().ToString()) == 0) && (i >= channel_from && i <= channel_to)) {
         if (!Schedule) {
            if (channel != NULL) {
