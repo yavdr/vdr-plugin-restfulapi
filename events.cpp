@@ -88,9 +88,9 @@ void EventsResponder::replyEvents(ostream& out, cxxtools::http::Request& request
   bool initialized = false;
   int total = 0;
   for(int i=0; i<Channels.Count(); i++) {
-     if (Channels.Get(i)->GroupSep()) { // we have a group-separator
-	    if (channel_from > 0) channel_from += 1;
-	    if (channel_to > 0 && channel_to < Channels.Count()) channel_to += 1;
+     if (Channels.Get(i)->GroupSep()) {  // we have a group-separator
+        if (channel_from > 0) channel_from += 1;
+        if (channel_to > 0 && channel_to < Channels.Count()) channel_to += 1;
         continue;
      }
 
