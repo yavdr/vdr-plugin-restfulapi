@@ -1,3 +1,9 @@
+vdr-plugin-restfulapi (0.1.2-1yavdr0~precise) precise; urgency=medium
+
+  * add vdr-abi dependency
+
+ -- Lars Hanisch <dvb@flensrocker.de>  Sun, 02 Feb 2014 17:09:18 +0100
+
 vdr-plugin-restfulapi (0.1.2-0yavdr0~precise) precise; urgency=medium
 
   * new upstream release
