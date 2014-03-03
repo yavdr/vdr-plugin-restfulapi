@@ -18,7 +18,6 @@ void EventsResponder::replyEvents(ostream& out, cxxtools::http::Request& request
   QueryHandler q("/events", request);
 
   if ( request.method() != "GET") {
-
      reply.httpReturn(403, "To retrieve information use the GET method!");
      return;
   }
@@ -80,7 +79,6 @@ void EventsResponder::replyEvents(ostream& out, cxxtools::http::Request& request
      return;
   }
 
-
   if ( start_filter >= 0 && limit_filter >= 1 ) {
      eventList->activateLimit(start_filter, limit_filter);
   }
@@ -95,6 +93,12 @@ void EventsResponder::replyEvents(ostream& out, cxxtools::http::Request& request
      }
 
      const cSchedule *Schedule = Schedules->GetSchedule(Channels.Get(i)->GetChannelID());
+
+     if (!Schedule) { // we have a channel without an epg
+        channel_from += 1;
+        if (channel_to < Channels.Count()) channel_to += 1;
+     }
+
      if ((channel == NULL || strcmp(channel->GetChannelID().ToString(), Channels.Get(i)->GetChannelID().ToString()) == 0) && (i >= channel_from && i <= channel_to)) {
         if (!Schedule) {
            if (channel != NULL) {
