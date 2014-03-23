@@ -252,6 +252,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerRecording& p)
   si.addMember("is_edited") <<= p.IsEdited;
   si.addMember("is_pes_recording") <<= p.IsPesRecording;
   si.addMember("duration") <<= p.Duration;
+  si.addMember("filesize_mb") <<= p.FileSizeMB;
   si.addMember("frames_per_second") <<= p.FramesPerSecond;
   si.addMember("marks") <<= p.Marks.marks;
   si.addMember("event_title") <<= p.EventTitle;
@@ -330,6 +331,8 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
   #endif
 
   serRecording.Duration = VdrExtension::RecordingLengthInSeconds(recording);
+  serRecording.FileSizeMB = recording->FileSizeMB();
+
   serRecording.EventTitle = eventTitle;
   serRecording.EventShortText = eventShortText;
   serRecording.EventDescription = eventDescription;
@@ -397,8 +400,9 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr)
   s->write(cString::sprintf("  <param name=\"is_pes_recording\">%s</param>\n", true ? "true" : "false" ));
   s->write(cString::sprintf("  <param name=\"frames_per_second\">%i</param>\n", FRAMESPERSEC));
   #endif
-
   s->write(cString::sprintf("  <param name=\"duration\">%i</param>\n", VdrExtension::RecordingLengthInSeconds(recording)));
+  s->write(cString::sprintf("  <param name=\"filesize_mb\">%i</param>\n", recording->FileSizeMB()));
+
 
   if (read_marks) {
      s->write("  <param name=\"marks\">\n");

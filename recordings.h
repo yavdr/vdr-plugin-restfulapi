@@ -56,6 +56,7 @@ struct SerRecording
   cxxtools::String EventDescription;
   int EventStartTime;
   int EventDuration;
+  int FileSizeMB;
 };
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerRecording& p);
