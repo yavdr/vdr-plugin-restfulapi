@@ -11,6 +11,10 @@ override_dh_strip:
 override_dh_auto_install:
 	LIBDIR=. dh_auto_install --destdir=debian/vdr-plugin-restfulapi
 
+override_dh_gencontrol:
+	sh /usr/share/vdr-dev/dependencies.sh
+	dh_gencontrol
+
 %:
 	dh $@
 

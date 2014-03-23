@@ -596,7 +596,11 @@ cEvent* VdrExtension::GetEventById(tEventID eventID, cChannel* channel)
 string VdrExtension::getRelativeVideoPath(cRecording* recording)
 {
   string path = (string)recording->FileName();
+#if APIVERSNUM > 20101
+  string VIDEODIR(cVideoDirectory::Name());
+#else
   string VIDEODIR(VideoDirectory);
+#endif
   return path.substr(VIDEODIR.length());
 }
 

@@ -205,10 +205,18 @@ void RecordingsResponder::cutRecording(ostream& out, cxxtools::http::Request& re
   int rec_number = q.getParamAsInt(0);
   if (rec_number >= 0 && rec_number < Recordings.Count()) {
      cRecording* recording = Recordings.Get(rec_number);
+#if APIVERSNUM > 20101
+     if (RecordingsHandler.GetUsage(recording->FileName()) != ruNone) {
+#else
      if (cCutter::Active()) {
+#endif
         reply.httpReturn(504, "VDR Cutter currently busy.");
      } else {
+#if APIVERSNUM > 20101
+        RecordingsHandler.Add(ruCut, recording->FileName());
+#else
         cCutter::Start(recording->FileName());
+#endif
      }
      return;
   }
@@ -220,7 +228,11 @@ void RecordingsResponder::showCutterStatus(ostream& out, cxxtools::http::Request
   QueryHandler q("/recordings/cut", request);
   StreamExtension s(&out);
 
+#if APIVERSNUM > 20101
+  bool active = RecordingsHandler.Active();
+#else
   bool active = cCutter::Active();
+#endif
 
   if (q.isFormat(".html")) {
      reply.addHeader("Content-Type", "text/html; charset=utf-8");
