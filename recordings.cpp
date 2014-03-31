@@ -273,7 +273,6 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerRecording& p)
   si.addMember("event_channel_id") <<= p.EventChannelID;
   si.addMember("event_start_time") <<= p.EventStartTime;
   si.addMember("event_duration") <<= p.EventDuration;
-  si.addMember("event_channelid") <<= p.EventDuration;
 }
 
 RecordingList::RecordingList(ostream *out, bool _read_marks)
