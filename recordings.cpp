@@ -324,7 +324,7 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
      if ( event->Title() ) { eventTitle = StringExtension::UTF8Decode(event->Title()); }
      if ( event->ShortText() ) { eventShortText = StringExtension::UTF8Decode(event->ShortText()); }
      if ( event->Description() ) { eventDescription = StringExtension::UTF8Decode(event->Description()); }
-     if ( event->ChannelID() ) { eventChannelID = StringExtension::UTF8Decode((string)event->ChannelID().ToString()); }
+     if ( event->ChannelID() != empty ) { eventChannelID = StringExtension::UTF8Decode((string)event->ChannelID().ToString()); }
      if ( event->StartTime() > 0 ) { eventStartTime = event->StartTime(); }
      if ( event->Duration() > 0 ) { eventDuration = event->Duration(); }
   }
@@ -398,7 +398,7 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr)
      if ( event->Title() ) { eventTitle = event->Title(); }
      if ( event->ShortText() ) { eventShortText = event->ShortText(); }
      if ( event->Description() ) { eventDescription = event->Description(); }
-     if ( event->ChannelID() ) { eventChannelID = (string) event->ChannelID().ToString(); }
+     if ( event->ChannelID() != StringExtension::UTF8Decode("") ) { eventChannelID = (string) event->ChannelID().ToString(); }
      if ( event->StartTime() > 0 ) { eventStartTime = event->StartTime(); }
      if ( event->Duration() > 0 ) { eventDuration = event->Duration(); }
   }
