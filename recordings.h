@@ -54,6 +54,7 @@ struct SerRecording
   cxxtools::String EventTitle;
   cxxtools::String EventShortText;
   cxxtools::String EventDescription;
+  cxxtools::String EventChannelID;
   int EventStartTime;
   int EventDuration;
   int FileSizeMB;
