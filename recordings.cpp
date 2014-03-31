@@ -270,8 +270,10 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerRecording& p)
   si.addMember("event_title") <<= p.EventTitle;
   si.addMember("event_short_text") <<= p.EventShortText;
   si.addMember("event_description") <<= p.EventDescription;
+  si.addMember("event_channel_id") <<= p.EventChannelID;
   si.addMember("event_start_time") <<= p.EventStartTime;
   si.addMember("event_duration") <<= p.EventDuration;
+  si.addMember("event_channelid") <<= p.EventDuration;
 }
 
 RecordingList::RecordingList(ostream *out, bool _read_marks)
@@ -312,6 +314,7 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
   cxxtools::String eventTitle = empty;
   cxxtools::String eventShortText = empty;
   cxxtools::String eventDescription = empty;
+  cxxtools::String eventChannelID = empty;
   int eventStartTime = -1;
   int eventDuration = -1;
 
@@ -322,6 +325,7 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
      if ( event->Title() ) { eventTitle = StringExtension::UTF8Decode(event->Title()); }
      if ( event->ShortText() ) { eventShortText = StringExtension::UTF8Decode(event->ShortText()); }
      if ( event->Description() ) { eventDescription = StringExtension::UTF8Decode(event->Description()); }
+     if ( event->ChannelID() ) { eventChannelID = StringExtension::UTF8Decode(event->ChannelID()); }
      if ( event->StartTime() > 0 ) { eventStartTime = event->StartTime(); }
      if ( event->Duration() > 0 ) { eventDuration = event->Duration(); }
   }
@@ -348,6 +352,7 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
   serRecording.EventTitle = eventTitle;
   serRecording.EventShortText = eventShortText;
   serRecording.EventDescription = eventDescription;
+  serRecording.EventChannelID = eventChannelID;
   serRecording.EventStartTime = eventStartTime;
   serRecording.EventDuration = eventDuration;
 
@@ -393,6 +398,7 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr)
      if ( event->Title() ) { eventTitle = event->Title(); }
      if ( event->ShortText() ) { eventShortText = event->ShortText(); }
      if ( event->Description() ) { eventDescription = event->Description(); }
+     if ( event->ChannelID() ) { eventChannelID = event->ChannelID(); }
      if ( event->StartTime() > 0 ) { eventStartTime = event->StartTime(); }
      if ( event->Duration() > 0 ) { eventDuration = event->Duration(); }
   }
@@ -428,6 +434,7 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr)
   s->write(cString::sprintf("  <param name=\"event_title\">%s</param>\n", StringExtension::encodeToXml(eventTitle).c_str()) );
   s->write(cString::sprintf("  <param name=\"event_short_text\">%s</param>\n", StringExtension::encodeToXml(eventShortText).c_str()) );
   s->write(cString::sprintf("  <param name=\"event_description\">%s</param>\n", StringExtension::encodeToXml(eventDescription).c_str()) );
+  s->write(cString::sprintf("  <param name=\"event_channel_id\">%s</param>\n", StringExtension::encodeToXml(eventChannelID).c_str()) );
   s->write(cString::sprintf("  <param name=\"event_start_time\">%i</param>\n", eventStartTime));
   s->write(cString::sprintf("  <param name=\"event_duration\">%i</param>\n", eventDuration));
   s->write(" </recording>\n");
