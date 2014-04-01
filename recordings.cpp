@@ -265,12 +265,12 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerRecording& p)
   si.addMember("is_pes_recording") <<= p.IsPesRecording;
   si.addMember("duration") <<= p.Duration;
   si.addMember("filesize_mb") <<= p.FileSizeMB;
+  si.addMember("channel_id") <<= p.ChannelID;
   si.addMember("frames_per_second") <<= p.FramesPerSecond;
   si.addMember("marks") <<= p.Marks.marks;
   si.addMember("event_title") <<= p.EventTitle;
   si.addMember("event_short_text") <<= p.EventShortText;
   si.addMember("event_description") <<= p.EventDescription;
-  si.addMember("event_channel_id") <<= p.EventChannelID;
   si.addMember("event_start_time") <<= p.EventStartTime;
   si.addMember("event_duration") <<= p.EventDuration;
 }
@@ -313,7 +313,6 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
   cxxtools::String eventTitle = empty;
   cxxtools::String eventShortText = empty;
   cxxtools::String eventDescription = empty;
-  cxxtools::String eventChannelID = empty;
   int eventStartTime = -1;
   int eventDuration = -1;
 
@@ -324,7 +323,6 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
      if ( event->Title() ) { eventTitle = StringExtension::UTF8Decode(event->Title()); }
      if ( event->ShortText() ) { eventShortText = StringExtension::UTF8Decode(event->ShortText()); }
      if ( event->Description() ) { eventDescription = StringExtension::UTF8Decode(event->Description()); }
-     if ( StringExtension::UTF8Decode((string) recording->Info()->ChannelID().ToString()) != empty ) { eventChannelID = StringExtension::UTF8Decode((string) recording->Info()->ChannelID().ToString()); }
      if ( event->StartTime() > 0 ) { eventStartTime = event->StartTime(); }
      if ( event->Duration() > 0 ) { eventDuration = event->Duration(); }
   }
@@ -347,11 +345,11 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
 
   serRecording.Duration = VdrExtension::RecordingLengthInSeconds(recording);
   serRecording.FileSizeMB = recording->FileSizeMB();
+  serRecording.ChannelID =  StringExtension::UTF8Decode((string) recording->Info()->ChannelID().ToString());
 
   serRecording.EventTitle = eventTitle;
   serRecording.EventShortText = eventShortText;
   serRecording.EventDescription = eventDescription;
-  serRecording.EventChannelID = eventChannelID;
   serRecording.EventStartTime = eventStartTime;
   serRecording.EventDuration = eventDuration;
 
@@ -387,7 +385,6 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr)
   string eventTitle = "";
   string eventShortText = "";
   string eventDescription = "";
-  string eventChannelID = "";
   int eventStartTime = -1;
   int eventDuration = -1;
 
@@ -398,14 +395,13 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr)
      if ( event->Title() ) { eventTitle = event->Title(); }
      if ( event->ShortText() ) { eventShortText = event->ShortText(); }
      if ( event->Description() ) { eventDescription = event->Description(); }
-     if ( StringExtension::UTF8Decode((string) recording->Info()->ChannelID().ToString()) != StringExtension::UTF8Decode("") ) { eventChannelID = (string) recording->Info()->ChannelID().ToString(); }
      if ( event->StartTime() > 0 ) { eventStartTime = event->StartTime(); }
      if ( event->Duration() > 0 ) { eventDuration = event->Duration(); }
   }
 
   s->write(" <recording>\n");
   s->write(cString::sprintf("  <param name=\"number\">%i</param>\n", nr));
-  s->write(cString::sprintf("  <param name=\"name\">%s</param>\n", StringExtension::encodeToXml(recording->Name()).c_str()) );
+  s->write(cString::sprintf("  <param name=\"name\">%s</param>\n", StringExtension::encodeToXml(recording->Name()).c_str() ));
   s->write(cString::sprintf("  <param name=\"filename\">%s</param>\n", StringExtension::encodeToXml(recording->FileName()).c_str()) );
   s->write(cString::sprintf("  <param name=\"relative_filename\">%s</param>\n", StringExtension::encodeToXml(VdrExtension::getRelativeVideoPath(recording).c_str()).c_str()));
   s->write(cString::sprintf("  <param name=\"is_new\">%s</param>\n", recording->IsNew() ? "true" : "false" ));
@@ -420,7 +416,7 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr)
   #endif
   s->write(cString::sprintf("  <param name=\"duration\">%i</param>\n", VdrExtension::RecordingLengthInSeconds(recording)));
   s->write(cString::sprintf("  <param name=\"filesize_mb\">%i</param>\n", recording->FileSizeMB()));
-
+  s->write(cString::sprintf("  <param name=\"channel_id\">%s</param>\n", StringExtension::encodeToXml((string) recording->Info()->ChannelID().ToString()).c_str()));
 
   if (read_marks) {
      s->write("  <param name=\"marks\">\n");
@@ -434,7 +430,6 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr)
   s->write(cString::sprintf("  <param name=\"event_title\">%s</param>\n", StringExtension::encodeToXml(eventTitle).c_str()) );
   s->write(cString::sprintf("  <param name=\"event_short_text\">%s</param>\n", StringExtension::encodeToXml(eventShortText).c_str()) );
   s->write(cString::sprintf("  <param name=\"event_description\">%s</param>\n", StringExtension::encodeToXml(eventDescription).c_str()) );
-  s->write(cString::sprintf("  <param name=\"event_channel_id\">%s</param>\n", StringExtension::encodeToXml(eventChannelID).c_str()) );
   s->write(cString::sprintf("  <param name=\"event_start_time\">%i</param>\n", eventStartTime));
   s->write(cString::sprintf("  <param name=\"event_duration\">%i</param>\n", eventDuration));
   s->write(" </recording>\n");
