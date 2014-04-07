@@ -1,3 +1,9 @@
+vdr-plugin-restfulapi (0.1.3-0yavdr0~precise) precise; urgency=medium
+
+  * channellogos: look for files with channel-id
+
+ -- Lars Hanisch <dvb@flensrocker.de>  Mon, 07 Apr 2014 19:23:20 +0200
+
 vdr-plugin-restfulapi (0.1.2-1yavdr0~precise) precise; urgency=medium
 
   * add vdr-abi dependency
