@@ -32,10 +32,18 @@ struct SerPlayerInfo
   cxxtools::String FileName;
 };
 
+struct SerDiskSpaceInfo
+{
+  int FreeMB;
+  int UsedMB;
+  int UsedPercent;
+};
+
 void operator<<= (cxxtools::SerializationInfo& si, const SerService& s);
 void operator<<= (cxxtools::SerializationInfo& si, const SerPlugin& p);
 void operator<<= (cxxtools::SerializationInfo& si, const SerPluginList& pl);
 void operator<<= (cxxtools::SerializationInfo& si, const SerPlayerInfo& pi);
+void operator<<= (cxxtools::SerializationInfo& si, const SerDiskSpaceInfo& ds);
 
 class InfoResponder : public cxxtools::http::Responder
 {

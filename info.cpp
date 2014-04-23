@@ -81,7 +81,7 @@ void InfoResponder::replyJson(StreamExtension& se)
                 
         string eventTitle = "";
         int start_time = -1;
-	int duration = -1;
+        int duration = -1;
         int eventId = -1;
 
         if ( event != NULL) {
@@ -93,10 +93,14 @@ void InfoResponder::replyJson(StreamExtension& se)
 
         serializer.serialize(eventId, "eventid");
         serializer.serialize(start_time, "start_time");
-	serializer.serialize(duration, "duration");
+        serializer.serialize(duration, "duration");
         serializer.serialize(StringExtension::UTF8Decode(eventTitle), "title");
      }
   }
+
+  SerDiskSpaceInfo ds;
+  ds.UsedPercent = VdrExtension::getVideoDiskSpace( &ds.FreeMB, &ds.UsedMB );
+  serializer.serialize(ds, "diskspace");
 
   serializer.serialize(pl, "vdr");
   serializer.finish();  
@@ -146,6 +150,13 @@ void InfoResponder::replyXml(StreamExtension& se)
 	se.write(cString::sprintf(" <title>%s</title>\n", StringExtension::encodeToXml(eventTitle).c_str()));
      }
   }
+  SerDiskSpaceInfo ds;
+  ds.UsedPercent = VdrExtension::getVideoDiskSpace( &ds.FreeMB, &ds.UsedMB );
+  se.write(" <diskspace>\n");
+  se.write(cString::sprintf("  <free_mb>%i</free_mb>\n", ds.FreeMB));
+  se.write(cString::sprintf("  <used_mb>%i</used_mb>\n", ds.UsedMB));
+  se.write(cString::sprintf("  <used_percent>%i</used_percent>\n", ds.UsedPercent));
+  se.write(" </diskspace>\n");
 
   se.write(" <vdr>\n");
   se.write("  <plugins>\n");
@@ -186,3 +197,9 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerPlayerInfo& pi)
   si.addMember("filename") <<= pi.FileName;
 }
 
+void operator<<= (cxxtools::SerializationInfo& si, const SerDiskSpaceInfo& ds)
+{
+  si.addMember("free_mb") <<= ds.FreeMB;
+  si.addMember("used_mb") <<= ds.UsedMB;
+  si.addMember("used_percent") <<= ds.UsedPercent;
+}

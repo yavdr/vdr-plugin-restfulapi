@@ -619,6 +619,15 @@ cEvent* VdrExtension::getCurrentEventOnChannel(cChannel* channel)
   return (cEvent*)Schedule->GetEventAround(now);
 }
 
+int VdrExtension::getVideoDiskSpace(int* FreeMB, int* UsedMB)
+{
+#if APIVERSNUM > 20101
+  return cVideoDirectory::VideoDiskSpace( FreeMB, UsedMB );
+#else
+  return VideoDiskSpace( FreeMB, UsedMB );
+#endif
+}
+
 // --- VdrMarks ---------------------------------------------------------------
 
 VdrMarks* VdrMarks::get()
