@@ -35,8 +35,11 @@ struct SerPlayerInfo
 struct SerDiskSpaceInfo
 {
   int FreeMB;
-  int UsedMB;
+  //int UsedMB;
   int UsedPercent;
+  int FreeMinutes;
+//  cxxtools::String Description;
+  std::string Description;
 };
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerService& s);

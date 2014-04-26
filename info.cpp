@@ -1,4 +1,5 @@
 #include "info.h"
+#include <vdr/videodir.h>
 using namespace std;
 
 void InfoResponder::reply(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
@@ -94,13 +95,17 @@ void InfoResponder::replyJson(StreamExtension& se)
         serializer.serialize(eventId, "eventid");
         serializer.serialize(start_time, "start_time");
         serializer.serialize(duration, "duration");
-        serializer.serialize(StringExtension::UTF8Decode(eventTitle), "title");
+        serializer.serialize( StringExtension::UTF8Decode(eventTitle), "title");
      }
   }
 
   SerDiskSpaceInfo ds;
-  ds.UsedPercent = VdrExtension::getVideoDiskSpace( &ds.FreeMB, &ds.UsedMB );
-  serializer.serialize(ds, "diskspace");
+  ds.Description = cVideoDiskUsage::String(); //description call goes first, it calls HasChanged
+  ds.UsedPercent = cVideoDiskUsage::UsedPercent();
+  ds.FreeMB      = cVideoDiskUsage::FreeMB();
+  ds.FreeMinutes = cVideoDiskUsage::FreeMinutes();
+  serializer.serialize(ds, "diskusage");
+
 
   serializer.serialize(pl, "vdr");
   serializer.finish();  
@@ -151,12 +156,17 @@ void InfoResponder::replyXml(StreamExtension& se)
      }
   }
   SerDiskSpaceInfo ds;
-  ds.UsedPercent = VdrExtension::getVideoDiskSpace( &ds.FreeMB, &ds.UsedMB );
-  se.write(" <diskspace>\n");
+  ds.Description = cVideoDiskUsage::String(); //description call goes first, it calls HasChanged
+  ds.UsedPercent = cVideoDiskUsage::UsedPercent();
+  ds.FreeMB      = cVideoDiskUsage::FreeMB();
+  ds.FreeMinutes = cVideoDiskUsage::FreeMinutes();
+
+  se.write(" <diskusage>\n");
   se.write(cString::sprintf("  <free_mb>%i</free_mb>\n", ds.FreeMB));
-  se.write(cString::sprintf("  <used_mb>%i</used_mb>\n", ds.UsedMB));
+  se.write(cString::sprintf("  <free_minutes>%i</free_minutes>\n", ds.FreeMinutes));
   se.write(cString::sprintf("  <used_percent>%i</used_percent>\n", ds.UsedPercent));
-  se.write(" </diskspace>\n");
+  se.write(cString::sprintf("  <description_localized>%s</description_localized>\n", ds.Description.c_str()));
+  se.write(" </diskusage>\n");
 
   se.write(" <vdr>\n");
   se.write("  <plugins>\n");
@@ -200,6 +210,8 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerPlayerInfo& pi)
 void operator<<= (cxxtools::SerializationInfo& si, const SerDiskSpaceInfo& ds)
 {
   si.addMember("free_mb") <<= ds.FreeMB;
-  si.addMember("used_mb") <<= ds.UsedMB;
+  //si.addMember("used_mb") <<= ds.UsedMB;
   si.addMember("used_percent") <<= ds.UsedPercent;
+  si.addMember("free_minutes") <<= ds.FreeMinutes;
+  si.addMember("description_localized") <<= ds.Description;
 }

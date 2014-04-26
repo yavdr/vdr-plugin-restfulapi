@@ -173,7 +173,6 @@ class VdrExtension
     static cEvent* GetEventById(tEventID eventID, cChannel* channel = NULL);
     static std::string getRelativeVideoPath(cRecording* recording);
     static cEvent* getCurrentEventOnChannel(cChannel* channel);
-    static int getVideoDiskSpace(int *FreeMB = NULL, int *UsedMB = NULL);
 };
 
 class VdrMarks
