@@ -87,7 +87,7 @@ void InfoResponder::replyJson(StreamExtension& se)
 
         if ( event != NULL) {
            eventTitle = event->Title();
-	   start_time = event->StartTime();
+           start_time = event->StartTime();
            duration = event->Duration(),
            eventId = (int)event->EventID();	   
         }
@@ -95,7 +95,7 @@ void InfoResponder::replyJson(StreamExtension& se)
         serializer.serialize(eventId, "eventid");
         serializer.serialize(start_time, "start_time");
         serializer.serialize(duration, "duration");
-        serializer.serialize( StringExtension::UTF8Decode(eventTitle), "title");
+        serializer.serialize(StringExtension::UTF8Decode(eventTitle), "title");
      }
   }
 
@@ -150,9 +150,9 @@ void InfoResponder::replyXml(StreamExtension& se)
         if ( event->Title() != NULL ) { eventTitle = event->Title(); }
 
 	se.write(cString::sprintf(" <eventid>%i</eventid>\n", event->EventID()));
-        se.write(cString::sprintf(" <start_time>%i</start_time>\n", (int)event->StartTime()));
-	se.write(cString::sprintf(" <duration>%i</duration>\n", (int)event->Duration()));
-	se.write(cString::sprintf(" <title>%s</title>\n", StringExtension::encodeToXml(eventTitle).c_str()));
+    se.write(cString::sprintf(" <start_time>%i</start_time>\n", (int)event->StartTime()));
+    se.write(cString::sprintf(" <duration>%i</duration>\n", (int)event->Duration()));
+    se.write(cString::sprintf(" <title>%s</title>\n", StringExtension::encodeToXml(eventTitle).c_str()));
      }
   }
   SerDiskSpaceInfo ds;
@@ -210,7 +210,6 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerPlayerInfo& pi)
 void operator<<= (cxxtools::SerializationInfo& si, const SerDiskSpaceInfo& ds)
 {
   si.addMember("free_mb") <<= ds.FreeMB;
-  //si.addMember("used_mb") <<= ds.UsedMB;
   si.addMember("used_percent") <<= ds.UsedPercent;
   si.addMember("free_minutes") <<= ds.FreeMinutes;
   si.addMember("description_localized") <<= ds.Description;
