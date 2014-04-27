@@ -63,7 +63,7 @@ struct SerRecording
   cxxtools::String EventDescription;
   int EventStartTime;
   int EventDuration;
-  bool Scraper;
+  cxxtools::String Scraper;
   cxxtools::String ScraperPoster;
   cxxtools::String ScraperFanart;
   cxxtools::String ScraperBanner;
