@@ -1,4 +1,5 @@
 #include "info.h"
+#include <vdr/videodir.h>
 using namespace std;
 
 void InfoResponder::reply(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
@@ -72,7 +73,7 @@ void InfoResponder::replyJson(StreamExtension& se)
      pi.Name = StringExtension::UTF8Decode(statm->getRecordingName());
      pi.FileName = StringExtension::UTF8Decode(statm->getRecordingFile());
      serializer.serialize(pi, "video");
-	 
+
      int iCurrent = 0, iTotal = 0, iSpeed = -1;
      bool bPlay, bForward;
      string sPlay = " ";
@@ -97,12 +98,12 @@ void InfoResponder::replyJson(StreamExtension& se)
            else
               sPlay = "backward";
         }
-        else if (iSpeed > 0) {		   
+        else if (iSpeed > 0) {
            if (bForward)
               sPlay = "forward x "+StringExtension::itostr(iSpeed);
            else
               sPlay = "backward x "+StringExtension::itostr(iSpeed);
-        }		   
+        }
      }
      serializer.serialize(StringExtension::UTF8Decode(sPlay), "replay_mode");
      serializer.serialize(iCurrent, "current_frame");
@@ -116,15 +117,15 @@ void InfoResponder::replyJson(StreamExtension& se)
      } else {
         serializer.serialize(false, "is_pes_recording");
         serializer.serialize(DEFAULTFRAMESPERSECOND, "frames_per_second");
-     }	
+     }
 #else
      if (recording) {
         serializer.serialize(true, "is_pes_recording");
      } else {
         serializer.serialize(false, "is_pes_recording");
-     }		
+     }
      serializer.serialize(FRAMESPERSEC, "frames_per_second");
-#endif 
+#endif
   } else {
      string channelid = "";
      string channelname = "";
@@ -137,7 +138,7 @@ void InfoResponder::replyJson(StreamExtension& se)
         serializer.serialize(channelname, "channel_name");
         serializer.serialize(channelnumber, "channel_number");
         cEvent* event = VdrExtension::getCurrentEventOnChannel(channel);
-                
+
         string eventTitle = "";
         int start_time = -1;
         int duration = -1;
@@ -156,10 +157,16 @@ void InfoResponder::replyJson(StreamExtension& se)
         serializer.serialize(StringExtension::UTF8Decode(eventTitle), "title");
      }
   }
-  
+
   serializer.serialize(statm->isRecord(), "recording");
-  serializer.serialize(StringExtension::UTF8Decode(VdrExtension::getVideoDiskSpace()), "diskspace");
-  
+
+  SerDiskSpaceInfo ds;
+  ds.Description = cVideoDiskUsage::String(); //description call goes first, it calls HasChanged
+  ds.UsedPercent = cVideoDiskUsage::UsedPercent();
+  ds.FreeMB      = cVideoDiskUsage::FreeMB();
+  ds.FreeMinutes = cVideoDiskUsage::FreeMinutes();
+  serializer.serialize(ds, "diskusage");
+
   serializer.serialize(pl, "vdr");
   serializer.finish();  
 }
@@ -210,17 +217,17 @@ void InfoResponder::replyXml(StreamExtension& se)
            else
               sPlay = "backward";
         }
-        else if (iSpeed > 0) {		   
+        else if (iSpeed > 0) {
            if (bForward)
               sPlay = "forward x "+StringExtension::itostr(iSpeed);
            else
               sPlay = "backward x "+StringExtension::itostr(iSpeed);
-        }		   
-     }	 
-     se.write(cString::sprintf(" <replay_mode>%s</replay_mode>\n", sPlay.c_str()));     
+        }
+     }
+     se.write(cString::sprintf(" <replay_mode>%s</replay_mode>\n", sPlay.c_str()));
      se.write(cString::sprintf(" <current_frame>%d</current_frame>\n", iCurrent));
      se.write(cString::sprintf(" <total_frames>%d</total_frames>\n", iTotal));
-	 
+
      cRecording *recording = Recordings.GetByName(statm->getRecordingFile().c_str());
 #if APIVERSNUM >= 10703
      if (recording) {
@@ -229,7 +236,7 @@ void InfoResponder::replyXml(StreamExtension& se)
      } else {
         se.write(cString::sprintf(" <is_pes_recording>false</is_pes_recording>\n"));
         se.write(cString::sprintf(" <frames_per_second>%0.0f</frames_per_second>\n", DEFAULTFRAMESPERSECOND));
-     }		
+     }
 #else
      if (recording) {
         se.write(cString::sprintf(" <is_pes_recording>true</is_pes_recording>\n"));
@@ -263,6 +270,18 @@ void InfoResponder::replyXml(StreamExtension& se)
         se.write(cString::sprintf(" <title>%s</title>\n", StringExtension::encodeToXml(eventTitle).c_str()));
      }
   }
+  SerDiskSpaceInfo ds;
+  ds.Description = cVideoDiskUsage::String(); //description call goes first, it calls HasChanged
+  ds.UsedPercent = cVideoDiskUsage::UsedPercent();
+  ds.FreeMB      = cVideoDiskUsage::FreeMB();
+  ds.FreeMinutes = cVideoDiskUsage::FreeMinutes();
+
+  se.write(" <diskusage>\n");
+  se.write(cString::sprintf("  <free_mb>%i</free_mb>\n", ds.FreeMB));
+  se.write(cString::sprintf("  <free_minutes>%i</free_minutes>\n", ds.FreeMinutes));
+  se.write(cString::sprintf("  <used_percent>%i</used_percent>\n", ds.UsedPercent));
+  se.write(cString::sprintf("  <description_localized>%s</description_localized>\n", ds.Description.c_str()));
+  se.write(" </diskusage>\n");
 
   se.write(cString::sprintf(" <recording>%s</recording>\n", statm->isRecord() ? "true" : "false" ));  
   se.write(cString::sprintf(" <diskspace>%s</diskspace>\n", StringExtension::encodeToXml(VdrExtension::getVideoDiskSpace()).c_str())); 
@@ -308,3 +327,10 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerPlayerInfo& pi)
   si.addMember("filename") <<= pi.FileName;
 }
 
+void operator<<= (cxxtools::SerializationInfo& si, const SerDiskSpaceInfo& ds)
+{
+  si.addMember("free_mb") <<= ds.FreeMB;
+  si.addMember("used_percent") <<= ds.UsedPercent;
+  si.addMember("free_minutes") <<= ds.FreeMinutes;
+  si.addMember("description_localized") <<= ds.Description;
+}

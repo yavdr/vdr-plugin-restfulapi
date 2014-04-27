@@ -328,14 +328,17 @@ void FileCaches::searchEventImages(int eventid, std::vector< std::string >& file
 
 std::string FileCaches::searchChannelLogo(cChannel *channel)
 {
+  std::string cid = (std::string)(*channel->GetChannelID().ToString());
   std::string cname = (std::string)channel->Name();
-  
+  std::string clname;
+  std::transform(cname.begin(), cname.end(), cname.begin(), ::tolower);
+
   for ( int i=0; i < (int)channelLogos.size(); i++ ) {
       string name = channelLogos[i];
       int delim = name.find_last_of(".");
       if ( delim != -1 ) { name = name.substr(0, delim); }
 
-      if ( name == cname ) {
+      if (( name == cid ) || ( name == clname ) || ( name == cname )) {
          return channelLogos[i];
       }
   }
@@ -596,7 +599,11 @@ cEvent* VdrExtension::GetEventById(tEventID eventID, cChannel* channel)
 string VdrExtension::getRelativeVideoPath(cRecording* recording)
 {
   string path = (string)recording->FileName();
+#if APIVERSNUM > 20101
+  string VIDEODIR(cVideoDirectory::Name());
+#else
   string VIDEODIR(VideoDirectory);
+#endif
   return path.substr(VIDEODIR.length());
 }
 

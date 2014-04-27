@@ -210,10 +210,18 @@ void RecordingsResponder::cutRecording(ostream& out, cxxtools::http::Request& re
   int rec_number = q.getParamAsInt(0);
   if (rec_number >= 0 && rec_number < Recordings.Count()) {
      cRecording* recording = Recordings.Get(rec_number);
+#if APIVERSNUM > 20101
+     if (RecordingsHandler.GetUsage(recording->FileName()) != ruNone) {
+#else
      if (cCutter::Active()) {
+#endif
         reply.httpReturn(504, "VDR Cutter currently busy.");
      } else {
+#if APIVERSNUM > 20101
+        RecordingsHandler.Add(ruCut, recording->FileName());
+#else
         cCutter::Start(recording->FileName());
+#endif
      }
      return;
   }
@@ -225,7 +233,11 @@ void RecordingsResponder::showCutterStatus(ostream& out, cxxtools::http::Request
   QueryHandler q("/recordings/cut", request);
   StreamExtension s(&out);
 
+#if APIVERSNUM > 20101
+  bool active = RecordingsHandler.Active();
+#else
   bool active = cCutter::Active();
+#endif
 
   if (q.isFormat(".html")) {
      reply.addHeader("Content-Type", "text/html; charset=utf-8");
@@ -257,6 +269,8 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerRecording& p)
   si.addMember("is_edited") <<= p.IsEdited;
   si.addMember("is_pes_recording") <<= p.IsPesRecording;
   si.addMember("duration") <<= p.Duration;
+  si.addMember("filesize_mb") <<= p.FileSizeMB;
+  si.addMember("channel_id") <<= p.ChannelID;
   si.addMember("frames_per_second") <<= p.FramesPerSecond;
   si.addMember("marks") <<= p.Marks.marks;
   si.addMember("event_title") <<= p.EventTitle;
@@ -335,6 +349,9 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
   #endif
 
   serRecording.Duration = VdrExtension::RecordingLengthInSeconds(recording);
+  serRecording.FileSizeMB = recording->FileSizeMB();
+  serRecording.ChannelID =  StringExtension::UTF8Decode((string) recording->Info()->ChannelID().ToString());
+
   serRecording.EventTitle = eventTitle;
   serRecording.EventShortText = eventShortText;
   serRecording.EventDescription = eventDescription;
@@ -389,7 +406,7 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr)
 
   s->write(" <recording>\n");
   s->write(cString::sprintf("  <param name=\"number\">%i</param>\n", nr));
-  s->write(cString::sprintf("  <param name=\"name\">%s</param>\n", StringExtension::encodeToXml(recording->Name()).c_str()) );
+  s->write(cString::sprintf("  <param name=\"name\">%s</param>\n", StringExtension::encodeToXml(recording->Name()).c_str() ));
   s->write(cString::sprintf("  <param name=\"filename\">%s</param>\n", StringExtension::encodeToXml(recording->FileName()).c_str()) );
   s->write(cString::sprintf("  <param name=\"relative_filename\">%s</param>\n", StringExtension::encodeToXml(VdrExtension::getRelativeVideoPath(recording).c_str()).c_str()));
   s->write(cString::sprintf("  <param name=\"is_new\">%s</param>\n", recording->IsNew() ? "true" : "false" ));
@@ -402,8 +419,9 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr)
   s->write(cString::sprintf("  <param name=\"is_pes_recording\">%s</param>\n", true ? "true" : "false" ));
   s->write(cString::sprintf("  <param name=\"frames_per_second\">%i</param>\n", FRAMESPERSEC));
   #endif
-
   s->write(cString::sprintf("  <param name=\"duration\">%i</param>\n", VdrExtension::RecordingLengthInSeconds(recording)));
+  s->write(cString::sprintf("  <param name=\"filesize_mb\">%i</param>\n", recording->FileSizeMB()));
+  s->write(cString::sprintf("  <param name=\"channel_id\">%s</param>\n", StringExtension::encodeToXml((string) recording->Info()->ChannelID().ToString()).c_str()));
 
   if (read_marks) {
      s->write("  <param name=\"marks\">\n");

@@ -331,6 +331,10 @@ void JsonTimerList::addTimer(cTimer* timer)
   if ( (int)(timer->Start()) > (int)(timer->Stop()) )
      tstop += 86400;
 
+  //if a timer starts before and ends after midnight, add a day to tstop
+  if ( (int)(timer->Start()) > (int)(timer->Stop()) )
+    tstop += 86400;
+
   serTimer.StartTimeStamp = StringExtension::UTF8Decode(StringExtension::dateToString((time_t)tstart));
   serTimer.StopTimeStamp = StringExtension::UTF8Decode(StringExtension::dateToString((time_t)tstop));
 

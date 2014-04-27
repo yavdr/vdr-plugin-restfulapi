@@ -45,10 +45,12 @@ struct SerRecording
   cxxtools::String Name;
   cxxtools::String FileName;
   cxxtools::String RelativeFileName;
+  cxxtools::String ChannelID;
   bool IsNew;
   bool IsEdited;
   bool IsPesRecording;
   int Duration;
+  int FileSizeMB;
   double FramesPerSecond;
   SerMarks Marks;
   cxxtools::String EventTitle;
