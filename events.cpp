@@ -333,6 +333,10 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)
 #ifdef EPG_DETAILS_PATCH
   si.addMember("details") <<= *e.Details;
 #endif
+  si.addMember("additional_media") <<= e.Scraper;
+  si.addMember("poster") <<= e.ScraperPoster;
+  //  si.addMember("fanart") <<= e.ScraperFanart;
+  si.addMember("banner") <<= e.ScraperBanner;
 }
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerComponent& c)
@@ -397,6 +401,42 @@ void JsonEventList::addEvent(cEvent* event)
   if( !event->Title() ) { eventTitle = empty; } else { eventTitle = StringExtension::UTF8Decode(event->Title()); }
   if( !event->ShortText() ) { eventShortText = empty; } else { eventShortText = StringExtension::UTF8Decode(event->ShortText()); }
   if( !event->Description() ) { eventDescription = empty; } else { eventDescription = StringExtension::UTF8Decode(event->Description()); }
+    
+  cMovie movie;
+  cSeries series;
+  ScraperGetEventType call;
+  bool hasAdditionalMedia = false;
+  bool isMovie = false;
+  bool isSeries = false;
+   
+  static cPlugin *pScraper2Vdr = cPluginManager::GetPlugin("scraper2vdr");
+  if (pScraper2Vdr) {
+      ScraperGetEventType call;
+      call.event = event;
+      int seriesId = 0;
+      int episodeId = 0;
+      int movieId = 0;
+      if (pScraper2Vdr->Service("GetEventType", &call)) {
+          //esyslog("restfulapi: Type detected: %d, seriesId %d, episodeId %d, movieId %d", call.type, call.seriesId, call.episodeId, call.movieId);
+          seriesId = call.seriesId;
+          episodeId = call.episodeId;
+          movieId = call.movieId;
+      }
+      if (seriesId > 0) {
+          series.seriesId = seriesId;
+          series.episodeId = episodeId;
+          if (pScraper2Vdr->Service("GetSeries", &series)) {
+              hasAdditionalMedia = true;
+              isSeries = true;
+          }
+      } else if (movieId > 0) {
+          movie.movieId = movieId;
+          if (pScraper2Vdr->Service("GetMovie", &movie)) {
+              hasAdditionalMedia = true;
+              isMovie = true;
+          }
+      }
+  }
 
   serEvent.Id = event->EventID();
   serEvent.Title = eventTitle;
@@ -429,6 +469,24 @@ void JsonEventList::addEvent(cEvent* event)
 #ifdef EPG_DETAILS_PATCH
   serEvent.Details = (vector<tEpgDetail>*)&event->Details();
 #endif
+    
+  serEvent.Scraper = hasAdditionalMedia;
+  if (hasAdditionalMedia) {
+      if (isSeries) {
+          if (series.posters.size() > 0) { /*
+              int posters = series.posters.size();
+              for (int i = 0; i < posters;i++) {
+                  serRecording.TvScraperPoster = StringExtension::UTF8Decode(series.posters[i].path);
+              } */
+              serEvent.ScraperPoster = StringExtension::UTF8Decode(series.posters[0].path);
+          }
+          if (series.banners.size() > 0) {
+              serEvent.ScraperBanner = StringExtension::UTF8Decode(series.banners[0].path);
+          }
+      } else if (isMovie && (movie.poster.width > 0) && (movie.poster.height > 0) && (movie.poster.path.size() > 0)) {
+          serEvent.ScraperPoster = StringExtension::UTF8Decode(movie.poster.path);
+      }
+  }
 
   serEvents.push_back(serEvent);
 }
@@ -460,7 +518,44 @@ void XmlEventList::addEvent(cEvent* event)
   if ( event->Title() == NULL ) { eventTitle = ""; } else { eventTitle = event->Title(); }
   if ( event->ShortText() == NULL ) { eventShortText = ""; } else { eventShortText = event->ShortText(); }
   if ( event->Description() == NULL ) { eventDescription = ""; } else { eventDescription = event->Description(); }
+    
+    
+  cMovie movie;
+  cSeries series;
+  ScraperGetEventType call;
+  bool hasAdditionalMedia = false;
+  bool isMovie = false;
+  bool isSeries = false;
 
+  static cPlugin *pScraper2Vdr = cPluginManager::GetPlugin("scraper2vdr");
+  if (pScraper2Vdr) {
+      ScraperGetEventType call;
+      call.event = event;
+      int seriesId = 0;
+      int episodeId = 0;
+      int movieId = 0;
+      if (pScraper2Vdr->Service("GetEventType", &call)) {
+          //esyslog("restfulapi: Type detected: %d, seriesId %d, episodeId %d, movieId %d", call.type, call.seriesId, call.episodeId, call.movieId);
+          seriesId = call.seriesId;
+          episodeId = call.episodeId;
+          movieId = call.movieId;
+      }
+      if (seriesId > 0) {
+          series.seriesId = seriesId;
+          series.episodeId = episodeId;
+          if (pScraper2Vdr->Service("GetSeries", &series)) {
+              hasAdditionalMedia = true;
+              isSeries = true;
+          }
+      } else if (movieId > 0) {
+          movie.movieId = movieId;
+          if (pScraper2Vdr->Service("GetMovie", &movie)) {
+              hasAdditionalMedia = true;
+              isMovie = true;
+          }
+      }
+  }
+    
   s->write(" <event>\n");
   s->write(cString::sprintf("  <param name=\"id\">%i</param>\n", event->EventID()));
   s->write(cString::sprintf("  <param name=\"title\">%s</param>\n", StringExtension::encodeToXml(eventTitle).c_str()));
@@ -545,7 +640,27 @@ void XmlEventList::addEvent(cEvent* event)
   s->write(cString::sprintf("  <param name=\"timer_exists\">%s</param>\n", (timer_exists ? "true" : "false")));
   s->write(cString::sprintf("  <param name=\"timer_active\">%s</param>\n", (timer_active ? "true" : "false")));
   s->write(cString::sprintf("  <param name=\"timer_id\">%s</param>\n", timer_id.c_str()));
-
+    
+  s->write("  <param name=\"additional_media\">\n");
+  if (hasAdditionalMedia) {
+      if (isSeries) {
+          if (series.posters.size() > 0) {
+              int posters = series.posters.size();
+              for (int i = 0; i < posters;i++) {
+                  s->write(cString::sprintf("    <poster path=\"%s\" width=\"%i\" height=\"%i\" />\n",
+                                            StringExtension::encodeToXml(series.posters[i].path).c_str(), series.posters[i].width, series.posters[i].height ));
+              }
+          }
+          if (series.banners.size() > 0) {
+              s->write(cString::sprintf("    <banner path=\"%s\" width=\"%i\" height=\"%i\" />\n",
+                                        StringExtension::encodeToXml(series.banners[0].path).c_str(), series.banners[0].width, series.banners[0].height ));
+          }
+      } else if (isMovie && (movie.poster.width > 0) && (movie.poster.height > 0) && (movie.poster.path.size() > 0)) {
+          s->write(cString::sprintf("    <poster path=\"%s\" width=\"%i\" height=\"%i\" />\n",
+                                    StringExtension::encodeToXml(movie.poster.path).c_str(), movie.poster.width, movie.poster.height ));
+      }
+  }
+  s->write("   </param>\n");
   s->write(" </event>\n");
 }
 

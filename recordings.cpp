@@ -278,6 +278,10 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerRecording& p)
   si.addMember("event_description") <<= p.EventDescription;
   si.addMember("event_start_time") <<= p.EventStartTime;
   si.addMember("event_duration") <<= p.EventDuration;
+  si.addMember("additional_media") <<= p.Scraper;
+  si.addMember("poster") <<= p.ScraperPoster;
+//  si.addMember("fanart") <<= p.ScraperFanart;
+  si.addMember("banner") <<= p.ScraperBanner;
 }
 
 RecordingList::RecordingList(ostream *out, bool _read_marks)
@@ -320,16 +324,52 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
   cxxtools::String eventDescription = empty;
   int eventStartTime = -1;
   int eventDuration = -1;
-
+    
+  cMovie movie;
+  cSeries series;
+  ScraperGetEventType call;
+  bool hasAdditionalMedia = false;
+  bool isMovie = false;
+  bool isSeries = false;
+    
   cEvent* event = (cEvent*)recording->Info()->GetEvent();
-
-  if ( event != NULL )
+  
+  if (event != NULL)
   {
-     if ( event->Title() ) { eventTitle = StringExtension::UTF8Decode(event->Title()); }
-     if ( event->ShortText() ) { eventShortText = StringExtension::UTF8Decode(event->ShortText()); }
-     if ( event->Description() ) { eventDescription = StringExtension::UTF8Decode(event->Description()); }
-     if ( event->StartTime() > 0 ) { eventStartTime = event->StartTime(); }
-     if ( event->Duration() > 0 ) { eventDuration = event->Duration(); }
+     if (event->Title())         { eventTitle = StringExtension::UTF8Decode(event->Title()); }
+     if (event->ShortText())     { eventShortText = StringExtension::UTF8Decode(event->ShortText()); }
+     if (event->Description())   { eventDescription = StringExtension::UTF8Decode(event->Description()); }
+     if (event->StartTime() > 0) { eventStartTime = event->StartTime(); }
+     if (event->Duration() > 0)  { eventDuration = event->Duration(); }
+        
+     static cPlugin *pScraper2Vdr = cPluginManager::GetPlugin("scraper2vdr");
+     if (pScraper2Vdr) {
+        ScraperGetEventType call;
+        call.recording = recording;
+        int seriesId = 0;
+        int episodeId = 0;
+        int movieId = 0;
+        if (pScraper2Vdr->Service("GetEventType", &call)) {
+           //esyslog("restfulapi: Type detected: %d, seriesId %d, episodeId %d, movieId %d", call.type, call.seriesId, call.episodeId, call.movieId);
+           seriesId = call.seriesId;
+           episodeId = call.episodeId;
+           movieId = call.movieId;
+        }
+        if (seriesId > 0) {
+           series.seriesId = seriesId;
+           series.episodeId = episodeId;
+           if (pScraper2Vdr->Service("GetSeries", &series)) {
+              hasAdditionalMedia = true;
+              isSeries = true;
+           }
+        } else if (movieId > 0) {
+           movie.movieId = movieId;
+           if (pScraper2Vdr->Service("GetMovie", &movie)) {
+              hasAdditionalMedia = true;
+              isMovie = true;
+           }
+        }
+     }
   }
 
   SerRecording serRecording;
@@ -357,7 +397,24 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
   serRecording.EventDescription = eventDescription;
   serRecording.EventStartTime = eventStartTime;
   serRecording.EventDuration = eventDuration;
-
+  serRecording.Scraper = hasAdditionalMedia;
+  if (hasAdditionalMedia) {
+     if (isSeries) {
+        if (series.posters.size() > 0) { /*
+           int posters = series.posters.size();
+           for (int i = 0; i < posters;i++) {
+               serRecording.TvScraperPoster = StringExtension::UTF8Decode(series.posters[i].path);
+            } */
+            serRecording.ScraperPoster = StringExtension::UTF8Decode(series.posters[0].path);
+         }
+         if (series.banners.size() > 0) {
+            serRecording.ScraperBanner = StringExtension::UTF8Decode(series.banners[0].path);
+         }
+     } else if (isMovie && (movie.poster.width > 0) && (movie.poster.height > 0) && (movie.poster.path.size() > 0)) {
+         serRecording.ScraperPoster = StringExtension::UTF8Decode(movie.poster.path);
+     }
+  }
+    
   SerMarks serMarks;
   if (read_marks) {
      serMarks.marks = VdrMarks::get()->readMarks(recording);
@@ -392,16 +449,52 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr)
   string eventDescription = "";
   int eventStartTime = -1;
   int eventDuration = -1;
-
+    
+  cMovie movie;
+  cSeries series;
+  ScraperGetEventType call;
+  bool hasAdditionalMedia = false;
+  bool isMovie = false;
+  bool isSeries = false;
+ 
   cEvent* event = (cEvent*)recording->Info()->GetEvent();
 
-  if ( event != NULL )
+  if (event != NULL)
   {
-     if ( event->Title() ) { eventTitle = event->Title(); }
-     if ( event->ShortText() ) { eventShortText = event->ShortText(); }
-     if ( event->Description() ) { eventDescription = event->Description(); }
-     if ( event->StartTime() > 0 ) { eventStartTime = event->StartTime(); }
-     if ( event->Duration() > 0 ) { eventDuration = event->Duration(); }
+     if (event->Title())         { eventTitle = event->Title(); }
+     if (event->ShortText())     { eventShortText = event->ShortText(); }
+     if (event->Description())   { eventDescription = event->Description(); }
+     if (event->StartTime() > 0) { eventStartTime = event->StartTime(); }
+     if (event->Duration() > 0)  { eventDuration = event->Duration(); }
+      
+     static cPlugin *pScraper2Vdr = cPluginManager::GetPlugin("scraper2vdr");
+     if (pScraper2Vdr) {
+        ScraperGetEventType call;
+        call.recording = recording;
+        int seriesId = 0;
+        int episodeId = 0;
+        int movieId = 0;
+        if (pScraper2Vdr->Service("GetEventType", &call)) {
+           //esyslog("restfulapi: Type detected: %d, seriesId %d, episodeId %d, movieId %d", call.type, call.seriesId, call.episodeId, call.movieId);
+           seriesId = call.seriesId;
+           episodeId = call.episodeId;
+           movieId = call.movieId;
+        }
+        if (seriesId > 0) {
+           series.seriesId = seriesId;
+           series.episodeId = episodeId;
+           if (pScraper2Vdr->Service("GetSeries", &series)) {
+              hasAdditionalMedia = true;
+              isSeries = true;
+           }
+        } else if (movieId > 0) {
+           movie.movieId = movieId;
+           if (pScraper2Vdr->Service("GetMovie", &movie)) {
+              hasAdditionalMedia = true;
+              isMovie = true;
+           }
+        }
+     }
   }
 
   s->write(" <recording>\n");
@@ -437,6 +530,27 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr)
   s->write(cString::sprintf("  <param name=\"event_description\">%s</param>\n", StringExtension::encodeToXml(eventDescription).c_str()) );
   s->write(cString::sprintf("  <param name=\"event_start_time\">%i</param>\n", eventStartTime));
   s->write(cString::sprintf("  <param name=\"event_duration\">%i</param>\n", eventDuration));
+
+  s->write("  <param name=\"additional_media\">\n");
+  if (hasAdditionalMedia) {
+     if (isSeries) {
+        if (series.posters.size() > 0) {
+           int posters = series.posters.size();
+           for (int i = 0; i < posters;i++) {
+               s->write(cString::sprintf("    <poster path=\"%s\" width=\"%i\" height=\"%i\" />\n",
+                                          StringExtension::encodeToXml(series.posters[i].path).c_str(), series.posters[i].width, series.posters[i].height ));
+           }
+        }
+        if (series.banners.size() > 0) {
+           s->write(cString::sprintf("    <banner path=\"%s\" width=\"%i\" height=\"%i\" />\n",
+                                      StringExtension::encodeToXml(series.banners[0].path).c_str(), series.banners[0].width, series.banners[0].height ));
+        }
+     } else if (isMovie && (movie.poster.width > 0) && (movie.poster.height > 0) && (movie.poster.path.size() > 0)) {
+        s->write(cString::sprintf("    <poster path=\"%s\" width=\"%i\" height=\"%i\" />\n",
+                                  StringExtension::encodeToXml(movie.poster.path).c_str(), movie.poster.width, movie.poster.height ));
+     }
+  }
+  s->write("   </param>\n");
   s->write(" </recording>\n");
 }
 

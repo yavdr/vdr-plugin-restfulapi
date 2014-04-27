@@ -10,6 +10,7 @@
 
 #include "tools.h"
 #include "epgsearch/services.h"
+#include "services/scraper2tv.h"
 
 #ifndef __RESTFUL_EVENTS_H
 #define __RESTFUL_EVENTS_H
@@ -60,6 +61,10 @@ struct SerEvent
 #ifdef EPG_DETAILS_PATCH
   std::vector< tEpgDetail >* Details;
 #endif
+  bool Scraper;
+  cxxtools::String ScraperPoster;
+  cxxtools::String ScraperFanart;
+  cxxtools::String ScraperBanner;
 };
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e);

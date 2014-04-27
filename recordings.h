@@ -9,6 +9,7 @@
 #include <fstream>
 #include <sstream>
 #include "tools.h"
+#include "services/scraper2tv.h"
 
 #include <vdr/cutter.h>
 #include <vdr/recording.h>
@@ -58,6 +59,10 @@ struct SerRecording
   cxxtools::String EventDescription;
   int EventStartTime;
   int EventDuration;
+  bool Scraper;
+  cxxtools::String ScraperPoster;
+  cxxtools::String ScraperFanart;
+  cxxtools::String ScraperBanner;
 };
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerRecording& p);
