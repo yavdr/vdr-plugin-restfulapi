@@ -414,7 +414,7 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
          serRecording.ScraperPoster = StringExtension::UTF8Decode(movie.poster.path);
      }
   }
-    
+
   SerMarks serMarks;
   if (read_marks) {
      serMarks.marks = VdrMarks::get()->readMarks(recording);
@@ -449,14 +449,14 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr)
   string eventDescription = "";
   int eventStartTime = -1;
   int eventDuration = -1;
-    
+
   cMovie movie;
   cSeries series;
   ScraperGetEventType call;
   bool hasAdditionalMedia = false;
   bool isMovie = false;
   bool isSeries = false;
- 
+
   cEvent* event = (cEvent*)recording->Info()->GetEvent();
 
   if (event != NULL)
@@ -466,7 +466,7 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr)
      if (event->Description())   { eventDescription = event->Description(); }
      if (event->StartTime() > 0) { eventStartTime = event->StartTime(); }
      if (event->Duration() > 0)  { eventDuration = event->Duration(); }
-      
+
      static cPlugin *pScraper2Vdr = cPluginManager::GetPlugin("scraper2vdr");
      if (pScraper2Vdr) {
         ScraperGetEventType call;
@@ -523,11 +523,11 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr)
         s->write(cString::sprintf("   <mark>%s</mark>\n", marks[i].c_str()));
      }
      s->write("  </param>\n");
-  } 
+  }
 
-  s->write(cString::sprintf("  <param name=\"event_title\">%s</param>\n", StringExtension::encodeToXml(eventTitle).c_str()) );
-  s->write(cString::sprintf("  <param name=\"event_short_text\">%s</param>\n", StringExtension::encodeToXml(eventShortText).c_str()) );
-  s->write(cString::sprintf("  <param name=\"event_description\">%s</param>\n", StringExtension::encodeToXml(eventDescription).c_str()) );
+  s->write(cString::sprintf("  <param name=\"event_title\">%s</param>\n", StringExtension::encodeToXml(eventTitle).c_str()));
+  s->write(cString::sprintf("  <param name=\"event_short_text\">%s</param>\n", StringExtension::encodeToXml(eventShortText).c_str()));
+  s->write(cString::sprintf("  <param name=\"event_description\">%s</param>\n", StringExtension::encodeToXml(eventDescription).c_str()));
   s->write(cString::sprintf("  <param name=\"event_start_time\">%i</param>\n", eventStartTime));
   s->write(cString::sprintf("  <param name=\"event_duration\">%i</param>\n", eventDuration));
 
@@ -545,9 +545,49 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr)
            s->write(cString::sprintf("    <banner path=\"%s\" width=\"%i\" height=\"%i\" />\n",
                                       StringExtension::encodeToXml(series.banners[0].path).c_str(), series.banners[0].width, series.banners[0].height ));
         }
-     } else if (isMovie && (movie.poster.width > 0) && (movie.poster.height > 0) && (movie.poster.path.size() > 0)) {
-        s->write(cString::sprintf("    <poster path=\"%s\" width=\"%i\" height=\"%i\" />\n",
+     } else if (isMovie) {
+        if ((movie.poster.width > 0) && (movie.poster.height > 0) && (movie.poster.path.size() > 0)) {
+           s->write(cString::sprintf("    <poster path=\"%s\" width=\"%i\" height=\"%i\" />\n",
                                   StringExtension::encodeToXml(movie.poster.path).c_str(), movie.poster.width, movie.poster.height ));
+        }
+        if (movie.title != "") {
+           s->write(cString::sprintf("    <title>%s</title>\n", StringExtension::encodeToXml(movie.title).c_str()));
+        }
+        if (movie.originalTitle != "") {
+           s->write(cString::sprintf("    <original_title>%s</original_title>\n", StringExtension::encodeToXml(movie.originalTitle).c_str()));
+        }
+        if (movie.tagline != "") {
+           s->write(cString::sprintf("    <tagline>%s</tagline>\n", StringExtension::encodeToXml(movie.tagline).c_str()));
+        }
+        if (movie.overview != "") {
+           s->write(cString::sprintf("    <overview>%s</overview>\n", StringExtension::encodeToXml(movie.overview).c_str()));
+        }
+        if (movie.collectionName != "") {
+           s->write(cString::sprintf("    <collection_name>%s</collection_name>\n", StringExtension::encodeToXml(movie.collectionName).c_str()));
+        }
+        if (movie.genres != "") {
+           s->write(cString::sprintf("    <genres>%s</genres>\n", StringExtension::encodeToXml(movie.genres).c_str()));
+        }
+        if (movie.homepage != "") {
+           s->write(cString::sprintf("    <homepage>%s</homepage>\n", StringExtension::encodeToXml(movie.homepage).c_str()));
+        }
+        if (movie.releaseDate != "") {
+           s->write(cString::sprintf("    <release_date>%s</release_date>\n", StringExtension::encodeToXml(movie.releaseDate).c_str()));
+        }
+        if (movie.popularity > 0) {
+           s->write(cString::sprintf("    <popularity>%.2f</popularity>\n", movie.popularity));
+        }
+        if (movie.voteAverage > 0) {
+           s->write(cString::sprintf("    <vote_average>%.2f</vote_average>\n", movie.voteAverage));
+        }
+        if (movie.actors.size() > 0) {
+           int actors = movie.actors.size();
+           for (int i = 0; i < actors;i++) {
+               s->write(cString::sprintf("    <actor name=\"%s\" role=\"%s\"/>\n",
+                                         StringExtension::encodeToXml(movie.actors[i].name).c_str(), StringExtension::encodeToXml(movie.actors[i].role).c_str() ));
+           }
+        }
+
      }
   }
   s->write("   </param>\n");
