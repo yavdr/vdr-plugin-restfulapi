@@ -61,7 +61,7 @@ struct SerEvent
 #ifdef EPG_DETAILS_PATCH
   std::vector< tEpgDetail >* Details;
 #endif
-  bool Scraper;
+  cxxtools::String Scraper;
   cxxtools::String ScraperPoster;
   cxxtools::String ScraperFanart;
   cxxtools::String ScraperBanner;
