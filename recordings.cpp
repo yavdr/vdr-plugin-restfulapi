@@ -690,34 +690,43 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr)
         }
          
         if (series.actors.size() > 0) {
-            int actors = series.actors.size();
-            for (int i = 0; i < actors;i++) {
-                s->write(cString::sprintf("    <actor name=\"%s\" role=\"%s\" thumb=\"%s\"/>\n",
-                                          StringExtension::encodeToXml(series.actors[i].name).c_str(),
-                                          StringExtension::encodeToXml(series.actors[i].role).c_str(),
-                                          StringExtension::encodeToXml(series.actors[i].actorThumb.path).c_str() ));
-            }
+           int _actors = series.actors.size();
+           for (int i = 0; i < _actors; i++) {
+               s->write(cString::sprintf("    <actor name=\"%s\" role=\"%s\" thumb=\"%s\"/>\n",
+                                         StringExtension::encodeToXml(series.actors[i].name).c_str(),
+                                         StringExtension::encodeToXml(series.actors[i].role).c_str(),
+                                         StringExtension::encodeToXml(series.actors[i].actorThumb.path).c_str() ));
+           }
         }
         if (series.posters.size() > 0) {
-           int posters = series.posters.size();
-           for (int i = 0; i < posters;i++) {
-               s->write(cString::sprintf("    <poster path=\"%s\" width=\"%i\" height=\"%i\" />\n",
-                                         StringExtension::encodeToXml(series.posters[i].path).c_str(), series.posters[i].width, series.posters[i].height ));
+           int _posters = series.posters.size();
+           for (int i = 0; i < _posters; i++) {
+               if ((series.posters[i].width > 0) && (series.posters[i].height > 0))
+                  s->write(cString::sprintf("    <poster path=\"%s\" width=\"%i\" height=\"%i\" />\n",
+                                            StringExtension::encodeToXml(series.posters[i].path).c_str(), series.posters[i].width, series.posters[i].height));
            }
         }
         if (series.banners.size() > 0) {
-           s->write(cString::sprintf("    <banner path=\"%s\" width=\"%i\" height=\"%i\" />\n",
-                                     StringExtension::encodeToXml(series.banners[0].path).c_str(), series.banners[0].width, series.banners[0].height ));
+           int _banners = series.banners.size();
+           for (int i = 0; i < _banners; i++) {
+               if ((series.banners[i].width > 0) && (series.banners[i].height > 0))
+                  s->write(cString::sprintf("    <banner path=\"%s\" width=\"%i\" height=\"%i\" />\n",
+                                            StringExtension::encodeToXml(series.banners[i].path).c_str(), series.banners[i].width, series.banners[i].height));
+           }
         }
         if (series.fanarts.size() > 0) {
-           s->write(cString::sprintf("    <fanart path=\"%s\" width=\"%i\" height=\"%i\" />\n",
-                                     StringExtension::encodeToXml(series.fanarts[0].path).c_str(), series.fanarts[0].width, series.fanarts[0].height ));
+           int _fanarts = series.fanarts.size();
+           for (int i = 0; i < _fanarts; i++) {
+               if ((series.fanarts[i].width > 0) && (series.fanarts[i].height > 0))
+                  s->write(cString::sprintf("    <fanart path=\"%s\" width=\"%i\" height=\"%i\" />\n",
+                                            StringExtension::encodeToXml(series.fanarts[i].path).c_str(), series.fanarts[i].width, series.fanarts[i].height));
+           }
         }
         if ((series.seasonPoster.width > 0) && (series.seasonPoster.height > 0) && (series.seasonPoster.path.size() > 0)) {
            s->write(cString::sprintf("    <season_poster path=\"%s\" width=\"%i\" height=\"%i\" />\n",
-                                     StringExtension::encodeToXml(series.seasonPoster.path).c_str(), series.seasonPoster.width, series.seasonPoster.height ));
+                                     StringExtension::encodeToXml(series.seasonPoster.path).c_str(), series.seasonPoster.width, series.seasonPoster.height));
         }
-        s->write("</param>\n");
+        s->write("  </param>\n");
 
      } else if (isMovie) {
         s->write("  <param name=\"additional_media\" type=\"movie\">\n");
@@ -766,30 +775,30 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr)
         }
         if ((movie.poster.width > 0) && (movie.poster.height > 0) && (movie.poster.path.size() > 0)) {
            s->write(cString::sprintf("    <poster path=\"%s\" width=\"%i\" height=\"%i\" />\n",
-                                     StringExtension::encodeToXml(movie.poster.path).c_str(), movie.poster.width, movie.poster.height ));
+                                     StringExtension::encodeToXml(movie.poster.path).c_str(), movie.poster.width, movie.poster.height));
         }
         if ((movie.fanart.width > 0) && (movie.fanart.height > 0) && (movie.fanart.path.size() > 0)) {
            s->write(cString::sprintf("    <fanart path=\"%s\" width=\"%i\" height=\"%i\" />\n",
-                                     StringExtension::encodeToXml(movie.fanart.path).c_str(), movie.fanart.width, movie.fanart.height ));
+                                     StringExtension::encodeToXml(movie.fanart.path).c_str(), movie.fanart.width, movie.fanart.height));
         }
         if ((movie.collectionPoster.width > 0) && (movie.collectionPoster.height > 0) && (movie.collectionPoster.path.size() > 0)) {
            s->write(cString::sprintf("    <collection_poster path=\"%s\" width=\"%i\" height=\"%i\" />\n",
-                                     StringExtension::encodeToXml(movie.collectionPoster.path).c_str(), movie.collectionPoster.width, movie.collectionPoster.height ));
+                                     StringExtension::encodeToXml(movie.collectionPoster.path).c_str(), movie.collectionPoster.width, movie.collectionPoster.height));
         }
         if ((movie.collectionFanart.width > 0) && (movie.collectionFanart.height > 0) && (movie.collectionFanart.path.size() > 0)) {
            s->write(cString::sprintf("    <collection_fanart path=\"%s\" width=\"%i\" height=\"%i\" />\n",
-                                     StringExtension::encodeToXml(movie.collectionFanart.path).c_str(), movie.collectionFanart.width, movie.collectionFanart.height ));
+                                     StringExtension::encodeToXml(movie.collectionFanart.path).c_str(), movie.collectionFanart.width, movie.collectionFanart.height));
         }
         if (movie.actors.size() > 0) {
-           int actors = movie.actors.size();
-           for (int i = 0; i < actors;i++) {
+           int _actors = movie.actors.size();
+           for (int i = 0; i < _actors; i++) {
                s->write(cString::sprintf("    <actor name=\"%s\" role=\"%s\" thumb=\"%s\"/>\n",
                                          StringExtension::encodeToXml(movie.actors[i].name).c_str(),
                                          StringExtension::encodeToXml(movie.actors[i].role).c_str(),
-                                         StringExtension::encodeToXml(movie.actors[i].actorThumb.path).c_str() ));
+                                         StringExtension::encodeToXml(movie.actors[i].actorThumb.path).c_str()));
            }
         }
-        s->write("</param>\n");
+        s->write("  </param>\n");
      }
   }
   s->write(" </recording>\n");
