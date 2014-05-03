@@ -6,7 +6,7 @@ void EventsResponder::reply(ostream& out, cxxtools::http::Request& request, cxxt
   QueryHandler::addHeader(reply);
   if ( (int)request.url().find("/events/image/") == 0 ) {
      replyImage(out, request, reply);
-  } else if ( (int)request.url().find("/events/search") == 0 ){
+  } else if ( (int)request.url().find("/events/search") == 0 ) {
      replySearchResult(out, request, reply);
   } else {
      replyEvents(out, request, reply);
@@ -185,9 +185,9 @@ void EventsResponder::replySearchResult(ostream& out, cxxtools::http::Request& r
  
   int mode = q.getBodyAsInt("mode");// search mode (0=phrase, 1=and, 2=or, 3=regular expression)
   string channelid = q.getBodyAsString("channel"); //id !!
-  bool use_title = q.getBodyAsString("use_title") == "true";
-  bool use_subtitle = q.getBodyAsString("use_subtitle") == "true";
-  bool use_description = q.getBodyAsString("use_description") == "true";
+  bool use_title = q.getBodyAsBool("use_title");
+  bool use_subtitle = q.getBodyAsBool("use_subtitle");
+  bool use_description = q.getBodyAsBool("use_description");
 
   if ( query.length() == 0 ) {
      reply.httpReturn(402, "Query required");
