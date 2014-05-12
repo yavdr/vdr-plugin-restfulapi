@@ -522,7 +522,6 @@ void XmlEventList::addEvent(cEvent* event)
   if ( event->ShortText() == NULL ) { eventShortText = ""; } else { eventShortText = event->ShortText(); }
   if ( event->Description() == NULL ) { eventDescription = ""; } else { eventDescription = event->Description(); }
     
-    
   cMovie movie;
   cSeries series;
   ScraperGetEventType call;
@@ -624,7 +623,7 @@ void XmlEventList::addEvent(cEvent* event)
   uchar content = event->Contents(counter);
   while(content != 0) {
     counter++;
-    s->write(cString::sprintf("   <content name=\"%s\" />\n", cEvent::ContentToString(content)));
+    s->write(cString::sprintf("   <content name=\"%s\" />\n", StringExtension::encodeToXml(cEvent::ContentToString(content)).c_str() ));
     content = event->Contents(counter);
   }
   s->write("  </param>\n");
