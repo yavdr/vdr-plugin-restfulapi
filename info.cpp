@@ -284,7 +284,6 @@ void InfoResponder::replyXml(StreamExtension& se)
   se.write(" </diskusage>\n");
 
   se.write(cString::sprintf(" <recording>%s</recording>\n", statm->isRecord() ? "true" : "false" ));  
-  se.write(cString::sprintf(" <diskspace>%s</diskspace>\n", StringExtension::encodeToXml(VdrExtension::getVideoDiskSpace()).c_str())); 
 
   se.write(" <vdr>\n"); 
   se.write(cString::sprintf("  <version>%s</version>\n", VDRVERSION));
