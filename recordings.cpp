@@ -75,6 +75,7 @@ void RecordingsResponder::playRecording(std::ostream& out, cxxtools::http::Reque
 {
   QueryHandler q("/recordings/play", request);
   int recording_number = q.getParamAsInt(0);
+  cThreadLock RecordingsLock(&Recordings);
   if ( recording_number < 0 || recording_number >= Recordings.Count() ) {
      reply.httpReturn(404, "Wrong recording number!");
   } else {
@@ -91,6 +92,7 @@ void RecordingsResponder::rewindRecording(std::ostream& out, cxxtools::http::Req
 {
   QueryHandler q("/recordings/rewind", request);
   int recording_number = q.getParamAsInt(0);
+  cThreadLock RecordingsLock(&Recordings);
   if ( recording_number < 0 || recording_number >= Recordings.Count() ) {
      reply.httpReturn(404, "Wrong recording number!");
   } else {
@@ -108,6 +110,7 @@ void RecordingsResponder::deleteRecording(ostream& out, cxxtools::http::Request&
 {
   QueryHandler q("/recordings", request);
   int recording_number = q.getParamAsInt(0);
+  cThreadLock RecordingsLock(&Recordings);
   if ( recording_number < 0 || recording_number >= Recordings.Count() ) { 
      reply.httpReturn(404, "Wrong recording number!");
   } else {
@@ -148,14 +151,13 @@ void RecordingsResponder::showRecordings(ostream& out, cxxtools::http::Request& 
   }
 
   recordingList->init();
-  
-  cRecording* recording = NULL;
-  for (int i = 0; i < Recordings.Count();i++) {
-     if ( requested_item == i || requested_item < 0 ) {
-        recording = Recordings.Get(i);
-        recordingList->addRecording(recording, i); 
-     }
-  }
+
+  cThreadLock RecordingsLock(&Recordings);
+  if ( requested_item < 0 ) {
+     for (int i = 0; i < Recordings.Count(); i++)
+        recordingList->addRecording(Recordings.Get(i), i);
+  } else if ( requested_item < Recordings.Count() )
+     recordingList->addRecording(Recordings.Get(requested_item), requested_item);
   recordingList->setTotal(Recordings.Count());
 
   recordingList->finish();
@@ -172,29 +174,31 @@ void RecordingsResponder::saveMarks(ostream& out, cxxtools::http::Request& reque
      reply.httpReturn(503, "Marks in HTTP-Body are missing.");
   }
 
-  if (recording < 0 && recording >= Recordings.Count()) {
+  cThreadLock RecordingsLock(&Recordings);
+  if (recording < 0 || recording >= Recordings.Count()) {
      reply.httpReturn(504, "Recording number missing or invalid.");
-  }
+  } else {
+     vector< string > marks;
 
-  vector< string > marks;
-
-  for(int i=0;i<jsonArray->CountItem();i++) {
-     JsonBase* jsonBase = jsonArray->GetItem(i);
-     if (jsonBase->IsBasicValue()) {
-        JsonBasicValue* jsonBasicValue = (JsonBasicValue*)jsonBase;
-        if (jsonBasicValue->IsString()) {
-           marks.push_back(jsonBasicValue->ValueAsString());
+     for (int i = 0; i < jsonArray->CountItem(); i++) {
+        JsonBase* jsonBase = jsonArray->GetItem(i);
+        if (jsonBase->IsBasicValue()) {
+           JsonBasicValue* jsonBasicValue = (JsonBasicValue*)jsonBase;
+           if (jsonBasicValue->IsString()) {
+              marks.push_back(jsonBasicValue->ValueAsString());
+           }
         }
      }
-  }
 
-  VdrMarks::get()->saveMarks(Recordings.Get(recording), marks);
+     VdrMarks::get()->saveMarks(Recordings.Get(recording), marks);
+  }
 }
 
 void RecordingsResponder::deleteMarks(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/recordings/marks", request);
   int rec_number = q.getParamAsInt(0);
+  cThreadLock RecordingsLock(&Recordings);
   if (rec_number >= 0 && rec_number < Recordings.Count()) {
      cRecording* recording = Recordings.Get(rec_number);
      if (VdrMarks::get()->deleteMarks(recording)) {
@@ -208,6 +212,7 @@ void RecordingsResponder::cutRecording(ostream& out, cxxtools::http::Request& re
 {
   QueryHandler q("/recordings/cut", request);
   int rec_number = q.getParamAsInt(0);
+  cThreadLock RecordingsLock(&Recordings);
   if (rec_number >= 0 && rec_number < Recordings.Count()) {
      cRecording* recording = Recordings.Get(rec_number);
 #if APIVERSNUM > 20101
