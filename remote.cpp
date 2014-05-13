@@ -72,6 +72,7 @@ KeyPairList::KeyPairList()
   append( "power" , 		kPower 		);
   append( "chanup" , 		kChanUp 	);
   append( "chandn" , 		kChanDn 	);
+  append( "chanprev",   kChanPrev    );  
   append( "volup" , 		kVolUp 		);
   append( "voldn" , 		kVolDn 		);
   append( "mute" , 		kMute 		);
