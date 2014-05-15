@@ -271,6 +271,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerTimer& t)
   si.addMember("is_pending") <<= t.IsPending;
   si.addMember("is_recording") <<= t.IsRecording;
   si.addMember("is_active") <<= t.IsActive;
+  si.addMember("aux") <<= t.Aux;
 }
 
 TimerList::TimerList(ostream *out)
@@ -324,6 +325,7 @@ void JsonTimerList::addTimer(cTimer* timer)
   serTimer.FileName = StringExtension::UTF8Decode(timer->File());
   serTimer.ChannelName = StringExtension::UTF8Decode(timer->Channel()->Name());
   serTimer.IsActive = timer->Flags() & 0x01 == 0x01 ? true : false;
+  serTimer.Aux = StringExtension::UTF8Decode(timer->Aux() != NULL ? timer->Aux() : "");
 
   int tstart = timer->Day() - ( timer->Day() % 3600 ) + ((int)(timer->Start()/100)) * 3600 + ((int)(timer->Start()%100)) * 60;
   int tstop = timer->Day() - ( timer->Day() % 3600 ) + ((int)(timer->Stop()/100)) * 3600 + ((int)(timer->Stop()%100)) * 60;
@@ -382,6 +384,7 @@ void XmlTimerList::addTimer(cTimer* timer)
   s->write(cString::sprintf("  <param name=\"file_name\">%s</param>\n", StringExtension::encodeToXml(timer->File()).c_str()) );
   s->write(cString::sprintf("  <param name=\"channel_name\">%s</param>\n", StringExtension::encodeToXml(timer->Channel()->Name()).c_str()));
   s->write(cString::sprintf("  <param name=\"is_active\">%s</param>\n", timer->Flags() & 0x01 == 0x01 ? "true" : "false" ));
+  s->write(cString::sprintf("  <param name=\"aux\">%s</param>\n", StringExtension::encodeToXml(timer->Aux() != NULL ? timer->Aux() : "").c_str()));
   s->write(" </timer>\n");
 }
 
@@ -414,7 +417,7 @@ bool TimerValues::IsDayValid(string v)
 
 bool TimerValues::IsFlagsValid(int v)
 {
-  if ( v == 0x0000 || v == 0x0001 || v == 0x0002 || v == 0x0004 || v == 0x0008 || v == 0xFFFF ) 
+  if ( v == 0x0000 || v == 0x0001 || v == 0x0002 || v == 0x0004 || v == 0x0005 || v == 0x0008 || v == 0xFFFF ) 
      return true;
   return false;
 }
