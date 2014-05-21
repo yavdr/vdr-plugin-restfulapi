@@ -53,8 +53,8 @@ void EventsResponder::replyEvents(ostream& out, cxxtools::http::Request& request
 
   cChannel* channel = VdrExtension::getChannel(channel_id);
   if ( channel == NULL ) { 
-     reply.addHeader("Content-Type", "application/octet-stream");
-     /*string error_message = (string)"Could not find channel with id: " + channel_id + (string)"!";
+     /*reply.addHeader("Content-Type", "application/octet-stream");
+     string error_message = (string)"Could not find channel with id: " + channel_id + (string)"!";
      reply.httpReturn(404, error_message); 
      return;*/
   }
