@@ -149,10 +149,10 @@ void InfoResponder::replyXml(StreamExtension& se)
         string eventTitle = "";
         if ( event->Title() != NULL ) { eventTitle = event->Title(); }
 
-	se.write(cString::sprintf(" <eventid>%i</eventid>\n", event->EventID()));
-    se.write(cString::sprintf(" <start_time>%i</start_time>\n", (int)event->StartTime()));
-    se.write(cString::sprintf(" <duration>%i</duration>\n", (int)event->Duration()));
-    se.write(cString::sprintf(" <title>%s</title>\n", StringExtension::encodeToXml(eventTitle).c_str()));
+        se.write(cString::sprintf(" <eventid>%i</eventid>\n", event->EventID()));
+        se.write(cString::sprintf(" <start_time>%i</start_time>\n", (int)event->StartTime()));
+        se.write(cString::sprintf(" <duration>%i</duration>\n", (int)event->Duration()));
+        se.write(cString::sprintf(" <title>%s</title>\n", StringExtension::encodeToXml(eventTitle).c_str()));
      }
   }
   SerDiskSpaceInfo ds;
