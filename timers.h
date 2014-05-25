@@ -53,6 +53,7 @@ struct SerTimer
   bool IsActive;
   cxxtools::String FileName;
   cxxtools::String ChannelName;
+  cxxtools::String Aux;
 };
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerTimer& t);
