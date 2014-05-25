@@ -9,7 +9,7 @@
 #include <fstream>
 #include <sstream>
 #include "tools.h"
-#include "services/scraper2tv.h"
+#include "services/scraper2vdr.h"
 
 #include <vdr/cutter.h>
 #include <vdr/recording.h>

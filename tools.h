@@ -335,5 +335,8 @@ class TaskScheduler
     cRecording* SwitchableRecording() { return _recording; }
 };
 
+// Scraper Plugins
+cPlugin *GetScraperPlugin(void);
+
 #endif
 

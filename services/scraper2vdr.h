@@ -1,6 +1,8 @@
 #ifndef __SCRAPER2VDRSERVICES_H
 #define __SCRAPER2VDRSERVICES_H
 
+#include <string>
+#include <vector>
 #include <vdr/epg.h>
 #include <vdr/recording.h>
 
