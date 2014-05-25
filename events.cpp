@@ -409,33 +409,33 @@ void JsonEventList::addEvent(cEvent* event)
   bool isMovie = false;
   bool isSeries = false;
    
-  static cPlugin *pScraper2Vdr = cPluginManager::GetPlugin("scraper2vdr");
-  if (pScraper2Vdr) {
-      ScraperGetEventType call;
-      call.event = event;
-      int seriesId = 0;
-      int episodeId = 0;
-      int movieId = 0;
-      if (pScraper2Vdr->Service("GetEventType", &call)) {
-          //esyslog("restfulapi: Type detected: %d, seriesId %d, episodeId %d, movieId %d", call.type, call.seriesId, call.episodeId, call.movieId);
-          seriesId = call.seriesId;
-          episodeId = call.episodeId;
-          movieId = call.movieId;
-      }
-      if (seriesId > 0) {
-          series.seriesId = seriesId;
-          series.episodeId = episodeId;
-          if (pScraper2Vdr->Service("GetSeries", &series)) {
-              hasAdditionalMedia = true;
-              isSeries = true;
-          }
-      } else if (movieId > 0) {
-          movie.movieId = movieId;
-          if (pScraper2Vdr->Service("GetMovie", &movie)) {
-              hasAdditionalMedia = true;
-              isMovie = true;
-          }
-      }
+  static cPlugin *pScraper = GetScraperPlugin();
+  if (pScraper) {
+     ScraperGetEventType call;
+     call.event = event;
+     int seriesId = 0;
+     int episodeId = 0;
+     int movieId = 0;
+     if (pScraper->Service("GetEventType", &call)) {
+        //esyslog("restfulapi: Type detected: %d, seriesId %d, episodeId %d, movieId %d", call.type, call.seriesId, call.episodeId, call.movieId);
+        seriesId = call.seriesId;
+        episodeId = call.episodeId;
+        movieId = call.movieId;
+     }
+     if (seriesId > 0) {
+        series.seriesId = seriesId;
+        series.episodeId = episodeId;
+        if (pScraper->Service("GetSeries", &series)) {
+           hasAdditionalMedia = true;
+           isSeries = true;
+        }
+     } else if (movieId > 0) {
+        movie.movieId = movieId;
+        if (pScraper->Service("GetMovie", &movie)) {
+           hasAdditionalMedia = true;
+           isMovie = true;
+        }
+     }
   }
 
   serEvent.Id = event->EventID();
@@ -529,34 +529,34 @@ void XmlEventList::addEvent(cEvent* event)
   bool isMovie = false;
   bool isSeries = false;
 
-  static cPlugin *pScraper2Vdr = cPluginManager::GetPlugin("scraper2vdr");
-   if (pScraper2Vdr) {
-      ScraperGetEventType call;
-      call.event = event;
-      int seriesId = 0;
-      int episodeId = 0;
-      int movieId = 0;
-      if (pScraper2Vdr->Service("GetEventType", &call)) {
-         //esyslog("restfulapi: Type detected: %d, seriesId %d, episodeId %d, movieId %d", call.type, call.seriesId, call.episodeId, call.movieId);
-         seriesId = call.seriesId;
-         episodeId = call.episodeId;
-         movieId = call.movieId;
-      }
-      if (seriesId > 0) {
-         series.seriesId = seriesId;
-         series.episodeId = episodeId;
-         if (pScraper2Vdr->Service("GetSeries", &series)) {
-            hasAdditionalMedia = true;
-            isSeries = true;
-         }
-      } else if (movieId > 0) {
-         movie.movieId = movieId;
-         if (pScraper2Vdr->Service("GetMovie", &movie)) {
-            hasAdditionalMedia = true;
-            isMovie = true;
-         }
-      }
-   }
+  static cPlugin *pScraper = GetScraperPlugin();
+  if (pScraper) {
+     ScraperGetEventType call;
+     call.event = event;
+     int seriesId = 0;
+     int episodeId = 0;
+     int movieId = 0;
+     if (pScraper->Service("GetEventType", &call)) {
+        //esyslog("restfulapi: Type detected: %d, seriesId %d, episodeId %d, movieId %d", call.type, call.seriesId, call.episodeId, call.movieId);
+        seriesId = call.seriesId;
+        episodeId = call.episodeId;
+        movieId = call.movieId;
+     }
+     if (seriesId > 0) {
+        series.seriesId = seriesId;
+        series.episodeId = episodeId;
+        if (pScraper->Service("GetSeries", &series)) {
+           hasAdditionalMedia = true;
+           isSeries = true;
+        }
+     } else if (movieId > 0) {
+        movie.movieId = movieId;
+        if (pScraper->Service("GetMovie", &movie)) {
+           hasAdditionalMedia = true;
+           isMovie = true;
+        }
+     }
+  }
    
   s->write(" <event>\n");
   s->write(cString::sprintf("  <param name=\"id\">%i</param>\n", event->EventID()));

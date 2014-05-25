@@ -10,7 +10,7 @@
 
 #include "tools.h"
 #include "epgsearch/services.h"
-#include "services/scraper2tv.h"
+#include "services/scraper2vdr.h"
 
 #ifndef __RESTFUL_EVENTS_H
 #define __RESTFUL_EVENTS_H

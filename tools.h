@@ -334,5 +334,8 @@ class TaskScheduler
     bool IsRewind() { return _bRewind; }
 };
 
+// Scraper Plugins
+cPlugin *GetScraperPlugin(void);
+
 #endif
 

@@ -347,14 +347,14 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
      if (event->StartTime() > 0) { eventStartTime = event->StartTime(); }
      if (event->Duration() > 0)  { eventDuration = event->Duration(); }
         
-     static cPlugin *pScraper2Vdr = cPluginManager::GetPlugin("scraper2vdr");
-     if (pScraper2Vdr) {
+     static cPlugin *pScraper = GetScraperPlugin();
+     if (pScraper) {
         ScraperGetEventType call;
         call.recording = recording;
         int seriesId = 0;
         int episodeId = 0;
         int movieId = 0;
-        if (pScraper2Vdr->Service("GetEventType", &call)) {
+        if (pScraper->Service("GetEventType", &call)) {
            //esyslog("restfulapi: Type detected: %d, seriesId %d, episodeId %d, movieId %d", call.type, call.seriesId, call.episodeId, call.movieId);
            seriesId = call.seriesId;
            episodeId = call.episodeId;
@@ -363,13 +363,13 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
         if (seriesId > 0) {
            series.seriesId = seriesId;
            series.episodeId = episodeId;
-           if (pScraper2Vdr->Service("GetSeries", &series)) {
+           if (pScraper->Service("GetSeries", &series)) {
               hasAdditionalMedia = true;
               isSeries = true;
            }
         } else if (movieId > 0) {
            movie.movieId = movieId;
-           if (pScraper2Vdr->Service("GetMovie", &movie)) {
+           if (pScraper->Service("GetMovie", &movie)) {
               hasAdditionalMedia = true;
               isMovie = true;
            }
@@ -476,14 +476,14 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr)
      if (event->StartTime() > 0) { eventStartTime = event->StartTime(); }
      if (event->Duration() > 0)  { eventDuration = event->Duration(); }
 
-     static cPlugin *pScraper2Vdr = cPluginManager::GetPlugin("scraper2vdr");
-     if (pScraper2Vdr) {
+     static cPlugin *pScraper = GetScraperPlugin();
+     if (pScraper) {
         ScraperGetEventType call;
         call.recording = recording;
         int seriesId = 0;
         int episodeId = 0;
         int movieId = 0;
-        if (pScraper2Vdr->Service("GetEventType", &call)) {
+        if (pScraper->Service("GetEventType", &call)) {
            //esyslog("restfulapi: Type detected: %d, seriesId %d, episodeId %d, movieId %d", call.type, call.seriesId, call.episodeId, call.movieId);
            seriesId = call.seriesId;
            episodeId = call.episodeId;
@@ -492,13 +492,13 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr)
         if (seriesId > 0) {
            series.seriesId = seriesId;
            series.episodeId = episodeId;
-           if (pScraper2Vdr->Service("GetSeries", &series)) {
+           if (pScraper->Service("GetSeries", &series)) {
               hasAdditionalMedia = true;
               isSeries = true;
            }
         } else if (movieId > 0) {
            movie.movieId = movieId;
-           if (pScraper2Vdr->Service("GetMovie", &movie)) {
+           if (pScraper->Service("GetMovie", &movie)) {
               hasAdditionalMedia = true;
               isMovie = true;
            }
