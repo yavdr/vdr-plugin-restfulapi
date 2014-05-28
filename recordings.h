@@ -22,6 +22,7 @@ class RecordingsResponder : public cxxtools::http::Responder
 
     virtual void reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void deleteRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+    void deleteRecordingByName(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void showRecordings(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void saveMarks(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void deleteMarks(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
@@ -29,6 +30,7 @@ class RecordingsResponder : public cxxtools::http::Responder
     void showCutterStatus(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void playRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void rewindRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+    void moveRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
 };
 
 typedef cxxtools::http::CachedService<RecordingsResponder> RecordingsService;
