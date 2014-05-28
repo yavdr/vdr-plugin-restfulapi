@@ -154,9 +154,10 @@ class FileCaches
     };
 };
 
-
 class VdrExtension
 {
+  private:
+    static bool MoveDirectory(std::string const & sourceDir, std::string const & targetDir, bool copy = false);
   public:
     static cChannel* getChannel(int number);
     static cChannel* getChannel(std::string id);
@@ -173,6 +174,9 @@ class VdrExtension
     static cEvent* GetEventById(tEventID eventID, cChannel* channel = NULL);
     static std::string getRelativeVideoPath(cRecording* recording);
     static cEvent* getCurrentEventOnChannel(cChannel* channel);
+    static std::string getVideoDiskSpace();
+    static std::string FileSystemExchangeChars(std::string const & s, bool ToFileSystem);
+    static bool MoveRecording(cRecording const * recording, std::string const & name, bool copy = false);
 };
 
 class VdrMarks
@@ -229,6 +233,7 @@ class QueryHandler
     std::string getBodyAsString(std::string name);        //Are variables in the body of the http-request -> for now only html/json are supported, xml is not implemented (!)
     int getParamAsInt(int level);
     int getOptionAsInt(std::string name);
+    bool getOptionAsBool(std::string name);
     int getBodyAsInt(std::string name);
     bool getBodyAsBool(std::string name);
     JsonArray* getBodyAsArray(std::string name);
