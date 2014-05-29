@@ -548,14 +548,15 @@ This service can delete recordings and can also return all the recordings as a l
 <b>The Request:</b>
 <br />
 <br />
-Method: <b>GET, DELETE</b><br />
+Method: <b>GET, DELETE, POST</b><br />
 <br />
 Examples: <br/>
 <br />
 <div class="code"><code>
 GET http://&lt;ip&gt;:&lt;port&gt;/recordings/.&lt;format&gt;<br />
 GET http://&lt;ip&gt;:&lt;port&gt;/recordings/&lt;recordingnumber&gt;.&lt;format&gt;?marks=true<br />
-DELETE http://&lt;ip&gt;:&lt;port&gt;/recordings/&lt;number&gt;
+DELETE http://&lt;ip&gt;:&lt;port&gt;/recordings/&lt;number&gt;<br />
+POST http://&lt;ip&gt;:&lt;port&gt;/recordings/move?&lt;source&gt;&amp;&lt;target&gt;
 </code></div>
 <br />
 <br />
@@ -566,6 +567,8 @@ DELETE http://&lt;ip&gt;:&lt;port&gt;/recordings/&lt;number&gt;
 <li>&lt;format&gt; - The requested format: json, xml or html.
 <li>&lt;number&gt; - The number of the recording which you want to delete. (The first recordings has the number 0.)
 <li>&lt;recordingnumber&gt; - The number of the recording you want to retrieve.
+<li>&lt;source&gt; - The full (url encoded) source path of the recording.
+<li>&lt;target&gt; - The relative (url encoded) target path of the recording.
 <li>marks=true - add the cutting marks by reading the marks file from the recording directory
 <li>start, limit - These values are used to control the whole list. Start ist the first element you want to retrieve. Limit...
 </ul>
@@ -624,6 +627,13 @@ GET http://127.0.0.1:8002/recordings.json?start=0&amp;limit=1i&amp;marks=true<br
 </code></div>
 <br />
 <br />
+
+<div class="code"><code>
+POST "http://127.0.0.1:8002/recordings/move?source=/path/to/videodir/my_recording/YYYY-MM-DD.hh.mm.ss-0.rec&amp;target=relative/path/to/renamed recording"
+</code></div>
+<br />
+<br />
+
 
 <h2><a name="RecordingCut">Cut</a></h2>
 
