@@ -74,7 +74,7 @@ void RecordingsResponder::reply(ostream& out, cxxtools::http::Request& request, 
      } else if (request.method() == "POST") {
         deleteRecordingByName(out, request, reply);
      } else {
-        reply.httpReturn(501, "Only GET and DELETE methods are supported by the /recordings service.");
+        reply.httpReturn(501, "Only GET, POST and DELETE methods are supported by the /recordings service.");
      }
      found = true;
   }
@@ -125,10 +125,10 @@ void RecordingsResponder::rewindRecording(std::ostream& out, cxxtools::http::Req
 void RecordingsResponder::moveRecording(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/recordings/move", request);
-  string sourceDir = q.getOptionAsString("source");
-  string targetDir = q.getOptionAsString("target");
-//  string directory = q.getOptionAsString("directory");
-  bool copy_only = q.getOptionAsBool("copy_only");
+  string sourceDir = q.getBodyAsString("source");
+  string targetDir = q.getBodyAsString("target");
+//  string directory = q.getBodyAsString("directory");
+  bool copy_only = q.getBodyAsBool("copy_only");
   if (!copy_only)
      cThreadLock RecordingsLock(&Recordings);
   if (sourceDir.length() > 0 && targetDir.length() > 0) {
@@ -153,7 +153,7 @@ void RecordingsResponder::moveRecording(ostream& out, cxxtools::http::Request& r
 void RecordingsResponder::deleteRecordingByName(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/recordings/delete", request);
-  string recording_file = q.getOptionAsString("file");
+  string recording_file = q.getBodyAsString("file");
   cThreadLock RecordingsLock(&Recordings);
   if (recording_file.length() > 0) {
      cRecording* delRecording = Recordings.GetByName(recording_file.c_str());
