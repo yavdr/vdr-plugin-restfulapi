@@ -6,7 +6,7 @@ void EventsResponder::reply(ostream& out, cxxtools::http::Request& request, cxxt
   QueryHandler::addHeader(reply);
   if ( (int)request.url().find("/events/image/") == 0 ) {
      replyImage(out, request, reply);
-  } else if ( (int)request.url().find("/events/search") == 0 ){
+  } else if ( (int)request.url().find("/events/search") == 0 ) {
      replySearchResult(out, request, reply);
   } else {
      replyEvents(out, request, reply);
@@ -52,8 +52,8 @@ void EventsResponder::replyEvents(ostream& out, cxxtools::http::Request& request
 
   cChannel* channel = VdrExtension::getChannel(channel_id);
   if ( channel == NULL ) { 
-     reply.addHeader("Content-Type", "application/octet-stream");
-     /*string error_message = (string)"Could not find channel with id: " + channel_id + (string)"!";
+     /*reply.addHeader("Content-Type", "application/octet-stream");
+     string error_message = (string)"Could not find channel with id: " + channel_id + (string)"!";
      reply.httpReturn(404, error_message); 
      return;*/
   }
@@ -333,6 +333,10 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)
 #ifdef EPG_DETAILS_PATCH
   si.addMember("details") <<= *e.Details;
 #endif
+  si.addMember("additional_media") <<= e.Scraper;
+  si.addMember("poster") <<= e.ScraperPoster;
+  //  si.addMember("fanart") <<= e.ScraperFanart;
+  si.addMember("banner") <<= e.ScraperBanner;
 }
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerComponent& c)
@@ -397,6 +401,42 @@ void JsonEventList::addEvent(cEvent* event)
   if( !event->Title() ) { eventTitle = empty; } else { eventTitle = StringExtension::UTF8Decode(event->Title()); }
   if( !event->ShortText() ) { eventShortText = empty; } else { eventShortText = StringExtension::UTF8Decode(event->ShortText()); }
   if( !event->Description() ) { eventDescription = empty; } else { eventDescription = StringExtension::UTF8Decode(event->Description()); }
+    
+  cMovie movie;
+  cSeries series;
+  ScraperGetEventType call;
+  bool hasAdditionalMedia = false;
+  bool isMovie = false;
+  bool isSeries = false;
+   
+  static cPlugin *pScraper = GetScraperPlugin();
+  if (pScraper) {
+     ScraperGetEventType call;
+     call.event = event;
+     int seriesId = 0;
+     int episodeId = 0;
+     int movieId = 0;
+     if (pScraper->Service("GetEventType", &call)) {
+        //esyslog("restfulapi: Type detected: %d, seriesId %d, episodeId %d, movieId %d", call.type, call.seriesId, call.episodeId, call.movieId);
+        seriesId = call.seriesId;
+        episodeId = call.episodeId;
+        movieId = call.movieId;
+     }
+     if (seriesId > 0) {
+        series.seriesId = seriesId;
+        series.episodeId = episodeId;
+        if (pScraper->Service("GetSeries", &series)) {
+           hasAdditionalMedia = true;
+           isSeries = true;
+        }
+     } else if (movieId > 0) {
+        movie.movieId = movieId;
+        if (pScraper->Service("GetMovie", &movie)) {
+           hasAdditionalMedia = true;
+           isMovie = true;
+        }
+     }
+  }
 
   serEvent.Id = event->EventID();
   serEvent.Title = eventTitle;
@@ -429,6 +469,27 @@ void JsonEventList::addEvent(cEvent* event)
 #ifdef EPG_DETAILS_PATCH
   serEvent.Details = (vector<tEpgDetail>*)&event->Details();
 #endif
+    
+  if (hasAdditionalMedia) {
+     if (isSeries) {
+        serEvent.Scraper = StringExtension::UTF8Decode("series");
+        if (series.posters.size() > 0) { /*
+           int posters = series.posters.size();
+           for (int i = 0; i < posters;i++) {
+               serEvent.TvScraperPoster = StringExtension::UTF8Decode(series.posters[i].path);
+            } */
+            serEvent.ScraperPoster = StringExtension::UTF8Decode(series.posters[0].path);
+        }
+        if (series.banners.size() > 0) {
+           serEvent.ScraperBanner = StringExtension::UTF8Decode(series.banners[0].path);
+        }
+     } else if (isMovie) {
+        serEvent.Scraper = StringExtension::UTF8Decode("movie");
+        if ((movie.poster.width > 0) && (movie.poster.height > 0) && (movie.poster.path.size() > 0)) {
+           serEvent.ScraperPoster = StringExtension::UTF8Decode(movie.poster.path);
+        }
+     }
+  }
 
   serEvents.push_back(serEvent);
 }
@@ -460,7 +521,43 @@ void XmlEventList::addEvent(cEvent* event)
   if ( event->Title() == NULL ) { eventTitle = ""; } else { eventTitle = event->Title(); }
   if ( event->ShortText() == NULL ) { eventShortText = ""; } else { eventShortText = event->ShortText(); }
   if ( event->Description() == NULL ) { eventDescription = ""; } else { eventDescription = event->Description(); }
+    
+  cMovie movie;
+  cSeries series;
+  ScraperGetEventType call;
+  bool hasAdditionalMedia = false;
+  bool isMovie = false;
+  bool isSeries = false;
 
+  static cPlugin *pScraper = GetScraperPlugin();
+  if (pScraper) {
+     ScraperGetEventType call;
+     call.event = event;
+     int seriesId = 0;
+     int episodeId = 0;
+     int movieId = 0;
+     if (pScraper->Service("GetEventType", &call)) {
+        //esyslog("restfulapi: Type detected: %d, seriesId %d, episodeId %d, movieId %d", call.type, call.seriesId, call.episodeId, call.movieId);
+        seriesId = call.seriesId;
+        episodeId = call.episodeId;
+        movieId = call.movieId;
+     }
+     if (seriesId > 0) {
+        series.seriesId = seriesId;
+        series.episodeId = episodeId;
+        if (pScraper->Service("GetSeries", &series)) {
+           hasAdditionalMedia = true;
+           isSeries = true;
+        }
+     } else if (movieId > 0) {
+        movie.movieId = movieId;
+        if (pScraper->Service("GetMovie", &movie)) {
+           hasAdditionalMedia = true;
+           isMovie = true;
+        }
+     }
+  }
+   
   s->write(" <event>\n");
   s->write(cString::sprintf("  <param name=\"id\">%i</param>\n", event->EventID()));
   s->write(cString::sprintf("  <param name=\"title\">%s</param>\n", StringExtension::encodeToXml(eventTitle).c_str()));
@@ -545,7 +642,159 @@ void XmlEventList::addEvent(cEvent* event)
   s->write(cString::sprintf("  <param name=\"timer_exists\">%s</param>\n", (timer_exists ? "true" : "false")));
   s->write(cString::sprintf("  <param name=\"timer_active\">%s</param>\n", (timer_active ? "true" : "false")));
   s->write(cString::sprintf("  <param name=\"timer_id\">%s</param>\n", timer_id.c_str()));
-
+    
+  if (hasAdditionalMedia) {
+     if (isSeries) {
+        s->write("  <param name=\"additional_media\" type=\"series\">\n");
+        s->write(cString::sprintf("    <series_id>%i</series_id>\n", series.seriesId));
+        if (series.episodeId > 0) {
+           s->write(cString::sprintf("    <episode_id>%i</episode_id>\n", series.episodeId));
+        }
+        if (series.name != "") {
+           s->write(cString::sprintf("    <name>%s</name>\n", StringExtension::encodeToXml(series.name).c_str()));
+        }
+        if (series.overview != "") {
+           s->write(cString::sprintf("    <overview>%s</overview>\n", StringExtension::encodeToXml(series.overview).c_str()));
+        }
+        if (series.firstAired != "") {
+           s->write(cString::sprintf("    <first_aired>%s</first_aired>\n", StringExtension::encodeToXml(series.firstAired).c_str()));
+        }
+        if (series.network != "") {
+           s->write(cString::sprintf("    <network>%s</network>\n", StringExtension::encodeToXml(series.network).c_str()));
+        }
+        if (series.genre != "") {
+           s->write(cString::sprintf("    <genre>%s</genre>\n", StringExtension::encodeToXml(series.genre).c_str()));
+        }
+        if (series.rating > 0) {
+           s->write(cString::sprintf("    <rating>%.2f</rating>\n", series.rating));
+        }
+        if (series.status != "") {
+           s->write(cString::sprintf("    <status>%s</status>\n", StringExtension::encodeToXml(series.status).c_str()));
+        }
+         
+        if (series.episode.number > 0) {
+           s->write(cString::sprintf("    <episode_number>%i</episode_number>\n", series.episode.number));
+           s->write(cString::sprintf("    <episode_season>%i</episode_season>\n", series.episode.season));
+           s->write(cString::sprintf("    <episode_name>%s</episode_name>\n", StringExtension::encodeToXml(series.episode.name).c_str()));
+           s->write(cString::sprintf("    <episode_first_aired>%s</episode_first_aired>\n", StringExtension::encodeToXml(series.episode.firstAired).c_str()));
+           s->write(cString::sprintf("    <episode_guest_stars>%s</episode_guest_stars>\n", StringExtension::encodeToXml(series.episode.guestStars).c_str()));
+           s->write(cString::sprintf("    <episode_overview>%s</episode_overview>\n", StringExtension::encodeToXml(series.episode.overview).c_str()));
+           s->write(cString::sprintf("    <episode_rating>%.2f</episode_rating>\n", series.episode.rating));
+           s->write(cString::sprintf("    <episode_image>%s</episode_image>\n", StringExtension::encodeToXml(series.episode.episodeImage.path).c_str()));
+        }
+         
+        if (series.actors.size() > 0) {
+           int _actors = series.actors.size();
+           for (int i = 0; i < _actors; i++) {
+               s->write(cString::sprintf("    <actor name=\"%s\" role=\"%s\" thumb=\"%s\"/>\n",
+                                         StringExtension::encodeToXml(series.actors[i].name).c_str(),
+                                         StringExtension::encodeToXml(series.actors[i].role).c_str(),
+                                         StringExtension::encodeToXml(series.actors[i].actorThumb.path).c_str() ));
+           }
+        }
+        if (series.posters.size() > 0) {
+           int _posters = series.posters.size();
+           for (int i = 0; i < _posters; i++) {
+               if ((series.posters[i].width > 0) && (series.posters[i].height > 0))
+                  s->write(cString::sprintf("    <poster path=\"%s\" width=\"%i\" height=\"%i\" />\n",
+                                            StringExtension::encodeToXml(series.posters[i].path).c_str(), series.posters[i].width, series.posters[i].height));
+           }
+        }
+        if (series.banners.size() > 0) {
+           int _banners = series.banners.size();
+           for (int i = 0; i < _banners; i++) {
+               if ((series.banners[i].width > 0) && (series.banners[i].height > 0))
+                  s->write(cString::sprintf("    <banner path=\"%s\" width=\"%i\" height=\"%i\" />\n",
+                                            StringExtension::encodeToXml(series.banners[i].path).c_str(), series.banners[i].width, series.banners[i].height));
+           }
+        }
+        if (series.fanarts.size() > 0) {
+           int _fanarts = series.fanarts.size();
+           for (int i = 0; i < _fanarts; i++) {
+               if ((series.fanarts[i].width > 0) && (series.fanarts[i].height > 0))
+                  s->write(cString::sprintf("    <fanart path=\"%s\" width=\"%i\" height=\"%i\" />\n",
+                                            StringExtension::encodeToXml(series.fanarts[i].path).c_str(), series.fanarts[i].width, series.fanarts[i].height));
+           }
+        }
+        if ((series.seasonPoster.width > 0) && (series.seasonPoster.height > 0) && (series.seasonPoster.path.size() > 0)) {
+           s->write(cString::sprintf("    <season_poster path=\"%s\" width=\"%i\" height=\"%i\" />\n",
+                                     StringExtension::encodeToXml(series.seasonPoster.path).c_str(), series.seasonPoster.width, series.seasonPoster.height));
+        }
+        s->write("  </param>\n");
+         
+     } else if (isMovie) {
+        s->write("  <param name=\"additional_media\" type=\"movie\">\n");
+        s->write(cString::sprintf("    <movie_id>%i</movie_id>\n", movie.movieId));
+        if (movie.title != "") {
+           s->write(cString::sprintf("    <title>%s</title>\n", StringExtension::encodeToXml(movie.title).c_str()));
+        }
+        if (movie.originalTitle != "") {
+           s->write(cString::sprintf("    <original_title>%s</original_title>\n", StringExtension::encodeToXml(movie.originalTitle).c_str()));
+        }
+        if (movie.tagline != "") {
+           s->write(cString::sprintf("    <tagline>%s</tagline>\n", StringExtension::encodeToXml(movie.tagline).c_str()));
+        }
+        if (movie.overview != "") {
+           s->write(cString::sprintf("    <overview>%s</overview>\n", StringExtension::encodeToXml(movie.overview).c_str()));
+        }
+        if (movie.adult) {
+           s->write("    <adult>true</adult>\n");
+        }
+        if (movie.collectionName != "") {
+           s->write(cString::sprintf("    <collection_name>%s</collection_name>\n", StringExtension::encodeToXml(movie.collectionName).c_str()));
+        }
+        if (movie.budget > 0) {
+           s->write(cString::sprintf("    <budget>%i</budget>\n", movie.budget));
+        }
+        if (movie.revenue > 0) {
+           s->write(cString::sprintf("    <revenue>%i</revenue>\n", movie.revenue));
+        }
+        if (movie.genres != "") {
+           s->write(cString::sprintf("    <genres>%s</genres>\n", StringExtension::encodeToXml(movie.genres).c_str()));
+        }
+        if (movie.homepage != "") {
+           s->write(cString::sprintf("    <homepage>%s</homepage>\n", StringExtension::encodeToXml(movie.homepage).c_str()));
+        }
+        if (movie.releaseDate != "") {
+           s->write(cString::sprintf("    <release_date>%s</release_date>\n", StringExtension::encodeToXml(movie.releaseDate).c_str()));
+        }
+        if (movie.runtime > 0) {
+           s->write(cString::sprintf("    <runtime>%i</runtime>\n", movie.runtime));
+        }
+        if (movie.popularity > 0) {
+           s->write(cString::sprintf("    <popularity>%.2f</popularity>\n", movie.popularity));
+        }
+        if (movie.voteAverage > 0) {
+           s->write(cString::sprintf("    <vote_average>%.2f</vote_average>\n", movie.voteAverage));
+        }
+        if ((movie.poster.width > 0) && (movie.poster.height > 0) && (movie.poster.path.size() > 0)) {
+           s->write(cString::sprintf("    <poster path=\"%s\" width=\"%i\" height=\"%i\" />\n",
+                                     StringExtension::encodeToXml(movie.poster.path).c_str(), movie.poster.width, movie.poster.height));
+        }
+        if ((movie.fanart.width > 0) && (movie.fanart.height > 0) && (movie.fanart.path.size() > 0)) {
+           s->write(cString::sprintf("    <fanart path=\"%s\" width=\"%i\" height=\"%i\" />\n",
+                                     StringExtension::encodeToXml(movie.fanart.path).c_str(), movie.fanart.width, movie.fanart.height));
+        }
+        if ((movie.collectionPoster.width > 0) && (movie.collectionPoster.height > 0) && (movie.collectionPoster.path.size() > 0)) {
+           s->write(cString::sprintf("    <collection_poster path=\"%s\" width=\"%i\" height=\"%i\" />\n",
+                                     StringExtension::encodeToXml(movie.collectionPoster.path).c_str(), movie.collectionPoster.width, movie.collectionPoster.height));
+        }
+        if ((movie.collectionFanart.width > 0) && (movie.collectionFanart.height > 0) && (movie.collectionFanart.path.size() > 0)) {
+           s->write(cString::sprintf("    <collection_fanart path=\"%s\" width=\"%i\" height=\"%i\" />\n",
+                                     StringExtension::encodeToXml(movie.collectionFanart.path).c_str(), movie.collectionFanart.width, movie.collectionFanart.height));
+        }
+        if (movie.actors.size() > 0) {
+           int _actors = movie.actors.size();
+           for (int i = 0; i < _actors; i++) {
+               s->write(cString::sprintf("    <actor name=\"%s\" role=\"%s\" thumb=\"%s\"/>\n",
+                                         StringExtension::encodeToXml(movie.actors[i].name).c_str(),
+                                         StringExtension::encodeToXml(movie.actors[i].role).c_str(),
+                                         StringExtension::encodeToXml(movie.actors[i].actorThumb.path).c_str()));
+           }
+        }
+        s->write("  </param>\n");
+     }
+  }
   s->write(" </event>\n");
 }
 
