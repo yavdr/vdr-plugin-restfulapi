@@ -62,6 +62,8 @@ void cServerThread::Action(void)
   RestfulService* recordingsMarks = new RestfulService("/recordings/marks", true, 1, recordings);
   RestfulService* recordingsPlay = new RestfulService("/recordings/play", true, 2, recordings);
   RestfulService* recordingsRewind = new RestfulService("/recordings/rewind", true, 1, recordings);
+  RestfulService* recordingsDelete = new RestfulService("/recordings/delete", true, 1, recordings);
+  RestfulService* recordingsMove = new RestfulService("/recordings/move", true, 1, recordings);
   RestfulService* remote = new RestfulService("/remote", true, 1);
   RestfulService* searchtimers = new RestfulService("/searchtimers", false, 1);  
   RestfulService* timers = new RestfulService("/timers", true, 1);
@@ -80,6 +82,8 @@ void cServerThread::Action(void)
   services->appendService(recordingsMarks);
   services->appendService(recordingsPlay);
   services->appendService(recordingsRewind);
+  services->appendService(recordingsDelete);
+  services->appendService(recordingsMove);
   services->appendService(remote);
   services->appendService(searchtimers);  
   services->appendService(timers);
