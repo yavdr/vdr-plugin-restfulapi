@@ -58,7 +58,9 @@ Developer: <a href="mailto:eiler.mike@gmail.com">eiler.mike@gmail.com</a> or <a 
 <li><a href="#Osd">Osd</a>
 <li><a href="#Recordings">Recordings</a>
 <ul><li><a href="#RecordingCut">Cut</a>
+	<li><a href="#RecordingDelete">Delete</a>
     <li><a href="#RecordingsMarks">Marks</a>
+	<li><a href="#RecordingMove">Move</a>
 	<li><a href="#RecordingPlay">Play</a>
 	<li><a href="#RecordingRewind">Rewind</a></ul>
 <li><a href="#Remote">Remote</a>
@@ -153,11 +155,10 @@ Methods: <b>POST, GET</b> (for simple requests) <br />
 <br />
 <div class="code"><code>
 GET  http://127.0.0.1:8002/audio.&lt;format&gt;<br />
-POST http://&lt;ip&gt;:&lt;port&gt;/audio.&lt;format&gt;?mute=&lt;int&gt;<br />
-POST http://&lt;ip&gt;:&lt;port&gt;/audio.&lt;format&gt;?volume=&lt;int&gt;&amp;track=&lt;int&gt;<br />
+POST http://&lt;ip&gt;:&lt;port&gt;/audio.&lt;format&gt;<br />
 </code></div>
-<br />
-<b>Description of the POST Parameters:</b>
+<br /><br />
+<b>Description of the Body Parameters (POST only):</b>
 <br />
 
 <ul>
@@ -181,7 +182,8 @@ POST http://&lt;ip&gt;:&lt;port&gt;/audio.&lt;format&gt;?volume=&lt;int&gt;&amp;
 
 <div class="code"><code>
 GET  http://127.0.0.1:8002/audio.xml<br />
-POST http://127.0.0.1:8002/audio.xml?volume=230&amp;track=33<br /><br />
+POST http://127.0.0.1:8002/audio.xml<br />
+volume=230&amp;track=33<br /><br />
 &lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;<br />
 &lt;audio xmlns="http://www.domain.org/restfulapi/2011/channels-xml"&gt;<br />
 &nbsp;&lt;volume>230&lt;/volume&gt;<br />
@@ -734,6 +736,31 @@ GET http://&lt;ip&gt;:&lt;port&gt;/recordings/cut.&lt;format&gt;                
 </code></div>
 <br />
 
+<br />
+<h2><a name="RecordingDelete">Delete</a></h2>
+
+This service can delete recordings by filename.<br />
+<br />
+Method: <b>POST and DELETE</b><br />
+<br />
+Examples: <br/>
+<br />
+<div class="code"><code>
+POST http://&lt;ip&gt;:&lt;port&gt;/recordings/delete<br />
+DELETE http://&lt;ip&gt;:&lt;port&gt;/recordings/delete<br />
+</code></div>
+<br />
+<b>Required Body Parameters:</b><br />
+
+<ul>
+<li>file - source path of the recording (use an url-encoder for this text if you use special characters)
+</ul>
+<br />
+<div class="code"><code>
+file=/var/lib/video.00/Asterix_in_Amerika/2011-06-19.12.40.1-0.rec<br />
+</code></div>
+<br />
+
 
 <br />
 <h2><a name="RecordingsMarks">Marks</a></h2>
@@ -775,9 +802,37 @@ Example Body-Content (required, Only JSON supported):<br />
 {'marks':['0:02:18.10','0:34:08.24']}
 </code></div>
 <br />
+
+
+
+<br />
+<h2><a name="RecordingMove">Move</a></h2>
+
+This service can move or copy recordings by filename.<br />
+<br />
+Method: <b>POST</b><br />
+<br />
+Examples: <br/>
+<br />
+<div class="code"><code>
+POST http://&lt;ip&gt;:&lt;port&gt;/recordings/delete<br />
+</code></div>
+<br />
+<b>Required Body Parameters:</b><br />
+
+<ul>
+<li>source - source path of the recording (use an url-encoder for this text if you use special characters)
+<li>target - relative path of the recording.
+</ul>
+<br />
+<div class="code"><code>
+source=/var/lib/video.00/Asterix_in_Amerika/2011-06-19.12.40.1-0.rec<br />
+target=Movies/Asterix_in_Amerika<br />
+copy_only=false
+</code></div>
 <br />
 
-
+<br />
 <h2><a name="RecordingPlay">Play</a></h2>
 
 This service tells your VDR to play a recording:<br />
