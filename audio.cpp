@@ -7,11 +7,11 @@ void AudioResponder::reply(ostream& out, cxxtools::http::Request& request, cxxto
   QueryHandler q("/audio", request);
   
   if (request.method() == "POST") { 
-     string vol = q.getOptionAsString("volume");
-     int level = q.getOptionAsInt("volume");
-     int mute = q.getOptionAsInt("mute");
-     int track = q.getOptionAsInt("track");
-     int channel = q.getOptionAsInt("channel");
+     string vol = q.getBodyAsString("volume");
+     int level = q.getBodyAsInt("volume");
+     int mute = q.getBodyAsInt("mute");
+     int track = q.getBodyAsInt("track");
+     int channel = q.getBodyAsInt("channel");
 
      if (vol.find("m") == 0) {
         cDevice::PrimaryDevice()->ToggleMute();
