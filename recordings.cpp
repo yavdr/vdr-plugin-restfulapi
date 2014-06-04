@@ -78,10 +78,8 @@ void RecordingsResponder::reply(ostream& out, cxxtools::http::Request& request, 
         showRecordings(out, request, reply);
      } else if (request.method() == "DELETE") {
         deleteRecording(out, request, reply);
-     } else if (request.method() == "POST") {
-        deleteRecordingByName(out, request, reply);
      } else {
-        reply.httpReturn(501, "Only GET, POST and DELETE methods are supported by the /recordings service.");
+        reply.httpReturn(501, "Only GET and DELETE methods are supported by the /recordings service.");
      }
      found = true;
   }
