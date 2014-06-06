@@ -173,7 +173,9 @@ string SearchTimer::LoadFromQuery(QueryHandler& q)
   m_useDayOfWeek = q.getBodyAsBool("use_dayofweek");
   if ( m_useDayOfWeek ) {
      m_dayOfWeek = q.getBodyAsInt("dayofweek");
-     if (m_dayOfWeek < 0 || m_dayOfWeek > 127 ) return "day_of_week invalid (uses 7 bits for the seven days!)"; 
+     // sun=0, mon=1, ..., sat=6
+     // user-defined: sun=-1, mon=-2, ..., sat=-64
+     if (m_dayOfWeek < -127 || m_dayOfWeek > 6 ) return "day_of_week invalid (uses 7 bits for the seven days!)";
   }
 
   m_useEpisode = q.getBodyAsBool("use_series_recording");
