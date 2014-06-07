@@ -13,7 +13,7 @@ void TimersResponder::reply(ostream& out, cxxtools::http::Request& request, cxxt
   } else if ( request.method() == "PUT" ) {
      createOrUpdateTimer(out, request, reply, true);
   } else if (request.method() == "OPTIONS") {
-     return;		 
+     return;
   } else {
      reply.httpReturn(501, "Only GET, DELETE, POST and PUT methods are supported.");
   }
@@ -50,7 +50,7 @@ void TimersResponder::createOrUpdateTimer(ostream& out, cxxtools::http::Request&
      int minpost = q.getBodyAsInt("minpost");
      if (eventid >= 0 && chan != NULL) {
         cEvent* event = VdrExtension::GetEventById((tEventID)eventid, chan);
-      
+
         if (event == NULL) {
            reply.httpReturn(407, "eventid invalid");
            return;
@@ -67,7 +67,7 @@ void TimersResponder::createOrUpdateTimer(ostream& out, cxxtools::http::Request&
               time_t estart = event->StartTime()-minpre*60;
               time_t estop = event->EndTime()+minpre*60;
               struct tm *starttime = localtime(&estart);
-            
+
               ostringstream daystream;
               daystream << StringExtension::addZeros((starttime->tm_year + 1900), 4) << "-"
                         << StringExtension::addZeros((starttime->tm_mon + 1), 2) << "-"
@@ -115,7 +115,7 @@ void TimersResponder::createOrUpdateTimer(ostream& out, cxxtools::http::Request&
   ostringstream builder;
   builder << flags << ":"
           << (const char*)chan->GetChannelID().ToString() << ":"
-	  << ( weekdays != "-------" ? weekdays : "" )
+          << ( weekdays != "-------" ? weekdays : "" )
           << ( weekdays == "-------" || day.empty() ? "" : "@" ) << day << ":"
           << start << ":"
           << stop << ":"
@@ -324,7 +324,7 @@ void JsonTimerList::addTimer(cTimer* timer)
   serTimer.IsPending = timer->Pending();
   serTimer.FileName = StringExtension::UTF8Decode(timer->File());
   serTimer.ChannelName = StringExtension::UTF8Decode(timer->Channel()->Name());
-  serTimer.IsActive = timer->Flags() & 0x01 == 0x01 ? true : false;
+  serTimer.IsActive = (timer->Flags() & tfActive) == tfActive ? true : false;
   serTimer.Aux = StringExtension::UTF8Decode(timer->Aux() != NULL ? timer->Aux() : "");
 
   int tstart = timer->Day() - ( timer->Day() % 3600 ) + ((int)(timer->Start()/100)) * 3600 + ((int)(timer->Start()%100)) * 60;
@@ -383,7 +383,7 @@ void XmlTimerList::addTimer(cTimer* timer)
   s->write(cString::sprintf("  <param name=\"is_pending\">%s</param>\n", timer->Pending() ? "true" : "false" ));
   s->write(cString::sprintf("  <param name=\"file_name\">%s</param>\n", StringExtension::encodeToXml(timer->File()).c_str()) );
   s->write(cString::sprintf("  <param name=\"channel_name\">%s</param>\n", StringExtension::encodeToXml(timer->Channel()->Name()).c_str()));
-  s->write(cString::sprintf("  <param name=\"is_active\">%s</param>\n", timer->Flags() & 0x01 == 0x01 ? "true" : "false" ));
+  s->write(cString::sprintf("  <param name=\"is_active\">%s</param>\n", (timer->Flags() & tfActive) == tfActive ? "true" : "false" ));
   s->write(cString::sprintf("  <param name=\"aux\">%s</param>\n", StringExtension::encodeToXml(timer->Aux() != NULL ? timer->Aux() : "").c_str()));
   s->write(" </timer>\n");
 }
@@ -417,9 +417,9 @@ bool TimerValues::IsDayValid(string v)
 
 bool TimerValues::IsFlagsValid(int v)
 {
-  if ( v == 0x0000 || v == 0x0001 || v == 0x0002 || v == 0x0004 || v == 0x0005 || v == 0x0008 || v == 0xFFFF ) 
-     return true;
-  return false;
+  if (v == tfAll) return true;
+  int valid_tf = (tfNone | tfActive | tfInstant | tfVps | tfRecording);
+  return (valid_tf & v) == v;
 }
 
 bool TimerValues::IsFileValid(string v) 
