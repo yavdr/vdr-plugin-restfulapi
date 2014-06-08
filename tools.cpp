@@ -803,29 +803,29 @@ bool VdrExtension::MoveDirectory(std::string const & sourceDir, std::string cons
 }
 
 
-bool VdrExtension::MoveRecording(cRecording const * recording, string const & name, bool copy)
+string VdrExtension::MoveRecording(cRecording const * recording, string const & name, bool copy)
 {
   if (!recording)
-     return false;
+     return "";
 
   string oldname = recording->FileName();
   size_t found = oldname.find_last_of("/");
 
   if (found == string::npos)
-     return false;
+     return "";
 
   string newname = string(VideoDirectory) + "/" + name + oldname.substr(found);
 
   if (!MoveDirectory(oldname.c_str(), newname.c_str(), copy)) {
      esyslog("[Restfulapi]: renaming failed from '%s' to '%s'", oldname.c_str(), newname.c_str());
-     return false;
+     return "";
   }
 
   if (!copy)
      Recordings.DelByName(oldname.c_str());
   Recordings.AddByName(newname.c_str());
   cRecordingUserCommand::InvokeCommand(*cString::sprintf("rename \"%s\"", *strescape(oldname.c_str(), "\\\"$'")), newname.c_str());
-  return true;
+  return name + oldname.substr(found);
 }
 
 // --- VdrMarks ---------------------------------------------------------------

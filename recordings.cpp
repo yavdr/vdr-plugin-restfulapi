@@ -125,19 +125,47 @@ void RecordingsResponder::rewindRecording(std::ostream& out, cxxtools::http::Req
 void RecordingsResponder::moveRecording(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/recordings/move", request);
+  StreamExtension s(&out);
   string sourceDir = q.getBodyAsString("source");
   string targetDir = q.getBodyAsString("target");
-//  string directory = q.getBodyAsString("directory");
+
   bool copy_only = q.getBodyAsBool("copy_only");
   if (!copy_only)
      cThreadLock RecordingsLock(&Recordings);
   if (sourceDir.length() > 0 && targetDir.length() > 0) {
      if (access(sourceDir.c_str(), F_OK) == 0) {
         cRecording* recording = Recordings.GetByName(sourceDir.c_str());
-        //string filename =  directory.empty() ? name : StringReplace(directory, "/", "~") + "~" + name;
-        if (recording && !VdrExtension::MoveRecording(recording, VdrExtension::FileSystemExchangeChars(StringExtension::replace(targetDir, "/", "~").c_str(), true), copy_only)) {
-           LOG_ERROR_STR(sourceDir.c_str());
-           reply.httpReturn(503, "File copy failed!");
+        if (recording) {
+
+		string newRelFileName = VdrExtension::MoveRecording(recording, VdrExtension::FileSystemExchangeChars(targetDir.c_str(), true), copy_only);
+
+		if ("" == newRelFileName) {
+
+           		LOG_ERROR_STR(sourceDir.c_str());
+		        reply.httpReturn(503, "File copy failed!");
+
+		}
+
+		if (q.isFormat(".html")) {
+			reply.addHeader("Content-Type", "text/html; charset=utf-8");
+			s.writeHtmlHeader("NewRelativeFileName");
+			s.write(newRelFileName.c_str());
+			s.write("</body></html>");
+		} else if (q.isFormat(".json")) {
+			reply.addHeader("Content-Type", "application/json; charset=utf-8");
+			cxxtools::JsonSerializer serializer(out);
+			serializer.serialize(StringExtension::encodeToJson(newRelFileName), "new_relative_file_name");
+			serializer.finish();  
+		} else if (q.isFormat(".xml")) {
+			reply.addHeader("Content-Type", "text/xml; charset=utf-8");
+			s.write("<recordings xmlns=\"http://www.domain.org/restfulapi/2011/recordings-xml\">\n");
+			s.write(cString::sprintf(" <param name=\"recordings\">%s</param>\n", StringExtension::encodeToXml(newRelFileName).c_str()));
+			s.write("</recordings>");
+		} else {
+			reply.httpReturn(502, "Only the following formats are supported: .xml, .json and .html");
+		} 
+
+
         } else {
            Recordings.Update(false);
         }
