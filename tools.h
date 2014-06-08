@@ -176,7 +176,7 @@ class VdrExtension
     static cEvent* getCurrentEventOnChannel(cChannel* channel);
     static std::string getVideoDiskSpace();
     static std::string FileSystemExchangeChars(std::string const & s, bool ToFileSystem);
-    static bool MoveRecording(cRecording const * recording, std::string const & name, bool copy = false);
+    static std::string MoveRecording(cRecording const * recording, std::string const & name, bool copy = false);
 };
 
 class VdrMarks
