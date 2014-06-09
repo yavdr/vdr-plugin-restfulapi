@@ -25,6 +25,7 @@ class RecordingsResponder : public cxxtools::http::Responder
     void deleteRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void deleteRecordingByName(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void showRecordings(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+    void showRecordingByName(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void saveMarks(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void deleteMarks(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void cutRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);

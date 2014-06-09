@@ -74,7 +74,7 @@ void RecordingsResponder::reply(ostream& out, cxxtools::http::Request& request, 
   
   else if ((int) request.url().find("/recordings/byname") == 0 ) {
      if (request.method() == "GET") {
-        getRecordingByName(out, request, reply);
+        showRecordingByName(out, request, reply);
      } else {
         reply.httpReturn(501, "Only GET method is supported by the /recordings/delete service.");
      }
@@ -204,17 +204,17 @@ void RecordingsResponder::moveRecording(ostream& out, cxxtools::http::Request& r
 
 
 /* get recording by file name */
-void RecordingsResponder::getRecordingByName(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+void RecordingsResponder::showRecordingByName(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/recordings/byname", request);
-  string recording_file = q.getBodyAsString("file");
+  string recording_file = q.getOptionAsString("file");
+  bool read_marks = q.getOptionAsString("marks") == "true";
   cThreadLock RecordingsLock(&Recordings);
   if (recording_file.length() > 0) {
      cRecording* recording = Recordings.GetByName(recording_file.c_str());
 
      if (recording) {
         RecordingList* recordingList;
-        bool read_marks = false;
 
         if ( q.isFormat(".json") ) {
            reply.addHeader("Content-Type", "application/json; charset=utf-8");
@@ -225,31 +225,27 @@ void RecordingsResponder::getRecordingByName(ostream& out, cxxtools::http::Reque
         } else if ( q.isFormat(".xml") )  {
            reply.addHeader("Content-Type", "text/xml; charset=utf-8");
            recordingList = (RecordingList*)new XmlRecordingList(&out, read_marks);
-                 } else {
-                    reply.httpReturn(502, "Resources are not available for the selected format. (Use: .json, .xml or .html)");
-                    return;
-                 }
+        } else {
+           reply.httpReturn(502, "Resources are not available for the selected format. (Use: .json, .xml or .html)");
+           return;
+        }
 
-                 recordingList->init();
-                 cThreadLock RecordingsLock(&Recordings);
-                 
-                 //recordingList->addRecording(new_recording, 1);
-                 for (int i = 0; i < Recordings.Count(); i++) {
-                     cRecording* tmp_recording = Recordings.Get(i);
-                     if (strcmp(new_recording->FileName(), tmp_recording->FileName()) == 0)
-                        recordingList->addRecording(tmp_recording, i);
-                 }
-
-                 recordingList->setTotal(1);
-                 recordingList->finish();
-                 delete recordingList;
-              } else {
-                 LOG_ERROR_STR(newname.c_str());
-              }
-
+        recordingList->init();
+        cThreadLock RecordingsLock(&Recordings);
+        for (int i = 0; i < Recordings.Count(); i++) {
+            cRecording* tmp_recording = Recordings.Get(i);
+            if (strcmp(recording->FileName(), tmp_recording->FileName()) == 0)
+               recordingList->addRecording(tmp_recording, i);
+        }
+        recordingList->setTotal(1);
+        recordingList->finish();
+        delete recordingList;
+     } else {
+        LOG_ERROR_STR(recording_file.c_str());
+        reply.httpReturn(504, "Recording not found!");
      }
   } else {
-     reply.httpReturn(404, "No recording file!");
+     reply.httpReturn(404, "No filename!");
   }
 }
 
