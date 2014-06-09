@@ -24,7 +24,7 @@ void RecordingsResponder::reply(ostream& out, cxxtools::http::Request& request, 
   }
 
   else if ((int)request.url().find("/recordings/cut") == 0 ) {
-     if ( request.method() == "GET" ) {
+     if (request.method() == "GET") {
         showCutterStatus(out, request, reply);
      } else if (request.method() == "POST") {
         cutRecording(out, request, reply); 
@@ -35,9 +35,9 @@ void RecordingsResponder::reply(ostream& out, cxxtools::http::Request& request, 
   }
 
   else if ((int)request.url().find("/recordings/marks") == 0 ) {
-     if ( request.method() == "DELETE" ) {
+     if (request.method() == "DELETE") {
         deleteMarks(out, request, reply);
-     } else if (request.method() == "POST" ) {
+     } else if (request.method() == "POST") {
         saveMarks(out, request, reply);
      } else {
         reply.httpReturn(501, "Only DELETE and POST methods are supported by the /recordings/marks service.");
@@ -45,16 +45,36 @@ void RecordingsResponder::reply(ostream& out, cxxtools::http::Request& request, 
      found = true;
   }
 
+  else if ((int)request.url().find("/recordings/move") == 0 ) {
+     if (request.method() == "POST") {
+        moveRecording(out, request, reply);
+     } else {
+        reply.httpReturn(501, "Only POST method is supported by the /recordings/move service.");
+     }
+     found = true;
+  }
+  
+  else if ((int) request.url().find("/recordings/delete") == 0 ) {
+     if (request.method() == "POST") {
+        deleteRecordingByName(out, request, reply);
+     } else if (request.method() == "DELETE") {
+        deleteRecordingByName(out, request, reply);
+     } else {
+        reply.httpReturn(501, "Only POST and DELETE methods are supported by the /recordings/delete service.");
+     }
+     found = true;
+  }
+
   // original /recordings service
   else if ((int) request.url().find("/recordings") == 0 ) {
-        if ( request.method() == "GET" ) {
+     if (request.method() == "GET") {
         showRecordings(out, request, reply);
-        found = true;
-     } else if (request.method() == "DELETE" ) {
-        deleteRecording(out, request,reply);
-        found = true;
+     } else if (request.method() == "DELETE") {
+        deleteRecording(out, request, reply);
+     } else if (request.method() == "POST") {
+        deleteRecordingByName(out, request, reply);
      } else {
-        reply.httpReturn(501, "Only GET and DELETE methods are supported by the /recordings service.");
+        reply.httpReturn(501, "Only GET, POST and DELETE methods are supported by the /recordings service.");
      }
      found = true;
   }
@@ -98,6 +118,98 @@ void RecordingsResponder::rewindRecording(std::ostream& out, cxxtools::http::Req
      } else {
         reply.httpReturn(404, "Wrong recording number!");
      }
+  }
+}
+
+/* move or copy recording */
+void RecordingsResponder::moveRecording(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+{
+QueryHandler q("/recordings/move", request);
+  StreamExtension s(&out);
+  string source = q.getBodyAsString("source");
+  string target = q.getBodyAsString("target");
+  string directory = q.getBodyAsString("directory");
+
+  bool copy_only = q.getBodyAsBool("copy_only");
+  if (!copy_only)
+     cThreadLock RecordingsLock(&Recordings);
+  if (source.length() > 0 && target.length() > 0) {
+     if (access(source.c_str(), F_OK) == 0) {
+        cRecording* recording = Recordings.GetByName(source.c_str());
+        if (recording) {
+           string filename = directory.empty() ? target : StringExtension::replace(directory, "/", "~") + "~" + target;
+           string newname = VdrExtension::MoveRecording(recording, VdrExtension::FileSystemExchangeChars(filename.c_str(), true), copy_only);
+           if (newname.length() > 0) {
+              //Recordings.Update(false);
+
+	      string DS = "/";
+	      string newfullname = VideoDirectory + DS + newname;
+
+              cRecording* new_recording = Recordings.GetByName(newfullname.c_str());
+              if (new_recording) {
+                 RecordingList* recordingList;
+                 bool read_marks = false;
+
+                 if ( q.isFormat(".json") ) {
+                    reply.addHeader("Content-Type", "application/json; charset=utf-8");
+                    recordingList = (RecordingList*)new JsonRecordingList(&out, read_marks);
+                 } else if ( q.isFormat(".html") ) {
+                    reply.addHeader("Content-Type", "text/html; charset=utf-8");
+                    recordingList = (RecordingList*)new HtmlRecordingList(&out, read_marks);
+                 } else if ( q.isFormat(".xml") )  {
+                    reply.addHeader("Content-Type", "text/xml; charset=utf-8");
+                    recordingList = (RecordingList*)new XmlRecordingList(&out, read_marks);
+                 } else {
+                    reply.httpReturn(502, "Resources are not available for the selected format. (Use: .json, .xml or .html)");
+                    return;
+                 }
+
+		if ( ! q.isFormat(".json") ) {
+			recordingList->init();
+		}
+                 cThreadLock RecordingsLock(&Recordings);
+                 
+                 for (int i = 0; i < Recordings.Count(); i++) {
+                     cRecording* tmp_recording = Recordings.Get(i);
+                     if (strcmp (new_recording->FileName(), tmp_recording->FileName()) == 0)
+                        recordingList->addRecording(tmp_recording, i);
+                 }
+
+                 recordingList->setTotal(1);
+                 recordingList->finish();
+                 delete recordingList;
+              } else {
+                 LOG_ERROR_STR(newname.c_str());
+           	 reply.httpReturn(504, "Recording not found, after moving!");
+              }
+           } else {
+              LOG_ERROR_STR(source.c_str());
+              reply.httpReturn(503, "File copy failed!");
+           }
+        } else {
+           reply.httpReturn(504, "Recording not found!");
+        }
+     } else {
+        reply.httpReturn(504, "Path is invalid!");
+     }
+  } else {
+     reply.httpReturn(404, "Missing file name!");
+  }
+}
+
+/* delete recording by file name */
+void RecordingsResponder::deleteRecordingByName(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+{
+  QueryHandler q("/recordings/delete", request);
+  string recording_file = q.getBodyAsString("file");
+  cThreadLock RecordingsLock(&Recordings);
+  if (recording_file.length() > 0) {
+     cRecording* delRecording = Recordings.GetByName(recording_file.c_str());
+     if (delRecording->Delete()) {
+        Recordings.DelByName(delRecording->FileName());
+     }
+  } else {
+     reply.httpReturn(404, "No recording file!");
   }
 }
 
