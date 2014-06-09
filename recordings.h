@@ -12,6 +12,7 @@
 
 #include <vdr/cutter.h>
 #include <vdr/recording.h>
+#include <vdr/videodir.h>
 
 class RecordingsResponder : public cxxtools::http::Responder
 {
