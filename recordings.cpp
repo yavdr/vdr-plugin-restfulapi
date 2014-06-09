@@ -128,24 +128,28 @@ void RecordingsResponder::rewindRecording(std::ostream& out, cxxtools::http::Req
 void RecordingsResponder::moveRecording(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/recordings/move", request);
-  string sourceDir = q.getBodyAsString("source");
-  string targetDir = q.getBodyAsString("target");
-//  string directory = q.getBodyAsString("directory");
+  string source = q.getBodyAsString("source");
+  string target = q.getBodyAsString("target");
+  string directory = q.getBodyAsString("directory");
   bool copy_only = q.getBodyAsBool("copy_only");
   if (!copy_only)
      cThreadLock RecordingsLock(&Recordings);
-  if (sourceDir.length() > 0 && targetDir.length() > 0) {
-     if (access(sourceDir.c_str(), F_OK) == 0) {
-        cRecording* recording = Recordings.GetByName(sourceDir.c_str());
-        //string filename =  directory.empty() ? name : StringReplace(directory, "/", "~") + "~" + name;
-        if (recording && !VdrExtension::MoveRecording(recording, VdrExtension::FileSystemExchangeChars(StringExtension::replace(targetDir, "/", "~").c_str(), true), copy_only)) {
-           LOG_ERROR_STR(sourceDir.c_str());
-           reply.httpReturn(503, "File copy failed!");
+  if (source.length() > 0 && target.length() > 0) {
+     if (access(source.c_str(), F_OK) == 0) {
+        cRecording* recording = Recordings.GetByName(source.c_str());
+        if (recording) {
+           string filename = directory.empty() ? target : StringExtension::replace(directory, "/", "~") + "~" + target;
+           if (!VdrExtension::MoveRecording(recording, VdrExtension::FileSystemExchangeChars(filename.c_str(), true), copy_only)) {
+              LOG_ERROR_STR(source.c_str());
+              reply.httpReturn(503, "File copy failed!");
+           } else {
+              Recordings.Update(false);
+           }
         } else {
-           Recordings.Update(false);
+           reply.httpReturn(504, "Recording not found!");
         }
      } else {
-        reply.httpReturn(504, "Recording not found or path is invalid!");
+        reply.httpReturn(504, "Path is invalid!");
      }
   } else {
      reply.httpReturn(404, "Missing file name!");
