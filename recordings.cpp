@@ -151,7 +151,6 @@ void RecordingsResponder::moveRecording(ostream& out, cxxtools::http::Request& r
            string filename = directory.empty() ? target : StringExtension::replace(directory, "/", "~") + "~" + target;
            string newname = VdrExtension::MoveRecording(recording, VdrExtension::FileSystemExchangeChars(filename.c_str(), true), copy_only);
            if (newname.length() > 0) {
-              //Recordings.Update(false);
               cRecording* new_recording = Recordings.GetByName(newname.c_str());
               if (new_recording) {
                  RecordingList* recordingList;
@@ -163,25 +162,23 @@ void RecordingsResponder::moveRecording(ostream& out, cxxtools::http::Request& r
                  } else if ( q.isFormat(".html") ) {
                     reply.addHeader("Content-Type", "text/html; charset=utf-8");
                     recordingList = (RecordingList*)new HtmlRecordingList(&out, read_marks);
+                    recordingList->init();
                  } else if ( q.isFormat(".xml") )  {
                     reply.addHeader("Content-Type", "text/xml; charset=utf-8");
                     recordingList = (RecordingList*)new XmlRecordingList(&out, read_marks);
+                    recordingList->init();
                  } else {
                     reply.httpReturn(502, "Resources are not available for the selected format. (Use: .json, .xml or .html)");
                     return;
                  }
 
-                 recordingList->init();
                  cThreadLock RecordingsLock(&Recordings);
-                 
-                 //recordingList->addRecording(new_recording, 1);
                  for (int i = 0; i < Recordings.Count(); i++) {
                      cRecording* tmp_recording = Recordings.Get(i);
                      if (strcmp(new_recording->FileName(), tmp_recording->FileName()) == 0)
                         recordingList->addRecording(tmp_recording, i);
                  }
-
-                 recordingList->setTotal(1);
+                 recordingList->setTotal(Recordings.Count());
                  recordingList->finish();
                  delete recordingList;
               } else {
@@ -222,22 +219,23 @@ void RecordingsResponder::showRecordingByName(ostream& out, cxxtools::http::Requ
         } else if ( q.isFormat(".html") ) {
            reply.addHeader("Content-Type", "text/html; charset=utf-8");
            recordingList = (RecordingList*)new HtmlRecordingList(&out, read_marks);
+           recordingList->init();
         } else if ( q.isFormat(".xml") )  {
            reply.addHeader("Content-Type", "text/xml; charset=utf-8");
            recordingList = (RecordingList*)new XmlRecordingList(&out, read_marks);
+           recordingList->init();
         } else {
            reply.httpReturn(502, "Resources are not available for the selected format. (Use: .json, .xml or .html)");
            return;
         }
 
-        recordingList->init();
         cThreadLock RecordingsLock(&Recordings);
         for (int i = 0; i < Recordings.Count(); i++) {
             cRecording* tmp_recording = Recordings.Get(i);
             if (strcmp(recording->FileName(), tmp_recording->FileName()) == 0)
                recordingList->addRecording(tmp_recording, i);
         }
-        recordingList->setTotal(1);
+        recordingList->setTotal(Recordings.Count());
         recordingList->finish();
         delete recordingList;
      } else {
@@ -292,9 +290,11 @@ void RecordingsResponder::showRecordings(ostream& out, cxxtools::http::Request& 
   } else if ( q.isFormat(".html") ) {
      reply.addHeader("Content-Type", "text/html; charset=utf-8");
      recordingList = (RecordingList*)new HtmlRecordingList(&out, read_marks);
+     recordingList->init();
   } else if ( q.isFormat(".xml") )  {
      reply.addHeader("Content-Type", "text/xml; charset=utf-8");
      recordingList = (RecordingList*)new XmlRecordingList(&out, read_marks);
+     recordingList->init();
   } else {
      reply.httpReturn(404, "Resources are not available for the selected format. (Use: .json, .xml or .html)");
      return;
@@ -302,15 +302,11 @@ void RecordingsResponder::showRecordings(ostream& out, cxxtools::http::Request& 
 
   int start_filter = q.getOptionAsInt("start");
   int limit_filter = q.getOptionAsInt("limit");
-  
-  int requested_item = q.getParamAsInt(0);
-
   if ( start_filter >= 0 && limit_filter >= 1 ) {
      recordingList->activateLimit(start_filter, limit_filter);
   }
 
-  recordingList->init();
-
+  int requested_item = q.getParamAsInt(0);
   cThreadLock RecordingsLock(&Recordings);
   if ( requested_item < 0 ) {
      for (int i = 0; i < Recordings.Count(); i++)
