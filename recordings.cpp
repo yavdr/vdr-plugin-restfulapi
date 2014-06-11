@@ -1,5 +1,6 @@
 #include "recordings.h"
 using namespace std;
+bool hasAdditionalMedia;
 
 void RecordingsResponder::reply(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
@@ -438,10 +439,50 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerRecording& p)
   si.addMember("event_description") <<= p.EventDescription;
   si.addMember("event_start_time") <<= p.EventStartTime;
   si.addMember("event_duration") <<= p.EventDuration;
-  si.addMember("additional_media") <<= p.Scraper;
-  si.addMember("poster") <<= p.ScraperPoster;
-//  si.addMember("fanart") <<= p.ScraperFanart;
-  si.addMember("banner") <<= p.ScraperBanner;
+
+  if (hasAdditionalMedia) {
+     si.addMember("additional_media") <<= p.Scraper;
+     si.addMember("series_id") <<= p.SeriesId;
+     si.addMember("episode_id") <<= p.EpisodeId;
+     si.addMember("name") <<= p.SeriesName;
+     si.addMember("overview") <<= p.SeriesOverview;
+     si.addMember("first_aired") <<= p.SeriesFirstAired;
+     si.addMember("network") <<= p.SeriesNetwork;
+     si.addMember("genre") <<= p.SeriesGenre;
+     si.addMember("rating") <<= p.SeriesRating;
+     si.addMember("status") <<= p.SeriesStatus;
+
+     si.addMember("episode_number") <<= p.EpisodeNumber;
+     si.addMember("episode_season") <<= p.EpisodeSeason;
+     si.addMember("episode_name") <<= p.EpisodeName;
+     si.addMember("episode_first_aired") <<= p.EpisodeFirstAired;
+     si.addMember("episode_guest_stars") <<= p.EpisodeGuestStars;
+     si.addMember("episode_overview") <<= p.EpisodeOverview;
+     si.addMember("episode_rating") <<= p.EpisodeRating;
+     si.addMember("episode_image") <<= p.EpisodeImage;
+
+     si.addMember("movie_id") <<= p.MovieId;
+     si.addMember("title") <<= p.MovieTitle;
+     si.addMember("original_title") <<= p.MovieOriginalTitle;
+     si.addMember("tagline") <<= p.MovieTagline;
+     si.addMember("overview") <<= p.MovieOverview;
+     si.addMember("adult") <<= p.MovieAdult;
+     si.addMember("collection_name") <<= p.MovieCollectionName;
+     si.addMember("budget") <<= p.MovieBudget;
+     si.addMember("revenue") <<= p.MovieRevenue;
+     si.addMember("genres") <<= p.MovieGenres;
+     si.addMember("homepage") <<= p.MovieHomepage;
+     si.addMember("release_date") <<= p.MovieReleaseDate;
+     si.addMember("runtime") <<= p.MovieRuntime;
+     si.addMember("popularity") <<= p.MoviePopularity;
+     si.addMember("vote_average") <<= p.MovieVoteAverage;
+      
+     si.addMember("poster") <<= p.ScraperPoster;
+     si.addMember("banner") <<= p.ScraperBanner;
+     si.addMember("fanart") <<= p.ScraperFanart;
+     si.addMember("collection_poster") <<= p.ScraperCollectionPoster;
+     si.addMember("collection_fanart") <<= p.ScraperCollectionFanart;
+  }
 }
 
 RecordingList::RecordingList(ostream *out, bool _read_marks)
@@ -488,7 +529,7 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
   cMovie movie;
   cSeries series;
   ScraperGetEventType call;
-  bool hasAdditionalMedia = false;
+  hasAdditionalMedia = false;
   bool isMovie = false;
   bool isSeries = false;
     
@@ -504,6 +545,7 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
         
      static cPlugin *pScraper = GetScraperPlugin();
      if (pScraper) {
+        hasAdditionalMedia = true;
         ScraperGetEventType call;
         call.recording = recording;
         int seriesId = 0;
@@ -519,13 +561,14 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
            series.seriesId = seriesId;
            series.episodeId = episodeId;
            if (pScraper->Service("GetSeries", &series)) {
-              hasAdditionalMedia = true;
+              //hasAdditionalMedia = true;
               isSeries = true;
            }
-        } else if (movieId > 0) {
+        }
+        else if (movieId > 0) {
            movie.movieId = movieId;
            if (pScraper->Service("GetMovie", &movie)) {
-              hasAdditionalMedia = true;
+              //hasAdditionalMedia = true;
               isMovie = true;
            }
         }
@@ -550,7 +593,7 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
 
   serRecording.Duration = VdrExtension::RecordingLengthInSeconds(recording);
   serRecording.FileSizeMB = recording->FileSizeMB();
-  serRecording.ChannelID =  StringExtension::UTF8Decode((string) recording->Info()->ChannelID().ToString());
+  serRecording.ChannelID = StringExtension::UTF8Decode((string) recording->Info()->ChannelID().ToString());
 
   serRecording.EventTitle = eventTitle;
   serRecording.EventShortText = eventShortText;
@@ -561,6 +604,50 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
   if (hasAdditionalMedia) {
      if (isSeries) {
         serRecording.Scraper = StringExtension::UTF8Decode("series");
+     }
+     else if (isMovie) {
+        serRecording.Scraper = StringExtension::UTF8Decode("movie");
+     }
+         
+        serRecording.SeriesId = series.seriesId;
+        serRecording.EpisodeId = series.episodeId;
+        serRecording.SeriesName = StringExtension::UTF8Decode(series.name);
+        serRecording.SeriesOverview = StringExtension::UTF8Decode(series.overview);
+        serRecording.SeriesFirstAired = StringExtension::UTF8Decode(series.firstAired);
+        serRecording.SeriesNetwork = StringExtension::UTF8Decode(series.network);
+        serRecording.SeriesGenre = StringExtension::UTF8Decode(series.genre);
+        serRecording.SeriesRating = series.rating; // %.2f
+        serRecording.SeriesStatus = StringExtension::UTF8Decode(series.status);
+        
+        serRecording.EpisodeNumber = series.episode.number;
+        serRecording.EpisodeSeason = series.episode.season;
+        serRecording.EpisodeName = StringExtension::UTF8Decode(series.episode.name);
+        serRecording.EpisodeFirstAired = StringExtension::UTF8Decode(series.episode.firstAired);
+        serRecording.EpisodeGuestStars = StringExtension::UTF8Decode(series.episode.guestStars);
+        serRecording.EpisodeOverview = StringExtension::UTF8Decode(series.episode.overview);
+        serRecording.EpisodeRating = series.episode.rating; // %.2f
+        serRecording.EpisodeImage = StringExtension::UTF8Decode(series.episode.episodeImage.path);
+    
+
+
+        serRecording.MovieId = movie.movieId;
+        serRecording.MovieTitle = StringExtension::UTF8Decode(movie.title);
+        serRecording.MovieOriginalTitle = StringExtension::UTF8Decode(movie.originalTitle);
+        serRecording.MovieTagline = StringExtension::UTF8Decode(movie.tagline);
+        serRecording.MovieOverview = StringExtension::UTF8Decode(movie.overview);
+        serRecording.MovieAdult = movie.adult; //BOOL
+        serRecording.MovieCollectionName = StringExtension::UTF8Decode(movie.collectionName);
+        serRecording.MovieBudget = movie.budget; // %.2f
+        serRecording.MovieRevenue = movie.revenue;
+        serRecording.MovieGenres = StringExtension::UTF8Decode(movie.genres);
+        serRecording.MovieHomepage = StringExtension::UTF8Decode(movie.homepage);
+        serRecording.MovieReleaseDate = StringExtension::UTF8Decode(movie.releaseDate);
+        serRecording.MovieRuntime = movie.runtime;
+        serRecording.MoviePopularity = movie.popularity;
+        serRecording.MovieVoteAverage = movie.voteAverage;
+
+      
+     if (isSeries) {
         if (series.posters.size() > 0) { /*
            int posters = series.posters.size();
            for (int i = 0; i < posters;i++) {
@@ -571,12 +658,17 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
         if (series.banners.size() > 0) {
            serRecording.ScraperBanner = StringExtension::UTF8Decode(series.banners[0].path);
         }
-     } else if (isMovie) {
-        serRecording.Scraper = StringExtension::UTF8Decode("movie");
-        if ((movie.poster.width > 0) && (movie.poster.height > 0) && (movie.poster.path.size() > 0)) {
-           serRecording.ScraperPoster = StringExtension::UTF8Decode(movie.poster.path);
+        if (series.fanarts.size() > 0) {
+           serRecording.ScraperFanart = StringExtension::UTF8Decode(series.fanarts[0].path);
         }
      }
+     else if (isMovie) {
+        serRecording.ScraperPoster = StringExtension::UTF8Decode(movie.poster.path);
+        serRecording.ScraperFanart = StringExtension::UTF8Decode(movie.fanart.path);
+        serRecording.ScraperCollectionPoster = StringExtension::UTF8Decode(movie.collectionPoster.path);
+        serRecording.ScraperCollectionFanart = StringExtension::UTF8Decode(movie.collectionFanart.path);
+     }
+
   }
 
   SerMarks serMarks;
@@ -617,7 +709,7 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr)
   cMovie movie;
   cSeries series;
   ScraperGetEventType call;
-  bool hasAdditionalMedia = false;
+  hasAdditionalMedia = false;
   bool isMovie = false;
   bool isSeries = false;
 
@@ -651,7 +743,8 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr)
               hasAdditionalMedia = true;
               isSeries = true;
            }
-        } else if (movieId > 0) {
+        }
+        else if (movieId > 0) {
            movie.movieId = movieId;
            if (pScraper->Service("GetMovie", &movie)) {
               hasAdditionalMedia = true;
