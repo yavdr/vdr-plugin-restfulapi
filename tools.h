@@ -289,6 +289,10 @@ class RestfulServices
     std::vector< RestfulService* > Services(bool internal = false, bool children = false);
 };
 
+
+// Scraper Plugins
+cPlugin *GetScraperPlugin(void);
+
 #endif
 
 #ifndef __RESTFUL_BASICOSD_H
@@ -338,9 +342,6 @@ class TaskScheduler
     void SetRewind(bool bRewind) { _bRewind = bRewind; }
     bool IsRewind() { return _bRewind; }
 };
-
-// Scraper Plugins
-cPlugin *GetScraperPlugin(void);
 
 #endif
 

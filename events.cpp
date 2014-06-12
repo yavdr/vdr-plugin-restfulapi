@@ -333,10 +333,51 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)
 #ifdef EPG_DETAILS_PATCH
   si.addMember("details") <<= *e.Details;
 #endif
-  si.addMember("additional_media") <<= e.Scraper;
-  si.addMember("poster") <<= e.ScraperPoster;
-  //  si.addMember("fanart") <<= e.ScraperFanart;
-  si.addMember("banner") <<= e.ScraperBanner;
+  if (e.Scraper.length() > 0) {
+     si.addMember("additional_media") <<= e.Scraper;
+     if (e.SeriesId > 0) {
+        si.addMember("series_id") <<= e.SeriesId;
+        si.addMember("episode_id") <<= e.EpisodeId;
+        si.addMember("name") <<= e.SeriesName;
+        si.addMember("overview") <<= e.SeriesOverview;
+        si.addMember("first_aired") <<= e.SeriesFirstAired;
+        si.addMember("network") <<= e.SeriesNetwork;
+        si.addMember("genre") <<= e.SeriesGenre;
+        si.addMember("rating") <<= e.SeriesRating;
+        si.addMember("status") <<= e.SeriesStatus;
+     
+        si.addMember("episode_number") <<= e.EpisodeNumber;
+        si.addMember("episode_season") <<= e.EpisodeSeason;
+        si.addMember("episode_name") <<= e.EpisodeName;
+        si.addMember("episode_first_aired") <<= e.EpisodeFirstAired;
+        si.addMember("episode_guest_stars") <<= e.EpisodeGuestStars;
+        si.addMember("episode_overview") <<= e.EpisodeOverview;
+        si.addMember("episode_rating") <<= e.EpisodeRating;
+        si.addMember("episode_image") <<= e.EpisodeImage;
+     }
+     else if (e.MovieId > 0) {
+        si.addMember("movie_id") <<= e.MovieId;
+        si.addMember("title") <<= e.MovieTitle;
+        si.addMember("original_title") <<= e.MovieOriginalTitle;
+        si.addMember("tagline") <<= e.MovieTagline;
+        si.addMember("overview") <<= e.MovieOverview;
+        si.addMember("adult") <<= e.MovieAdult;
+        si.addMember("collection_name") <<= e.MovieCollectionName;
+        si.addMember("budget") <<= e.MovieBudget;
+        si.addMember("revenue") <<= e.MovieRevenue;
+        si.addMember("genres") <<= e.MovieGenres;
+        si.addMember("homepage") <<= e.MovieHomepage;
+        si.addMember("release_date") <<= e.MovieReleaseDate;
+        si.addMember("runtime") <<= e.MovieRuntime;
+        si.addMember("popularity") <<= e.MoviePopularity;
+        si.addMember("vote_average") <<= e.MovieVoteAverage;
+     }
+     si.addMember("poster") <<= e.ScraperPoster;
+     si.addMember("banner") <<= e.ScraperBanner;
+     si.addMember("fanart") <<= e.ScraperFanart;
+     si.addMember("collection_poster") <<= e.ScraperCollectionPoster;
+     si.addMember("collection_fanart") <<= e.ScraperCollectionFanart;
+  }
 }
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerComponent& c)
@@ -473,21 +514,62 @@ void JsonEventList::addEvent(cEvent* event)
   if (hasAdditionalMedia) {
      if (isSeries) {
         serEvent.Scraper = StringExtension::UTF8Decode("series");
+         
+        serEvent.SeriesId = series.seriesId;
+        serEvent.EpisodeId = series.episodeId;
+        serEvent.SeriesName = StringExtension::UTF8Decode(series.name);
+        serEvent.SeriesOverview = StringExtension::UTF8Decode(series.overview);
+        serEvent.SeriesFirstAired = StringExtension::UTF8Decode(series.firstAired);
+        serEvent.SeriesNetwork = StringExtension::UTF8Decode(series.network);
+        serEvent.SeriesGenre = StringExtension::UTF8Decode(series.genre);
+        serEvent.SeriesRating = series.rating; // %.2f
+        serEvent.SeriesStatus = StringExtension::UTF8Decode(series.status);
+        
+        serEvent.EpisodeNumber = series.episode.number;
+        serEvent.EpisodeSeason = series.episode.season;
+        serEvent.EpisodeName = StringExtension::UTF8Decode(series.episode.name);
+        serEvent.EpisodeFirstAired = StringExtension::UTF8Decode(series.episode.firstAired);
+        serEvent.EpisodeGuestStars = StringExtension::UTF8Decode(series.episode.guestStars);
+        serEvent.EpisodeOverview = StringExtension::UTF8Decode(series.episode.overview);
+        serEvent.EpisodeRating = series.episode.rating; // %.2f
+        serEvent.EpisodeImage = StringExtension::UTF8Decode(series.episode.episodeImage.path);
+
         if (series.posters.size() > 0) { /*
            int posters = series.posters.size();
            for (int i = 0; i < posters;i++) {
                serEvent.TvScraperPoster = StringExtension::UTF8Decode(series.posters[i].path);
-            } */
-            serEvent.ScraperPoster = StringExtension::UTF8Decode(series.posters[0].path);
+           } */
+           serEvent.ScraperPoster = StringExtension::UTF8Decode(series.posters[0].path);
         }
         if (series.banners.size() > 0) {
            serEvent.ScraperBanner = StringExtension::UTF8Decode(series.banners[0].path);
         }
-     } else if (isMovie) {
-        serEvent.Scraper = StringExtension::UTF8Decode("movie");
-        if ((movie.poster.width > 0) && (movie.poster.height > 0) && (movie.poster.path.size() > 0)) {
-           serEvent.ScraperPoster = StringExtension::UTF8Decode(movie.poster.path);
+        if (series.fanarts.size() > 0) {
+           serEvent.ScraperFanart = StringExtension::UTF8Decode(series.fanarts[0].path);
         }
+     }
+     else if (isMovie) {
+        serEvent.Scraper = StringExtension::UTF8Decode("movie");
+        serEvent.MovieId = movie.movieId;
+        serEvent.MovieTitle = StringExtension::UTF8Decode(movie.title);
+        serEvent.MovieOriginalTitle = StringExtension::UTF8Decode(movie.originalTitle);
+        serEvent.MovieTagline = StringExtension::UTF8Decode(movie.tagline);
+        serEvent.MovieOverview = StringExtension::UTF8Decode(movie.overview);
+        serEvent.MovieAdult = movie.adult; //BOOL
+        serEvent.MovieCollectionName = StringExtension::UTF8Decode(movie.collectionName);
+        serEvent.MovieBudget = movie.budget; // %.2f
+        serEvent.MovieRevenue = movie.revenue;
+        serEvent.MovieGenres = StringExtension::UTF8Decode(movie.genres);
+        serEvent.MovieHomepage = StringExtension::UTF8Decode(movie.homepage);
+        serEvent.MovieReleaseDate = StringExtension::UTF8Decode(movie.releaseDate);
+        serEvent.MovieRuntime = movie.runtime;
+        serEvent.MoviePopularity = movie.popularity;
+        serEvent.MovieVoteAverage = movie.voteAverage;
+
+        serEvent.ScraperPoster = StringExtension::UTF8Decode(movie.poster.path);
+        serEvent.ScraperFanart = StringExtension::UTF8Decode(movie.fanart.path);
+        serEvent.ScraperCollectionPoster = StringExtension::UTF8Decode(movie.collectionPoster.path);
+        serEvent.ScraperCollectionFanart = StringExtension::UTF8Decode(movie.collectionFanart.path);
      }
   }
 
