@@ -291,8 +291,6 @@ class RestfulServices
 
 
 // AdditionalMedia
-double dRound(double d, int p);
-
 cPlugin *GetScraperPlugin(void);
 
 struct SerActor
@@ -318,7 +316,7 @@ struct SerAdditionalMedia
   cxxtools::String SeriesFirstAired;
   cxxtools::String SeriesNetwork;
   cxxtools::String SeriesGenre;
-  double SeriesRating;
+  float SeriesRating;
   cxxtools::String SeriesStatus;
   int EpisodeId;
   int EpisodeNumber;
@@ -327,7 +325,7 @@ struct SerAdditionalMedia
   cxxtools::String EpisodeFirstAired;
   cxxtools::String EpisodeGuestStars;
   cxxtools::String EpisodeOverview;
-  double EpisodeRating;
+  float EpisodeRating;
   cxxtools::String EpisodeImage;
   std::vector< struct SerImage > Posters;
   std::vector< struct SerImage > Banners;
@@ -345,8 +343,8 @@ struct SerAdditionalMedia
   cxxtools::String MovieHomepage;
   cxxtools::String MovieReleaseDate;
   int MovieRuntime;
-  double MoviePopularity;
-  double MovieVoteAverage;
+  float MoviePopularity;
+  float MovieVoteAverage;
   cxxtools::String MoviePoster;
   cxxtools::String MovieFanart;
   cxxtools::String MovieCollectionPoster;
