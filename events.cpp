@@ -333,51 +333,9 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)
 #ifdef EPG_DETAILS_PATCH
   si.addMember("details") <<= *e.Details;
 #endif
-  if (e.Scraper.length() > 0) {
-     si.addMember("additional_media") <<= e.Scraper;
-     if (e.SeriesId > 0) {
-        si.addMember("series_id") <<= e.SeriesId;
-        si.addMember("episode_id") <<= e.EpisodeId;
-        si.addMember("name") <<= e.SeriesName;
-        si.addMember("overview") <<= e.SeriesOverview;
-        si.addMember("first_aired") <<= e.SeriesFirstAired;
-        si.addMember("network") <<= e.SeriesNetwork;
-        si.addMember("genre") <<= e.SeriesGenre;
-        si.addMember("rating") <<= e.SeriesRating;
-        si.addMember("status") <<= e.SeriesStatus;
-     
-        si.addMember("episode_number") <<= e.EpisodeNumber;
-        si.addMember("episode_season") <<= e.EpisodeSeason;
-        si.addMember("episode_name") <<= e.EpisodeName;
-        si.addMember("episode_first_aired") <<= e.EpisodeFirstAired;
-        si.addMember("episode_guest_stars") <<= e.EpisodeGuestStars;
-        si.addMember("episode_overview") <<= e.EpisodeOverview;
-        si.addMember("episode_rating") <<= e.EpisodeRating;
-        si.addMember("episode_image") <<= e.EpisodeImage;
-     }
-     else if (e.MovieId > 0) {
-        si.addMember("movie_id") <<= e.MovieId;
-        si.addMember("title") <<= e.MovieTitle;
-        si.addMember("original_title") <<= e.MovieOriginalTitle;
-        si.addMember("tagline") <<= e.MovieTagline;
-        si.addMember("overview") <<= e.MovieOverview;
-        si.addMember("adult") <<= e.MovieAdult;
-        si.addMember("collection_name") <<= e.MovieCollectionName;
-        si.addMember("budget") <<= e.MovieBudget;
-        si.addMember("revenue") <<= e.MovieRevenue;
-        si.addMember("genres") <<= e.MovieGenres;
-        si.addMember("homepage") <<= e.MovieHomepage;
-        si.addMember("release_date") <<= e.MovieReleaseDate;
-        si.addMember("runtime") <<= e.MovieRuntime;
-        si.addMember("popularity") <<= e.MoviePopularity;
-        si.addMember("vote_average") <<= e.MovieVoteAverage;
-     }
-     si.addMember("poster") <<= e.ScraperPoster;
-     si.addMember("banner") <<= e.ScraperBanner;
-     si.addMember("fanart") <<= e.ScraperFanart;
-     si.addMember("collection_poster") <<= e.ScraperCollectionPoster;
-     si.addMember("collection_fanart") <<= e.ScraperCollectionFanart;
-  }
+
+  si.addMember("additional_media") <<= e.AdditionalMedia;
+
 }
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerComponent& c)
@@ -512,65 +470,113 @@ void JsonEventList::addEvent(cEvent* event)
 #endif
     
   if (hasAdditionalMedia) {
+     struct SerAdditionalMedia am;
      if (isSeries) {
-        serEvent.Scraper = StringExtension::UTF8Decode("series");
+        am.Scraper = StringExtension::UTF8Decode("series");
          
-        serEvent.SeriesId = series.seriesId;
-        serEvent.EpisodeId = series.episodeId;
-        serEvent.SeriesName = StringExtension::UTF8Decode(series.name);
-        serEvent.SeriesOverview = StringExtension::UTF8Decode(series.overview);
-        serEvent.SeriesFirstAired = StringExtension::UTF8Decode(series.firstAired);
-        serEvent.SeriesNetwork = StringExtension::UTF8Decode(series.network);
-        serEvent.SeriesGenre = StringExtension::UTF8Decode(series.genre);
-        serEvent.SeriesRating = series.rating; // %.2f
-        serEvent.SeriesStatus = StringExtension::UTF8Decode(series.status);
+        am.SeriesId = series.seriesId;
+        am.EpisodeId = series.episodeId;
+        am.SeriesName = StringExtension::UTF8Decode(series.name);
+        am.SeriesOverview = StringExtension::UTF8Decode(series.overview);
+        am.SeriesFirstAired = StringExtension::UTF8Decode(series.firstAired);
+        am.SeriesNetwork = StringExtension::UTF8Decode(series.network);
+        am.SeriesGenre = StringExtension::UTF8Decode(series.genre);
+        am.SeriesRating = series.rating; // %.2f
+        am.SeriesStatus = StringExtension::UTF8Decode(series.status);
         
-        serEvent.EpisodeNumber = series.episode.number;
-        serEvent.EpisodeSeason = series.episode.season;
-        serEvent.EpisodeName = StringExtension::UTF8Decode(series.episode.name);
-        serEvent.EpisodeFirstAired = StringExtension::UTF8Decode(series.episode.firstAired);
-        serEvent.EpisodeGuestStars = StringExtension::UTF8Decode(series.episode.guestStars);
-        serEvent.EpisodeOverview = StringExtension::UTF8Decode(series.episode.overview);
-        serEvent.EpisodeRating = series.episode.rating; // %.2f
-        serEvent.EpisodeImage = StringExtension::UTF8Decode(series.episode.episodeImage.path);
+        am.EpisodeNumber = series.episode.number;
+        am.EpisodeSeason = series.episode.season;
+        am.EpisodeName = StringExtension::UTF8Decode(series.episode.name);
+        am.EpisodeFirstAired = StringExtension::UTF8Decode(series.episode.firstAired);
+        am.EpisodeGuestStars = StringExtension::UTF8Decode(series.episode.guestStars);
+        am.EpisodeOverview = StringExtension::UTF8Decode(series.episode.overview);
+        am.EpisodeRating = series.episode.rating; // %.2f
+        am.EpisodeImage = StringExtension::UTF8Decode(series.episode.episodeImage.path);
+        
+        if (series.actors.size() > 0) {
+           int _actors = series.actors.size();
+           for (int i = 0; i < _actors; i++) {
+               struct SerActor actor;
+               actor.Name = StringExtension::UTF8Decode(series.actors[i].name);
+               actor.Role = StringExtension::UTF8Decode(series.actors[i].role);
+               actor.Thumb = StringExtension::UTF8Decode(series.actors[i].actorThumb.path);
+               am.Actors.push_back(actor);
+           }
+        }
 
-        if (series.posters.size() > 0) { /*
-           int posters = series.posters.size();
-           for (int i = 0; i < posters;i++) {
-               serEvent.TvScraperPoster = StringExtension::UTF8Decode(series.posters[i].path);
-           } */
-           serEvent.ScraperPoster = StringExtension::UTF8Decode(series.posters[0].path);
+        if (series.posters.size() > 0) {
+           int _posters = series.posters.size();
+           for (int i = 0; i < _posters; i++) {
+               if ((series.posters[i].width > 0) && (series.posters[i].height > 0)) {
+                  struct SerImage poster;
+                  poster.Path = StringExtension::UTF8Decode(series.posters[i].path);
+                  poster.Width = series.posters[i].width;
+                  poster.Height = series.posters[i].height;
+                  am.Posters.push_back(poster);
+               }
+           }
         }
+        
         if (series.banners.size() > 0) {
-           serEvent.ScraperBanner = StringExtension::UTF8Decode(series.banners[0].path);
+           int _banners = series.banners.size();
+           for (int i = 0; i < _banners; i++) {
+               if ((series.banners[i].width > 0) && (series.banners[i].height > 0)) {
+                  struct SerImage banner;
+                  banner.Path = StringExtension::UTF8Decode(series.banners[i].path);
+                  banner.Width = series.banners[i].width;
+                  banner.Height = series.banners[i].height;
+                  am.Banners.push_back(banner);
+               }
+           }
         }
+        
         if (series.fanarts.size() > 0) {
-           serEvent.ScraperFanart = StringExtension::UTF8Decode(series.fanarts[0].path);
+           int _fanarts = series.fanarts.size();
+           for (int i = 0; i < _fanarts; i++) {
+               if ((series.fanarts[i].width > 0) && (series.fanarts[i].height > 0)) {
+                  struct SerImage fanart;
+                  fanart.Path = StringExtension::UTF8Decode(series.fanarts[i].path);
+                  fanart.Width = series.fanarts[i].width;
+                  fanart.Height = series.fanarts[i].height;
+                  am.Fanarts.push_back(fanart);
+               }
+           }
         }
      }
      else if (isMovie) {
-        serEvent.Scraper = StringExtension::UTF8Decode("movie");
-        serEvent.MovieId = movie.movieId;
-        serEvent.MovieTitle = StringExtension::UTF8Decode(movie.title);
-        serEvent.MovieOriginalTitle = StringExtension::UTF8Decode(movie.originalTitle);
-        serEvent.MovieTagline = StringExtension::UTF8Decode(movie.tagline);
-        serEvent.MovieOverview = StringExtension::UTF8Decode(movie.overview);
-        serEvent.MovieAdult = movie.adult; //BOOL
-        serEvent.MovieCollectionName = StringExtension::UTF8Decode(movie.collectionName);
-        serEvent.MovieBudget = movie.budget; // %.2f
-        serEvent.MovieRevenue = movie.revenue;
-        serEvent.MovieGenres = StringExtension::UTF8Decode(movie.genres);
-        serEvent.MovieHomepage = StringExtension::UTF8Decode(movie.homepage);
-        serEvent.MovieReleaseDate = StringExtension::UTF8Decode(movie.releaseDate);
-        serEvent.MovieRuntime = movie.runtime;
-        serEvent.MoviePopularity = movie.popularity;
-        serEvent.MovieVoteAverage = movie.voteAverage;
-
-        serEvent.ScraperPoster = StringExtension::UTF8Decode(movie.poster.path);
-        serEvent.ScraperFanart = StringExtension::UTF8Decode(movie.fanart.path);
-        serEvent.ScraperCollectionPoster = StringExtension::UTF8Decode(movie.collectionPoster.path);
-        serEvent.ScraperCollectionFanart = StringExtension::UTF8Decode(movie.collectionFanart.path);
+        am.Scraper = StringExtension::UTF8Decode("movie");
+        am.MovieId = movie.movieId;
+        am.MovieTitle = StringExtension::UTF8Decode(movie.title);
+        am.MovieOriginalTitle = StringExtension::UTF8Decode(movie.originalTitle);
+        am.MovieTagline = StringExtension::UTF8Decode(movie.tagline);
+        am.MovieOverview = StringExtension::UTF8Decode(movie.overview);
+        am.MovieAdult = movie.adult; //BOOL
+        am.MovieCollectionName = StringExtension::UTF8Decode(movie.collectionName);
+        am.MovieBudget = movie.budget; // %.2f
+        am.MovieRevenue = movie.revenue;
+        am.MovieGenres = StringExtension::UTF8Decode(movie.genres);
+        am.MovieHomepage = StringExtension::UTF8Decode(movie.homepage);
+        am.MovieReleaseDate = StringExtension::UTF8Decode(movie.releaseDate);
+        am.MovieRuntime = movie.runtime;
+        am.MoviePopularity = movie.popularity;
+        am.MovieVoteAverage = movie.voteAverage;
+        am.MoviePoster = StringExtension::UTF8Decode(movie.poster.path);
+        am.MovieFanart = StringExtension::UTF8Decode(movie.fanart.path);
+        am.MovieCollectionPoster = StringExtension::UTF8Decode(movie.collectionPoster.path);
+        am.MovieCollectionFanart = StringExtension::UTF8Decode(movie.collectionFanart.path);
+        if (movie.actors.size() > 0) {
+           int _actors = movie.actors.size();
+           for (int i = 0; i < _actors; i++) {
+               struct SerActor actor;
+               actor.Name = StringExtension::UTF8Decode(movie.actors[i].name);
+               actor.Role = StringExtension::UTF8Decode(movie.actors[i].role);
+               actor.Thumb = StringExtension::UTF8Decode(movie.actors[i].actorThumb.path);
+               am.Actors.push_back(actor);
+           }
+        }
      }
+      
+     serEvent.AdditionalMedia.push_back(am);
   }
 
   serEvents.push_back(serEvent);

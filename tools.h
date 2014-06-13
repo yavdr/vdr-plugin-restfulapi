@@ -22,6 +22,7 @@
 #include <cxxtools/http/request.h>
 #include <cxxtools/http/reply.h>
 #include <cxxtools/query_params.h>
+#include <cxxtools/serializationinfo.h> // only AdditionalMedia
 #include <vdr/channels.h>
 #include <vdr/timers.h>
 #include <vdr/recording.h>
@@ -290,8 +291,70 @@ class RestfulServices
 };
 
 
-// Scraper Plugins
+// AdditionalMedia
 cPlugin *GetScraperPlugin(void);
+struct SerActor
+{
+  cxxtools::String Name;
+  cxxtools::String Role;
+  cxxtools::String Thumb;
+};
+
+struct SerImage
+{
+  cxxtools::String Path;
+  int Width;
+  int Height;
+};
+
+struct SerAdditionalMedia
+{
+  cxxtools::String Scraper;
+  int SeriesId;
+  cxxtools::String SeriesName;
+  cxxtools::String SeriesOverview;
+  cxxtools::String SeriesFirstAired;
+  cxxtools::String SeriesNetwork;
+  cxxtools::String SeriesGenre;
+  double SeriesRating;
+  cxxtools::String SeriesStatus;
+  int EpisodeId;
+  int EpisodeNumber;
+  int EpisodeSeason;
+  cxxtools::String EpisodeName;
+  cxxtools::String EpisodeFirstAired;
+  cxxtools::String EpisodeGuestStars;
+  cxxtools::String EpisodeOverview;
+  double EpisodeRating;
+  cxxtools::String EpisodeImage;
+  std::vector< struct SerImage > Posters;
+  std::vector< struct SerImage > Banners;
+  std::vector< struct SerImage > Fanarts;
+  int MovieId;
+  cxxtools::String MovieTitle;
+  cxxtools::String MovieOriginalTitle;
+  cxxtools::String MovieTagline;
+  cxxtools::String MovieOverview;
+  bool MovieAdult;
+  cxxtools::String MovieCollectionName;
+  int MovieBudget;
+  int MovieRevenue;
+  cxxtools::String MovieGenres;
+  cxxtools::String MovieHomepage;
+  cxxtools::String MovieReleaseDate;
+  int MovieRuntime;
+  double MoviePopularity;
+  double MovieVoteAverage;
+  cxxtools::String MoviePoster;
+  cxxtools::String MovieFanart;
+  cxxtools::String MovieCollectionPoster;
+  cxxtools::String MovieCollectionFanart;
+  std::vector< struct SerActor > Actors;
+};
+
+void operator<<= (cxxtools::SerializationInfo& si, const SerActor& a);
+void operator<<= (cxxtools::SerializationInfo& si, const SerImage& i);
+void operator<<= (cxxtools::SerializationInfo& si, const SerAdditionalMedia& am);
 
 #endif
 
