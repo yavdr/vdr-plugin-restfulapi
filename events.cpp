@@ -482,7 +482,7 @@ void JsonEventList::addEvent(cEvent* event)
         am.SeriesFirstAired = StringExtension::UTF8Decode(series.firstAired);
         am.SeriesNetwork = StringExtension::UTF8Decode(series.network);
         am.SeriesGenre = StringExtension::UTF8Decode(series.genre);
-        am.SeriesRating = dRound(series.rating, 2);
+        am.SeriesRating = series.rating;
         am.SeriesStatus = StringExtension::UTF8Decode(series.status);
         
         am.EpisodeNumber = series.episode.number;
@@ -491,7 +491,7 @@ void JsonEventList::addEvent(cEvent* event)
         am.EpisodeFirstAired = StringExtension::UTF8Decode(series.episode.firstAired);
         am.EpisodeGuestStars = StringExtension::UTF8Decode(series.episode.guestStars);
         am.EpisodeOverview = StringExtension::UTF8Decode(series.episode.overview);
-        am.EpisodeRating = dRound(series.episode.rating, 2);
+        am.EpisodeRating = series.episode.rating;
         am.EpisodeImage = StringExtension::UTF8Decode(series.episode.episodeImage.path);
         
         if (series.actors.size() > 0) {
@@ -552,16 +552,16 @@ void JsonEventList::addEvent(cEvent* event)
         am.MovieOriginalTitle = StringExtension::UTF8Decode(movie.originalTitle);
         am.MovieTagline = StringExtension::UTF8Decode(movie.tagline);
         am.MovieOverview = StringExtension::UTF8Decode(movie.overview);
-        am.MovieAdult = movie.adult; //BOOL
+        am.MovieAdult = movie.adult;
         am.MovieCollectionName = StringExtension::UTF8Decode(movie.collectionName);
         am.MovieBudget = movie.budget;
         am.MovieRevenue = movie.revenue;
         am.MovieGenres = StringExtension::UTF8Decode(movie.genres);
         am.MovieHomepage = StringExtension::UTF8Decode(movie.homepage);
         am.MovieReleaseDate = StringExtension::UTF8Decode(movie.releaseDate);
-        am.MovieRuntime = movie.runtime;
-        am.MoviePopularity = dRound(movie.popularity, 2);
-        am.MovieVoteAverage = dRound(movie.voteAverage, 2);
+        am.MovieRuntime = movie.runtime;        
+        am.MoviePopularity = movie.popularity;
+        am.MovieVoteAverage = movie.voteAverage;
         am.MoviePoster = StringExtension::UTF8Decode(movie.poster.path);
         am.MovieFanart = StringExtension::UTF8Decode(movie.fanart.path);
         am.MovieCollectionPoster = StringExtension::UTF8Decode(movie.collectionPoster.path);
@@ -827,9 +827,9 @@ void XmlEventList::addEvent(cEvent* event)
         if (movie.overview != "") {
            s->write(cString::sprintf("    <overview>%s</overview>\n", StringExtension::encodeToXml(movie.overview).c_str()));
         }
-        if (movie.adult) {
-           s->write("    <adult>true</adult>\n");
-        }
+        //if (movie.adult) {
+           s->write(cString::sprintf("    <adult>%s</adult>\n", (movie.adult ? "true" : "false")));
+        //}
         if (movie.collectionName != "") {
            s->write(cString::sprintf("    <collection_name>%s</collection_name>\n", StringExtension::encodeToXml(movie.collectionName).c_str()));
         }
