@@ -1478,12 +1478,17 @@ tChannelID TaskScheduler::SwitchableChannel()
   return tmp;
 }
 
-// Scraper Plugins
+// AdditionalMedia
 cPlugin *GetScraperPlugin(void) {
     static cPlugin *pScraper = cPluginManager::GetPlugin("scraper2vdr");
     if( !pScraper ) // if it doesn't exit, try tvscraper
         pScraper = cPluginManager::GetPlugin("tvscraper");
     return pScraper;
+}
+
+double dRound(double d, int p)
+{
+   return floor(d * pow(10, p) + 0.5) * pow(10, -p);
 }
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerAdditionalMedia& am)

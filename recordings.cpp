@@ -565,8 +565,8 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
   if (hasAdditionalMedia) {
      struct SerAdditionalMedia am;
      if (isSeries) {
-        am.Scraper = StringExtension::UTF8Decode("series");
-         
+        am.MovieId = 0;
+        am.Scraper = StringExtension::UTF8Decode("series");         
         am.SeriesId = series.seriesId;
         am.EpisodeId = series.episodeId;
         am.SeriesName = StringExtension::UTF8Decode(series.name);
@@ -574,7 +574,7 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
         am.SeriesFirstAired = StringExtension::UTF8Decode(series.firstAired);
         am.SeriesNetwork = StringExtension::UTF8Decode(series.network);
         am.SeriesGenre = StringExtension::UTF8Decode(series.genre);
-        am.SeriesRating = series.rating; // %.2f
+        am.SeriesRating = dRound(series.rating, 2);
         am.SeriesStatus = StringExtension::UTF8Decode(series.status);
         
         am.EpisodeNumber = series.episode.number;
@@ -583,7 +583,7 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
         am.EpisodeFirstAired = StringExtension::UTF8Decode(series.episode.firstAired);
         am.EpisodeGuestStars = StringExtension::UTF8Decode(series.episode.guestStars);
         am.EpisodeOverview = StringExtension::UTF8Decode(series.episode.overview);
-        am.EpisodeRating = series.episode.rating; // %.2f
+        am.EpisodeRating = dRound(series.episode.rating, 2);
         am.EpisodeImage = StringExtension::UTF8Decode(series.episode.episodeImage.path);
         
         if (series.actors.size() > 0) {
@@ -637,6 +637,7 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
         }
      }
      else if (isMovie) {
+        am.SeriesId = 0;
         am.Scraper = StringExtension::UTF8Decode("movie");
         am.MovieId = movie.movieId;
         am.MovieTitle = StringExtension::UTF8Decode(movie.title);
@@ -645,14 +646,14 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
         am.MovieOverview = StringExtension::UTF8Decode(movie.overview);
         am.MovieAdult = movie.adult; //BOOL
         am.MovieCollectionName = StringExtension::UTF8Decode(movie.collectionName);
-        am.MovieBudget = movie.budget; // %.2f
+        am.MovieBudget = movie.budget;
         am.MovieRevenue = movie.revenue;
         am.MovieGenres = StringExtension::UTF8Decode(movie.genres);
         am.MovieHomepage = StringExtension::UTF8Decode(movie.homepage);
         am.MovieReleaseDate = StringExtension::UTF8Decode(movie.releaseDate);
         am.MovieRuntime = movie.runtime;
-        am.MoviePopularity = movie.popularity;
-        am.MovieVoteAverage = movie.voteAverage;
+        am.MoviePopularity = dRound(movie.popularity, 2);
+        am.MovieVoteAverage = dRound(movie.voteAverage, 2);
         am.MoviePoster = StringExtension::UTF8Decode(movie.poster.path);
         am.MovieFanart = StringExtension::UTF8Decode(movie.fanart.path);
         am.MovieCollectionPoster = StringExtension::UTF8Decode(movie.collectionPoster.path);
