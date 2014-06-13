@@ -291,7 +291,10 @@ class RestfulServices
 
 
 // AdditionalMedia
+double dRound(double d, int p);
+
 cPlugin *GetScraperPlugin(void);
+
 struct SerActor
 {
   cxxtools::String Name;
