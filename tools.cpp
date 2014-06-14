@@ -824,7 +824,7 @@ string VdrExtension::MoveRecording(cRecording const * recording, string const & 
      Recordings.DelByName(oldname.c_str());
   Recordings.AddByName(newname.c_str());
   cRecordingUserCommand::InvokeCommand(*cString::sprintf("rename \"%s\"", *strescape(oldname.c_str(), "\\\"$'")), newname.c_str());
-  return name + oldname.substr(found);
+  return newname;
 }
 
 // --- VdrMarks ---------------------------------------------------------------

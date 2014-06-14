@@ -124,77 +124,79 @@ void RecordingsResponder::rewindRecording(std::ostream& out, cxxtools::http::Req
 /* move or copy recording */
 void RecordingsResponder::moveRecording(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-QueryHandler q("/recordings/move", request);
+   QueryHandler q("/recordings/move", request);
+   string source = q.getBodyAsString("source");
+   string target = q.getBodyAsString("target");
+   bool copy_only = q.getBodyAsBool("copy_only");
+
+   if (!copy_only) {
+      cThreadLock RecordingsLock(&Recordings);
+   }
+
+   if (source.length() <= 0 || target.length() <= 0) {
+      reply.httpReturn(404, "Missing file name!");
+      return;
+   } else if (access(source.c_str(), F_OK) != 0) {
+      reply.httpReturn(504, "Path is invalid!");
+      return;
+   }
+
+   cRecording* recording = Recordings.GetByName(source.c_str());
+   if (!recording) {
+      reply.httpReturn(504, "Recording not found!");
+      return;
+   }
+
+   string newname = VdrExtension::MoveRecording(recording, VdrExtension::FileSystemExchangeChars(target.c_str(), true), copy_only);
+
+   if (newname.length() <= 0) {
+      LOG_ERROR_STR(source.c_str());
+      reply.httpReturn(503, "File copy failed!");
+      return;
+   }
+
+   cRecording* new_recording = Recordings.GetByName(newname.c_str());
+   if (!new_recording) {
+      LOG_ERROR_STR(newname.c_str());
+      reply.httpReturn(504, "Recording not found, after moving!");
+      return;
+   }
+
+   replyRecordingMoved(out, request, reply, new_recording);
+}
+
+void RecordingsResponder::replyRecordingMoved(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply, cRecording* recording) {
+  QueryHandler q("/recordings/move", request);
   StreamExtension s(&out);
-  string source = q.getBodyAsString("source");
-  string target = q.getBodyAsString("target");
-  string directory = q.getBodyAsString("directory");
+  RecordingList* recordingList;
+  bool read_marks = false;
 
-  bool copy_only = q.getBodyAsBool("copy_only");
-  if (!copy_only)
-     cThreadLock RecordingsLock(&Recordings);
-  if (source.length() > 0 && target.length() > 0) {
-     if (access(source.c_str(), F_OK) == 0) {
-        cRecording* recording = Recordings.GetByName(source.c_str());
-        if (recording) {
-           string filename = directory.empty() ? target : StringExtension::replace(directory, "/", "~") + "~" + target;
-           string newname = VdrExtension::MoveRecording(recording, VdrExtension::FileSystemExchangeChars(filename.c_str(), true), copy_only);
-           if (newname.length() > 0) {
-              //Recordings.Update(false);
-
-	      string DS = "/";
-	      string newfullname = VideoDirectory + DS + newname;
-
-              cRecording* new_recording = Recordings.GetByName(newfullname.c_str());
-              if (new_recording) {
-                 RecordingList* recordingList;
-                 bool read_marks = false;
-
-                 if ( q.isFormat(".json") ) {
-                    reply.addHeader("Content-Type", "application/json; charset=utf-8");
-                    recordingList = (RecordingList*)new JsonRecordingList(&out, read_marks);
-                 } else if ( q.isFormat(".html") ) {
-                    reply.addHeader("Content-Type", "text/html; charset=utf-8");
-                    recordingList = (RecordingList*)new HtmlRecordingList(&out, read_marks);
-                 } else if ( q.isFormat(".xml") )  {
-                    reply.addHeader("Content-Type", "text/xml; charset=utf-8");
-                    recordingList = (RecordingList*)new XmlRecordingList(&out, read_marks);
-                 } else {
-                    reply.httpReturn(502, "Resources are not available for the selected format. (Use: .json, .xml or .html)");
-                    return;
-                 }
-
-		if ( ! q.isFormat(".json") ) {
-			recordingList->init();
-		}
-                 cThreadLock RecordingsLock(&Recordings);
-                 
-                 for (int i = 0; i < Recordings.Count(); i++) {
-                     cRecording* tmp_recording = Recordings.Get(i);
-                     if (strcmp (new_recording->FileName(), tmp_recording->FileName()) == 0)
-                        recordingList->addRecording(tmp_recording, i);
-                 }
-
-                 recordingList->setTotal(1);
-                 recordingList->finish();
-                 delete recordingList;
-              } else {
-                 LOG_ERROR_STR(newname.c_str());
-           	 reply.httpReturn(504, "Recording not found, after moving!");
-              }
-           } else {
-              LOG_ERROR_STR(source.c_str());
-              reply.httpReturn(503, "File copy failed!");
-           }
-        } else {
-           reply.httpReturn(504, "Recording not found!");
-        }
-     } else {
-        reply.httpReturn(504, "Path is invalid!");
-     }
+  if ( q.isFormat(".json") ) {
+    reply.addHeader("Content-Type", "application/json; charset=utf-8");
+    recordingList = (RecordingList*)new JsonRecordingList(&out, read_marks);
+  } else if ( q.isFormat(".html") ) {
+    reply.addHeader("Content-Type", "text/html; charset=utf-8");
+    recordingList = (RecordingList*)new HtmlRecordingList(&out, read_marks);
+    recordingList->init();
+  } else if ( q.isFormat(".xml") )  {
+    reply.addHeader("Content-Type", "text/xml; charset=utf-8");
+    recordingList = (RecordingList*)new XmlRecordingList(&out, read_marks);
+    recordingList->init();
   } else {
-     reply.httpReturn(404, "Missing file name!");
+    reply.httpReturn(502, "Resources are not available for the selected format. (Use: .json, .xml or .html)");
+    return;
   }
+
+  cThreadLock RecordingsLock(&Recordings);
+  for (int i = 0; i < Recordings.Count(); i++) {
+     cRecording* tmp_recording = Recordings.Get(i);
+     if (strcmp(recording->FileName(), tmp_recording->FileName()) == 0) {
+        recordingList->addRecording(tmp_recording, i);
+     }
+  }
+  recordingList->setTotal(Recordings.Count());
+  recordingList->finish();
+  delete recordingList;
 }
 
 /* delete recording by file name */

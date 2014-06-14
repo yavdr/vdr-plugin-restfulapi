@@ -32,6 +32,7 @@ class RecordingsResponder : public cxxtools::http::Responder
     void playRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void rewindRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void moveRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+    void replyRecordingMoved(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply, cRecording* recording);
 };
 
 typedef cxxtools::http::CachedService<RecordingsResponder> RecordingsService;
