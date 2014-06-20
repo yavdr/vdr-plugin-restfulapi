@@ -76,7 +76,7 @@ void RecordingsResponder::reply(ostream& out, cxxtools::http::Request& request, 
      if (request.method() == "GET") {
         showRecordingByName(out, request, reply);
      } else {
-        reply.httpReturn(501, "Only GET method is supported by the /recordings/delete service.");
+        reply.httpReturn(501, "Only GET method is supported by the /recordings/byname service.");
      }
      found = true;
   }
@@ -206,10 +206,10 @@ void RecordingsResponder::showRecordingByName(ostream& out, cxxtools::http::Requ
   QueryHandler q("/recordings/byname", request);
   string recording_file = q.getOptionAsString("file");
   bool read_marks = q.getOptionAsString("marks") == "true";
-  cThreadLock RecordingsLock(&Recordings);
-  if (recording_file.length() > 0) {
-     cRecording* recording = Recordings.GetByName(recording_file.c_str());
 
+  if (recording_file.length() > 0) {
+     cThreadLock RecordingsLock(&Recordings);
+     cRecording* recording = Recordings.GetByName(recording_file.c_str());
      if (recording) {
         RecordingList* recordingList;
 
@@ -229,7 +229,7 @@ void RecordingsResponder::showRecordingByName(ostream& out, cxxtools::http::Requ
            return;
         }
 
-        cThreadLock RecordingsLock(&Recordings);
+        // we have a recording with the given filename, now we need the associated number
         for (int i = 0; i < Recordings.Count(); i++) {
             cRecording* tmp_recording = Recordings.Get(i);
             if (strcmp(recording->FileName(), tmp_recording->FileName()) == 0)
