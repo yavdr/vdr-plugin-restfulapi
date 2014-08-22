@@ -1,3 +1,10 @@
+<<<<<<< HEAD
+vdr-plugin-restfulapi (3:0.1.3-0yavdr0~precise) precise; urgency=medium
+
+  * new upstream release
+
+ -- Saman <saman.vdr@gmail.com>  Thu, 10 Apr 2014 13:26:21 +0100
+=======
 vdr-plugin-restfulapi (0.1.3-0yavdr0~precise) precise; urgency=medium
 
   * channellogos: look for files with channel-id
@@ -9,6 +16,7 @@ vdr-plugin-restfulapi (0.1.2-1yavdr0~precise) precise; urgency=medium
   * add vdr-abi dependency
 
  -- Lars Hanisch <dvb@flensrocker.de>  Sun, 02 Feb 2014 17:09:18 +0100
+>>>>>>> upstream/master
 
 vdr-plugin-restfulapi (0.1.2-0yavdr0~precise) precise; urgency=medium
 

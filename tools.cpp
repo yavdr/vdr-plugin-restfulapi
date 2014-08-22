@@ -250,10 +250,10 @@ void FileNotifier::Action(void)
     struct pollfd pfd[1];
     pfd[0].fd = _filedescriptor;
     pfd[0].events = POLLIN;
-    
+
     if ( poll(pfd, 1, 500) > 0 ) {
        length = read( _filedescriptor, buffer, BUF_LEN );
-    
+
        if ( length > 0 ) {
           while ( i < length ) {
              struct inotify_event *event = ( struct inotify_event * ) &buffer[ i ];
@@ -266,7 +266,7 @@ void FileNotifier::Action(void)
                    else
                       FileCaches::get()->addChannelLogo((std::string)event->name);
                 }
-             
+
                 if (event->mask & IN_DELETE)  {
                    //esyslog("restfulapi: inotify: image %s has been removed", event->name);
                    if ( _mode == FileNotifier::EVENTS )
@@ -621,6 +621,232 @@ cEvent* VdrExtension::getCurrentEventOnChannel(cChannel* channel)
   return (cEvent*)Schedule->GetEventAround(now);
 }
 
+string VdrExtension::getVideoDiskSpace()
+{
+  int FreeMB, UsedMB;
+#if APIVERSNUM < 20102
+  int Percent = VideoDiskSpace(&FreeMB, &UsedMB);
+#else
+  int Percent = cVideoDirectory::VideoDiskSpace(&FreeMB, &UsedMB);
+#endif
+  ostringstream str;
+  str << FreeMB + UsedMB << "MB " << FreeMB << "MB " << Percent << "%";
+  return str.str();  
+}
+
+// Move or copy directory from vdr-plugin-live
+string VdrExtension::FileSystemExchangeChars(std::string const & s, bool ToFileSystem)
+{
+  char *str = strdup(s.c_str());
+  str = ExchangeChars(str, ToFileSystem);
+  std::string data = str;
+  if (str) {
+     free(str);
+  }
+  return data;
+}
+
+bool VdrExtension::MoveDirectory(std::string const & sourceDir, std::string const & targetDir, bool copy)
+{
+  const char* delim = "/";
+  std::string source = sourceDir;
+  std::string target = targetDir;
+
+  // add missing directory delimiters
+  if (source.compare(source.size() - 1, 1, delim) != 0) {
+     source += "/";
+  }
+  if (target.compare(target.size() - 1, 1, delim) != 0) {
+     target += "/";
+  }
+
+  if (source != target) {
+     // validate target directory
+     if (target.find(source) != std::string::npos) {
+        esyslog("[Restfulapi]: cannot move under sub-directory\n");
+        return false;
+     }
+     RemoveFileOrDir(target.c_str());
+     if (!MakeDirs(target.c_str(), true)) {
+        esyslog("[Restfulapi]: cannot create directory %s", target.c_str());
+        return false;
+     }
+
+     struct stat st1, st2;
+     stat(source.c_str(), &st1);
+     stat(target.c_str(),&st2);
+     if (!copy && (st1.st_dev == st2.st_dev)) {
+#if APIVERSNUM < 20102
+        if (!RenameVideoFile(source.c_str(), target.c_str())) {
+#else
+        if (!cVideoDirectory::RenameVideoFile(source.c_str(), target.c_str())) {
+#endif
+           esyslog("[Restfulapi]: rename failed from %s to %s", source.c_str(), target.c_str());
+           return false;
+        }
+     }
+     else {
+        int required = DirSizeMB(source.c_str());
+        int available = FreeDiskSpaceMB(target.c_str());
+
+        // validate free space
+        if (required < available) {
+           cReadDir d(source.c_str());
+           struct dirent *e;
+           bool success = true;
+
+           // allocate copying buffer
+           const int len = 1024 * 1024;
+           char *buffer = MALLOC(char, len);
+           if (!buffer) {
+              esyslog("[Restfulapi]: cannot allocate renaming buffer");
+              return false;
+           }
+
+           // loop through all files, but skip all subdirectories
+           while ((e = d.Next()) != NULL) {
+              // skip generic entries
+              if (strcmp(e->d_name, ".") && strcmp(e->d_name, "..") && strcmp(e->d_name, "lost+found")) {
+                 string sourceFile = source + e->d_name;
+                 string targetFile = target + e->d_name;
+
+                 // copy only regular files
+                 if (!stat(sourceFile.c_str(), &st1) && S_ISREG(st1.st_mode)) {
+                    int r = -1, w = -1;
+                    cUnbufferedFile *inputFile = cUnbufferedFile::Create(sourceFile.c_str(), O_RDONLY | O_LARGEFILE);
+                    cUnbufferedFile *outputFile = cUnbufferedFile::Create(targetFile.c_str(), O_RDWR | O_CREAT | O_LARGEFILE);
+
+                    // validate files
+                    if (!inputFile || !outputFile) {
+                       esyslog("[Restfulapi]: cannot open file %s or %s", sourceFile.c_str(), targetFile.c_str());
+                       success = false;
+                       break;
+                    }
+
+                    // do actual copy
+                   dsyslog("[Restfulapi]: copying %s to %s", sourceFile.c_str(), targetFile.c_str());
+                    do {
+                       r = inputFile->Read(buffer, len);
+                       if (r > 0)
+                          w = outputFile->Write(buffer, r);
+                       else
+                          w = 0;
+                    } while (r > 0 && w > 0);
+                    DELETENULL(inputFile);
+                    DELETENULL(outputFile);
+
+                    // validate result
+                    if (r < 0 || w < 0) {
+                       success = false;
+                       break;
+                    }
+                 }
+              }
+           }
+
+           // release allocated buffer
+           free(buffer);
+
+           // delete all created target files and directories
+           if (!success) {
+              size_t found = target.find_last_of(delim);
+              if (found != std::string::npos) {
+                 target = target.substr(0, found);
+              }
+              if (!RemoveFileOrDir(target.c_str(), true)) {
+                 esyslog("[Restfulapi]: cannot remove target %s", target.c_str());
+              }
+              found = target.find_last_of(delim);
+              if (found != std::string::npos) {
+                 target = target.substr(0, found);
+              }
+              if (!RemoveEmptyDirectories(target.c_str(), true)) {
+                 esyslog("[Restfulapi]: cannot remove target directory %s", target.c_str());
+              }
+              esyslog("[Restfulapi]: copying failed");
+              return false;
+           }
+           else if (!copy && !RemoveFileOrDir(source.c_str(), true)) { // delete source files
+              esyslog("[Restfulapi]: cannot remove source directory %s", source.c_str());
+              return false;
+           }
+
+           // delete all empty source directories
+           if (!copy) {
+              size_t found = source.find_last_of(delim);
+              if (found != std::string::npos) {
+                 source = source.substr(0, found);
+#if APIVERSNUM < 20102
+                 while (source != VideoDirectory) {
+#else
+                 while (source != cVideoDirectory::Name()) {
+#endif
+                    found = source.find_last_of(delim);
+                    if (found == std::string::npos)
+                       break;
+                    source = source.substr(0, found);
+                    if (!RemoveEmptyDirectories(source.c_str(), true))
+                       break;
+                 }
+              }
+           }
+        }
+        else {
+           esyslog("[Restfulapi]: %s requires %dMB - only %dMB available", copy ? "moving" : "copying", required, available);
+           // delete all created empty target directories
+           size_t found = target.find_last_of(delim);
+           if (found != std::string::npos) {
+              target = target.substr(0, found);
+#if APIVERSNUM < 20102
+              while (target != VideoDirectory) {
+#else
+              while (target != cVideoDirectory::Name()) {
+#endif
+                 found = target.find_last_of(delim);
+                 if (found == std::string::npos)
+                    break;
+                 target = target.substr(0, found);
+                 if (!RemoveEmptyDirectories(target.c_str(), true))
+                    break;
+              }
+           }
+           return false;
+        }
+     }
+  }
+  return true;
+}
+
+
+string VdrExtension::MoveRecording(cRecording const * recording, string const & name, bool copy)
+{
+  if (!recording)
+     return "";
+
+  string oldname = recording->FileName();
+  size_t found = oldname.find_last_of("/");
+
+  if (found == string::npos)
+     return "";
+
+#if APIVERSNUM < 20102
+  string newname = string(VideoDirectory) + "/" + name + oldname.substr(found);
+#else
+  string newname = string(cVideoDirectory::Name()) + "/" + name + oldname.substr(found);
+#endif
+
+  if (!MoveDirectory(oldname.c_str(), newname.c_str(), copy)) {
+     esyslog("[Restfulapi]: renaming failed from '%s' to '%s'", oldname.c_str(), newname.c_str());
+     return "";
+  }
+
+  if (!copy)
+     Recordings.DelByName(oldname.c_str());
+  Recordings.AddByName(newname.c_str());
+  cRecordingUserCommand::InvokeCommand(*cString::sprintf("rename \"%s\"", *strescape(oldname.c_str(), "\\\"$'")), newname.c_str());
+  return newname;
+}
+
 // --- VdrMarks ---------------------------------------------------------------
 
 VdrMarks* VdrMarks::get()
@@ -928,8 +1154,8 @@ QueryHandler::QueryHandler(string service, cxxtools::http::Request& request)
   _url = request.url();
   _service = service;
   _options.parse_url(request.qparams());
-  //workaround for current cxxtools which always appends ascii character #012 at the end? AFAIK!
-  string body = request.bodyStr().substr(0,request.bodyStr().length()-1);
+
+  string body = request.bodyStr();
   bool found_json = false;
  
   int i = 0;
@@ -1052,6 +1278,18 @@ string QueryHandler::getOptionAsString(string name)
   return _options.param(name);
 }
 
+bool QueryHandler::getOptionAsBool(string name)
+{
+  if (jsonObject != NULL) {
+     return getJsonBool(name);
+  }
+  string result = _options.param(name);
+  if ((result == "true") || (result == "1")) {
+     return true;
+  }
+  return false;
+}
+
 string QueryHandler::getBodyAsString(string name)
 {
   if (jsonObject != NULL) {
@@ -1084,9 +1322,9 @@ bool QueryHandler::getBodyAsBool(string name)
      return getJsonBool(name);
   }
   string result = getBodyAsString(name);
-  if (result == "true") return true;
-  if (result == "false") return false;
-  if (result == "1") return true;
+  if ((result == "true") || (result == "1")) {
+     return true;
+  }
   return false;
 }
 
@@ -1258,4 +1496,78 @@ tChannelID TaskScheduler::SwitchableChannel()
   _channel = tChannelID::InvalidID;
   _channelMutex.Unlock();
   return tmp;
+}
+
+// AdditionalMedia
+cPlugin *GetScraperPlugin(void) {
+    static cPlugin *pScraper = cPluginManager::GetPlugin("scraper2vdr");
+    if( !pScraper ) // if it doesn't exit, try tvscraper
+        pScraper = cPluginManager::GetPlugin("tvscraper");
+    return pScraper;
+}
+
+void operator<<= (cxxtools::SerializationInfo& si, const SerAdditionalMedia& am)
+{
+  if (am.Scraper.length() > 0) {
+     si.addMember("type") <<= am.Scraper;
+     if (am.SeriesId > 0) {
+        si.addMember("series_id") <<= am.SeriesId;
+        si.addMember("episode_id") <<= am.EpisodeId;
+        si.addMember("name") <<= am.SeriesName;
+        si.addMember("overview") <<= am.SeriesOverview;
+        si.addMember("first_aired") <<= am.SeriesFirstAired;
+        si.addMember("network") <<= am.SeriesNetwork;
+        si.addMember("genre") <<= am.SeriesGenre;
+        si.addMember("rating") <<= am.SeriesRating;
+        si.addMember("status") <<= am.SeriesStatus;
+     
+        si.addMember("episode_number") <<= am.EpisodeNumber;
+        si.addMember("episode_season") <<= am.EpisodeSeason;
+        si.addMember("episode_name") <<= am.EpisodeName;
+        si.addMember("episode_first_aired") <<= am.EpisodeFirstAired;
+        si.addMember("episode_guest_stars") <<= am.EpisodeGuestStars;
+        si.addMember("episode_overview") <<= am.EpisodeOverview;
+        si.addMember("episode_rating") <<= am.EpisodeRating;
+        si.addMember("episode_image") <<= am.EpisodeImage;
+        si.addMember("posters") <<= am.Posters;
+        si.addMember("banners") <<= am.Banners;
+        si.addMember("fanarts") <<= am.Fanarts;
+     }
+     else if (am.MovieId > 0) {
+        si.addMember("movie_id") <<= am.MovieId;
+        si.addMember("title") <<= am.MovieTitle;
+        si.addMember("original_title") <<= am.MovieOriginalTitle;
+        si.addMember("tagline") <<= am.MovieTagline;
+        si.addMember("overview") <<= am.MovieOverview;
+        si.addMember("adult") <<= am.MovieAdult;
+        si.addMember("collection_name") <<= am.MovieCollectionName;
+        si.addMember("budget") <<= am.MovieBudget;
+        si.addMember("revenue") <<= am.MovieRevenue;
+        si.addMember("genres") <<= am.MovieGenres;
+        si.addMember("homepage") <<= am.MovieHomepage;
+        si.addMember("release_date") <<= am.MovieReleaseDate;
+        si.addMember("runtime") <<= am.MovieRuntime;
+        si.addMember("popularity") <<= am.MoviePopularity;
+        si.addMember("vote_average") <<= am.MovieVoteAverage;
+        si.addMember("poster") <<= am.MoviePoster;
+        si.addMember("fanart") <<= am.MovieFanart;
+        si.addMember("collection_poster") <<= am.MovieCollectionPoster;
+        si.addMember("collection_fanart") <<= am.MovieCollectionFanart;
+     }
+     si.addMember("actors") <<= am.Actors;
+  }
+}
+
+void operator<<= (cxxtools::SerializationInfo& si, const SerImage& i)
+{
+  si.addMember("path") <<= i.Path;
+  si.addMember("width") <<= i.Width;
+  si.addMember("height") <<= i.Height;
+}
+
+void operator<<= (cxxtools::SerializationInfo& si, const SerActor& a)
+{
+  si.addMember("name") <<= a.Name;
+  si.addMember("role") <<= a.Role;
+  si.addMember("thumb") <<= a.Thumb;
 }

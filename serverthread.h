@@ -28,6 +28,7 @@
 #include "osd.h"
 #include "searchtimers.h"
 #include "epgsearch.h"
+#include "audio.h"
 
 using namespace std;
 

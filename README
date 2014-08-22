@@ -1,22 +1,39 @@
-yaVDR - vdr-plugin-restfulapi
+vdr-plugin-restfulapi
 ---------------------------------------
 
-"yet another VDR" (yaVDR) is a Linux distribution focussed on Klaus Schmidingers Video Disk Recorder and based on Ubuntu.
+A plugin for Klaus Schmidingers Video Disk Recorder.
 
-yaVDR tries to let you:
 
- * Watch and record TV easily and enjoy your media in a smart way: Quickly set up a digital video recorder (PVR) on your HTPC, receive SD and HD channels, manage it simply with a remote control. Furthermore, take advantage of the full blown media center software XBMC to listen to music, watch videos, check the weather.
+Preface:
+---------
+This plugin has been developed to offer a modern API for other developers to communicate with the VDR.
+The plugin supports the following outputs formats: xml, json and html.
+It also supports the folloing input formats: json and html.
 
- * Enjoy High Definition without high CPU load: HDTV normally needs a strong CPU to be displayed flawlessly. If you own a Nvidia ION based nettop or a HTPC with a Nvidia GPU that supports VDPAU, your CPU will remain cool and your energy bill won't hurt you. yaVDR relies on VDPAU which is currently the only simple way to get GPU based HD video decoding on Linux.
+For a detailed API description, see API.html
 
- * Start immediately after turning on the HTPC: yaVDR wants to compete with other living room devices as much as possible using upstart to speed up the boot. Besides that, the shutdown method S3 (Suspend to RAM) is enabled by default to bypass cold boot. It is possible to let the system automatically wake up on timers and go to sleep after a configurable timeout.
+Someone who wants to install the plugin on his/her VDR needs following applications and libraries:
+
+    VDR >= 1.7.18
+    libcxxtools Rev. >= 1231, which is available as package for Ubuntu in the yavdr-PPA's 
+
+    The plugin can be installed like any other standard plugin (unpack, soft link, make plugins).
+    For Ubuntu it is available as package in the yavdr-PPA's
+
+Someone who wants to develop an application which uses this API:
+
+    XML or JSON Parser (Depends on which format you want to use! - You can also use the html-format, but that one is more a proof for the restful concept and does not show all information!)
+    URL Decoder or JSON Serializer (to send data to the webservice, required f.e. to create timers, searchtimers usw...) 
+
+Configuration:
+---------------
+With yaVDR create a new file called plugin.restfulapi.conf in /etc/vdr/plugins/ .
+
+### Command line parameters for vdr-plugin-restfulapi 
+--port=8002 --ip=0.0.0.0 --epgimages=/var/cache/vdr/epgimages --channellogos=/usr/share/vdr/channel-logos
+
 
 Links:
-
-Installation: http://www.yavdr.org/installation/
-Configuration: http://www.yavdr.org/configuration/
-Features: http://www.yavdr.org/features/
-Issue tracker: https://bugs.yavdr.com/projects/yavdr/issues/new
+-------
+Issue tracker: https://bugs.yavdr.com/projects/vdr-restfulapi/
 Package source: https://github.com/yavdr/vdr-plugin-restfulapi
-Team members: http://www.yavdr.org/developer-zone/team-members/
-

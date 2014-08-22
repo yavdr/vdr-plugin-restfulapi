@@ -68,6 +68,7 @@ string SearchTimer::ToXml()
   << "<use_time>" << UseTime() << "</use_time>\n"
   << "<use_title>" << UseTitle() << "</use_title>\n"
   << "<use_subtitle>" << UseSubtitle() << "</use_subtitle>\n"
+  << "<use_description>" << UseDescription() << "</use_description>\n"
   << "<start_time>" << StartTime() << "</start_time>\n"
   << "<stop_time>" << StopTime() << "</stop_time>\n"
   << "<use_channel>" << UseChannel() << "</use_channel>\n"
@@ -81,6 +82,8 @@ string SearchTimer::ToXml()
   << "<use_dayofweek>" << UseDayOfWeek() << "</use_dayofweek>\n"
   << "<dayofweek>" << DayOfWeek() << "</dayofweek>\n"
   << "<use_in_favorites>" << UseInFavorites() << "</use_in_favorites>\n"
+  << "<search_timer_action>" << SearchTimerAction() << "</search_timer_action>\n"
+  << "<use_series_recording>" << UseSeriesRecording() << "</use_series_recording>\n"
   << "<directory>" << Directory() << "</directory>\n"
   << "<del_recs_after_days>" << DelRecsAfterDays() << "</del_recs_after_days>\n"
   << "<keep_recs>" << KeepRecs() << "</keep_recs>\n"
@@ -151,7 +154,7 @@ string SearchTimer::LoadFromQuery(QueryHandler& q)
      if ( m_channels.length() == 0 ) { return "use_channels activated but no channel selected"; }
   }
   
-  m_useCase = q.getBodyAsBool("use_case");
+  m_useCase = q.getBodyAsBool("match_case");
   m_mode = q.getBodyAsInt("mode");
   if ( m_mode < 0 | m_mode > 5 ) return "mode invalid, (0=phrase, 1=all words, 2=at least one word, 3=match exactly, 4=regex, 5=fuzzy";
   
@@ -170,7 +173,9 @@ string SearchTimer::LoadFromQuery(QueryHandler& q)
   m_useDayOfWeek = q.getBodyAsBool("use_dayofweek");
   if ( m_useDayOfWeek ) {
      m_dayOfWeek = q.getBodyAsInt("dayofweek");
-     if (m_dayOfWeek < 0 || m_dayOfWeek > 127 ) return "day_of_week invalid (uses 7 bits for the seven days!)"; 
+     // sun=0, mon=1, ..., sat=6
+     // user-defined: sun=-1, mon=-2, ..., sat=-64
+     if (m_dayOfWeek < -127 || m_dayOfWeek > 6 ) return "day_of_week invalid (uses 7 bits for the seven days!)";
   }
 
   m_useEpisode = q.getBodyAsBool("use_series_recording");
@@ -243,7 +248,7 @@ string SearchTimer::LoadFromQuery(QueryHandler& q)
   if (repeatsWithinDays > 0) m_repeatsWithinDays = repeatsWithinDays;
 
   //int m_blacklistmode
-  //std::vecotr< std::string > m_blacklist_IDs;
+  //std::vector< std::string > m_blacklist_IDs;
   //m_blacklistmode: 0=no, 1=Selection, 2=all
   //to be implemented, requires array-support in QueryHandler for xml/html and json -> html param-parser has to be impelemented???
   //and blacklist ids should be added to the webservice output 

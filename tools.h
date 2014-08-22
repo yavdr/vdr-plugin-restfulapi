@@ -1,3 +1,4 @@
+
 #include <glob.h>
 #include <list>
 #include <unistd.h>
@@ -21,6 +22,7 @@
 #include <cxxtools/http/request.h>
 #include <cxxtools/http/reply.h>
 #include <cxxtools/query_params.h>
+#include <cxxtools/serializationinfo.h> // only AdditionalMedia
 #include <vdr/channels.h>
 #include <vdr/timers.h>
 #include <vdr/recording.h>
@@ -154,9 +156,10 @@ class FileCaches
     };
 };
 
-
 class VdrExtension
 {
+  private:
+    static bool MoveDirectory(std::string const & sourceDir, std::string const & targetDir, bool copy = false);
   public:
     static cChannel* getChannel(int number);
     static cChannel* getChannel(std::string id);
@@ -173,6 +176,9 @@ class VdrExtension
     static cEvent* GetEventById(tEventID eventID, cChannel* channel = NULL);
     static std::string getRelativeVideoPath(cRecording* recording);
     static cEvent* getCurrentEventOnChannel(cChannel* channel);
+    static std::string getVideoDiskSpace();
+    static std::string FileSystemExchangeChars(std::string const & s, bool ToFileSystem);
+    static std::string MoveRecording(cRecording const * recording, std::string const & name, bool copy = false);
 };
 
 class VdrMarks
@@ -229,6 +235,7 @@ class QueryHandler
     std::string getBodyAsString(std::string name);        //Are variables in the body of the http-request -> for now only html/json are supported, xml is not implemented (!)
     int getParamAsInt(int level);
     int getOptionAsInt(std::string name);
+    bool getOptionAsBool(std::string name);
     int getBodyAsInt(std::string name);
     bool getBodyAsBool(std::string name);
     JsonArray* getBodyAsArray(std::string name);
@@ -283,6 +290,73 @@ class RestfulServices
     std::vector< RestfulService* > Services(bool internal = false, bool children = false);
 };
 
+
+// AdditionalMedia
+cPlugin *GetScraperPlugin(void);
+
+struct SerActor
+{
+  cxxtools::String Name;
+  cxxtools::String Role;
+  cxxtools::String Thumb;
+};
+
+struct SerImage
+{
+  cxxtools::String Path;
+  int Width;
+  int Height;
+};
+
+struct SerAdditionalMedia
+{
+  cxxtools::String Scraper;
+  int SeriesId;
+  cxxtools::String SeriesName;
+  cxxtools::String SeriesOverview;
+  cxxtools::String SeriesFirstAired;
+  cxxtools::String SeriesNetwork;
+  cxxtools::String SeriesGenre;
+  float SeriesRating;
+  cxxtools::String SeriesStatus;
+  int EpisodeId;
+  int EpisodeNumber;
+  int EpisodeSeason;
+  cxxtools::String EpisodeName;
+  cxxtools::String EpisodeFirstAired;
+  cxxtools::String EpisodeGuestStars;
+  cxxtools::String EpisodeOverview;
+  float EpisodeRating;
+  cxxtools::String EpisodeImage;
+  std::vector< struct SerImage > Posters;
+  std::vector< struct SerImage > Banners;
+  std::vector< struct SerImage > Fanarts;
+  int MovieId;
+  cxxtools::String MovieTitle;
+  cxxtools::String MovieOriginalTitle;
+  cxxtools::String MovieTagline;
+  cxxtools::String MovieOverview;
+  bool MovieAdult;
+  cxxtools::String MovieCollectionName;
+  int MovieBudget;
+  int MovieRevenue;
+  cxxtools::String MovieGenres;
+  cxxtools::String MovieHomepage;
+  cxxtools::String MovieReleaseDate;
+  int MovieRuntime;
+  float MoviePopularity;
+  float MovieVoteAverage;
+  cxxtools::String MoviePoster;
+  cxxtools::String MovieFanart;
+  cxxtools::String MovieCollectionPoster;
+  cxxtools::String MovieCollectionFanart;
+  std::vector< struct SerActor > Actors;
+};
+
+void operator<<= (cxxtools::SerializationInfo& si, const SerActor& a);
+void operator<<= (cxxtools::SerializationInfo& si, const SerImage& i);
+void operator<<= (cxxtools::SerializationInfo& si, const SerAdditionalMedia& am);
+
 #endif
 
 #ifndef __RESTFUL_BASICOSD_H
@@ -318,6 +392,7 @@ class TaskScheduler
     tChannelID _channel;
     cRecording* _recording;
     cMutex     _channelMutex;
+    bool _bRewind;
   public:
     TaskScheduler() { _channel = tChannelID::InvalidID; _recording = NULL; };
     ~TaskScheduler();
@@ -328,6 +403,8 @@ class TaskScheduler
     tChannelID SwitchableChannel();
     void SwitchableRecording(cRecording* recording) { _recording = recording; }
     cRecording* SwitchableRecording() { return _recording; }
+    void SetRewind(bool bRewind) { _bRewind = bRewind; }
+    bool IsRewind() { return _bRewind; }
 };
 
 #endif
