@@ -101,35 +101,49 @@ void RecordingsResponder::reply(ostream& out, cxxtools::http::Request& request, 
 void RecordingsResponder::playRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/recordings/play", request);
-  int recording_number = q.getParamAsInt(0);
   cThreadLock RecordingsLock(&Recordings);
-  if ( recording_number < 0 || recording_number >= Recordings.Count() ) {
-     reply.httpReturn(404, "Wrong recording number!");
-  } else {
-     cRecording* recording = Recordings.Get(recording_number);
-     if ( recording != NULL ) {
-        TaskScheduler::get()->SwitchableRecording(recording);
-     } else {
+  cRecording* recording = NULL;
+  
+  string recording_file = q.getBodyAsString("file");
+  if (recording_file.length() > 0)
+     recording = Recordings.GetByName(recording_file.c_str());
+  else {
+     int recording_number = q.getParamAsInt(0);
+     if (recording_number < 0 || recording_number >= Recordings.Count())
         reply.httpReturn(404, "Wrong recording number!");
-     }
+     else
+        recording = Recordings.Get(recording_number);
+  }
+
+  if (recording != NULL) {
+     TaskScheduler::get()->SwitchableRecording(recording);
+  } else {
+     reply.httpReturn(404, "Wrong recording name or number!");
   }
 }
 
 void RecordingsResponder::rewindRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/recordings/rewind", request);
-  int recording_number = q.getParamAsInt(0);
   cThreadLock RecordingsLock(&Recordings);
-  if ( recording_number < 0 || recording_number >= Recordings.Count() ) {
-     reply.httpReturn(404, "Wrong recording number!");
-  } else {
-     cRecording* recording = Recordings.Get(recording_number);
-     if ( recording != NULL ) {
-        TaskScheduler::get()->SetRewind(true);
-        TaskScheduler::get()->SwitchableRecording(recording);
-     } else {
+  cRecording* recording = NULL;
+  
+  string recording_file = q.getBodyAsString("file");
+  if (recording_file.length() > 0)
+     recording = Recordings.GetByName(recording_file.c_str());
+  else {
+     int recording_number = q.getParamAsInt(0);
+     if (recording_number < 0 || recording_number >= Recordings.Count())
         reply.httpReturn(404, "Wrong recording number!");
-     }
+     else
+        recording = Recordings.Get(recording_number);
+  }
+
+  if (recording != NULL) {
+     TaskScheduler::get()->SetRewind(true);
+     TaskScheduler::get()->SwitchableRecording(recording);
+  } else {
+     reply.httpReturn(404, "Wrong recording name or number!");
   }
 }
 
