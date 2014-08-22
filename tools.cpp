@@ -250,10 +250,10 @@ void FileNotifier::Action(void)
     struct pollfd pfd[1];
     pfd[0].fd = _filedescriptor;
     pfd[0].events = POLLIN;
-    
+
     if ( poll(pfd, 1, 500) > 0 ) {
        length = read( _filedescriptor, buffer, BUF_LEN );
-    
+
        if ( length > 0 ) {
           while ( i < length ) {
              struct inotify_event *event = ( struct inotify_event * ) &buffer[ i ];
@@ -266,7 +266,7 @@ void FileNotifier::Action(void)
                    else
                       FileCaches::get()->addChannelLogo((std::string)event->name);
                 }
-             
+
                 if (event->mask & IN_DELETE)  {
                    //esyslog("restfulapi: inotify: image %s has been removed", event->name);
                    if ( _mode == FileNotifier::EVENTS )
@@ -1134,8 +1134,8 @@ QueryHandler::QueryHandler(string service, cxxtools::http::Request& request)
   _url = request.url();
   _service = service;
   _options.parse_url(request.qparams());
-  //workaround for current cxxtools which always appends ascii character #012 at the end? AFAIK!
-  string body = request.bodyStr().substr(0,request.bodyStr().length()-1);
+
+  string body = request.bodyStr();
   bool found_json = false;
  
   int i = 0;
@@ -1264,8 +1264,9 @@ bool QueryHandler::getOptionAsBool(string name)
      return getJsonBool(name);
   }
   string result = _options.param(name);
-  if (result == "true") return true;
-  if (result == "1") return true;
+  if ((result == "true") || (result == "1")) {
+     return true;
+  }
   return false;
 }
 
@@ -1301,9 +1302,9 @@ bool QueryHandler::getBodyAsBool(string name)
      return getJsonBool(name);
   }
   string result = getBodyAsString(name);
-  if (result == "true") return true;
-  if (result == "false") return false;
-  if (result == "1") return true;
+  if ((result == "true") || (result == "1")) {
+     return true;
+  }
   return false;
 }
 
