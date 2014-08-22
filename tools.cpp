@@ -274,9 +274,8 @@ void FileNotifier::Action(void)
                    else
                       FileCaches::get()->removeChannelLogo((std::string)event->name);
                 }
-            
-                i += EVENT_SIZE + event->len;
              }
+             i += EVENT_SIZE + event->len;
           }
        }
     }

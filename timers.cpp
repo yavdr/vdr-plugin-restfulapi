@@ -64,8 +64,8 @@ void TimersResponder::createOrUpdateTimer(ostream& out, cxxtools::http::Request&
            if (!v.IsPriorityValid(priority)) priority = 99;
            chan = VdrExtension::getChannel((const char*)event->ChannelID().ToString());
            if (!v.IsStartValid(start) || !v.IsStopValid(stop) || !v.IsDayValid(day)) {
-              time_t estart = event->StartTime();
-              time_t estop = event->EndTime();
+              time_t estart = event->StartTime()-minpre*60;
+              time_t estop = event->EndTime()+minpre*60;
               struct tm *starttime = localtime(&estart);
 
               ostringstream daystream;
@@ -74,10 +74,10 @@ void TimersResponder::createOrUpdateTimer(ostream& out, cxxtools::http::Request&
                         << StringExtension::addZeros((starttime->tm_mday), 2);
               day = daystream.str();
  
-              start = starttime->tm_hour * 100 + starttime->tm_min - ((int)(minpre/60))*100 - minpre%60;
+              start = starttime->tm_hour * 100 + starttime->tm_min;
 
               struct tm *stoptime = localtime(&estop);
-              stop = stoptime->tm_hour * 100 + stoptime->tm_min + ((int)(minpost/60))*100 + minpost%60;
+              stop = stoptime->tm_hour * 100 + stoptime->tm_min;
            }
         }
      } else {
