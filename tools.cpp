@@ -624,7 +624,11 @@ cEvent* VdrExtension::getCurrentEventOnChannel(cChannel* channel)
 string VdrExtension::getVideoDiskSpace()
 {
   int FreeMB, UsedMB;
+#if APIVERSNUM < 20102
   int Percent = VideoDiskSpace(&FreeMB, &UsedMB);
+#else
+  int Percent = cVideoDirectory::VideoDiskSpace(&FreeMB, &UsedMB);
+#endif
   ostringstream str;
   str << FreeMB + UsedMB << "MB " << FreeMB << "MB " << Percent << "%";
   return str.str();  
@@ -672,7 +676,11 @@ bool VdrExtension::MoveDirectory(std::string const & sourceDir, std::string cons
      stat(source.c_str(), &st1);
      stat(target.c_str(),&st2);
      if (!copy && (st1.st_dev == st2.st_dev)) {
+#if APIVERSNUM < 20102
         if (!RenameVideoFile(source.c_str(), target.c_str())) {
+#else
+        if (!cVideoDirectory::RenameVideoFile(source.c_str(), target.c_str())) {
+#endif
            esyslog("[Restfulapi]: rename failed from %s to %s", source.c_str(), target.c_str());
            return false;
         }
@@ -768,7 +776,11 @@ bool VdrExtension::MoveDirectory(std::string const & sourceDir, std::string cons
               size_t found = source.find_last_of(delim);
               if (found != std::string::npos) {
                  source = source.substr(0, found);
+#if APIVERSNUM < 20102
                  while (source != VideoDirectory) {
+#else
+                 while (source != cVideoDirectory::Name()) {
+#endif
                     found = source.find_last_of(delim);
                     if (found == std::string::npos)
                        break;
@@ -785,7 +797,11 @@ bool VdrExtension::MoveDirectory(std::string const & sourceDir, std::string cons
            size_t found = target.find_last_of(delim);
            if (found != std::string::npos) {
               target = target.substr(0, found);
+#if APIVERSNUM < 20102
               while (target != VideoDirectory) {
+#else
+              while (target != cVideoDirectory::Name()) {
+#endif
                  found = target.find_last_of(delim);
                  if (found == std::string::npos)
                     break;
@@ -813,7 +829,11 @@ string VdrExtension::MoveRecording(cRecording const * recording, string const & 
   if (found == string::npos)
      return "";
 
+#if APIVERSNUM < 20102
   string newname = string(VideoDirectory) + "/" + name + oldname.substr(found);
+#else
+  string newname = string(cVideoDirectory::Name()) + "/" + name + oldname.substr(found);
+#endif
 
   if (!MoveDirectory(oldname.c_str(), newname.c_str(), copy)) {
      esyslog("[Restfulapi]: renaming failed from '%s' to '%s'", oldname.c_str(), newname.c_str());
