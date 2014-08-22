@@ -156,10 +156,11 @@ void RecordingsResponder::moveRecording(ostream& out, cxxtools::http::Request& r
   string target = q.getBodyAsString("target");
   string directory = q.getBodyAsString("directory");
   bool copy_only = q.getBodyAsBool("copy_only");
-  if (!copy_only)
-     cThreadLock RecordingsLock(&Recordings);
+
   if (source.length() > 0 && target.length() > 0) {
      if (access(source.c_str(), F_OK) == 0) {
+        if (!copy_only)
+           cThreadLock RecordingsLock(&Recordings);
         cRecording* recording = Recordings.GetByName(source.c_str());
         if (recording) {
            string filename = directory.empty() ? target : StringExtension::replace(directory, "/", "~") + "~" + target;
@@ -266,8 +267,8 @@ void RecordingsResponder::deleteRecordingByName(ostream& out, cxxtools::http::Re
 {
   QueryHandler q("/recordings/delete", request);
   string recording_file = q.getBodyAsString("file");
-  cThreadLock RecordingsLock(&Recordings);
   if (recording_file.length() > 0) {
+     cThreadLock RecordingsLock(&Recordings);
      cRecording* delRecording = Recordings.GetByName(recording_file.c_str());
      if (delRecording->Delete()) {
         Recordings.DelByName(delRecording->FileName());
@@ -281,10 +282,10 @@ void RecordingsResponder::deleteRecording(ostream& out, cxxtools::http::Request&
 {
   QueryHandler q("/recordings", request);
   int recording_number = q.getParamAsInt(0);
-  cThreadLock RecordingsLock(&Recordings);
-  if ( recording_number < 0 || recording_number >= Recordings.Count() ) { 
+  if ( recording_number < 0 || recording_number >= Recordings.Count() ) {
      reply.httpReturn(404, "Wrong recording number!");
   } else {
+     cThreadLock RecordingsLock(&Recordings);
      cRecording* delRecording = Recordings.Get(recording_number);
      if ( delRecording->Delete() ) {
         Recordings.DelByName(delRecording->FileName());
