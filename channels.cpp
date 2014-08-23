@@ -345,7 +345,7 @@ void XmlChannelGroupList::init()
 void XmlChannelGroupList::addGroup(string group)
 {
   if ( filtered() ) return;
-  s->write(cString::sprintf(" <group>%s</group>\n", group.c_str()));
+  s->write(cString::sprintf(" <group>%s</group>\n", StringExtension::encodeToXml( group ).c_str()));
 }
 
 void XmlChannelGroupList::finish()
