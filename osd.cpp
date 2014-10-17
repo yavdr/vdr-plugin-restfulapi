@@ -3,6 +3,7 @@ using namespace std;
 
 void OsdResponder::reply(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
+  QueryHandler::addHeader(reply);
   QueryHandler q("/osd", request);
 
   if ( request.method() != "GET" ) {
