@@ -22,7 +22,7 @@ class KeyPairList
   public:
     KeyPairList();
     ~KeyPairList();
-    bool hitKey(std::string key);
+    bool hitKey(std::string key, const cxxtools::Char* kbd);
 };
 
 class RemoteResponder : public cxxtools::http::Responder

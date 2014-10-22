@@ -4,6 +4,9 @@ using namespace std;
 void RemoteResponder::reply(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler::addHeader(reply);
+  string key;
+  cxxtools::String empty = StringExtension::UTF8Decode("");
+  cxxtools::String kbd = empty;
   if (request.method() != "POST") {
      reply.httpReturn(403, "Only POST method is support by the remote control");
      return;
@@ -24,15 +27,24 @@ void RemoteResponder::reply(ostream& out, cxxtools::http::Request& request, cxxt
      return;
   } 
 
-  QueryHandler q("/remote", request);
-  string key = q.getParamAsString(0);
+  if ( (int)request.url().find("/remote/kbd") != -1) {
+     QueryHandler q("/remote/kbd", request);
+     key = "kbd";
+     kbd = StringExtension::UTF8Decode(q.getParamAsString(0));
+     if ( kbd == empty ) {
+	reply.httpReturn(400, "Key is empty.");
+     }
+  } else {
+    QueryHandler q("/remote", request);
+    key = q.getParamAsString(0);
+  }
 
   if (key.length() == 0) {
      reply.httpReturn(404, "Please add a key to the parameter list, see API-file for more details.");
      return;
   }
 
-  if (!keyPairList->hitKey(key.c_str())) {
+  if (!keyPairList->hitKey(key.c_str(), kbd.c_str())) {
      reply.httpReturn(404, "Remote Control does not support the requested key.");
   }
 }
@@ -105,7 +117,7 @@ KeyPairList::~KeyPairList()
 
 }
 
-bool KeyPairList::hitKey(string key)
+bool KeyPairList::hitKey(string key, const cxxtools::Char* kbd)
 { 
   for (int i=0;i<(int)key.length();i++) {
     key[i] = tolower(key[i]);
@@ -114,16 +126,14 @@ bool KeyPairList::hitKey(string key)
   for (int i=0;i<(int)keys.size();i++)
   {
     if (string(keys[i].str) == key) {
+       if ( key == "kbd" ) {
+	cRemote::Put(KBDKEY(kbd[0]));
+	return true;
+       }
        cRemote::Put(keys[i].key);
        return true;
     }
   }
-
-  if (key.length() == 1) {
-    cRemote::Put(KBDKEY(key[0]));
-    return true;
-  }
-
   return false;
 }
 
