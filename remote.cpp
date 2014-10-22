@@ -118,6 +118,12 @@ bool KeyPairList::hitKey(string key)
        return true;
     }
   }
+
+  if (key.length() == 1) {
+    cRemote::Put(KBDKEY(key[0]));
+    return true;
+  }
+
   return false;
 }
 
