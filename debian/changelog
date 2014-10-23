@@ -1,3 +1,10 @@
+vdr-plugin-restfulapi (0.1.3.1-0yavdr0~precise) precise; urgency=medium
+
+  * remote: add ability to send strings as keyboard input
+  * remove outdated fix for cxxtools
+
+ -- Henning Künne <hannemann666@gmx.net>  Thu, 23 Oct 2014 19:23:20 +0200
+
 vdr-plugin-restfulapi (0.1.3-0yavdr0~precise) precise; urgency=medium
 
   * channellogos: look for files with channel-id
