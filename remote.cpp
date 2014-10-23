@@ -123,18 +123,19 @@ bool KeyPairList::hitKey(string key, const cxxtools::Char* kbd)
     key[i] = tolower(key[i]);
   }
   
+  if ( key == "kbd" ) {
+    std::size_t n = 0;
+    while (kbd[n]) {
+      cRemote::Put(KBDKEY(kbd[n]));
+      ++n;
+    }
+    return true;
+  }
+
+
   for (int i=0;i<(int)keys.size();i++)
   {
     if (string(keys[i].str) == key) {
-      if ( key == "kbd" ) {
-        static const cxxtools::Char term(0);
-	std::size_t n = 0;
-	while( kbd[n] != term ) {
-    	  cRemote::Put(KBDKEY(kbd[n]));
-	  ++n;
-        }
-        return true;
-      }
       cRemote::Put(keys[i].key);
       return true;
     }
