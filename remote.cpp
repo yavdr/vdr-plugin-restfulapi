@@ -30,7 +30,7 @@ void RemoteResponder::reply(ostream& out, cxxtools::http::Request& request, cxxt
   if ( (int)request.url().find("/remote/kbd") != -1) {
      QueryHandler q("/remote/kbd", request);
      key = "kbd";
-     kbd = StringExtension::UTF8Decode(q.getParamAsString(0));
+     kbd = StringExtension::UTF8Decode(q.getBodyAsString("kbd"));
      if ( kbd == empty ) {
 	reply.httpReturn(400, "Key is empty.");
      }
@@ -126,12 +126,17 @@ bool KeyPairList::hitKey(string key, const cxxtools::Char* kbd)
   for (int i=0;i<(int)keys.size();i++)
   {
     if (string(keys[i].str) == key) {
-       if ( key == "kbd" ) {
-	cRemote::Put(KBDKEY(kbd[0]));
-	return true;
-       }
-       cRemote::Put(keys[i].key);
-       return true;
+      if ( key == "kbd" ) {
+        static const cxxtools::Char term(0);
+	std::size_t n = 0;
+	while( kbd[n] != term ) {
+    	  cRemote::Put(KBDKEY(kbd[n]));
+	  ++n;
+        }
+        return true;
+      }
+      cRemote::Put(keys[i].key);
+      return true;
     }
   }
   return false;
