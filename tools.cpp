@@ -1154,8 +1154,7 @@ QueryHandler::QueryHandler(string service, cxxtools::http::Request& request)
   _url = request.url();
   _service = service;
   _options.parse_url(request.qparams());
-  //workaround for current cxxtools which always appends ascii character #012 at the end? AFAIK!
-  string body = request.bodyStr().substr(0,request.bodyStr().length()-1);
+  string body = request.bodyStr();
   bool found_json = false;
  
   int i = 0;
