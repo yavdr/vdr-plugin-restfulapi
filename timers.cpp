@@ -65,7 +65,7 @@ void TimersResponder::createOrUpdateTimer(ostream& out, cxxtools::http::Request&
            chan = VdrExtension::getChannel((const char*)event->ChannelID().ToString());
            if (!v.IsStartValid(start) || !v.IsStopValid(stop) || !v.IsDayValid(day)) {
               time_t estart = event->StartTime()-minpre*60;
-              time_t estop = event->EndTime()+minpre*60;
+              time_t estop = event->EndTime()+minpost*60;
               struct tm *starttime = localtime(&estart);
 
               ostringstream daystream;
