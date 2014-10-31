@@ -4,10 +4,6 @@ using namespace std;
 void RemoteResponder::reply(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler::addHeader(reply);
-  string key;
-  cxxtools::String empty = StringExtension::UTF8Decode("");
-  cxxtools::String kbd = empty;
-  JsonArray* seq = NULL;
   if (request.method() != "POST") {
      reply.httpReturn(403, "Only POST method is support by the remote control");
      return;
@@ -18,9 +14,6 @@ void RemoteResponder::reply(ostream& out, cxxtools::http::Request& request, cxxt
      cChannel* channel = VdrExtension::getChannel(q.getParamAsString(0));
      if ( channel == NULL ) {
         reply.httpReturn(404, "Channel-Id is not valid.");
-     /*} else if ( !Channels.SwitchTo( channel->Number() ) ) {
-        reply.httpReturn(404, "Couldn't switch to channel.");
-     }*/
      } else {
         TaskScheduler::get()->SwitchableChannel(channel->GetChannelID());
      }
@@ -28,31 +21,7 @@ void RemoteResponder::reply(ostream& out, cxxtools::http::Request& request, cxxt
      return;
   } 
 
-  if ( (int)request.url().find("/remote/kbd") != -1) {
-     QueryHandler q("/remote/kbd", request);
-     key = "kbd";
-     kbd = StringExtension::UTF8Decode(q.getBodyAsString("kbd"));
-     if ( kbd == empty ) {
-       reply.httpReturn(400, "Key is empty.");
-     }
-  } else if ( (int)request.url().find("/remote/seq") != -1) {
-	     QueryHandler q("/remote/seq", request);
-	     key = "seq";
-	     seq = q.getBodyAsArray("seq");
-	     if ( seq == NULL ) {
-	       reply.httpReturn(400, "Sequence is empty.");
-	     }
-  } else {
-    QueryHandler q("/remote", request);
-    key = q.getParamAsString(0);
-  }
-
-  if (key.length() == 0) {
-     reply.httpReturn(404, "Please add a key to the parameter list, see API-file for more details.");
-     return;
-  }
-
-  if (!keyPairList->hitKey(key.c_str(), kbd.c_str(), seq)) {
+  if (!keyPairList->hitKey(request, reply)) {
      reply.httpReturn(404, "Remote Control does not support the requested key.");
   }
 }
@@ -125,46 +94,75 @@ KeyPairList::~KeyPairList()
 
 }
 
-bool KeyPairList::hitKey(string key, const cxxtools::Char* kbd, JsonArray* seq)
+bool KeyPairList::hitKey(cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 { 
-  for (int i=0;i<(int)key.length();i++) {
-    key[i] = tolower(key[i]);
-  }
   
-  if ( key == "kbd" ) {
+  if ( (int)request.url().find("/remote/kbd") != -1) {
+    QueryHandler q("/remote/kbd", request);
+    cxxtools::String kbd = StringExtension::UTF8Decode(q.getBodyAsString("kbd"));
+    if ( kbd == StringExtension::UTF8Decode("") ) {
+	reply.httpReturn(400, "Key is empty.");
+    }
     std::size_t n = 0;
     while (kbd[n]) {
       cRemote::Put(KBDKEY(kbd[n]));
       ++n;
     }
     return true;
-  }
 
-  if ( key == "seq" ) {
-	     for (int i = 0; i < seq->CountItem(); i++) {
-	        JsonBase* jsonBase = seq->GetItem(i);
-	        if (jsonBase->IsBasicValue()) {
-	           JsonBasicValue* jsonBasicValue = (JsonBasicValue*)jsonBase;
-	           if (jsonBasicValue->IsString()) {
-		    	  for (int x=0;x<(int)keys.size();x++)
-		    	  {
-		    	    if (string(keys[x].str) == jsonBasicValue->ValueAsString()) {
-		    	      cRemote::Put(keys[i].key);
-		    	    }
-		    	  }
-	           }
-	        }
-	     }
-  }
+  } else if ( (int)request.url().find("/remote/seq") != -1) {
+    QueryHandler q("/remote/seq", request);
+    JsonArray* seq = q.getBodyAsArray("seq");
 
+    if ( seq == NULL ) {
+	reply.httpReturn(400, "Sequence is empty.");
+        return false;
+    }
 
-  for (int i=0;i<(int)keys.size();i++)
-  {
-    if (string(keys[i].str) == key) {
-      cRemote::Put(keys[i].key);
-      return true;
+    for (int i = 0; i < seq->CountItem(); i++) {
+      JsonBase* jsonBase = seq->GetItem(i);
+      if (jsonBase->IsBasicValue()) {
+	JsonBasicValue* jsonBasicValue = (JsonBasicValue*)jsonBase;
+	if (jsonBasicValue->IsString()) {
+          string key = jsonBasicValue->ValueAsString();
+          for (int n=0;n<(int)key.length();n++ ) {
+            key[n] = tolower(key[n]);
+          }
+	  for (int x=0;x<(int)keys.size();x++) {
+	    if (string(keys[x].str) == key) {
+		cRemote::Put(keys[x].key);
+	    }
+	  }
+	}
+      }
+    }
+
+    return true;
+
+  } else {
+    QueryHandler q("/remote", request);
+    string key = q.getParamAsString(0);
+
+    if (key.length() == 0) {
+       reply.httpReturn(404, "Please add a key to the parameter list, see API-file for more details.");
+       return false;
+    }
+
+    for (int i=0;i<(int)key.length();i++) {
+      key[i] = tolower(key[i]);
+    }
+
+    for (int i=0;i<(int)keys.size();i++)
+    {
+      if (string(keys[i].str) == key) {
+        cRemote::Put(keys[i].key);
+        return true;
+      }
     }
   }
+
+
+
   return false;
 }
 
