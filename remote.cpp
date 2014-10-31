@@ -7,6 +7,7 @@ void RemoteResponder::reply(ostream& out, cxxtools::http::Request& request, cxxt
   string key;
   cxxtools::String empty = StringExtension::UTF8Decode("");
   cxxtools::String kbd = empty;
+  JsonArray* seq = NULL;
   if (request.method() != "POST") {
      reply.httpReturn(403, "Only POST method is support by the remote control");
      return;
@@ -32,8 +33,15 @@ void RemoteResponder::reply(ostream& out, cxxtools::http::Request& request, cxxt
      key = "kbd";
      kbd = StringExtension::UTF8Decode(q.getBodyAsString("kbd"));
      if ( kbd == empty ) {
-	reply.httpReturn(400, "Key is empty.");
+       reply.httpReturn(400, "Key is empty.");
      }
+  } else if ( (int)request.url().find("/remote/seq") != -1) {
+	     QueryHandler q("/remote/seq", request);
+	     key = "seq";
+	     seq = q.getBodyAsArray("seq");
+	     if ( seq == NULL ) {
+	       reply.httpReturn(400, "Sequence is empty.");
+	     }
   } else {
     QueryHandler q("/remote", request);
     key = q.getParamAsString(0);
@@ -44,7 +52,7 @@ void RemoteResponder::reply(ostream& out, cxxtools::http::Request& request, cxxt
      return;
   }
 
-  if (!keyPairList->hitKey(key.c_str(), kbd.c_str())) {
+  if (!keyPairList->hitKey(key.c_str(), kbd.c_str(), seq)) {
      reply.httpReturn(404, "Remote Control does not support the requested key.");
   }
 }
@@ -117,7 +125,7 @@ KeyPairList::~KeyPairList()
 
 }
 
-bool KeyPairList::hitKey(string key, const cxxtools::Char* kbd)
+bool KeyPairList::hitKey(string key, const cxxtools::Char* kbd, JsonArray* seq)
 { 
   for (int i=0;i<(int)key.length();i++) {
     key[i] = tolower(key[i]);
@@ -130,6 +138,23 @@ bool KeyPairList::hitKey(string key, const cxxtools::Char* kbd)
       ++n;
     }
     return true;
+  }
+
+  if ( key == "seq" ) {
+	     for (int i = 0; i < seq->CountItem(); i++) {
+	        JsonBase* jsonBase = seq->GetItem(i);
+	        if (jsonBase->IsBasicValue()) {
+	           JsonBasicValue* jsonBasicValue = (JsonBasicValue*)jsonBase;
+	           if (jsonBasicValue->IsString()) {
+		    	  for (int x=0;x<(int)keys.size();x++)
+		    	  {
+		    	    if (string(keys[x].str) == jsonBasicValue->ValueAsString()) {
+		    	      cRemote::Put(keys[i].key);
+		    	    }
+		    	  }
+	           }
+	        }
+	     }
   }
 
 
