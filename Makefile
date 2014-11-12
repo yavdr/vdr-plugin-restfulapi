@@ -57,7 +57,7 @@ PLGCONFDIR = $(CONFDIR)/plugins/$(PLUGIN)
 
 ### The object files (add further files here):
 
-OBJS = $(PLUGIN).o serverthread.o tools.o info.o channels.o events.o recordings.o remote.o timers.o statusmonitor.o osd.o jsonparser.o epgsearch.o searchtimers.o
+OBJS = $(PLUGIN).o serverthread.o tools.o info.o channels.o events.o recordings.o remote.o timers.o services/scraper2vdr.o statusmonitor.o osd.o jsonparser.o epgsearch.o searchtimers.o
 CFGS = API.html
 
 ### The main target:
