@@ -399,6 +399,7 @@ RecordingList::RecordingList(ostream *out, bool _read_marks)
 {
   s = new StreamExtension(out);
   read_marks = _read_marks;
+  Scraper2VdrService sc;
 }
 
 RecordingList::~RecordingList()
@@ -449,9 +450,8 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
 
   SerRecording serRecording;
 
-  Scraper2VdrService sc;
   SerAdditionalMedia am;
-  if (sc.getRecordingMedia(recording, am)) {
+  if (sc.getMedia(recording, am)) {
       serRecording.AdditionalMedia.push_back(am);
   }
 

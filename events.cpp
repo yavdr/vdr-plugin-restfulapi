@@ -348,6 +348,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const struct tEpgDetail& e)
 EventList::EventList(ostream *_out) {
   s = new StreamExtension(_out);
   total = 0;
+  Scraper2VdrService sc;
 }
 
 EventList::~EventList()
@@ -392,9 +393,8 @@ void JsonEventList::addEvent(cEvent* event)
   if( !event->ShortText() ) { eventShortText = empty; } else { eventShortText = StringExtension::UTF8Decode(event->ShortText()); }
   if( !event->Description() ) { eventDescription = empty; } else { eventDescription = StringExtension::UTF8Decode(event->Description()); }
 
-  Scraper2VdrService sc;
   SerAdditionalMedia am;
-  if (sc.getEventMedia(event, am)) {
+  if (sc.getMedia(event, am)) {
       serEvent.AdditionalMedia.push_back(am);
   }
 

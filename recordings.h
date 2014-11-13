@@ -9,7 +9,7 @@
 #include <fstream>
 #include <sstream>
 #include "tools.h"
-#include "services/scraper2vdr.h"
+#include "scraper2vdr/service.h"
 
 #include <vdr/cutter.h>
 #include <vdr/recording.h>
@@ -74,6 +74,7 @@ class RecordingList : public BaseList
     bool read_marks;
     int total;
     StreamExtension *s;
+    Scraper2VdrService sc;
   public:
     RecordingList(std::ostream* _out, bool _read_marks);
     virtual ~RecordingList();

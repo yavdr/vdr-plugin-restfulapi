@@ -10,7 +10,7 @@
 
 #include "tools.h"
 #include "epgsearch/services.h"
-#include "services/scraper2vdr.h"
+#include "scraper2vdr/service.h"
 
 #ifndef __RESTFUL_EVENTS_H
 #define __RESTFUL_EVENTS_H
@@ -75,6 +75,7 @@ class EventList : public BaseList
   protected:
     StreamExtension *s;
     int total;
+    Scraper2VdrService sc;
   public:
     explicit EventList(std::ostream* _out);
     virtual ~EventList();

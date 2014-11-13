@@ -265,14 +265,20 @@ class Scraper2VdrService {
 private:
   cPlugin *getScraperPlugin(void);
   cPlugin *scraper;
-  bool getEventType(ScraperGetEventType &eventType);
-  void getSeriesMedia(SerAdditionalMedia &am, ScraperGetEventType &eventType);
-  void getMovieMedia(SerAdditionalMedia &am, ScraperGetEventType &eventType);
+  bool getEventType	(ScraperGetEventType &eventType);
+  void getSeriesMedia	(SerAdditionalMedia &am, ScraperGetEventType &eventType);
+  void getMovieMedia	(SerAdditionalMedia &am, ScraperGetEventType &eventType);
+  void getSeriesMedia	(StreamExtension &s, ScraperGetEventType &eventType);
+  void getMovieMedia	(StreamExtension &s, ScraperGetEventType &eventType);
+  bool getMedia		(ScraperGetEventType &eventType, SerAdditionalMedia &am);
+  bool getMedia		(ScraperGetEventType &eventType, StreamExtension &s);
 public:
   explicit Scraper2VdrService();
   virtual ~Scraper2VdrService();
-  bool getEventMedia(cEvent *event, struct SerAdditionalMedia &am);
-  bool getRecordingMedia(cRecording *recording, struct SerAdditionalMedia &am);
+  bool getMedia(cEvent *event, SerAdditionalMedia &am);
+  bool getMedia(cRecording *recording, SerAdditionalMedia &am);
+  bool getMedia(cEvent *event, StreamExtension &s);
+  bool getMedia(cRecording *recording, StreamExtension &s);
 };
 
 #endif //__SCRAPER2VDRSERVICES_H
