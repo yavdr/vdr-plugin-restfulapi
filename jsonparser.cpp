@@ -315,7 +315,7 @@ JsonObject* JsonParser::ParseJsonObject(const char* data, long size, long* posit
                       break;
                    }
                    //go to default if char isn't the QUOTATIONCHAR
-        default:  if((int)data[*position] >= 48 && (int)data[*position] <= 57)
+        default:  if((int)data[*position] == 45 || ((int)data[*position] >= 48 && (int)data[*position] <= 57))
                   {
                     item = (JsonBase*)ParseDouble(data, size, position);
                   } else {
@@ -353,7 +353,7 @@ JsonBasicValue* JsonParser::ParseBool(const char* data, long size, long* positio
 JsonBasicValue* JsonParser::ParseDouble(const char* data, long size, long* position)
 {
   ostringstream str;
-  while(((data[(*position)] >= 48 && data[(*position)] <= 57) || data[(*position)] == '.') && *position < size) {
+  while(((data[(*position)] >= 48 && data[(*position)] <= 57) || data[(*position)] == 45 || data[(*position)] == '.') && *position < size) {
     str << data[(*position)];
     (*position)++;
   }

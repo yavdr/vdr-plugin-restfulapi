@@ -985,7 +985,7 @@ string StringExtension::itostr(int i)
 
 int StringExtension::strtoi(string str)
 {
-  static cxxtools::Regex regex("[0-9]{1,}");
+  static cxxtools::Regex regex("-?[0-9]{1,}");
   if(!regex.match(str)) return -LOWINT; // lowest possible integer
   return atoi(str.c_str());
 }
