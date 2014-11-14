@@ -6,6 +6,7 @@ using namespace std;
  */
 Scraper2VdrService::Scraper2VdrService() {
   scraper = getScraperPlugin();
+  epgImagesDir = Settings::get()->EpgImageDirectory();
 };
 
 /**
@@ -136,6 +137,13 @@ bool Scraper2VdrService::getMedia(cRecording* recording, StreamExtension* s) {
  * API end
  */
 
+string Scraper2VdrService::cleanImagePath(string path) {
+
+  path = StringExtension::replace(path, epgImagesDir, "");
+  path.erase(0, path.find_first_not_of("/"));
+  return path;
+};
+
 /**
  * enrich additional media structure with series data
  */
@@ -165,7 +173,7 @@ void Scraper2VdrService::getSeriesMedia(SerAdditionalMedia &am, ScraperGetEventT
     am.EpisodeGuestStars = StringExtension::UTF8Decode(series.episode.guestStars);
     am.EpisodeOverview = StringExtension::UTF8Decode(series.episode.overview);
     am.EpisodeRating = series.episode.rating;
-    am.EpisodeImage = StringExtension::UTF8Decode(series.episode.episodeImage.path);
+    am.EpisodeImage = StringExtension::UTF8Decode(cleanImagePath(series.episode.episodeImage.path));
 
     if (series.actors.size() > 0) {
        int _actors = series.actors.size();
@@ -173,7 +181,7 @@ void Scraper2VdrService::getSeriesMedia(SerAdditionalMedia &am, ScraperGetEventT
 	   struct SerActor actor;
 	   actor.Name = StringExtension::UTF8Decode(series.actors[i].name);
 	   actor.Role = StringExtension::UTF8Decode(series.actors[i].role);
-	   actor.Thumb = StringExtension::UTF8Decode(series.actors[i].actorThumb.path);
+	   actor.Thumb = StringExtension::UTF8Decode(cleanImagePath(series.actors[i].actorThumb.path));
 	   am.Actors.push_back(actor);
        }
     }
@@ -183,7 +191,7 @@ void Scraper2VdrService::getSeriesMedia(SerAdditionalMedia &am, ScraperGetEventT
        for (int i = 0; i < _posters; i++) {
 	   if ((series.posters[i].width > 0) && (series.posters[i].height > 0)) {
 	      struct SerImage poster;
-	      poster.Path = StringExtension::UTF8Decode(series.posters[i].path);
+	      poster.Path = StringExtension::UTF8Decode(cleanImagePath(series.posters[i].path));
 	      poster.Width = series.posters[i].width;
 	      poster.Height = series.posters[i].height;
 	      am.Posters.push_back(poster);
@@ -196,7 +204,7 @@ void Scraper2VdrService::getSeriesMedia(SerAdditionalMedia &am, ScraperGetEventT
        for (int i = 0; i < _banners; i++) {
 	   if ((series.banners[i].width > 0) && (series.banners[i].height > 0)) {
 	      struct SerImage banner;
-	      banner.Path = StringExtension::UTF8Decode(series.banners[i].path);
+	      banner.Path = StringExtension::UTF8Decode(cleanImagePath(series.banners[i].path));
 	      banner.Width = series.banners[i].width;
 	      banner.Height = series.banners[i].height;
 	      am.Banners.push_back(banner);
@@ -209,7 +217,7 @@ void Scraper2VdrService::getSeriesMedia(SerAdditionalMedia &am, ScraperGetEventT
        for (int i = 0; i < _fanarts; i++) {
 	   if ((series.fanarts[i].width > 0) && (series.fanarts[i].height > 0)) {
 	      struct SerImage fanart;
-	      fanart.Path = StringExtension::UTF8Decode(series.fanarts[i].path);
+	      fanart.Path = StringExtension::UTF8Decode(cleanImagePath(series.fanarts[i].path));
 	      fanart.Width = series.fanarts[i].width;
 	      fanart.Height = series.fanarts[i].height;
 	      am.Fanarts.push_back(fanart);
@@ -264,7 +272,7 @@ void Scraper2VdrService::getSeriesMedia(StreamExtension* s, ScraperGetEventType 
        s->write(cString::sprintf("    <episode_guest_stars>%s</episode_guest_stars>\n", StringExtension::encodeToXml(series.episode.guestStars).c_str()));
        s->write(cString::sprintf("    <episode_overview>%s</episode_overview>\n", StringExtension::encodeToXml(series.episode.overview).c_str()));
        s->write(cString::sprintf("    <episode_rating>%.2f</episode_rating>\n", series.episode.rating));
-       s->write(cString::sprintf("    <episode_image>%s</episode_image>\n", StringExtension::encodeToXml(series.episode.episodeImage.path).c_str()));
+       s->write(cString::sprintf("    <episode_image>%s</episode_image>\n", StringExtension::encodeToXml(cleanImagePath(series.episode.episodeImage.path)).c_str()));
     }
 
     if (series.actors.size() > 0) {
@@ -273,7 +281,7 @@ void Scraper2VdrService::getSeriesMedia(StreamExtension* s, ScraperGetEventType 
 	   s->write(cString::sprintf("    <actor name=\"%s\" role=\"%s\" thumb=\"%s\"/>\n",
 				     StringExtension::encodeToXml(series.actors[i].name).c_str(),
 				     StringExtension::encodeToXml(series.actors[i].role).c_str(),
-				     StringExtension::encodeToXml(series.actors[i].actorThumb.path).c_str() ));
+				     StringExtension::encodeToXml(cleanImagePath(series.actors[i].actorThumb.path)).c_str() ));
        }
     }
     if (series.posters.size() > 0) {
@@ -281,7 +289,7 @@ void Scraper2VdrService::getSeriesMedia(StreamExtension* s, ScraperGetEventType 
        for (int i = 0; i < _posters; i++) {
 	   if ((series.posters[i].width > 0) && (series.posters[i].height > 0))
 	      s->write(cString::sprintf("    <poster path=\"%s\" width=\"%i\" height=\"%i\" />\n",
-					StringExtension::encodeToXml(series.posters[i].path).c_str(), series.posters[i].width, series.posters[i].height));
+					StringExtension::encodeToXml(cleanImagePath(series.posters[i].path)).c_str(), series.posters[i].width, series.posters[i].height));
        }
     }
     if (series.banners.size() > 0) {
@@ -289,7 +297,7 @@ void Scraper2VdrService::getSeriesMedia(StreamExtension* s, ScraperGetEventType 
        for (int i = 0; i < _banners; i++) {
 	   if ((series.banners[i].width > 0) && (series.banners[i].height > 0))
 	      s->write(cString::sprintf("    <banner path=\"%s\" width=\"%i\" height=\"%i\" />\n",
-					StringExtension::encodeToXml(series.banners[i].path).c_str(), series.banners[i].width, series.banners[i].height));
+					StringExtension::encodeToXml(cleanImagePath(series.banners[i].path)).c_str(), series.banners[i].width, series.banners[i].height));
        }
     }
     if (series.fanarts.size() > 0) {
@@ -297,12 +305,12 @@ void Scraper2VdrService::getSeriesMedia(StreamExtension* s, ScraperGetEventType 
        for (int i = 0; i < _fanarts; i++) {
 	   if ((series.fanarts[i].width > 0) && (series.fanarts[i].height > 0))
 	      s->write(cString::sprintf("    <fanart path=\"%s\" width=\"%i\" height=\"%i\" />\n",
-					StringExtension::encodeToXml(series.fanarts[i].path).c_str(), series.fanarts[i].width, series.fanarts[i].height));
+					StringExtension::encodeToXml(cleanImagePath(series.fanarts[i].path)).c_str(), series.fanarts[i].width, series.fanarts[i].height));
        }
     }
     if ((series.seasonPoster.width > 0) && (series.seasonPoster.height > 0) && (series.seasonPoster.path.size() > 0)) {
        s->write(cString::sprintf("    <season_poster path=\"%s\" width=\"%i\" height=\"%i\" />\n",
-				 StringExtension::encodeToXml(series.seasonPoster.path).c_str(), series.seasonPoster.width, series.seasonPoster.height));
+				 StringExtension::encodeToXml(cleanImagePath(series.seasonPoster.path)).c_str(), series.seasonPoster.width, series.seasonPoster.height));
     }
     s->write("  </param>\n");
   }
@@ -334,17 +342,17 @@ void Scraper2VdrService::getMovieMedia(SerAdditionalMedia &am, ScraperGetEventTy
       am.MovieRuntime = movie.runtime;
       am.MoviePopularity = movie.popularity;
       am.MovieVoteAverage = movie.voteAverage;
-      am.MoviePoster = StringExtension::UTF8Decode(movie.poster.path);
-      am.MovieFanart = StringExtension::UTF8Decode(movie.fanart.path);
-      am.MovieCollectionPoster = StringExtension::UTF8Decode(movie.collectionPoster.path);
-      am.MovieCollectionFanart = StringExtension::UTF8Decode(movie.collectionFanart.path);
+      am.MoviePoster = StringExtension::UTF8Decode(cleanImagePath(movie.poster.path));
+      am.MovieFanart = StringExtension::UTF8Decode(cleanImagePath(movie.fanart.path));
+      am.MovieCollectionPoster = StringExtension::UTF8Decode(cleanImagePath(movie.collectionPoster.path));
+      am.MovieCollectionFanart = StringExtension::UTF8Decode(cleanImagePath(movie.collectionFanart.path));
       if (movie.actors.size() > 0) {
          int _actors = movie.actors.size();
          for (int i = 0; i < _actors; i++) {
              struct SerActor actor;
              actor.Name = StringExtension::UTF8Decode(movie.actors[i].name);
              actor.Role = StringExtension::UTF8Decode(movie.actors[i].role);
-             actor.Thumb = StringExtension::UTF8Decode(movie.actors[i].actorThumb.path);
+             actor.Thumb = StringExtension::encodeToJson(cleanImagePath(movie.actors[i].actorThumb.path)).c_str();
              am.Actors.push_back(actor);
          }
       }
@@ -404,19 +412,19 @@ void Scraper2VdrService::getMovieMedia(StreamExtension* s, ScraperGetEventType &
     }
     if ((movie.poster.width > 0) && (movie.poster.height > 0) && (movie.poster.path.size() > 0)) {
        s->write(cString::sprintf("    <poster path=\"%s\" width=\"%i\" height=\"%i\" />\n",
-				 StringExtension::encodeToXml(movie.poster.path).c_str(), movie.poster.width, movie.poster.height));
+				 StringExtension::encodeToXml(cleanImagePath(movie.poster.path)).c_str(), movie.poster.width, movie.poster.height));
     }
     if ((movie.fanart.width > 0) && (movie.fanart.height > 0) && (movie.fanart.path.size() > 0)) {
        s->write(cString::sprintf("    <fanart path=\"%s\" width=\"%i\" height=\"%i\" />\n",
-				 StringExtension::encodeToXml(movie.fanart.path).c_str(), movie.fanart.width, movie.fanart.height));
+				 StringExtension::encodeToXml(cleanImagePath(movie.fanart.path)).c_str(), movie.fanart.width, movie.fanart.height));
     }
     if ((movie.collectionPoster.width > 0) && (movie.collectionPoster.height > 0) && (movie.collectionPoster.path.size() > 0)) {
        s->write(cString::sprintf("    <collection_poster path=\"%s\" width=\"%i\" height=\"%i\" />\n",
-				 StringExtension::encodeToXml(movie.collectionPoster.path).c_str(), movie.collectionPoster.width, movie.collectionPoster.height));
+				 StringExtension::encodeToXml(cleanImagePath(movie.collectionPoster.path)).c_str(), movie.collectionPoster.width, movie.collectionPoster.height));
     }
     if ((movie.collectionFanart.width > 0) && (movie.collectionFanart.height > 0) && (movie.collectionFanart.path.size() > 0)) {
        s->write(cString::sprintf("    <collection_fanart path=\"%s\" width=\"%i\" height=\"%i\" />\n",
-				 StringExtension::encodeToXml(movie.collectionFanart.path).c_str(), movie.collectionFanart.width, movie.collectionFanart.height));
+				 StringExtension::encodeToXml(cleanImagePath(movie.collectionFanart.path)).c_str(), movie.collectionFanart.width, movie.collectionFanart.height));
     }
     if (movie.actors.size() > 0) {
        int _actors = movie.actors.size();
@@ -424,7 +432,7 @@ void Scraper2VdrService::getMovieMedia(StreamExtension* s, ScraperGetEventType &
 	   s->write(cString::sprintf("    <actor name=\"%s\" role=\"%s\" thumb=\"%s\"/>\n",
 				     StringExtension::encodeToXml(movie.actors[i].name).c_str(),
 				     StringExtension::encodeToXml(movie.actors[i].role).c_str(),
-				     StringExtension::encodeToXml(movie.actors[i].actorThumb.path).c_str()));
+				     StringExtension::encodeToXml(cleanImagePath(movie.actors[i].actorThumb.path)).c_str()));
        }
     }
     s->write("  </param>\n");

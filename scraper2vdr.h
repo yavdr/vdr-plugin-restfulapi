@@ -72,6 +72,7 @@ class Scraper2VdrService {
 private:
   cPlugin *getScraperPlugin(void);
   cPlugin *scraper;
+  std::string epgImagesDir;
   bool getEventType	(ScraperGetEventType &eventType);
   void getSeriesMedia	(SerAdditionalMedia &am, ScraperGetEventType &eventType);
   void getMovieMedia	(SerAdditionalMedia &am, ScraperGetEventType &eventType);
@@ -79,6 +80,7 @@ private:
   void getMovieMedia	(StreamExtension* s, ScraperGetEventType &eventType);
   bool getMedia		(ScraperGetEventType &eventType, SerAdditionalMedia &am);
   bool getMedia		(ScraperGetEventType &eventType, StreamExtension* s);
+  std::string cleanImagePath(std::string path);
 public:
   explicit Scraper2VdrService();
   virtual ~Scraper2VdrService();
