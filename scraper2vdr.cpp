@@ -137,6 +137,9 @@ bool Scraper2VdrService::getMedia(cRecording* recording, StreamExtension* s) {
  * API end
  */
 
+/**
+ * strip filesystem path from image path
+ */
 string Scraper2VdrService::cleanImagePath(string path) {
 
   path = StringExtension::replace(path, epgImagesDir, "");
@@ -439,6 +442,104 @@ void Scraper2VdrService::getMovieMedia(StreamExtension* s, ScraperGetEventType &
   }
 };
 
+/**
+ * respond to image requests
+ */
+void ScraperImageResponder::reply(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply) {
+
+  double timediff = -1;
+  string base = "/scraper/image/";
+  string url = request.url();
+
+  if ( (int)url.find(base) == 0 ) {
+      QueryHandler::addHeader(reply);
+      string image = url.replace(0, base.length(), "");
+      string path = Settings::get()->EpgImageDirectory() + (string)"/" + image;
+
+      FILE *fp = fopen(path.c_str(),"r");
+      if( fp ) {
+	  fclose(fp);
+      } else {
+	  reply.httpReturn(404, "Could not find image!");
+      }
+
+      if (request.hasHeader("If-Modified-Since")) {
+	  timediff = difftime(getModifiedTime(path), getModifiedSinceTime(request));
+      }
+      if (timediff > 0.0 || timediff < 0.0) {
+	  string type = image.substr(image.find_last_of(".")+1);
+	  string contenttype = (string)"image/" + type;
+	  StreamExtension se(&out);
+	  if ( se.writeBinary(path) ) {
+	      addModifiedHeader(path, reply);
+	      reply.addHeader("Content-Type", contenttype.c_str());
+	  } else {
+	      reply.httpReturn(404, "Could not find image!");
+	  }
+      } else {
+	  reply.httpReturn(304, "Not-Modified");
+      }
+  }
+};
+
+/**
+ * retrieve locale
+ */
+const char* ScraperImageResponder::getLocale() {
+
+  const char* locale;
+  setlocale(LC_ALL, "");
+  locale = setlocale(LC_TIME,NULL);
+  return locale;
+};
+
+/**
+ * retrieve modified tm struct
+ */
+struct tm* ScraperImageResponder::getModifiedTm(string path) {
+
+  struct stat attr;
+  stat(path.c_str(), &attr);
+  struct tm* attrtm = gmtime(&(attr.st_mtime));
+  return attrtm;
+};
+
+/**
+ * retrieve modified time for given path
+ */
+time_t ScraperImageResponder::getModifiedTime(string path) {
+
+  return mktime(getModifiedTm(path));
+};
+
+/**
+ * add last-modified header
+ */
+void ScraperImageResponder::addModifiedHeader(string path, cxxtools::http::Reply& reply) {
+
+  char buffer[30];
+  struct tm* tm = getModifiedTm(path);
+  setlocale(LC_TIME,"POSIX");
+  strftime(buffer,30,"%a, %d %b %Y %H:%M:%S %Z",tm);
+  setlocale(LC_TIME,getLocale());
+  reply.addHeader("Last-Modified", buffer);
+};
+
+/**
+ * convert if-modified-since request header
+ */
+time_t ScraperImageResponder::getModifiedSinceTime(cxxtools::http::Request& request) {
+
+  time_t now;
+  time(&now);
+  struct tm* tm = localtime(&now);
+  setlocale(LC_TIME,"POSIX");
+  strptime(request.getHeader("If-Modified-Since"), "%a, %d %b %Y %H:%M:%S %Z", tm);
+  setlocale(LC_TIME,getLocale());
+  return mktime(tm);
+};
+
+/* ********* */
 
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerImage& i)

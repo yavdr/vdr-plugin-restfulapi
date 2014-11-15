@@ -1,3 +1,8 @@
+#include <cxxtools/http/request.h>
+#include <cxxtools/http/reply.h>
+#include <cxxtools/http/responder.h>
+#include <locale.h>
+#include <time.h>
 #include "scraper2vdr/services.h"
 #include "tools.h"
 
@@ -89,5 +94,19 @@ public:
   bool getMedia(cEvent *event, StreamExtension *s);
   bool getMedia(cRecording *recording, StreamExtension* s);
 };
+
+class ScraperImageResponder : public cxxtools::http::Responder {
+private:
+  struct tm* getModifiedTm(std::string path);
+  time_t getModifiedTime(std::string path);
+  void addModifiedHeader(std::string path, cxxtools::http::Reply& reply);
+  time_t getModifiedSinceTime(cxxtools::http::Request& request);
+  const char* getLocale();
+public:
+  explicit ScraperImageResponder(cxxtools::http::Service& service) : cxxtools::http::Responder(service) {}
+  virtual void reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+};
+
+typedef cxxtools::http::CachedService<ScraperImageResponder> ScraperService;
 
 #endif // SCRAPER2VDRESTFULAPI_H
