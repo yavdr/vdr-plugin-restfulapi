@@ -499,14 +499,14 @@ void ScraperImageResponder::reply(ostream& out, cxxtools::http::Request& request
       string image = url.replace(0, base.length(), "");
       string path = epgImagesPath + (string)"/" + image;
 
-      if (!exists(path)) {
+      if (!ImageExtension::get()->exists(path)) {
 	  isyslog("restfulapi Scraper: image does not exist");
 	  reply.httpReturn(404, "File not found");
 	  return;
       }
 
       if (request.hasHeader("If-Modified-Since")) {
-	  timediff = difftime(getModifiedTime(path), getModifiedSinceTime(request));
+	  timediff = difftime(ImageExtension::get()->getModifiedTime(path), ImageExtension::get()->getModifiedSinceTime(request));
       }
       if (timediff > 0.0 || timediff < 0.0) {
 	  string type = image.substr(image.find_last_of(".")+1);
@@ -514,7 +514,7 @@ void ScraperImageResponder::reply(ostream& out, cxxtools::http::Request& request
 	  StreamExtension se(&out);
 	  if ( se.writeBinary(path) ) {
 	      isyslog("restfulapi Scraper: successfully piped image");
-	      addModifiedHeader(path, reply);
+	      ImageExtension::get()->addModifiedHeader(path, reply);
 	      reply.addHeader("Content-Type", contenttype.c_str());
 	  } else {
 	      isyslog("restfulapi Scraper: error piping image");
@@ -525,100 +525,6 @@ void ScraperImageResponder::reply(ostream& out, cxxtools::http::Request& request
 	  reply.httpReturn(304, "Not-Modified");
       }
   }
-};
-
-/**
- * retrieve locale
- * @return const char*
- */
-const char* ScraperImageResponder::getLocale() {
-
-  const char* locale;
-  setlocale(LC_ALL, "");
-  locale = setlocale(LC_TIME,NULL);
-  return locale;
-};
-
-/**
- * retrieve modified tm struct
- * @param string path
- * @param struct tm*
- */
-struct tm* ScraperImageResponder::getModifiedTm(string path) {
-
-  struct stat attr;
-  stat(path.c_str(), &attr);
-  struct tm* attrtm = gmtime(&(attr.st_mtime));
-  return attrtm;
-};
-
-/**
- * retrieve modified time for given path
- * @param string path
- * @retrun time_t
- */
-time_t ScraperImageResponder::getModifiedTime(string path) {
-
-  return mktime(getModifiedTm(path));
-};
-
-/**
- * add last-modified header
- * @param string path
- * @return void
- */
-void ScraperImageResponder::addModifiedHeader(string path, cxxtools::http::Reply& reply) {
-
-  char buffer[30];
-  struct tm* tm = getModifiedTm(path);
-  setlocale(LC_TIME,"POSIX");
-  strftime(buffer,30,"%a, %d %b %Y %H:%M:%S %Z",tm);
-  setlocale(LC_TIME,getLocale());
-  reply.addHeader("Last-Modified", buffer);
-};
-
-/**
- * convert if-modified-since request header
- * @param cxxtools::http::Request& request
- * @return time_t
- */
-time_t ScraperImageResponder::getModifiedSinceTime(cxxtools::http::Request& request) {
-
-  time_t now;
-  time(&now);
-  struct tm* tm = localtime(&now);
-  setlocale(LC_TIME,"POSIX");
-  strptime(request.getHeader("If-Modified-Since"), "%a, %d %b %Y %H:%M:%S %Z", tm);
-  setlocale(LC_TIME,getLocale());
-  return mktime(tm);
-};
-
-/**
- * determine if requested file exists
- * @param string path the path to check
- * @return bool
- */
-bool ScraperImageResponder::exists(string path) {
-
-  char* nptr = NULL;
-  const char* cPath = path.c_str();
-  char* rPath = realpath(cPath, nptr);
-
-  isyslog("restfulapi: ScraperImage: requested path %s", cPath);
-  isyslog("restfulapi: ScraperImage: realpath %s", rPath);
-
-  if (!rPath || (rPath && strcmp(cPath, rPath) != 0)) {
-      isyslog("restfulapi: realpath does not match requested path");
-      return false;
-  }
-  FILE *fp = fopen(path.c_str(),"r");
-  if( fp ) {
-    fclose(fp);
-    return true;
-  }
-  isyslog("restfulapi: ScraperImage: requested file %s does not exists", cPath);
-
-  return false;
 };
 
 /* ********* */

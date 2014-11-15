@@ -139,6 +139,7 @@ void EventsResponder::replyImage(ostream& out, cxxtools::http::Request& request,
   StreamExtension se(&out);
   int eventid = q.getParamAsInt(0);
   int number = q.getParamAsInt(1);
+  double timediff = -1;
   
   vector< string > images;
   
@@ -153,11 +154,20 @@ void EventsResponder::replyImage(ostream& out, cxxtools::http::Request& request,
   string type = image.substr(image.find_last_of(".")+1);
   string contenttype = (string)"image/" + type;
   string path = Settings::get()->EpgImageDirectory() + (string)"/" + image;
- 
-  if ( se.writeBinary(path) ) {
-     reply.addHeader("Content-Type", contenttype.c_str());
+
+  if (request.hasHeader("If-Modified-Since")) {
+      timediff = difftime(ImageExtension::get()->getModifiedTime(path), ImageExtension::get()->getModifiedSinceTime(request));
+  }
+
+  if (timediff > 0.0 || timediff < 0.0) {
+    if ( se.writeBinary(path) ) {
+       reply.addHeader("Content-Type", contenttype.c_str());
+       ImageExtension::get()->addModifiedHeader(path, reply);
+    } else {
+       reply.httpReturn(404, "Could not find image!");
+    }
   } else {
-     reply.httpReturn(404, "Could not find image!");
+      reply.httpReturn(304, "Not-Modified");
   }
 }
 

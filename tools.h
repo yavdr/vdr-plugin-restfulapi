@@ -155,6 +155,18 @@ class FileCaches
     };
 };
 
+class ImageExtension
+{
+  public:
+    static ImageExtension* get();
+    struct tm* getModifiedTm(std::string path);
+    time_t getModifiedTime(std::string path);
+    void addModifiedHeader(std::string path, cxxtools::http::Reply& reply);
+    time_t getModifiedSinceTime(cxxtools::http::Request& request);
+    const char* getLocale();
+    bool exists(std::string path);
+};
+
 class VdrExtension
 {
   private:

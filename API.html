@@ -44,31 +44,42 @@ Developer: <a href="mailto:eiler.mike@gmail.com">eiler.mike@gmail.com</a> or <a 
 
 <h1>Table Of Contents</h1>
 <ul>
-<li><a href="#Preface">Preface</a>
-<li><a href="#Requirements">Requirements</a>
-<li><a href="#Configuration">Configuration</a>
-<li><a href="#Channels">Channels</a>
-<ul><li><a href="#ChannelGroups">Groups</a>
-    <li><a href="#ChannelImages">Images / Channel-Logos</a></ul>
-<li><a href="#Events">Events / EPG</a>
-<ul><li><a href="#EventImages">Images</a>
-    <li><a href="#EventSearch">Search (EPGSEARCH)</ul>
-<li><a href="#Info">Info</a>
-<li><a href="#Osd">Osd</a>
-<li><a href="#Recordings">Recordings</a>
-<ul><li><a href="#RecordingCut">Cut</a>
-    <li><a href="#RecordingsMarks">Marks</a>
-	<li><a href="#RecordingPlay">Play</a></ul>
-<li><a href="#Remote">Remote</a>
-<li><a href="#Timers">Timers</a>
-<ul><li><a href="#ReadingTimers">Reading/Deleting Timers</a>
-    <li><a href="#CreatingTimers">Creating Timers</a>
-    <li><a href="#UpdatingTimers">Updating Timers</a></ul>
-<li><a href="#SearchTimers">SearchTimers (EPGSEARCH)</a>
-<ul><li><a href="#SearchTimersCreate">Create</a>
-    <li><a href="#SearchTimersDelete">Delete</a>
-    <li><a href="#SearchTimersShow">Show</a>
-    <li><a href="#SearchTimersSearch">Search</a></ul>
+	<li><a href="#Preface">Preface</a>
+	<li><a href="#Requirements">Requirements</a>
+	<li><a href="#Configuration">Configuration</a>
+	<li><a href="#Channels">Channels</a>
+	<ul>
+		<li><a href="#ChannelGroups">Groups</a>
+    	<li><a href="#ChannelImages">Images / Channel-Logos</a>
+    </ul>
+	<li><a href="#Events">Events / EPG</a>
+	<ul>
+		<li><a href="#EventImages">Images</a>
+		<li><a href="#EventSearch">Search (EPGSEARCH)
+	</ul>
+	<li><a href="#Info">Info</a>
+	<li><a href="#Osd">Osd</a>
+	<li><a href="#Recordings">Recordings</a>
+	<ul>
+		<li><a href="#RecordingCut">Cut</a>
+		<li><a href="#RecordingsMarks">Marks</a>
+		<li><a href="#RecordingPlay">Play</a>
+	</ul>
+	<li><a href="#Remote">Remote</a>
+	<li><a href="#Timers">Timers</a>
+	<ul>
+		<li><a href="#ReadingTimers">Reading/Deleting Timers</a>
+		<li><a href="#CreatingTimers">Creating Timers</a>
+		<li><a href="#UpdatingTimers">Updating Timers</a>
+	</ul>
+	<li><a href="#SearchTimers">SearchTimers (EPGSEARCH)</a>
+	<ul>
+		<li><a href="#SearchTimersCreate">Create</a>
+		<li><a href="#SearchTimersDelete">Delete</a>
+		<li><a href="#SearchTimersShow">Show</a>
+		<li><a href="#SearchTimersSearch">Search</a>
+	</ul>
+	<li><a href="#ScraperImages">ScraperImages</a></li>
 </ul>
 
 <hr />
@@ -304,6 +315,12 @@ GET http://&lt;ip&gt;:&lt;port&gt;/channels/image/&lt;channelid&gt;
 <br />
 
 This service returns the epg information.<br />
+<br />
+Since Verions 0.2.0 the API returns additional media if a scraper plugin is available.
+The data is available within leaf additional_media and contains additional information about the event such as actors etc.
+Please have a look at the data to get an idea about the additional structure.
+Images can be retrieved using <a href="#ScraperImages">ScraperImages</a> service.
+<br />
 <br />
 Method: <b>GET</b><br />
 <br />
@@ -543,6 +560,12 @@ GET http://&lt;ip&gt;:&lt;port&gt;/osd.&lt;format&gt;
 
 
 This service can move/delete recordings and can also return all the recordings as a list.<br />
+<br />
+Since Verions 0.2.0 the API returns additional media if a scraper plugin is available.
+The data is available within leaf additional_media and contains additional information about the event such as actors etc.
+Please have a look at the data to get an idea about the additional structure.
+Images can be retrieved using <a href="#ScraperImages">ScraperImages</a> service.
+<br />
 <br />
 
 <b>The Request:</b>
@@ -1004,6 +1027,17 @@ GET http://&lt;ip&gt;:&lt;port&gt;/searchtimers.&lt;format&gt;
 <div class="code"><code>
 GET http://&lt;ip&gt;:&lt;port&gt;/searchtimers/search/&lt;id&gt;
 </code></div>
+<br />
+<br />
+<hr/>
+<h1 class="center"><a name="ScraperImages">ScraperImage</a></h1>
+<hr />
+<br />
+<h2>Retrieve Images from additional media.</h2>
+<div class="code"><code>
+GET http://&lt;ip&gt;:&lt;port&gt;/scraper/image/&lt;path&gt;/&lt;provided&gt;/&lt;within&gt;/&lt;additional/&lt;media&gt;.jpg
+</code></div>
+
 
 <br />
 <br />
