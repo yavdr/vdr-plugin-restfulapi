@@ -102,6 +102,7 @@ private:
   void addModifiedHeader(std::string path, cxxtools::http::Reply& reply);
   time_t getModifiedSinceTime(cxxtools::http::Request& request);
   const char* getLocale();
+  bool exists(std::string path);
 public:
   explicit ScraperImageResponder(cxxtools::http::Service& service) : cxxtools::http::Responder(service) {}
   virtual void reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);

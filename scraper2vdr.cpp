@@ -2,7 +2,7 @@
 using namespace std;
 
 /**
- * initialize scraper
+ * initialize scraper service
  */
 Scraper2VdrService::Scraper2VdrService() {
   scraper = getScraperPlugin();
@@ -10,7 +10,7 @@ Scraper2VdrService::Scraper2VdrService() {
 };
 
 /**
- * destroy scraper
+ * destroy scraper service
  */
 Scraper2VdrService::~Scraper2VdrService() {
   scraper = NULL;
@@ -18,6 +18,7 @@ Scraper2VdrService::~Scraper2VdrService() {
 
 /**
  * retrieve scraper plugin
+ * @return cPlugin
  */
 cPlugin *Scraper2VdrService::getScraperPlugin () {
 
@@ -30,6 +31,8 @@ cPlugin *Scraper2VdrService::getScraperPlugin () {
 
 /**
  * determine eventType
+ * @param ScraperGetEventType &eventType
+ * @return bool
  */
 bool Scraper2VdrService::getEventType(ScraperGetEventType &eventType) {
 
@@ -42,6 +45,9 @@ bool Scraper2VdrService::getEventType(ScraperGetEventType &eventType) {
 
 /**
  * retrieve media by eventType
+ * @param ScraperGetEventType &eventType
+ * @param SerAdditionalMedia &am
+ * @return bool
  */
 bool Scraper2VdrService::getMedia(ScraperGetEventType &eventType, SerAdditionalMedia &am) {
 
@@ -62,6 +68,9 @@ bool Scraper2VdrService::getMedia(ScraperGetEventType &eventType, SerAdditionalM
 };
 /**
  * retrieve media by eventType
+ * @param ScraperGetEventType &eventType
+ * @param StreamExtension* s
+ * @return bool
  */
 bool Scraper2VdrService::getMedia(ScraperGetEventType &eventType, StreamExtension* s) {
 
@@ -83,6 +92,9 @@ bool Scraper2VdrService::getMedia(ScraperGetEventType &eventType, StreamExtensio
 
 /**
  * retrieve additional media according to event
+ * @param cEvent *event
+ * @param SerAdditionalMedia &am
+ * @return bool
  */
 bool Scraper2VdrService::getMedia(cEvent *event, SerAdditionalMedia &am) {
 
@@ -96,6 +108,9 @@ bool Scraper2VdrService::getMedia(cEvent *event, SerAdditionalMedia &am) {
 
 /**
  * retrieve additional media according to event
+ * @param cEvent *event
+ * @param StreamExtension* s
+ * @return bool
  */
 bool Scraper2VdrService::getMedia(cEvent *event, StreamExtension* s) {
 
@@ -109,6 +124,9 @@ bool Scraper2VdrService::getMedia(cEvent *event, StreamExtension* s) {
 
 /**
  * retrieve additional media according to recording
+ * @param cRecording* recording
+ * @param SerAdditionalMedia &am
+ * @return bool
  */
 bool Scraper2VdrService::getMedia(cRecording* recording, SerAdditionalMedia &am) {
 
@@ -122,6 +140,9 @@ bool Scraper2VdrService::getMedia(cRecording* recording, SerAdditionalMedia &am)
 
 /**
  * retrieve additional media according to recording
+ * @param cRecording* recording
+ * @param StreamExtension* s
+ * @return bool
  */
 bool Scraper2VdrService::getMedia(cRecording* recording, StreamExtension* s) {
 
@@ -139,6 +160,8 @@ bool Scraper2VdrService::getMedia(cRecording* recording, StreamExtension* s) {
 
 /**
  * strip filesystem path from image path
+ * @param string path
+ * return string
  */
 string Scraper2VdrService::cleanImagePath(string path) {
 
@@ -149,6 +172,9 @@ string Scraper2VdrService::cleanImagePath(string path) {
 
 /**
  * enrich additional media structure with series data
+ * @param SerAdditionalMedia &am
+ * @param ScraperGetEventType &eventType
+ * @return void
  */
 void Scraper2VdrService::getSeriesMedia(SerAdditionalMedia &am, ScraperGetEventType &eventType) {
 
@@ -232,6 +258,9 @@ void Scraper2VdrService::getSeriesMedia(SerAdditionalMedia &am, ScraperGetEventT
 
 /**
  * enrich additional media structure with series data
+ * @param StreamExtension* s
+ * @param ScraperGetEventType &eventType
+ * @return void
  */
 void Scraper2VdrService::getSeriesMedia(StreamExtension* s, ScraperGetEventType &eventType) {
 
@@ -321,6 +350,9 @@ void Scraper2VdrService::getSeriesMedia(StreamExtension* s, ScraperGetEventType 
 
 /**
  * enrich additional media structure with movie data
+ * @param SerAdditionalMedia &am
+ * @param ScraperGetEventType &eventType
+ * @return void
  */
 void Scraper2VdrService::getMovieMedia(SerAdditionalMedia &am, ScraperGetEventType &eventType) {
 
@@ -364,6 +396,9 @@ void Scraper2VdrService::getMovieMedia(SerAdditionalMedia &am, ScraperGetEventTy
 
 /**
  * enrich additional media structure with movie data
+ * @param StreamExtension* s
+ * @param ScraperGetEventType &eventType
+ * @return void
  */
 void Scraper2VdrService::getMovieMedia(StreamExtension* s, ScraperGetEventType &eventType) {
 
@@ -444,23 +479,30 @@ void Scraper2VdrService::getMovieMedia(StreamExtension* s, ScraperGetEventType &
 
 /**
  * respond to image requests
+ * @param ostream& out
+ * @param cxxtools::http::Request& request
+ * @param cxxtools::http::Reply& reply
+ * return void
  */
 void ScraperImageResponder::reply(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply) {
 
   double timediff = -1;
   string base = "/scraper/image/";
+  string epgImagesPath = Settings::get()->EpgImageDirectory();
   string url = request.url();
 
   if ( (int)url.find(base) == 0 ) {
+
+      isyslog("restfulapi Scraper: image request url %s", request.url().c_str());
+
       QueryHandler::addHeader(reply);
       string image = url.replace(0, base.length(), "");
-      string path = Settings::get()->EpgImageDirectory() + (string)"/" + image;
+      string path = epgImagesPath + (string)"/" + image;
 
-      FILE *fp = fopen(path.c_str(),"r");
-      if( fp ) {
-	  fclose(fp);
-      } else {
-	  reply.httpReturn(404, "Could not find image!");
+      if (!exists(path)) {
+	  isyslog("restfulapi Scraper: image does not exist");
+	  reply.httpReturn(404, "File not found");
+	  return;
       }
 
       if (request.hasHeader("If-Modified-Since")) {
@@ -471,12 +513,15 @@ void ScraperImageResponder::reply(ostream& out, cxxtools::http::Request& request
 	  string contenttype = (string)"image/" + type;
 	  StreamExtension se(&out);
 	  if ( se.writeBinary(path) ) {
+	      isyslog("restfulapi Scraper: successfully piped image");
 	      addModifiedHeader(path, reply);
 	      reply.addHeader("Content-Type", contenttype.c_str());
 	  } else {
-	      reply.httpReturn(404, "Could not find image!");
+	      isyslog("restfulapi Scraper: error piping image");
+	      reply.httpReturn(404, "File not found");
 	  }
       } else {
+	  isyslog("restfulapi Scraper: image not modified, returning 304");
 	  reply.httpReturn(304, "Not-Modified");
       }
   }
@@ -484,6 +529,7 @@ void ScraperImageResponder::reply(ostream& out, cxxtools::http::Request& request
 
 /**
  * retrieve locale
+ * @return const char*
  */
 const char* ScraperImageResponder::getLocale() {
 
@@ -495,6 +541,8 @@ const char* ScraperImageResponder::getLocale() {
 
 /**
  * retrieve modified tm struct
+ * @param string path
+ * @param struct tm*
  */
 struct tm* ScraperImageResponder::getModifiedTm(string path) {
 
@@ -506,6 +554,8 @@ struct tm* ScraperImageResponder::getModifiedTm(string path) {
 
 /**
  * retrieve modified time for given path
+ * @param string path
+ * @retrun time_t
  */
 time_t ScraperImageResponder::getModifiedTime(string path) {
 
@@ -514,6 +564,8 @@ time_t ScraperImageResponder::getModifiedTime(string path) {
 
 /**
  * add last-modified header
+ * @param string path
+ * @return void
  */
 void ScraperImageResponder::addModifiedHeader(string path, cxxtools::http::Reply& reply) {
 
@@ -527,6 +579,8 @@ void ScraperImageResponder::addModifiedHeader(string path, cxxtools::http::Reply
 
 /**
  * convert if-modified-since request header
+ * @param cxxtools::http::Request& request
+ * @return time_t
  */
 time_t ScraperImageResponder::getModifiedSinceTime(cxxtools::http::Request& request) {
 
@@ -537,6 +591,34 @@ time_t ScraperImageResponder::getModifiedSinceTime(cxxtools::http::Request& requ
   strptime(request.getHeader("If-Modified-Since"), "%a, %d %b %Y %H:%M:%S %Z", tm);
   setlocale(LC_TIME,getLocale());
   return mktime(tm);
+};
+
+/**
+ * determine if requested file exists
+ * @param string path the path to check
+ * @return bool
+ */
+bool ScraperImageResponder::exists(string path) {
+
+  char* nptr = NULL;
+  const char* cPath = path.c_str();
+  char* rPath = realpath(cPath, nptr);
+
+  isyslog("restfulapi: ScraperImage: requested path %s", cPath);
+  isyslog("restfulapi: ScraperImage: realpath %s", rPath);
+
+  if (!rPath || (rPath && strcmp(cPath, rPath) != 0)) {
+      isyslog("restfulapi: realpath does not match requested path");
+      return false;
+  }
+  FILE *fp = fopen(path.c_str(),"r");
+  if( fp ) {
+    fclose(fp);
+    return true;
+  }
+  isyslog("restfulapi: ScraperImage: requested file %s does not exists", cPath);
+
+  return false;
 };
 
 /* ********* */
