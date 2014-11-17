@@ -405,7 +405,7 @@ void JsonEventList::addEvent(cEvent* event)
 
   SerAdditionalMedia am;
   if (sc.getMedia(event, am)) {
-      serEvent.AdditionalMedia.push_back(am);
+      serEvent.AdditionalMedia = am;
   }
 
   serEvent.Id = event->EventID();

@@ -63,7 +63,7 @@ struct SerRecording
   cxxtools::String EventDescription;
   int EventStartTime;
   int EventDuration;
-  std::vector< struct SerAdditionalMedia > AdditionalMedia;
+  struct SerAdditionalMedia AdditionalMedia;
 };
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerRecording& p);

@@ -61,7 +61,7 @@ struct SerEvent
 #ifdef EPG_DETAILS_PATCH
   std::vector< tEpgDetail >* Details;
 #endif
-  std::vector< struct SerAdditionalMedia > AdditionalMedia;
+  struct SerAdditionalMedia AdditionalMedia;
 };
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e);

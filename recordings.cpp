@@ -453,7 +453,7 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
 
   SerAdditionalMedia am;
   if (sc.getMedia(recording, am)) {
-      serRecording.AdditionalMedia.push_back(am);
+      serRecording.AdditionalMedia = am;
   }
 
 
