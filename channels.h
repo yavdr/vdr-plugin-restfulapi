@@ -5,9 +5,9 @@
 #include <cxxtools/jsonserializer.h>
 #include <cxxtools/serializationinfo.h>
 #include <cxxtools/utf8codec.h>
-#include "tools.h"
-
 #include <vdr/channels.h>
+#include "tools.h"
+#include "scraper2vdr.h"
 
 class ChannelsResponder : public cxxtools::http::Responder
 {

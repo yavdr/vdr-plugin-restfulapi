@@ -139,6 +139,7 @@ void EventsResponder::replyImage(ostream& out, cxxtools::http::Request& request,
   StreamExtension se(&out);
   int eventid = q.getParamAsInt(0);
   int number = q.getParamAsInt(1);
+  double timediff = -1;
   
   vector< string > images;
   
@@ -153,11 +154,20 @@ void EventsResponder::replyImage(ostream& out, cxxtools::http::Request& request,
   string type = image.substr(image.find_last_of(".")+1);
   string contenttype = (string)"image/" + type;
   string path = Settings::get()->EpgImageDirectory() + (string)"/" + image;
- 
-  if ( se.writeBinary(path) ) {
-     reply.addHeader("Content-Type", contenttype.c_str());
+
+  if (request.hasHeader("If-Modified-Since")) {
+      timediff = difftime(ImageExtension::get()->getModifiedTime(path), ImageExtension::get()->getModifiedSinceTime(request));
+  }
+
+  if (timediff > 0.0 || timediff < 0.0) {
+    if ( se.writeBinary(path) ) {
+       reply.addHeader("Content-Type", contenttype.c_str());
+       ImageExtension::get()->addModifiedHeader(path, reply);
+    } else {
+       reply.httpReturn(404, "Could not find image!");
+    }
   } else {
-     reply.httpReturn(404, "Could not find image!");
+      reply.httpReturn(304, "Not-Modified");
   }
 }
 
@@ -324,6 +334,9 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)
 #ifdef EPG_DETAILS_PATCH
   si.addMember("details") <<= *e.Details;
 #endif
+
+  si.addMember("additional_media") <<= e.AdditionalMedia;
+
 }
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerComponent& c)
@@ -345,6 +358,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const struct tEpgDetail& e)
 EventList::EventList(ostream *_out) {
   s = new StreamExtension(_out);
   total = 0;
+  Scraper2VdrService sc;
 }
 
 EventList::~EventList()
@@ -388,6 +402,11 @@ void JsonEventList::addEvent(cEvent* event)
   if( !event->Title() ) { eventTitle = empty; } else { eventTitle = StringExtension::UTF8Decode(event->Title()); }
   if( !event->ShortText() ) { eventShortText = empty; } else { eventShortText = StringExtension::UTF8Decode(event->ShortText()); }
   if( !event->Description() ) { eventDescription = empty; } else { eventDescription = StringExtension::UTF8Decode(event->Description()); }
+
+  SerAdditionalMedia am;
+  if (sc.getMedia(event, am)) {
+      serEvent.AdditionalMedia = am;
+  }
 
   serEvent.Id = event->EventID();
   serEvent.Title = eventTitle;
@@ -451,7 +470,7 @@ void XmlEventList::addEvent(cEvent* event)
   if ( event->Title() == NULL ) { eventTitle = ""; } else { eventTitle = event->Title(); }
   if ( event->ShortText() == NULL ) { eventShortText = ""; } else { eventShortText = event->ShortText(); }
   if ( event->Description() == NULL ) { eventDescription = ""; } else { eventDescription = event->Description(); }
-
+   
   s->write(" <event>\n");
   s->write(cString::sprintf("  <param name=\"id\">%i</param>\n", event->EventID()));
   s->write(cString::sprintf("  <param name=\"title\">%s</param>\n", StringExtension::encodeToXml(eventTitle).c_str()));
@@ -536,6 +555,8 @@ void XmlEventList::addEvent(cEvent* event)
   s->write(cString::sprintf("  <param name=\"timer_exists\">%s</param>\n", (timer_exists ? "true" : "false")));
   s->write(cString::sprintf("  <param name=\"timer_active\">%s</param>\n", (timer_active ? "true" : "false")));
   s->write(cString::sprintf("  <param name=\"timer_id\">%s</param>\n", timer_id.c_str()));
+
+  sc.getMedia(event, s);
 
   s->write(" </event>\n");
 }

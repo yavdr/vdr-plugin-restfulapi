@@ -21,6 +21,7 @@
 #include <cxxtools/http/request.h>
 #include <cxxtools/http/reply.h>
 #include <cxxtools/query_params.h>
+#include <cxxtools/serializationinfo.h> // only AdditionalMedia
 #include <vdr/channels.h>
 #include <vdr/timers.h>
 #include <vdr/recording.h>
@@ -152,6 +153,18 @@ class FileCaches
       notifierEvents.Stop();
       notifierChannels.Stop();
     };
+};
+
+class ImageExtension
+{
+  public:
+    static ImageExtension* get();
+    struct tm* getModifiedTm(std::string path);
+    time_t getModifiedTime(std::string path);
+    void addModifiedHeader(std::string path, cxxtools::http::Reply& reply);
+    time_t getModifiedSinceTime(cxxtools::http::Request& request);
+    const char* getLocale();
+    bool exists(std::string path);
 };
 
 class VdrExtension

@@ -10,6 +10,7 @@
 
 #include "tools.h"
 #include "epgsearch/services.h"
+#include "scraper2vdr.h"
 
 #ifndef __RESTFUL_EVENTS_H
 #define __RESTFUL_EVENTS_H
@@ -60,6 +61,7 @@ struct SerEvent
 #ifdef EPG_DETAILS_PATCH
   std::vector< tEpgDetail >* Details;
 #endif
+  struct SerAdditionalMedia AdditionalMedia;
 };
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e);
@@ -73,6 +75,7 @@ class EventList : public BaseList
   protected:
     StreamExtension *s;
     int total;
+    Scraper2VdrService sc;
   public:
     explicit EventList(std::ostream* _out);
     virtual ~EventList();

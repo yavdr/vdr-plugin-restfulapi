@@ -103,6 +103,7 @@ void ChannelsResponder::replyImage(ostream& out, cxxtools::http::Request& reques
   string channelid = q.getParamAsString(0);
   cChannel* channel = VdrExtension::getChannel(channelid);
   string imageFolder = Settings::get()->ChannelLogoDirectory() + (string)"/";
+  double timediff = -1;
   
   if (channel == NULL) {
      reply.httpReturn(502, "Channel not found!");
@@ -117,11 +118,21 @@ void ChannelsResponder::replyImage(ostream& out, cxxtools::http::Request& reques
   }
   
   string absolute_path = imageFolder + imageName;
-  string contenttype = (string)"image/" + imageName.substr( imageName.find_last_of('.') + 1 );
-  if ( se.writeBinary(absolute_path) ) {
-     reply.addHeader("Content-Type", contenttype.c_str());
+
+  if (request.hasHeader("If-Modified-Since")) {
+      timediff = difftime(ImageExtension::get()->getModifiedTime(absolute_path), ImageExtension::get()->getModifiedSinceTime(request));
+  }
+
+  if (timediff > 0.0 || timediff < 0.0) {
+      string contenttype = (string)"image/" + imageName.substr( imageName.find_last_of('.') + 1 );
+      if ( se.writeBinary(absolute_path) ) {
+	 ImageExtension::get()->addModifiedHeader(absolute_path, reply);
+         reply.addHeader("Content-Type", contenttype.c_str());
+      } else {
+        reply.httpReturn(502, "Binary Output failed");
+      }
   } else {
-    reply.httpReturn(502, "Binary Output failed");
+    reply.httpReturn(304, "Not-Modified");
   }
 }
 

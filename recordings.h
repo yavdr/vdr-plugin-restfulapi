@@ -9,6 +9,7 @@
 #include <fstream>
 #include <sstream>
 #include "tools.h"
+#include "scraper2vdr.h"
 
 #include <vdr/cutter.h>
 #include <vdr/recording.h>
@@ -62,6 +63,7 @@ struct SerRecording
   cxxtools::String EventDescription;
   int EventStartTime;
   int EventDuration;
+  struct SerAdditionalMedia AdditionalMedia;
 };
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerRecording& p);
@@ -72,6 +74,7 @@ class RecordingList : public BaseList
     bool read_marks;
     int total;
     StreamExtension *s;
+    Scraper2VdrService sc;
   public:
     RecordingList(std::ostream* _out, bool _read_marks);
     virtual ~RecordingList();
