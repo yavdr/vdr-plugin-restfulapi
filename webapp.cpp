@@ -4,6 +4,18 @@ using namespace std;
 
 void WebappResponder::reply(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply) {
 
+  QueryHandler::addHeader(reply);
+
+  if ( request.method() == "OPTIONS" ) {
+      reply.addHeader("Allow", "GET");
+      reply.httpReturn(200, "OK");
+      return;
+  }
+  if ( request.method() != "GET") {
+     reply.httpReturn(403, "To retrieve files use the GET method!");
+     return;
+  }
+
   double timediff = -1;
   string base = "/webapp/";
   string webappPath = Settings::get()->WebappDirectory();

@@ -4,6 +4,13 @@ using namespace std;
 void RemoteResponder::reply(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler::addHeader(reply);
+
+  if ( request.method() == "OPTIONS" ) {
+      reply.addHeader("Allow", "POST");
+      reply.httpReturn(200, "OK");
+      return;
+  }
+
   if (request.method() != "POST") {
      reply.httpReturn(403, "Only POST method is support by the remote control");
      return;

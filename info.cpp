@@ -7,6 +7,12 @@ void InfoResponder::reply(ostream& out, cxxtools::http::Request& request, cxxtoo
   QueryHandler::addHeader(reply);
   QueryHandler q("/info", request);
 
+  if ( request.method() == "OPTIONS" ) {
+      reply.addHeader("Allow", "GET");
+      reply.httpReturn(200, "OK");
+      return;
+  }
+
   if (request.method() != "GET") {
      reply.httpReturn(403, "Only GET method is support by the remote control");
      return;

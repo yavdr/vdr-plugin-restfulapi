@@ -4,6 +4,13 @@ using namespace std;
 void TimersResponder::reply(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler::addHeader(reply);
+
+  if ( request.method() == "OPTIONS" ) {
+      reply.addHeader("Allow", "GET, POST, DELETE, PUT");
+      reply.httpReturn(200, "OK");
+      return;
+  }
+
   if ( request.method() == "GET" ) {
      showTimers(out, request, reply);
   } else if ( request.method() == "DELETE" ) {

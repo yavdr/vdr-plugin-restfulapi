@@ -4,6 +4,13 @@ using namespace std;
 void OsdResponder::reply(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler::addHeader(reply);
+
+  if ( request.method() == "OPTIONS" ) {
+      reply.addHeader("Allow", "GET");
+      reply.httpReturn(200, "OK");
+      return;
+  }
+
   QueryHandler q("/osd", request);
 
   if ( request.method() != "GET" ) {

@@ -6,8 +6,10 @@ void RecordingsResponder::reply(ostream& out, cxxtools::http::Request& request, 
   QueryHandler::addHeader(reply);
   bool found = false;
 
-  if (request.method() == "OPTIONS") {
-     return;
+  if ( request.method() == "OPTIONS" ) {
+      reply.addHeader("Allow", "GET, POST, DELETE");
+      reply.httpReturn(200, "OK");
+      return;
   }
 
   if ((int)request.url().find("/recordings/play") == 0 ) {

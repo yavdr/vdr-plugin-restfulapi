@@ -5,6 +5,12 @@ void ChannelsResponder::reply(ostream& out, cxxtools::http::Request& request, cx
 {
   QueryHandler::addHeader(reply);
 
+  if ( request.method() == "OPTIONS" ) {
+      reply.addHeader("Allow", "GET");
+      reply.httpReturn(200, "OK");
+      return;
+  }
+
   if ( request.method() != "GET") {
      reply.httpReturn(403, "To retrieve information use the GET method!");
      return;

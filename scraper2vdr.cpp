@@ -486,6 +486,18 @@ void Scraper2VdrService::getMovieMedia(StreamExtension* s, ScraperGetEventType &
  */
 void ScraperImageResponder::reply(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply) {
 
+  QueryHandler::addHeader(reply);
+
+  if ( request.method() == "OPTIONS" ) {
+      reply.addHeader("Allow", "GET");
+      reply.httpReturn(200, "OK");
+      return;
+  }
+  if ( request.method() != "GET") {
+     reply.httpReturn(403, "To retrieve images use the GET method!");
+     return;
+  }
+
   double timediff = -1;
   string base = "/scraper/image/";
   string epgImagesPath = Settings::get()->EpgImageDirectory();
