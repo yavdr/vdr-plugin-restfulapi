@@ -11,7 +11,7 @@
 #include "serverthread.h"
 #include "statusmonitor.h"
 
-static const char *VERSION        = "0.2.0";
+static const char *VERSION        = "0.2.1";
 static const char *DESCRIPTION    = "Offers a RESTful-API to retrieve data from VDR";
 static const char *MAINMENUENTRY  = NULL;//"Restfulapi";
 
@@ -81,7 +81,7 @@ bool cPluginRestfulapi::ProcessArgs(int argc, char *argv[])
 
   int optchar, optind = 0;
 
-  while ( ( optchar = getopt_long( argc, argv, "p:i:e:c:h:", long_options, &optind ) ) != -1 ) {
+  while ( ( optchar = getopt_long( argc, argv, "p:i:e:c:h:w:", long_options, &optind ) ) != -1 ) {
      switch ( optchar ) {
         case 'p': settings->SetPort((std::string)optarg); break;
         case 'i': settings->SetIp((std::string)optarg); break;

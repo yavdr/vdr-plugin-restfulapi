@@ -19,6 +19,14 @@ void WebappResponder::reply(ostream& out, cxxtools::http::Request& request, cxxt
 
       QueryHandler::addHeader(reply);
       string file = url.replace(0, base.length(), "");
+
+      const char *fileCmp = file.c_str();
+      const char *empty = "";
+
+      if (strcmp(fileCmp, empty) == 0) {
+	  file = "index.html";
+      }
+
       string path = webappPath + (string)"/" + file;
 
       if (!FileExtension::get()->exists(path)) {

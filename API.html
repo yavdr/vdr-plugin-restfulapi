@@ -89,6 +89,7 @@ Developer: <a href="mailto:eiler.mike@gmail.com">eiler.mike@gmail.com</a> or <a 
 		<li><a href="#WirbelscanSetSetup">Changes the current setup</a>
 		<li><a href="#WirbelscanDoCommand">Launches a command</a>
 	</ul>
+	<li><a href="#Webapp">Webapp</a></li>
 </ul>
 
 <hr />
@@ -154,6 +155,7 @@ Create a new file called plugin.restfulapi.conf in /etc/vdr/plugins/ .<br />
 --ip=0.0.0.0
 --epgimages=/var/cache/vdr/epgimages
 --channellogos=/usr/share/vdr/channel-logos
+--webapp=/var/lib/vdr/plugins/restfulapi/webapp
 </code></div>
 <br />
 <br />
@@ -1056,7 +1058,7 @@ GET http://&lt;ip&gt;:&lt;port&gt;/scraper/image/&lt;path&gt;/&lt;provided&gt;/&
 <br />
 
 This service can deliver files from configured folder.<br />
-Specify folder in plugin settings file (--webapp=/var/lib/vdr/plugins/restfulapi/webapp)<br />
+Specify folder in plugin settings file (--webapp=/var/lib/vdr/plugins/restfulapi/webapp)<br /><br />
 <div class="code"><code>
 GET http://&lt;ip&gt;:&lt;port&gt;/webapp/&lt;path&gt;/&lt;to&gt;/&lt;file&gt;
 </code></div>

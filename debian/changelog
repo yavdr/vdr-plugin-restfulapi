@@ -1,10 +1,10 @@
-vdr-plugin-restfulapi (0.1.3.1-0yavdr0~precise) precise; urgency=medium
+vdr-plugin-restfulapi (0.2.1.0-0yavdr0~precise) precise; urgency=medium
 
   * add webapp service
 
  -- Henning Künne <hannemann666@gmx.net>  Sat, 10 Jan 2015 17:44:20 +0200
 
-vdr-plugin-restfulapi (0.1.3.1-0yavdr0~precise) precise; urgency=medium
+vdr-plugin-restfulapi (0.2.0.0-0yavdr0~precise) precise; urgency=medium
 
   * add scraper2vdr service
 
