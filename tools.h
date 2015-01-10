@@ -49,6 +49,7 @@ class Settings
     std::string ip;
     std::string epgimage_dir;
     std::string channellogo_dir;
+    std::string webapp_dir;
     bool activateHeaders;
   public:
     Settings() { initDefault(); }
@@ -59,11 +60,13 @@ class Settings
     std::string Ip() { return ip; }
     std::string EpgImageDirectory() { return epgimage_dir; }
     std::string ChannelLogoDirectory() { return channellogo_dir; }
+    std::string WebappDirectory() { return webapp_dir; }
     bool Headers() { return activateHeaders; }
     bool SetPort(std::string v);
     bool SetIp(std::string v);
     bool SetEpgImageDirectory(std::string v);
     bool SetChannelLogoDirectory(std::string v);
+    bool SetWebappDirectory(std::string v);
     bool SetHeaders(std::string v);
 };
 
@@ -159,10 +162,9 @@ class FileCaches
     };
 };
 
-class ImageExtension
-{
+class FileExtension {
   public:
-    static ImageExtension* get();
+    static FileExtension* get();
     struct tm* getModifiedTm(std::string path);
     time_t getModifiedTime(std::string path);
     void addModifiedHeader(std::string path, cxxtools::http::Reply& reply);
@@ -170,6 +172,8 @@ class ImageExtension
     const char* getLocale();
     bool exists(std::string path);
 };
+
+class ImageExtension : public FileExtension {};
 
 class VdrExtension
 {

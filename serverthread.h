@@ -30,6 +30,7 @@
 #include "epgsearch.h"
 #include "scraper2vdr.h"
 #include "wirbelscan.h"
+#include "webapp.h"
 
 using namespace std;
 

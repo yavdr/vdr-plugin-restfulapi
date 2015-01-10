@@ -61,6 +61,20 @@ bool Settings::SetChannelLogoDirectory(std::string v)
   return false;
 }
 
+bool Settings::SetWebappDirectory(std::string v)
+{
+  struct stat stat_info;
+  if ( stat(v.c_str(), &stat_info) == 0) {
+     if (v[v.length()-1] == '/')
+        webapp_dir = v.substr(0, v.length()-1);
+     else
+        webapp_dir = v;
+     esyslog("restfulapi: The Webapp will be loaded from %s!", webapp_dir.c_str());
+     return true;
+  }
+  return false;
+}
+
 bool Settings::SetHeaders(std::string v)
 {
   if ( v == "false" ) {
@@ -83,6 +97,7 @@ void Settings::initDefault()
   SetIp((string)"0.0.0.0");
   SetEpgImageDirectory((string)"/var/cache/vdr/epgimages");
   SetChannelLogoDirectory((string)"/usr/share/vdr/channel-logos");
+  SetWebappDirectory((string)"/var/lib/vdr/restfulapi/webapp");
   SetHeaders((string)"true");
 }
 
@@ -374,11 +389,10 @@ void FileCaches::removeChannelLogo(string file)
   }
 }
 
-
-// --- ImageExtension -----------------------------------------------------------
-ImageExtension* ImageExtension::get()
+// --- FileExtension ------------------------------------------------------------
+FileExtension* FileExtension::get()
 {
-  static ImageExtension instance;
+  static FileExtension instance;
   return &instance;
 }
 
@@ -386,7 +400,7 @@ ImageExtension* ImageExtension::get()
  * retrieve locale
  * @return const char*
  */
-const char* ImageExtension::getLocale() {
+const char* FileExtension::getLocale() {
 
   const char* locale;
   setlocale(LC_ALL, "");
@@ -399,7 +413,7 @@ const char* ImageExtension::getLocale() {
  * @param string path
  * @param struct tm*
  */
-struct tm* ImageExtension::getModifiedTm(string path) {
+struct tm* FileExtension::getModifiedTm(string path) {
 
   struct stat attr;
   stat(path.c_str(), &attr);
@@ -412,7 +426,7 @@ struct tm* ImageExtension::getModifiedTm(string path) {
  * @param string path
  * @retrun time_t
  */
-time_t ImageExtension::getModifiedTime(string path) {
+time_t FileExtension::getModifiedTime(string path) {
 
   return mktime(getModifiedTm(path));
 };
@@ -422,14 +436,14 @@ time_t ImageExtension::getModifiedTime(string path) {
  * @param string path
  * @return void
  */
-void ImageExtension::addModifiedHeader(string path, cxxtools::http::Reply& reply) {
+void FileExtension::addModifiedHeader(string path, cxxtools::http::Reply& reply) {
 
   char buffer[30];
   struct tm* tm = getModifiedTm(path);
   setlocale(LC_TIME,"POSIX");
   strftime(buffer,30,"%a, %d %b %Y %H:%M:%S %Z",tm);
   setlocale(LC_TIME,getLocale());
-  isyslog("restfulapi: ImageExtension: adding last-modified-header %s", buffer);
+  esyslog("restfulapi: FileExtension: adding last-modified-header %s", buffer);
   reply.addHeader("Last-Modified", buffer);
 };
 
@@ -438,7 +452,7 @@ void ImageExtension::addModifiedHeader(string path, cxxtools::http::Reply& reply
  * @param cxxtools::http::Request& request
  * @return time_t
  */
-time_t ImageExtension::getModifiedSinceTime(cxxtools::http::Request& request) {
+time_t FileExtension::getModifiedSinceTime(cxxtools::http::Request& request) {
 
   time_t now;
   time(&now);
@@ -454,17 +468,17 @@ time_t ImageExtension::getModifiedSinceTime(cxxtools::http::Request& request) {
  * @param string path the path to check
  * @return bool
  */
-bool ImageExtension::exists(string path) {
+bool FileExtension::exists(string path) {
 
   char* nptr = NULL;
   const char* cPath = path.c_str();
   char* rPath = realpath(cPath, nptr);
 
-  isyslog("restfulapi: ImageExtension: requested path %s", cPath);
-  isyslog("restfulapi: ImageExtension: realpath %s", rPath);
+  esyslog("restfulapi: FileExtension: requested path %s", cPath);
+  esyslog("restfulapi: FileExtension: realpath %s", rPath);
 
   if (!rPath || (rPath && strcmp(cPath, rPath) != 0)) {
-      isyslog("restfulapi: realpath does not match requested path");
+      esyslog("restfulapi: realpath does not match requested path");
       return false;
   }
   FILE *fp = fopen(path.c_str(),"r");
@@ -472,16 +486,14 @@ bool ImageExtension::exists(string path) {
     fclose(fp);
     return true;
   }
-  isyslog("restfulapi: ImageExtension: requested file %s does not exists", cPath);
+  esyslog("restfulapi: FileExtension: requested file %s does not exists", cPath);
 
   return false;
 };
 
 
 
-
-
-
+// --- ImageExtension -----------------------------------------------------------
 
 // --- VdrExtension -----------------------------------------------------------
 
