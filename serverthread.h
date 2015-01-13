@@ -29,6 +29,7 @@
 #include "searchtimers.h"
 #include "epgsearch.h"
 #include "scraper2vdr.h"
+#include "wirbelscan.h"
 
 using namespace std;
 
