@@ -47,7 +47,7 @@ SOFILE = libvdr-$(PLUGIN).so
 
 ### Includes and Defines (add further entries here):
 
-INCLUDES +=
+INCLUDES += -I/usr/include/vdr/plugins/wirbelscan
 
 DEFINES += -DPLUGIN_NAME_I18N='"$(PLUGIN)"'
 

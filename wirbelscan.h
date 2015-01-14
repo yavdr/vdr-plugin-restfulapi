@@ -10,7 +10,7 @@
 #include <vdr/plugin.h>
 #include "tools.h"
 
-#include <vdr/plugins/wirbelscan/wirbelscan_services.h>
+#include "wirbelscan_services.h"
 
 using namespace WIRBELSCAN_SERVICE;
 
