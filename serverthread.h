@@ -31,6 +31,7 @@
 #include "scraper2vdr.h"
 #include "wirbelscan.h"
 #include "webapp.h"
+#include "femon.h"
 
 using namespace std;
 
