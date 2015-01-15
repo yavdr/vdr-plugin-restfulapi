@@ -1063,7 +1063,7 @@ Method: <b>GET</b><br />
 Example:<br />
 <br />
 <div class="code"><code>
-GET http://&lt;ip&gt;:&lt;port&gt;/wirbelscan/getState.json
+GET http://&lt;ip&gt;:&lt;port&gt;/wirbelscan/getStatus.json
 </code></div>
 <br />
 <br />
@@ -1074,6 +1074,17 @@ Example Body-Content:<br /><br />
 }
 </pre></div>
 <br />
+Example Body-Content during scan:<br /><br />
+<div class="code"><pre>
+{
+  "status":1,
+  "currentDevice":"CXD2837 DVB-C DVB-T/T2",
+  "progress":1,"strength":0,
+  "transponder":"DVB-C 113.000MHz M2 SR6900",
+  "numChannels":552,"newChannels":0,"nextTransponder":0
+}</pre></div>
+<br />
+
 Description of the status values:<br />
 <ul>
  <li>0 = no status information available, try again later.
