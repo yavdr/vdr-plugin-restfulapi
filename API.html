@@ -80,6 +80,15 @@ Developer: <a href="mailto:eiler.mike@gmail.com">eiler.mike@gmail.com</a> or <a 
 		<li><a href="#SearchTimersSearch">Search</a>
 	</ul>
 	<li><a href="#ScraperImages">ScraperImages</a></li>
+	<li><a href="#Wirbelscan">Control the Wirbelscan plugin</a>
+	<ul>
+		<li><a href="#WirbelscanGetState">Get the current state</a>
+		<li><a href="#WirbelscanGetCountries">Get the list of countries</a>
+		<li><a href="#WirbelscanGetSatellites">Get the list of satellites</a>
+		<li><a href="#WirbelscanGetSetup">Get the current setup</a>
+		<li><a href="#WirbelscanSetSetup">Changes the current setup</a>
+		<li><a href="#WirbelscanDoCommand">Launches a command</a>
+	</ul>
 </ul>
 
 <hr />
@@ -1038,8 +1047,189 @@ GET http://&lt;ip&gt;:&lt;port&gt;/searchtimers/search/&lt;id&gt;
 GET http://&lt;ip&gt;:&lt;port&gt;/scraper/image/&lt;path&gt;/&lt;provided&gt;/&lt;within&gt;/&lt;additional/&lt;media&gt;.jpg
 </code></div>
 
-
+<hr />
 <br />
+<hr />
+<h1 class="center"><a name="Wirbelscan">Control the Wirbelscan plugin</a></h1>
+<hr />
+<br />
+
+<h2><a name="WirbelscanGetState">Get the state of the Wirbelscan plugin</a></h2>
+<br />
+This service gets the state of the Wirbelscan plugin.<br />
+<br />
+Method: <b>GET</b><br />
+<br />
+Example:<br />
+<br />
+<div class="code"><code>
+GET http://&lt;ip&gt;:&lt;port&gt;/wirbelscan/getState.json
+</code></div>
+<br />
+<br />
+Example Body-Content:<br /><br />
+<div class="code"><pre>
+{
+  "status":2
+}
+</pre></div>
+<br />
+Description of the status values:<br />
+<ul>
+ <li>0 = no status information available, try again later.
+ <li>1 = scan in progress.
+ <li>2 = no scan in progress (not started, finished or stopped).
+ <li>3 = plugin is busy, try again later.
+</ul>
+<br />
+<br />
+
+<h2><a name="WirbelscanGetCountries">Retrieve the list of countries from the Wirbelscan plugin</a></h2>
+<br />
+This service retrieves the list of countries from the Wirbelscan plugin.<br />
+<br />
+Method: <b>GET</b><br />
+<br />
+Example:<br />
+<br />
+<div class="code"><code>
+GET http://&lt;ip&gt;:&lt;port&gt;/wirbelscan/countries.json
+</code></div>
+<br />
+<br />
+Example Body-Content:<br /><br />
+<div class="code"><pre>
+{"countries":
+  [
+    {"id":0,"shortName":"AF","fullName":"AFGHANISTAN"},
+    {"id":1,"shortName":"AX","fullName":"\ufffdLAND ISLANDS"},
+    {"id":2,"shortName":"AL","fullName":"ALBANIA"},
+    {"id":3,"shortName":"DZ","fullName":"ALGERIA"},
+    ...
+    {"id":246,"shortName":"ZM","fullName":"ZAMBIA"},
+    {"id":247,"shortName":"ZW","fullName":"ZIMBABWE"}
+  ],
+  "count":0,
+  "total":248
+}</pre></div>
+<br />
+<br />
+<br />
+
+<h2><a name="WirbelscanGetSatellites">Retrieve the list of satellites from the Wirbelscan plugin</a></h2>
+<br />
+This service retrieves the list of satellites from the Wirbelscan plugin.<br />
+<br />
+Method: <b>GET</b><br />
+<br />
+Example:<br />
+<br />
+<div class="code"><code>
+GET http://&lt;ip&gt;:&lt;port&gt;/wirbelscan/satellites.json
+</code></div>
+<br />
+<br />
+Example Body-Content:<br /><br />
+<div class="code"><pre>
+{"satellites":
+  [
+    {"id":0,"shortName":"S180E0","fullName":"180.0 east Intelsat 18"},
+    {"id":1,"shortName":"S172E0","fullName":"172.0 east GE 23"},
+    {"id":2,"shortName":"S169E0","fullName":"169.0 east Intelsat 5"},
+    {"id":3,"shortName":"S166E0","fullName":"166.0 east Intelsat 8"},
+    ...
+    {"id":131,"shortName":"S139W0","fullName":"135.0 west AMC 8"},
+    {"id":132,"shortName":"S177W0","fullName":"177.0 west NSS 9"}
+  ],
+  "count":0,
+  "total":133
+}
+</pre></div>
+<br />
+<br />
+<br />
+
+<h2><a name="WirbelscanGetSetup">Retrieve the current setup of the Wirbelscan plugin</a></h2>
+<br />
+This service retrieves the current setup of the Wirbelscan plugin.<br />
+<br />
+Method: <b>GET</b><br />
+<br />
+Example:<br />
+<br />
+<div class="code"><code>
+GET http://&lt;ip&gt;:&lt;port&gt;/wirbelscan/getSetup.json
+</code></div>
+<br />
+<br />
+Example Body-Content:<br /><br />
+<div class="code"><pre>
+{
+  "verbosity":5,
+  "logFile":2,
+  "DVB_Type":2,
+  "DVBT_Inversion":0,
+  "DVBC_Inversion":0,
+  "DVBC_Symbolrate":0,
+  "DVBC_QAM":0,
+  "CountryId":82,
+  "SatId":6,
+  "scanflags":31,
+  "ATSC_type":0
+}</pre></div>
+<br />
+Description of the setup values:<br />
+<ul>
+  <li>verbosity - 0 (errors only) .. 5 (extended debug); default = 3 (messages)
+  <li>logFile - 0 = off, 1 = stdout, 2 = syslog
+  <li>DVB_Type - DVB-T = 0, DVB-C = 1, DVB-S/S2 = 2, PVRINPUT = 3, PVRINPUT(FM Radio) = 4, ATSC = 5, TRANSPONDER = 999
+  <li>DVBT_Inversion - AUTO/OFF = 0, AUTO/ON = 1
+  <li>DVBC_Inversion - AUTO/OFF = 0, AUTO/ON = 1
+  <li>DVBC_Symbolrate - careful here - may change. AUTO = 0, 6900 = 1, 6875 = 2  (...)  14 = 5483, 15 = ALL
+  <li>DVBC_QAM - AUTO = 0,QAM64 = 1, QAM128 = 2, QAM256 = 3, ALL = 4
+  <li>CountryId - the id according to country, found in country list,   see wirbelscan_GetCountry
+  <li>SatId - the id according to satellite, found in list,         see wirbelscan_GetSat
+  <li>scanflags - bitwise flag of wanted channels: TV = (1 << 0), RADIO = (1 << 1), FTA = (1 << 2), SCRAMBLED = (1 << 4), HDTV = (1 << 5)
+  <li>ATSC_type - VSB = 0, QAM = 1, both VSB+QAM = 2
+</ul>
+<br />
+<br />
+
+<h2><a name="WirbelscanSetSetup">Changes the current setup of the Wirbelscan plugin</a></h2>
+<br />
+This service changes the current setup of the Wirbelscan plugin.<br />
+<br />
+Method: <b>GET</b><br />
+<br />
+Example:<br />
+<br />
+<div class="code"><code>
+GET http://&lt;ip&gt;:&lt;port&gt;/wirbelscan/setSetup.json?DVB_Type=1&verbosity=3
+</code></div>
+<br />
+For a description of the setup values see <a href="#WirbelscanGetSetup">Get the current setup</a>
+<br />
+<br />
+<br />
+
+<h2><a name="WirbelscanDoCommand">Launch a command with the Wirbelscan plugin</a></h2>
+<br />
+This service launches a command with the Wirbelscan plugin.<br />
+<br />
+Method: <b>GET</b><br />
+<br />
+Example:<br />
+<br />
+<div class="code"><code>
+GET http://&lt;ip&gt;:&lt;port&gt;/wirbelscan/doCommand.json?command=0
+</code></div>
+<br />
+Description of the command values:<br />
+<ul>
+  <li>0 = start scanning
+  <li>1 = stop scanning
+  <li>2 = store current setup
+</ul>
 <br />
 <br />
 
