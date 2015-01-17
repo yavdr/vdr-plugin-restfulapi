@@ -47,7 +47,7 @@ SOFILE = libvdr-$(PLUGIN).so
 
 ### Includes and Defines (add further entries here):
 
-DEFINES += -DPLUGIN_NAME_I18N='"$(PLUGIN)"' -DDOCUMENT_ROOT='"$(DOCUMENT_ROOT)"'
+DEFINES += -DPLUGIN_NAME_I18N='"$(PLUGIN)"'
 
 LIBS    += $(shell cxxtools-config --libs) -lcxxtools-http
 CONFDIR  = $(call PKGCFG,configdir)
