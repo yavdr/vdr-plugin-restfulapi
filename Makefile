@@ -9,8 +9,6 @@
 
 PLUGIN = restfulapi
 
-DOCUMENT_ROOT ?= /var/lib/vdr/plugins/restfulapi
-
 ### The version number of this plugin (taken from the main source file):
 
 VERSION = $(shell grep 'static const char \*VERSION *=' $(PLUGIN).cpp | awk '{ print $$6 }' | sed -e 's/[";]//g')
