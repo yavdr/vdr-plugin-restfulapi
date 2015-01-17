@@ -9,6 +9,8 @@
 
 PLUGIN = restfulapi
 
+DOCUMENT_ROOT ?= /var/lib/vdr/plugins/restfulapi
+
 ### The version number of this plugin (taken from the main source file):
 
 VERSION = $(shell grep 'static const char \*VERSION *=' $(PLUGIN).cpp | awk '{ print $$6 }' | sed -e 's/[";]//g')
@@ -47,7 +49,7 @@ SOFILE = libvdr-$(PLUGIN).so
 
 ### Includes and Defines (add further entries here):
 
-DEFINES += -DPLUGIN_NAME_I18N='"$(PLUGIN)"'
+DEFINES += -DPLUGIN_NAME_I18N='"$(PLUGIN)"' -DDOCUMENT_ROOT='"$(DOCUMENT_ROOT)"'
 
 LIBS    += $(shell cxxtools-config --libs) -lcxxtools-http
 CONFDIR  = $(call PKGCFG,configdir)
