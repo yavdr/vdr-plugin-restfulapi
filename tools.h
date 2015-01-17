@@ -38,6 +38,10 @@
 #ifndef RESTFULAPI_EXTENSIONS
 #define RESTFULAPI_EXTENSIONS
 
+#ifndef DOCUMENT_ROOT
+#define DOCUMENT_ROOT "/var/lib/vdr/plugins/restfulapi/"
+#endif
+
 class Settings
 {
   private:

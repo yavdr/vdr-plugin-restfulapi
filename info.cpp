@@ -29,8 +29,8 @@ void InfoResponder::reply(ostream& out, cxxtools::http::Request& request, cxxtoo
 
 void InfoResponder::replyHtml(StreamExtension& se)
 {
-  if ( !se.writeBinary(DOCUMENT_ROOT "/API.html") ) {
-     se.write("Copy API.html to " DOCUMENT_ROOT "/");
+  if ( !se.writeBinary(DOCUMENT_ROOT "API.html") ) {
+     se.write("Copy API.html to " DOCUMENT_ROOT);
   }
 }
 

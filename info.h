@@ -8,10 +8,6 @@
 #include <vector>
 #include "statusmonitor.h"
 
-#ifndef DOCUMENT_ROOT
-#define DOCUMENT_ROOT "/var/lib/vdr/plugins/restfulapi"
-#endif
-
 struct SerService
 {
   cxxtools::String Path;
