@@ -6,37 +6,41 @@ void FemonResponder::reply (std::ostream& out, cxxtools::http::Request& request,
   QueryHandler::addHeader(reply);
   QueryHandler q("/femon", request);
 
-  if ( request.method() == "OPTIONS" ) {}
+  if ((femon = cPluginManager::GetPlugin("femon")) == NULL) {
+      reply.httpReturn(403U, "Femon Plugin is not available. Please install first");
+      return;
+  }
+
+  if ( request.method() == "OPTIONS" ) {
+      reply.addHeader("Allow", "GET");
+      reply.httpReturn(200U, "OK");
+      return;
+  }
 
   if (request.method() != "GET") {
-     reply.httpReturn(403, "Only GET method is supported by the femon service");
+     reply.httpReturn(403U, "Only GET method is supported by the femon service");
      return;
   }
 
-  cPlugin *femon = cPluginManager::GetPlugin("femon");
-
-  if (!femon) {
-      reply.httpReturn(403, "Femon Plugin is not available. Please install first");
-      return;
-  }
   FemonService_v1_0 fe;
-
+  StreamExtension se(&out);
   femon->Service("FemonService-v1.0", &fe);
 
-  StreamExtension se(&out);
-
-  if (q.isFormat(".xml")) {
-    reply.addHeader("Content-Type", "text/xml; charset=utf-8");
-    replyXml(se, fe);
-  } else if (q.isFormat(".json")) {
+  if (q.isFormat(".json")) {
     reply.addHeader("Content-Type", "application/json; charset=utf-8");
     replyJson(se, fe);
-  } else if (q.isFormat(".html")) {
-    reply.addHeader("Content-Type", "text/html; charset=utf-8");
-    replyHtml(se, fe);
   } else {
-    reply.httpReturn(403, "Supported formats: xml, json and html!");
+    reply.httpReturn(403U, "Supported formats: JSON");
   }
+};
+
+void FemonResponder::replyJson(StreamExtension se, FemonService_v1_0& fe) {
+
+  esyslog("restfulapi: Reply JSON");
+  cxxtools::JsonSerializer serializer(*se.getBasicStream());
+  serializer.serialize(fe, "femonData");
+  serializer.finish();
+
 };
 
 void operator<<= (cxxtools::SerializationInfo& si, const FemonService_v1_0& fe)
@@ -61,16 +65,3 @@ void operator<<= (cxxtools::SerializationInfo& si, const FemonService_v1_0& fe)
   si.addMember("video_bitrate") <<= fe.video_bitrate;
   si.addMember("dolby_bitrate") <<= fe.dolby_bitrate;
 }
-
-void FemonResponder::replyHtml(StreamExtension se, FemonService_v1_0& fe) {};
-
-void FemonResponder::replyJson(StreamExtension se, FemonService_v1_0& fe) {
-
-  esyslog("Reply JSON");
-  cxxtools::JsonSerializer serializer(*se.getBasicStream());
-  serializer.serialize(fe, "femonData");
-  serializer.finish();
-
-};
-
-void FemonResponder::replyXml(StreamExtension se, FemonService_v1_0& fe) {};
