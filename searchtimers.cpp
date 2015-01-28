@@ -4,6 +4,13 @@ using namespace std;
 void SearchTimersResponder::reply(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler::addHeader(reply);
+
+  if ( request.method() == "OPTIONS" ) {
+      reply.addHeader("Allow", "GET, POST, DELETE");
+      reply.httpReturn(200, "OK");
+      return;
+  }
+
   cPlugin* plugin = cPluginManager::GetPlugin("epgsearch");
   if (plugin == NULL) {
      reply.httpReturn(403, "Epgsearch isn't installed!");
@@ -19,8 +26,6 @@ void SearchTimersResponder::reply(ostream& out, cxxtools::http::Request& request
         replyCreate(out, request, reply);
      } else if (request.method() == "DELETE") {
         replyDelete(out, request, reply);
-     } else if (request.method() == "OPTIONS") {
-        return;	
      } else {
         reply.httpReturn(404, "The searchtimer-service does only support the following methods: GET, POST and DELETE.");
      }

@@ -44,31 +44,52 @@ Developer: <a href="mailto:eiler.mike@gmail.com">eiler.mike@gmail.com</a> or <a 
 
 <h1>Table Of Contents</h1>
 <ul>
-<li><a href="#Preface">Preface</a>
-<li><a href="#Requirements">Requirements</a>
-<li><a href="#Configuration">Configuration</a>
-<li><a href="#Channels">Channels</a>
-<ul><li><a href="#ChannelGroups">Groups</a>
-    <li><a href="#ChannelImages">Images / Channel-Logos</a></ul>
-<li><a href="#Events">Events / EPG</a>
-<ul><li><a href="#EventImages">Images</a>
-    <li><a href="#EventSearch">Search (EPGSEARCH)</ul>
-<li><a href="#Info">Info</a>
-<li><a href="#Osd">Osd</a>
-<li><a href="#Recordings">Recordings</a>
-<ul><li><a href="#RecordingCut">Cut</a>
-    <li><a href="#RecordingsMarks">Marks</a>
-	<li><a href="#RecordingPlay">Play</a></ul>
-<li><a href="#Remote">Remote</a>
-<li><a href="#Timers">Timers</a>
-<ul><li><a href="#ReadingTimers">Reading/Deleting Timers</a>
-    <li><a href="#CreatingTimers">Creating Timers</a>
-    <li><a href="#UpdatingTimers">Updating Timers</a></ul>
-<li><a href="#SearchTimers">SearchTimers (EPGSEARCH)</a>
-<ul><li><a href="#SearchTimersCreate">Create</a>
-    <li><a href="#SearchTimersDelete">Delete</a>
-    <li><a href="#SearchTimersShow">Show</a>
-    <li><a href="#SearchTimersSearch">Search</a></ul>
+	<li><a href="#Preface">Preface</a>
+	<li><a href="#Requirements">Requirements</a>
+	<li><a href="#Configuration">Configuration</a>
+	<li><a href="#Channels">Channels</a>
+	<ul>
+		<li><a href="#ChannelGroups">Groups</a>
+    	<li><a href="#ChannelImages">Images / Channel-Logos</a>
+    </ul>
+	<li><a href="#Events">Events / EPG</a>
+	<ul>
+		<li><a href="#EventImages">Images</a>
+		<li><a href="#EventSearch">Search (EPGSEARCH)
+	</ul>
+	<li><a href="#Info">Info</a>
+	<li><a href="#Osd">Osd</a>
+	<li><a href="#Recordings">Recordings</a>
+	<ul>
+		<li><a href="#RecordingCut">Cut</a>
+		<li><a href="#RecordingsMarks">Marks</a>
+		<li><a href="#RecordingPlay">Play</a>
+	</ul>
+	<li><a href="#Remote">Remote</a>
+	<li><a href="#Timers">Timers</a>
+	<ul>
+		<li><a href="#ReadingTimers">Reading/Deleting Timers</a>
+		<li><a href="#CreatingTimers">Creating Timers</a>
+		<li><a href="#UpdatingTimers">Updating Timers</a>
+	</ul>
+	<li><a href="#SearchTimers">SearchTimers (EPGSEARCH)</a>
+	<ul>
+		<li><a href="#SearchTimersCreate">Create</a>
+		<li><a href="#SearchTimersDelete">Delete</a>
+		<li><a href="#SearchTimersShow">Show</a>
+		<li><a href="#SearchTimersSearch">Search</a>
+	</ul>
+	<li><a href="#ScraperImages">ScraperImages</a></li>
+	<li><a href="#Wirbelscan">Control the Wirbelscan plugin</a>
+	<ul>
+		<li><a href="#WirbelscanGetState">Get the current state</a>
+		<li><a href="#WirbelscanGetCountries">Get the list of countries</a>
+		<li><a href="#WirbelscanGetSatellites">Get the list of satellites</a>
+		<li><a href="#WirbelscanGetSetup">Get the current setup</a>
+		<li><a href="#WirbelscanSetSetup">Changes the current setup</a>
+		<li><a href="#WirbelscanDoCommand">Launches a command</a>
+	</ul>
+	<li><a href="#Webapp">Webapp</a></li>
 </ul>
 
 <hr />
@@ -134,6 +155,7 @@ Create a new file called plugin.restfulapi.conf in /etc/vdr/plugins/ .<br />
 --ip=0.0.0.0
 --epgimages=/var/cache/vdr/epgimages
 --channellogos=/usr/share/vdr/channel-logos
+--webapp=/var/lib/vdr/plugins/restfulapi/webapp
 </code></div>
 <br />
 <br />
@@ -304,6 +326,12 @@ GET http://&lt;ip&gt;:&lt;port&gt;/channels/image/&lt;channelid&gt;
 <br />
 
 This service returns the epg information.<br />
+<br />
+Since Verions 0.2.0 the API returns additional media if a scraper plugin is available.
+The data is available within leaf additional_media and contains additional information about the event such as actors etc.
+Please have a look at the data to get an idea about the additional structure.
+Images can be retrieved using <a href="#ScraperImages">ScraperImages</a> service.
+<br />
 <br />
 Method: <b>GET</b><br />
 <br />
@@ -542,20 +570,27 @@ GET http://&lt;ip&gt;:&lt;port&gt;/osd.&lt;format&gt;
 <br />
 
 
-This service can delete recordings and can also return all the recordings as a list.<br />
+This service can move/delete recordings and can also return all the recordings as a list.<br />
+<br />
+Since Verions 0.2.0 the API returns additional media if a scraper plugin is available.
+The data is available within leaf additional_media and contains additional information about the event such as actors etc.
+Please have a look at the data to get an idea about the additional structure.
+Images can be retrieved using <a href="#ScraperImages">ScraperImages</a> service.
+<br />
 <br />
 
 <b>The Request:</b>
 <br />
 <br />
-Method: <b>GET, DELETE</b><br />
+Method: <b>GET, DELETE, POST</b><br />
 <br />
 Examples: <br/>
 <br />
 <div class="code"><code>
 GET http://&lt;ip&gt;:&lt;port&gt;/recordings/.&lt;format&gt;<br />
 GET http://&lt;ip&gt;:&lt;port&gt;/recordings/&lt;recordingnumber&gt;.&lt;format&gt;?marks=true<br />
-DELETE http://&lt;ip&gt;:&lt;port&gt;/recordings/&lt;number&gt;
+DELETE http://&lt;ip&gt;:&lt;port&gt;/recordings/&lt;number&gt;<br />
+POST http://&lt;ip&gt;:&lt;port&gt;/recordings/move?&lt;source&gt;&amp;&lt;target&gt;
 </code></div>
 <br />
 <br />
@@ -566,6 +601,8 @@ DELETE http://&lt;ip&gt;:&lt;port&gt;/recordings/&lt;number&gt;
 <li>&lt;format&gt; - The requested format: json, xml or html.
 <li>&lt;number&gt; - The number of the recording which you want to delete. (The first recordings has the number 0.)
 <li>&lt;recordingnumber&gt; - The number of the recording you want to retrieve.
+<li>&lt;source&gt; - The full (url encoded) source path of the recording.
+<li>&lt;target&gt; - The relative (url encoded) target path of the recording.
 <li>marks=true - add the cutting marks by reading the marks file from the recording directory
 <li>start, limit - These values are used to control the whole list. Start ist the first element you want to retrieve. Limit...
 </ul>
@@ -624,6 +661,13 @@ GET http://127.0.0.1:8002/recordings.json?start=0&amp;limit=1i&amp;marks=true<br
 </code></div>
 <br />
 <br />
+
+<div class="code"><code>
+POST "http://127.0.0.1:8002/recordings/move?source=/path/to/videodir/my_recording/YYYY-MM-DD.hh.mm.ss-0.rec&amp;target=relative/path/to/renamed recording"
+</code></div>
+<br />
+<br />
+
 
 <h2><a name="RecordingCut">Cut</a></h2>
 
@@ -720,14 +764,36 @@ Method: <b>POST</b><br />
 <br />
 <div class="code"><code>
 POST http://&lt;ip&gt;:&lt;port&gt;/remote/&lt;key&gt;<br />
-POST http://&lt;ip&gt;:&lt;port&gt;/remote/switch/&lt;channelid&gt;
+POST http://&lt;ip&gt;:&lt;port&gt;/remote/switch/&lt;channelid&gt;<br />
+POST http://&lt;ip&gt;:&lt;port&gt;/remote/kbd
 </code></div>
 <br />
 The parameter &lt;key&gt; can be set to the following remote control commands:<br /><br />
 Up, Down, Menu, Ok, Back, Left, Right, Red, Green, Yellow, Blue, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, Info, Play, Pause, Stop, Record, FastFwd, FastRew, Next, Prev, Power, ChanUp, ChanDn, ChanPrev, VolUp, VolDn, Mute, Audio, Subtitles, Schedule, Channels, Timers, Recordings, Setup, Commands, User0, User1, User2, User3, User4, User5, User6, User7, User8, User9, None, Kbd<br />
 <br />
-The second address allows to directly switch to a specific channel.
-
+The second address allows to directly switch to a specific channel.<br />
+The third address allows to send strings that are interpreted as keyboard input for e.g. usage in search<br />
+The fourth address allows to send to send a sequence of keypresses<br /><br />
+<b>Send keyboard input:</b><br /><br />
+Method: <b>POST</b><br /><br />
+Expamle:<br /><br />
+<div class="code">
+    POST http://&lt;ip&gt;:&lt;port&gt;/remote/kbd
+</div><br />
+Example Body-Content (required, Only JSON supported):<br /><br />
+<div class="code">
+    {'kbd':'Asterix'}
+</div><br />
+<b>Send sequence:</b><br /><br />
+Method: <b>POST</b><br /><br />
+Expamle:<br /><br />
+<div class="code">
+    POST http://&lt;ip&gt;:&lt;port&gt;/remote/seq
+</div><br />
+Example Body-Content (required, Only JSON supported):<br /><br />
+<div class="code">
+    {'seq':'Down', 'Down', 'Down', 'Down', 'Right'}
+</div>
 <br />
 <br />
 
@@ -972,8 +1038,232 @@ GET http://&lt;ip&gt;:&lt;port&gt;/searchtimers.&lt;format&gt;
 <div class="code"><code>
 GET http://&lt;ip&gt;:&lt;port&gt;/searchtimers/search/&lt;id&gt;
 </code></div>
-
 <br />
+<br />
+<hr/>
+<h1 class="center"><a name="ScraperImages">ScraperImage</a></h1>
+<hr />
+<br />
+<h2>Retrieve Images from additional media.</h2>
+<div class="code"><code>
+GET http://&lt;ip&gt;:&lt;port&gt;/scraper/image/&lt;path&gt;/&lt;provided&gt;/&lt;within&gt;/&lt;additional/&lt;media&gt;.jpg
+</code></div>
+<br />
+<br />
+<hr/>
+<h1 class="center"><a name="Webapp">Webapp</a></h1>
+<hr />
+<br />
+<h2>Retrieve Webapp.</h2>
+<br />
+
+This service can deliver files from configured folder.<br />
+Specify folder in plugin settings file (--webapp=/var/lib/vdr/plugins/restfulapi/webapp)<br /><br />
+<div class="code"><code>
+GET http://&lt;ip&gt;:&lt;port&gt;/webapp/&lt;path&gt;/&lt;to&gt;/&lt;file&gt;
+</code></div>
+
+<hr />
+<br />
+<hr />
+<h1 class="center"><a name="Wirbelscan">Control the Wirbelscan plugin</a></h1>
+<hr />
+<br />
+
+<h2><a name="WirbelscanGetState">Get the state of the Wirbelscan plugin</a></h2>
+<br />
+This service gets the state of the Wirbelscan plugin.<br />
+<br />
+Method: <b>GET</b><br />
+<br />
+Example:<br />
+<br />
+<div class="code"><code>
+GET http://&lt;ip&gt;:&lt;port&gt;/wirbelscan/getStatus.json
+</code></div>
+<br />
+<br />
+Example Body-Content:<br /><br />
+<div class="code"><pre>
+{
+  "status":2
+}
+</pre></div>
+<br />
+Example Body-Content during scan:<br /><br />
+<div class="code"><pre>
+{
+  "status":1,
+  "currentDevice":"CXD2837 DVB-C DVB-T/T2",
+  "progress":1,"strength":0,
+  "transponder":"DVB-C 113.000MHz M2 SR6900",
+  "numChannels":552,"newChannels":0,"nextTransponder":0
+}</pre></div>
+<br />
+
+Description of the status values:<br />
+<ul>
+ <li>0 = no status information available, try again later.
+ <li>1 = scan in progress.
+ <li>2 = no scan in progress (not started, finished or stopped).
+ <li>3 = plugin is busy, try again later.
+</ul>
+<br />
+<br />
+
+<h2><a name="WirbelscanGetCountries">Retrieve the list of countries from the Wirbelscan plugin</a></h2>
+<br />
+This service retrieves the list of countries from the Wirbelscan plugin.<br />
+<br />
+Method: <b>GET</b><br />
+<br />
+Example:<br />
+<br />
+<div class="code"><code>
+GET http://&lt;ip&gt;:&lt;port&gt;/wirbelscan/countries.json
+</code></div>
+<br />
+<br />
+Example Body-Content:<br /><br />
+<div class="code"><pre>
+{"countries":
+  [
+    {"id":0,"shortName":"AF","fullName":"AFGHANISTAN"},
+    {"id":1,"shortName":"AX","fullName":"\ufffdLAND ISLANDS"},
+    {"id":2,"shortName":"AL","fullName":"ALBANIA"},
+    {"id":3,"shortName":"DZ","fullName":"ALGERIA"},
+    ...
+    {"id":246,"shortName":"ZM","fullName":"ZAMBIA"},
+    {"id":247,"shortName":"ZW","fullName":"ZIMBABWE"}
+  ],
+  "count":0,
+  "total":248
+}</pre></div>
+<br />
+<br />
+<br />
+
+<h2><a name="WirbelscanGetSatellites">Retrieve the list of satellites from the Wirbelscan plugin</a></h2>
+<br />
+This service retrieves the list of satellites from the Wirbelscan plugin.<br />
+<br />
+Method: <b>GET</b><br />
+<br />
+Example:<br />
+<br />
+<div class="code"><code>
+GET http://&lt;ip&gt;:&lt;port&gt;/wirbelscan/satellites.json
+</code></div>
+<br />
+<br />
+Example Body-Content:<br /><br />
+<div class="code"><pre>
+{"satellites":
+  [
+    {"id":0,"shortName":"S180E0","fullName":"180.0 east Intelsat 18"},
+    {"id":1,"shortName":"S172E0","fullName":"172.0 east GE 23"},
+    {"id":2,"shortName":"S169E0","fullName":"169.0 east Intelsat 5"},
+    {"id":3,"shortName":"S166E0","fullName":"166.0 east Intelsat 8"},
+    ...
+    {"id":131,"shortName":"S139W0","fullName":"135.0 west AMC 8"},
+    {"id":132,"shortName":"S177W0","fullName":"177.0 west NSS 9"}
+  ],
+  "count":0,
+  "total":133
+}
+</pre></div>
+<br />
+<br />
+<br />
+
+<h2><a name="WirbelscanGetSetup">Retrieve the current setup of the Wirbelscan plugin</a></h2>
+<br />
+This service retrieves the current setup of the Wirbelscan plugin.<br />
+<br />
+Method: <b>GET</b><br />
+<br />
+Example:<br />
+<br />
+<div class="code"><code>
+GET http://&lt;ip&gt;:&lt;port&gt;/wirbelscan/getSetup.json
+</code></div>
+<br />
+<br />
+Example Body-Content:<br /><br />
+<div class="code"><pre>
+{
+  "verbosity":5,
+  "logFile":2,
+  "DVB_Type":2,
+  "DVBT_Inversion":0,
+  "DVBC_Inversion":0,
+  "DVBC_Symbolrate":0,
+  "DVBC_QAM":0,
+  "CountryId":82,
+  "SatId":6,
+  "scanflags":31,
+  "ATSC_type":0
+}</pre></div>
+<br />
+Description of the setup values:<br />
+<ul>
+  <li>verbosity - 0 (errors only) .. 5 (extended debug); default = 3 (messages)
+  <li>logFile - 0 = off, 1 = stdout, 2 = syslog
+  <li>DVB_Type - DVB-T = 0, DVB-C = 1, DVB-S/S2 = 2, PVRINPUT = 3, PVRINPUT(FM Radio) = 4, ATSC = 5, TRANSPONDER = 999
+  <li>DVBT_Inversion - AUTO/OFF = 0, AUTO/ON = 1
+  <li>DVBC_Inversion - AUTO/OFF = 0, AUTO/ON = 1
+  <li>DVBC_Symbolrate - careful here - may change. AUTO = 0, 6900 = 1, 6875 = 2  (...)  14 = 5483, 15 = ALL
+  <li>DVBC_QAM - AUTO = 0,QAM64 = 1, QAM128 = 2, QAM256 = 3, ALL = 4
+  <li>CountryId - the id according to country, found in country list,   see wirbelscan_GetCountry
+  <li>SatId - the id according to satellite, found in list,         see wirbelscan_GetSat
+  <li>scanflags - bitwise flag of wanted channels: TV = (1 << 0), RADIO = (1 << 1), FTA = (1 << 2), SCRAMBLED = (1 << 4), HDTV = (1 << 5)
+  <li>ATSC_type - VSB = 0, QAM = 1, both VSB+QAM = 2
+</ul>
+<br />
+<br />
+
+<h2><a name="WirbelscanSetSetup">Changes the current setup of the Wirbelscan plugin</a></h2>
+<br />
+This service changes the current setup of the Wirbelscan plugin.<br />
+<br />
+Method: <b>GET</b><br />
+<br />
+Example:<br />
+<br />
+<div class="code"><code>
+GET http://&lt;ip&gt;:&lt;port&gt;/wirbelscan/setSetup.json?DVB_Type=1&verbosity=3
+</code></div>
+<br />
+For a description of the setup values see <a href="#WirbelscanGetSetup">Get the current setup</a>
+<br />
+<br />
+<br />
+
+<h2><a name="WirbelscanDoCommand">Launch a command with the Wirbelscan plugin</a></h2>
+<br />
+This service launches a command with the Wirbelscan plugin.<br />
+<br />
+Method: <b>GET</b><br />
+<br />
+Example:<br />
+<br />
+<div class="code"><code>
+GET http://&lt;ip&gt;:&lt;port&gt;/wirbelscan/doCommand.json?command=0
+</code></div>
+<br />
+Description of the command values:<br />
+<ul>
+  <li>0 = start scanning
+  <li>1 = stop scanning
+  <li>2 = store current setup
+</ul>
+<br />
+Example Body-Content:<br /><br />
+<div class="code"><pre>
+{
+  "replycode":true
+}
+</code></div>
 <br />
 <br />
 

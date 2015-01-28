@@ -21,6 +21,7 @@
 #include <cxxtools/http/request.h>
 #include <cxxtools/http/reply.h>
 #include <cxxtools/query_params.h>
+#include <cxxtools/serializationinfo.h> // only AdditionalMedia
 #include <vdr/channels.h>
 #include <vdr/timers.h>
 #include <vdr/recording.h>
@@ -37,6 +38,10 @@
 #ifndef RESTFULAPI_EXTENSIONS
 #define RESTFULAPI_EXTENSIONS
 
+#ifndef DOCUMENT_ROOT
+#define DOCUMENT_ROOT "/var/lib/vdr/plugins/restfulapi/"
+#endif
+
 class Settings
 {
   private:
@@ -44,6 +49,7 @@ class Settings
     std::string ip;
     std::string epgimage_dir;
     std::string channellogo_dir;
+    std::string webapp_dir;
     bool activateHeaders;
   public:
     Settings() { initDefault(); }
@@ -54,11 +60,13 @@ class Settings
     std::string Ip() { return ip; }
     std::string EpgImageDirectory() { return epgimage_dir; }
     std::string ChannelLogoDirectory() { return channellogo_dir; }
+    std::string WebappDirectory() { return webapp_dir; }
     bool Headers() { return activateHeaders; }
     bool SetPort(std::string v);
     bool SetIp(std::string v);
     bool SetEpgImageDirectory(std::string v);
     bool SetChannelLogoDirectory(std::string v);
+    bool SetWebappDirectory(std::string v);
     bool SetHeaders(std::string v);
 };
 
@@ -154,9 +162,23 @@ class FileCaches
     };
 };
 
+class FileExtension {
+  public:
+    static FileExtension* get();
+    struct tm* getModifiedTm(std::string path);
+    time_t getModifiedTime(std::string path);
+    void addModifiedHeader(std::string path, cxxtools::http::Reply& reply);
+    time_t getModifiedSinceTime(cxxtools::http::Request& request);
+    const char* getLocale();
+    bool exists(std::string path);
+};
+
+class ImageExtension : public FileExtension {};
 
 class VdrExtension
 {
+  private:
+    static bool MoveDirectory(std::string const & sourceDir, std::string const & targetDir, bool copy = false);
   public:
     static cChannel* getChannel(int number);
     static cChannel* getChannel(std::string id);
@@ -170,9 +192,12 @@ class VdrExtension
     static std::vector< cTimer* > SortedTimers();
     static bool CompareTimers(cTimer* timer1, cTimer* timer2);
     static int RecordingLengthInSeconds(cRecording* recording);
-    static cEvent* GetEventById(tEventID eventID, cChannel* channel = NULL);
+    static const cEvent* GetEventById(tEventID eventID, cChannel* channel);
     static std::string getRelativeVideoPath(cRecording* recording);
     static cEvent* getCurrentEventOnChannel(cChannel* channel);
+    static std::string getVideoDiskSpace();
+    static std::string FileSystemExchangeChars(std::string const & s, bool ToFileSystem);
+    static std::string MoveRecording(cRecording const * recording, std::string const & name, bool copy = false);
 };
 
 class VdrMarks
@@ -229,6 +254,7 @@ class QueryHandler
     std::string getBodyAsString(std::string name);        //Are variables in the body of the http-request -> for now only html/json are supported, xml is not implemented (!)
     int getParamAsInt(int level);
     int getOptionAsInt(std::string name);
+    bool getOptionAsBool(std::string name);
     int getBodyAsInt(std::string name);
     bool getBodyAsBool(std::string name);
     JsonArray* getBodyAsArray(std::string name);

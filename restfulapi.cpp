@@ -11,7 +11,7 @@
 #include "serverthread.h"
 #include "statusmonitor.h"
 
-static const char *VERSION        = "0.1.3";
+static const char *VERSION        = "0.2.1";
 static const char *DESCRIPTION    = "Offers a RESTful-API to retrieve data from VDR";
 static const char *MAINMENUENTRY  = NULL;//"Restfulapi";
 
@@ -61,7 +61,8 @@ const char *cPluginRestfulapi::CommandLineHelp(void)
          "  -p 8002,         --port=8002              tcp port\n"
          "  -e ABC,          --epgimages=ABC          folder which stores the epg-images\n"
          "  -c DEF,          --channellogos=DEF       folder which stores the channel-logos\n"
-	 "  -h false,        --headers=true           disable additional http headers for accessing the data by javascript even so it's on another port";
+	 "  -h false,        --headers=true           disable additional http headers for accessing the data by javascript even so it's on another port"
+	 "  -w GHI,          --webapp=GHI             folder which stores a webapp";
 }
 
 bool cPluginRestfulapi::ProcessArgs(int argc, char *argv[])
@@ -74,29 +75,32 @@ bool cPluginRestfulapi::ProcessArgs(int argc, char *argv[])
        { "ip",           required_argument,  NULL,  'i' },
        { "epgimages",    required_argument,  NULL,  'e' },
        { "channellogos", required_argument,  NULL,  'c' },
-       { "headers",      required_argument,  NULL,  'h' }
+       { "headers",      required_argument,  NULL,  'h' },
+       { "webapp",       required_argument,  NULL,  'w' }
      };
 
   int optchar, optind = 0;
 
-  while ( ( optchar = getopt_long( argc, argv, "p:i:e:c:h:", long_options, &optind ) ) != -1 ) {
+  while ( ( optchar = getopt_long( argc, argv, "p:i:e:c:h:w:", long_options, &optind ) ) != -1 ) {
      switch ( optchar ) {
         case 'p': settings->SetPort((std::string)optarg); break;
         case 'i': settings->SetIp((std::string)optarg); break;
         case 'e': settings->SetEpgImageDirectory((std::string)optarg);  break;
         case 'c': settings->SetChannelLogoDirectory((std::string)optarg); break;
         case 'h': settings->SetHeaders((std::string)optarg); break;
+        case 'w': settings->SetWebappDirectory((std::string)optarg); break;
      };
   }
 
   std::string headers = "activated";
   if ( settings->Headers() == false ) { headers = "deactivated"; }
 
-  esyslog("RESTful-API Settings: port: %i, ip: %s, eimgs: %s, cimgs: %si, headers: %s", 
+  esyslog("RESTful-API Settings: port: %i, ip: %s, eimgs: %s, cimgs: %s, webapp: %s, headers: %s",
           settings->Port(),
           settings->Ip().c_str(),
           settings->EpgImageDirectory().c_str(),
           settings->ChannelLogoDirectory().c_str(),
+          settings->WebappDirectory().c_str(),
           headers.c_str());
 
   return true;
@@ -117,11 +121,12 @@ bool cPluginRestfulapi::Start(void)
   std::string headers = "activated";
   if ( settings->Headers() == false ) { headers = "deactivated"; }
 
-  esyslog("restfulapi: Used settings: port: %i, ip: %s, eimgs: %s, cimgs: %s, headers: %s", 
+  esyslog("restfulapi: Used settings: port: %i, ip: %s, eimgs: %s, cimgs: %s, webapp: %s, headers: %s",
           settings->Port(),
           settings->Ip().c_str(),
           settings->EpgImageDirectory().c_str(),
           settings->ChannelLogoDirectory().c_str(),
+          settings->WebappDirectory().c_str(),
           headers.c_str());
 
   FileCaches::get(); //cache files

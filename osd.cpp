@@ -3,6 +3,14 @@ using namespace std;
 
 void OsdResponder::reply(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
+  QueryHandler::addHeader(reply);
+
+  if ( request.method() == "OPTIONS" ) {
+      reply.addHeader("Allow", "GET");
+      reply.httpReturn(200, "OK");
+      return;
+  }
+
   QueryHandler q("/osd", request);
 
   if ( request.method() != "GET" ) {
@@ -91,8 +99,8 @@ void OsdResponder::printEmptyHtml(ostream& out)
 
   HtmlHeader htmlHeader;
   htmlHeader.Title("VDR Restfulapi: No OSD opened!");
-  htmlHeader.Stylesheet("/var/lib/vdr/plugins/restfulapi/osd.css");
-  htmlHeader.Script("/var/lib/vdr/plugins/restfulapi/osd.js");
+  htmlHeader.Stylesheet(DOCUMENT_ROOT "osd.css");
+  htmlHeader.Script(DOCUMENT_ROOT "osd.js");
   htmlHeader.MetaTag("<meta http-equiv=\"refresh\" content=\"1\" />");
   htmlHeader.ToStream(&se);
 
@@ -192,8 +200,8 @@ void HtmlTextOsdList::printTextOsd(TextOsd* textOsd)
 {
   HtmlHeader htmlHeader;
   htmlHeader.Title("HtmlTextOsdList");
-  htmlHeader.Stylesheet("/var/lib/vdr/plugins/restfulapi/osd.css");
-  htmlHeader.Script("/var/lib/vdr/plugins/restfulapi/osd.js");
+  htmlHeader.Stylesheet(DOCUMENT_ROOT "osd.css");
+  htmlHeader.Script(DOCUMENT_ROOT "osd.js");
   htmlHeader.MetaTag("<meta http-equiv=\"refresh\" content=\"1\" />");
   htmlHeader.ToStream(s);
 
@@ -293,8 +301,8 @@ void ProgrammeOsdWrapper::printHtml(ProgrammeOsd* osd)
 {
   HtmlHeader htmlHeader;
   htmlHeader.Title("ProgrammeOsdWrapper");
-  htmlHeader.Stylesheet("/var/lib/vdr/plugins/restfulapi/osd.css");
-  htmlHeader.Script("/var/lib/vdr/plugins/restfulapi/osd.js");
+  htmlHeader.Stylesheet(DOCUMENT_ROOT "osd.css");
+  htmlHeader.Script(DOCUMENT_ROOT "osd.js");
   htmlHeader.MetaTag("<meta http-equiv=\"refresh\" content=\"1\" />");
   htmlHeader.ToStream(s);
   s->write("<div id=\"osd_bg\"><div id=\"osd_container\">\n");
@@ -344,8 +352,8 @@ void ChannelOsdWrapper::printHtml(ChannelOsd* osd)
 {
   HtmlHeader htmlHeader;
   htmlHeader.Title("ChannelOsdWrapper");
-  htmlHeader.Stylesheet("/var/lib/vdr/plugins/restfulapi/osd.css");
-  htmlHeader.Script("/var/lib/vdr/plugins/restfulapi/osd.js");
+  htmlHeader.Stylesheet(DOCUMENT_ROOT "osd.css");
+  htmlHeader.Script(DOCUMENT_ROOT "osd.js");
   htmlHeader.MetaTag("<meta http-equiv=\"refresh\" content=\"1\" />");
   htmlHeader.ToStream(s);
 

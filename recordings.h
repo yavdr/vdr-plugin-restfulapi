@@ -9,9 +9,11 @@
 #include <fstream>
 #include <sstream>
 #include "tools.h"
+#include "scraper2vdr.h"
 
 #include <vdr/cutter.h>
 #include <vdr/recording.h>
+#include <vdr/videodir.h>
 
 class RecordingsResponder : public cxxtools::http::Responder
 {
@@ -22,6 +24,7 @@ class RecordingsResponder : public cxxtools::http::Responder
 
     virtual void reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void deleteRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+    void deleteRecordingByName(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void showRecordings(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void saveMarks(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void deleteMarks(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
@@ -29,6 +32,8 @@ class RecordingsResponder : public cxxtools::http::Responder
     void showCutterStatus(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void playRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void rewindRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+    void moveRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+    void replyRecordingMoved(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply, cRecording* recording);
 };
 
 typedef cxxtools::http::CachedService<RecordingsResponder> RecordingsService;
@@ -58,6 +63,7 @@ struct SerRecording
   cxxtools::String EventDescription;
   int EventStartTime;
   int EventDuration;
+  struct SerAdditionalMedia AdditionalMedia;
 };
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerRecording& p);
@@ -68,6 +74,7 @@ class RecordingList : public BaseList
     bool read_marks;
     int total;
     StreamExtension *s;
+    Scraper2VdrService sc;
   public:
     RecordingList(std::ostream* _out, bool _read_marks);
     virtual ~RecordingList();

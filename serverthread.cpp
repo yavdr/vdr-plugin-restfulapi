@@ -44,6 +44,9 @@ void cServerThread::Action(void)
   TimersService timersService;
   OsdService osdService;
   SearchTimersService searchTimersService;
+  ScraperService scraperService;
+  WirbelscanService wirbelscanService;
+  WebappService webappService;
   
   RestfulServices* services = RestfulServices::get();
   
@@ -61,6 +64,10 @@ void cServerThread::Action(void)
   RestfulService* timers = new RestfulService("/timers", true, 1);
   RestfulService* osd = new RestfulService("/osd", true, 1);
   RestfulService* searchtimers = new RestfulService("/searchtimers", false, 1);
+  RestfulService* scraper = new RestfulService("/scraper", true, 1);
+  RestfulService* wirbelscan = new RestfulService("/wirbelscan", true, 1);
+  RestfulService* wirbelscanCountries = new RestfulService("/wirbelscan/countries", true, 1, wirbelscan);
+  RestfulService* webapp = new RestfulService("/webapp", true, 1);
   
   services->appendService(info);
   services->appendService(channels);
@@ -76,6 +83,10 @@ void cServerThread::Action(void)
   services->appendService(timers);
   services->appendService(osd);
   services->appendService(searchtimers);
+  services->appendService(scraper);
+  services->appendService(wirbelscan);
+  services->appendService(wirbelscanCountries);
+  services->appendService(webapp);
 
   server->addService(*info->Regex(), infoService);
   server->addService(*channels->Regex(), channelsService);
@@ -85,6 +96,9 @@ void cServerThread::Action(void)
   server->addService(*timers->Regex(), timersService);
   server->addService(*osd->Regex(), osdService);
   server->addService(*searchtimers->Regex(), searchTimersService);
+  server->addService(*scraper->Regex(), scraperService);
+  server->addService(*wirbelscan->Regex(), wirbelscanService);
+  server->addService(*webapp->Regex(), webappService);
 
   try {
     loop.run();

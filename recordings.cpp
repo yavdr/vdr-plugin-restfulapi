@@ -6,8 +6,10 @@ void RecordingsResponder::reply(ostream& out, cxxtools::http::Request& request, 
   QueryHandler::addHeader(reply);
   bool found = false;
 
-  if (request.method() == "OPTIONS") {
-     return;
+  if ( request.method() == "OPTIONS" ) {
+      reply.addHeader("Allow", "GET, POST, DELETE");
+      reply.httpReturn(200, "OK");
+      return;
   }
 
   if ((int)request.url().find("/recordings/play") == 0 ) {
@@ -24,7 +26,7 @@ void RecordingsResponder::reply(ostream& out, cxxtools::http::Request& request, 
   }
 
   else if ((int)request.url().find("/recordings/cut") == 0 ) {
-     if ( request.method() == "GET" ) {
+     if (request.method() == "GET") {
         showCutterStatus(out, request, reply);
      } else if (request.method() == "POST") {
         cutRecording(out, request, reply); 
@@ -35,9 +37,9 @@ void RecordingsResponder::reply(ostream& out, cxxtools::http::Request& request, 
   }
 
   else if ((int)request.url().find("/recordings/marks") == 0 ) {
-     if ( request.method() == "DELETE" ) {
+     if (request.method() == "DELETE") {
         deleteMarks(out, request, reply);
-     } else if (request.method() == "POST" ) {
+     } else if (request.method() == "POST") {
         saveMarks(out, request, reply);
      } else {
         reply.httpReturn(501, "Only DELETE and POST methods are supported by the /recordings/marks service.");
@@ -45,16 +47,36 @@ void RecordingsResponder::reply(ostream& out, cxxtools::http::Request& request, 
      found = true;
   }
 
+  else if ((int)request.url().find("/recordings/move") == 0 ) {
+     if (request.method() == "POST") {
+        moveRecording(out, request, reply);
+     } else {
+        reply.httpReturn(501, "Only POST method is supported by the /recordings/move service.");
+     }
+     found = true;
+  }
+  
+  else if ((int) request.url().find("/recordings/delete") == 0 ) {
+     if (request.method() == "POST") {
+        deleteRecordingByName(out, request, reply);
+     } else if (request.method() == "DELETE") {
+        deleteRecordingByName(out, request, reply);
+     } else {
+        reply.httpReturn(501, "Only POST and DELETE methods are supported by the /recordings/delete service.");
+     }
+     found = true;
+  }
+
   // original /recordings service
   else if ((int) request.url().find("/recordings") == 0 ) {
-        if ( request.method() == "GET" ) {
+     if (request.method() == "GET") {
         showRecordings(out, request, reply);
-        found = true;
-     } else if (request.method() == "DELETE" ) {
-        deleteRecording(out, request,reply);
-        found = true;
+     } else if (request.method() == "DELETE") {
+        deleteRecording(out, request, reply);
+     } else if (request.method() == "POST") {
+        deleteRecordingByName(out, request, reply);
      } else {
-        reply.httpReturn(501, "Only GET and DELETE methods are supported by the /recordings service.");
+        reply.httpReturn(501, "Only GET, POST and DELETE methods are supported by the /recordings service.");
      }
      found = true;
   }
@@ -98,6 +120,100 @@ void RecordingsResponder::rewindRecording(std::ostream& out, cxxtools::http::Req
      } else {
         reply.httpReturn(404, "Wrong recording number!");
      }
+  }
+}
+
+/* move or copy recording */
+void RecordingsResponder::moveRecording(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+{
+   QueryHandler q("/recordings/move", request);
+   string source = q.getBodyAsString("source");
+   string target = q.getBodyAsString("target");
+   bool copy_only = q.getBodyAsBool("copy_only");
+
+   if (!copy_only) {
+      cThreadLock RecordingsLock(&Recordings);
+   }
+
+   if (source.length() <= 0 || target.length() <= 0) {
+      reply.httpReturn(404, "Missing file name!");
+      return;
+   } else if (access(source.c_str(), F_OK) != 0) {
+      reply.httpReturn(504, "Path is invalid!");
+      return;
+   }
+
+   cRecording* recording = Recordings.GetByName(source.c_str());
+   if (!recording) {
+      reply.httpReturn(504, "Recording not found!");
+      return;
+   }
+
+   string newname = VdrExtension::MoveRecording(recording, VdrExtension::FileSystemExchangeChars(target.c_str(), true), copy_only);
+
+   if (newname.length() <= 0) {
+      LOG_ERROR_STR(source.c_str());
+      reply.httpReturn(503, "File copy failed!");
+      return;
+   }
+
+   cRecording* new_recording = Recordings.GetByName(newname.c_str());
+   if (!new_recording) {
+      LOG_ERROR_STR(newname.c_str());
+      reply.httpReturn(504, "Recording not found, after moving!");
+      return;
+   }
+
+   replyRecordingMoved(out, request, reply, new_recording);
+}
+
+void RecordingsResponder::replyRecordingMoved(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply, cRecording* recording) {
+  QueryHandler q("/recordings/move", request);
+  StreamExtension s(&out);
+  RecordingList* recordingList;
+  bool read_marks = false;
+
+  if ( q.isFormat(".json") ) {
+    reply.addHeader("Content-Type", "application/json; charset=utf-8");
+    recordingList = (RecordingList*)new JsonRecordingList(&out, read_marks);
+  } else if ( q.isFormat(".html") ) {
+    reply.addHeader("Content-Type", "text/html; charset=utf-8");
+    recordingList = (RecordingList*)new HtmlRecordingList(&out, read_marks);
+    recordingList->init();
+  } else if ( q.isFormat(".xml") )  {
+    reply.addHeader("Content-Type", "text/xml; charset=utf-8");
+    recordingList = (RecordingList*)new XmlRecordingList(&out, read_marks);
+    recordingList->init();
+  } else {
+    reply.httpReturn(502, "Resources are not available for the selected format. (Use: .json, .xml or .html)");
+    return;
+  }
+
+  cThreadLock RecordingsLock(&Recordings);
+  for (int i = 0; i < Recordings.Count(); i++) {
+     cRecording* tmp_recording = Recordings.Get(i);
+     if (strcmp(recording->FileName(), tmp_recording->FileName()) == 0) {
+        recordingList->addRecording(tmp_recording, i);
+     }
+  }
+  recordingList->setTotal(Recordings.Count());
+  recordingList->finish();
+  delete recordingList;
+}
+
+/* delete recording by file name */
+void RecordingsResponder::deleteRecordingByName(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+{
+  QueryHandler q("/recordings/delete", request);
+  string recording_file = q.getBodyAsString("file");
+  cThreadLock RecordingsLock(&Recordings);
+  if (recording_file.length() > 0) {
+     cRecording* delRecording = Recordings.GetByName(recording_file.c_str());
+     if (delRecording->Delete()) {
+        Recordings.DelByName(delRecording->FileName());
+     }
+  } else {
+     reply.httpReturn(404, "No recording file!");
   }
 }
 
@@ -278,12 +394,15 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerRecording& p)
   si.addMember("event_description") <<= p.EventDescription;
   si.addMember("event_start_time") <<= p.EventStartTime;
   si.addMember("event_duration") <<= p.EventDuration;
+  si.addMember("additional_media") <<= p.AdditionalMedia;
 }
 
 RecordingList::RecordingList(ostream *out, bool _read_marks)
 {
   s = new StreamExtension(out);
   read_marks = _read_marks;
+  Scraper2VdrService sc;
+  total = 0;
 }
 
 RecordingList::~RecordingList()
@@ -320,19 +439,26 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
   cxxtools::String eventDescription = empty;
   int eventStartTime = -1;
   int eventDuration = -1;
-
+    
   cEvent* event = (cEvent*)recording->Info()->GetEvent();
-
-  if ( event != NULL )
+  
+  if (event != NULL)
   {
-     if ( event->Title() ) { eventTitle = StringExtension::UTF8Decode(event->Title()); }
-     if ( event->ShortText() ) { eventShortText = StringExtension::UTF8Decode(event->ShortText()); }
-     if ( event->Description() ) { eventDescription = StringExtension::UTF8Decode(event->Description()); }
-     if ( event->StartTime() > 0 ) { eventStartTime = event->StartTime(); }
-     if ( event->Duration() > 0 ) { eventDuration = event->Duration(); }
+     if (event->Title())         { eventTitle = StringExtension::UTF8Decode(event->Title()); }
+     if (event->ShortText())     { eventShortText = StringExtension::UTF8Decode(event->ShortText()); }
+     if (event->Description())   { eventDescription = StringExtension::UTF8Decode(event->Description()); }
+     if (event->StartTime() > 0) { eventStartTime = event->StartTime(); }
+     if (event->Duration() > 0)  { eventDuration = event->Duration(); }
   }
 
   SerRecording serRecording;
+
+  SerAdditionalMedia am;
+  if (sc.getMedia(recording, am)) {
+      serRecording.AdditionalMedia = am;
+  }
+
+
   serRecording.Number = nr;
   serRecording.Name = StringExtension::encodeToJson(recording->Name());
   serRecording.FileName = StringExtension::UTF8Decode(recording->FileName());
@@ -350,7 +476,7 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
 
   serRecording.Duration = VdrExtension::RecordingLengthInSeconds(recording);
   serRecording.FileSizeMB = recording->FileSizeMB();
-  serRecording.ChannelID =  StringExtension::UTF8Decode((string) recording->Info()->ChannelID().ToString());
+  serRecording.ChannelID = StringExtension::UTF8Decode((string) recording->Info()->ChannelID().ToString());
 
   serRecording.EventTitle = eventTitle;
   serRecording.EventShortText = eventShortText;
@@ -362,7 +488,6 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
   if (read_marks) {
      serMarks.marks = VdrMarks::get()->readMarks(recording);
   }
-
   serRecording.Marks = serMarks;
 
   serRecordings.push_back(serRecording);
@@ -395,13 +520,13 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr)
 
   cEvent* event = (cEvent*)recording->Info()->GetEvent();
 
-  if ( event != NULL )
+  if (event != NULL)
   {
-     if ( event->Title() ) { eventTitle = event->Title(); }
-     if ( event->ShortText() ) { eventShortText = event->ShortText(); }
-     if ( event->Description() ) { eventDescription = event->Description(); }
-     if ( event->StartTime() > 0 ) { eventStartTime = event->StartTime(); }
-     if ( event->Duration() > 0 ) { eventDuration = event->Duration(); }
+     if (event->Title())         { eventTitle = event->Title(); }
+     if (event->ShortText())     { eventShortText = event->ShortText(); }
+     if (event->Description())   { eventDescription = event->Description(); }
+     if (event->StartTime() > 0) { eventStartTime = event->StartTime(); }
+     if (event->Duration() > 0)  { eventDuration = event->Duration(); }
   }
 
   s->write(" <recording>\n");
@@ -414,7 +539,7 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr)
 
   #if APIVERSNUM >= 10703
   s->write(cString::sprintf("  <param name=\"is_pes_recording\">%s</param>\n", recording->IsPesRecording() ? "true" : "false" ));
-  s->write(cString::sprintf("  <param name=\"frames_per_second\">%f</param>\n", recording->FramesPerSecond()));
+  s->write(cString::sprintf("  <param name=\"frames_per_second\">%.2f</param>\n", recording->FramesPerSecond()));
   #else
   s->write(cString::sprintf("  <param name=\"is_pes_recording\">%s</param>\n", true ? "true" : "false" ));
   s->write(cString::sprintf("  <param name=\"frames_per_second\">%i</param>\n", FRAMESPERSEC));
@@ -430,13 +555,18 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr)
         s->write(cString::sprintf("   <mark>%s</mark>\n", marks[i].c_str()));
      }
      s->write("  </param>\n");
-  } 
+  }
 
-  s->write(cString::sprintf("  <param name=\"event_title\">%s</param>\n", StringExtension::encodeToXml(eventTitle).c_str()) );
-  s->write(cString::sprintf("  <param name=\"event_short_text\">%s</param>\n", StringExtension::encodeToXml(eventShortText).c_str()) );
-  s->write(cString::sprintf("  <param name=\"event_description\">%s</param>\n", StringExtension::encodeToXml(eventDescription).c_str()) );
+  s->write(cString::sprintf("  <param name=\"event_title\">%s</param>\n", StringExtension::encodeToXml(eventTitle).c_str()));
+  s->write(cString::sprintf("  <param name=\"event_short_text\">%s</param>\n", StringExtension::encodeToXml(eventShortText).c_str()));
+  s->write(cString::sprintf("  <param name=\"event_description\">%s</param>\n", StringExtension::encodeToXml(eventDescription).c_str()));
   s->write(cString::sprintf("  <param name=\"event_start_time\">%i</param>\n", eventStartTime));
   s->write(cString::sprintf("  <param name=\"event_duration\">%i</param>\n", eventDuration));
+
+
+  sc.getMedia(recording, s);
+
+
   s->write(" </recording>\n");
 }
 
