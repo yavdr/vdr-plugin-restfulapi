@@ -162,13 +162,13 @@ void EventsResponder::replyImage(ostream& out, cxxtools::http::Request& request,
   string path = Settings::get()->EpgImageDirectory() + (string)"/" + image;
 
   if (request.hasHeader("If-Modified-Since")) {
-      timediff = difftime(ImageExtension::get()->getModifiedTime(path), ImageExtension::get()->getModifiedSinceTime(request));
+      timediff = difftime(FileExtension::get()->getModifiedTime(path), FileExtension::get()->getModifiedSinceTime(request));
   }
 
   if (timediff > 0.0 || timediff < 0.0) {
     if ( se.writeBinary(path) ) {
        reply.addHeader("Content-Type", contenttype.c_str());
-       ImageExtension::get()->addModifiedHeader(path, reply);
+       FileExtension::get()->addModifiedHeader(path, reply);
     } else {
        reply.httpReturn(404, "Could not find image!");
     }

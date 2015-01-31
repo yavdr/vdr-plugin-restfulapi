@@ -443,7 +443,7 @@ void FileExtension::addModifiedHeader(string path, cxxtools::http::Reply& reply)
   setlocale(LC_TIME,"POSIX");
   strftime(buffer,30,"%a, %d %b %Y %H:%M:%S %Z",tm);
   setlocale(LC_TIME,getLocale());
-  esyslog("restfulapi: FileExtension: adding last-modified-header %s", buffer);
+  esyslog("restfulapi: FileExtension: adding last-modified-header %s to file %s", buffer, path.c_str());
   reply.addHeader("Last-Modified", buffer);
 };
 
@@ -490,10 +490,6 @@ bool FileExtension::exists(string path) {
 
   return false;
 };
-
-
-
-// --- ImageExtension -----------------------------------------------------------
 
 // --- VdrExtension -----------------------------------------------------------
 
@@ -1510,7 +1506,7 @@ RestfulService::RestfulService(string path, bool internal, int version, RestfulS
 {
   _path = path;
   _internal = internal;
-  _regex = new cxxtools::Regex(path + (std::string)"*");
+  _regex = new cxxtools::Regex((std::string)"^" + path + (std::string)"(.xml|.html|.json|/)*");
   _version = version;
   _parent = parent;
 }
