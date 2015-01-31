@@ -507,7 +507,6 @@ void ScraperImageResponder::reply(ostream& out, cxxtools::http::Request& request
 
       isyslog("restfulapi Scraper: image request url %s", request.url().c_str());
 
-      QueryHandler::addHeader(reply);
       string image = url.replace(0, base.length(), "");
       string path = epgImagesPath + (string)"/" + image;
 
