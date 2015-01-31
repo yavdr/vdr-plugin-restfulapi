@@ -511,7 +511,7 @@ void ScraperImageResponder::reply(ostream& out, cxxtools::http::Request& request
       string path = epgImagesPath + (string)"/" + image;
 
       if (!FileExtension::get()->exists(path)) {
-	  isyslog("restfulapi Scraper: image does not exist");
+	  isyslog("restfulapi Scraper: image %s does not exist", request.url().c_str());
 	  reply.httpReturn(404, "File not found");
 	  return;
       }
@@ -524,15 +524,15 @@ void ScraperImageResponder::reply(ostream& out, cxxtools::http::Request& request
 	  string contenttype = (string)"image/" + type;
 	  StreamExtension se(&out);
 	  if ( se.writeBinary(path) ) {
-	      isyslog("restfulapi Scraper: successfully piped image");
+	      isyslog("restfulapi Scraper: successfully piped image %s", request.url().c_str());
 	      FileExtension::get()->addModifiedHeader(path, reply);
 	      reply.addHeader("Content-Type", contenttype.c_str());
 	  } else {
-	      isyslog("restfulapi Scraper: error piping image");
+	      isyslog("restfulapi Scraper: error piping image %s", request.url().c_str());
 	      reply.httpReturn(404, "File not found");
 	  }
       } else {
-	  isyslog("restfulapi Scraper: image not modified, returning 304");
+	  isyslog("restfulapi Scraper: image %s not modified, returning 304", request.url().c_str());
 	  reply.httpReturn(304, "Not-Modified");
       }
   }

@@ -443,7 +443,7 @@ void FileExtension::addModifiedHeader(string path, cxxtools::http::Reply& reply)
   setlocale(LC_TIME,"POSIX");
   strftime(buffer,30,"%a, %d %b %Y %H:%M:%S %Z",tm);
   setlocale(LC_TIME,getLocale());
-  esyslog("restfulapi: FileExtension: adding last-modified-header %s", buffer);
+  esyslog("restfulapi: FileExtension: adding last-modified-header %s to file %s", buffer, path.c_str());
   reply.addHeader("Last-Modified", buffer);
 };
 
