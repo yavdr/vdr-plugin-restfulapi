@@ -525,6 +525,7 @@ void ScraperImageResponder::reply(ostream& out, cxxtools::http::Request& request
 	  StreamExtension se(&out);
 	  if ( se.writeBinary(path) ) {
 	      isyslog("restfulapi Scraper: successfully piped image %s", request.url().c_str());
+	      QueryHandler::addHeader(reply);
 	      FileExtension::get()->addModifiedHeader(path, reply);
 	      reply.addHeader("Content-Type", contenttype.c_str());
 	  } else {
