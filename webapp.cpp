@@ -22,7 +22,6 @@ void WebappResponder::reply(ostream& out, cxxtools::http::Request& request, cxxt
 
       esyslog("restfulapi Webapp: file request url %s", request.url().c_str());
 
-      QueryHandler::addHeader(reply);
       string fileName = getFileName(base, url);
       string file = getFile(fileName);
 
