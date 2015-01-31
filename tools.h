@@ -173,8 +173,6 @@ class FileExtension {
     bool exists(std::string path);
 };
 
-class ImageExtension : public FileExtension {};
-
 class VdrExtension
 {
   private:

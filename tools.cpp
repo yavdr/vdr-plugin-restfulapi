@@ -491,10 +491,6 @@ bool FileExtension::exists(string path) {
   return false;
 };
 
-
-
-// --- ImageExtension -----------------------------------------------------------
-
 // --- VdrExtension -----------------------------------------------------------
 
 cChannel* VdrExtension::getChannel(int number)
