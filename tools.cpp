@@ -1506,7 +1506,7 @@ RestfulService::RestfulService(string path, bool internal, int version, RestfulS
 {
   _path = path;
   _internal = internal;
-  _regex = new cxxtools::Regex(path + (std::string)"*");
+  _regex = new cxxtools::Regex((std::string)"^" + path + (std::string)"(.xml|.html|.json|/)*");
   _version = version;
   _parent = parent;
 }
