@@ -10,33 +10,44 @@ void WirbelscanResponder::reply(ostream& out, cxxtools::http::Request& request,
 
 	QueryHandler::addHeader(reply);
 
+	if ( request.method() == "OPTIONS" ) {
+	    reply.addHeader("Allow", "GET, POST, PUT");
+	    reply.httpReturn(200, "OK");
+	    return;
+	}
+
+	bool isGet = request.method() == "GET";
+	bool isPut = request.method() == "PUT";
+	bool isPost = request.method() == "POST";
+
 	if ((wirbelscan = cPluginManager::GetPlugin("wirbelscan")) == NULL) {
 		reply.httpReturn(403U, "wirbelscan was not found - pls install.");
 		return;
 	}
 
-	if (request.method() != "GET") {
-		reply.httpReturn(403U, "To retrieve information use the GET method!");
+	if ( !isGet && !isPut && !isPost) {
+		reply.httpReturn(403U, "To retrieve information use the GET method! To update Settings use the PUT method! ");
 		return;
 	}
 	static cxxtools::Regex countriesRegex("/wirbelscan/countries.json");
 	static cxxtools::Regex satellitesRegex("/wirbelscan/satellites.json");
 	static cxxtools::Regex getStatusRegex("/wirbelscan/getStatus.json");
-	static cxxtools::Regex doCmdRegex("/wirbelscan/doCommand.json/*");
 	static cxxtools::Regex getSetupRegex("/wirbelscan/getSetup.json");
-	static cxxtools::Regex setSetupRegex("/wirbelscan/setSetup.json");
 
-	if (countriesRegex.match(request.url())) {
+	static cxxtools::Regex doCmdRegex("/wirbelscan/doCommand");
+	static cxxtools::Regex setSetupRegex("/wirbelscan/setSetup");
+
+	if (isGet && countriesRegex.match(request.url())) {
 		replyCountries(out, request, reply);
-	} else if (satellitesRegex.match(request.url())) {
+	} else if (isGet && satellitesRegex.match(request.url())) {
 		replySatellites(out, request, reply);
-	} else if (getStatusRegex.match(request.url())) {
+	} else if (isGet && getStatusRegex.match(request.url())) {
 		replyGetStatus(out, request, reply);
-	} else if (doCmdRegex.match(request.url())) {
+	} else if (isPost && doCmdRegex.match(request.url())) {
 		replyDoCmd(out, request, reply);
-	} else if (getSetupRegex.match(request.url())) {
+	} else if (isGet && getSetupRegex.match(request.url())) {
 		replyGetSetup(out, request, reply);
-	} else if (setSetupRegex.match(request.url())) {
+	} else if (isPut && setSetupRegex.match(request.url())) {
 		replySetSetup(out, request, reply);
 	} else {
 		replyGetStatus(out, request, reply);
@@ -173,11 +184,7 @@ void WirbelscanResponder::replyGetSetup(ostream& out,
 void WirbelscanResponder::replySetSetup(ostream& out,
 		cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-    QueryHandler::addHeader(reply);
 	QueryHandler q("/setSetup", request);
-	cxxtools::QueryParams options;
-
-	options.parse_url(request.qparams());
 
 	std::stringstream getcmd;
 	getcmd << SPlugin << "Get" << SSetup;
@@ -186,59 +193,59 @@ void WirbelscanResponder::replySetSetup(ostream& out,
 
 	wirbelscan->Service(getcmd.str().c_str(), &setupBuffer); // query buffer size.
 
-	if (options.has("verbosity"))
+	if (q.hasBody("verbosity"))
 	{
-		setupBuffer.verbosity = q.getOptionAsInt("verbosity");
+		setupBuffer.verbosity = q.getBodyAsInt("verbosity");
 	}
 
-	if (options.has("logFile"))
+	if (q.hasBody("logFile"))
 	{
-		setupBuffer.logFile = q.getOptionAsInt("logFile");
+		setupBuffer.logFile = q.getBodyAsInt("logFile");
 	}
 
-	if (options.has("DVB_Type"))
+	if (q.hasBody("DVB_Type"))
 	{
-		setupBuffer.DVB_Type = q.getOptionAsInt("DVB_Type");
+		setupBuffer.DVB_Type = q.getBodyAsInt("DVB_Type");
 	}
 
-	if (options.has("DVBT_Inversion"))
+	if (q.hasBody("DVBT_Inversion"))
 	{
-		setupBuffer.DVBT_Inversion = q.getOptionAsInt("DVBT_Inversion");
+		setupBuffer.DVBT_Inversion = q.getBodyAsInt("DVBT_Inversion");
 	}
 
-	if (options.has("DVBC_Inversion"))
+	if (q.hasBody("DVBC_Inversion"))
 	{
-		setupBuffer.DVBC_Inversion = q.getOptionAsInt("DVBC_Inversion");
+		setupBuffer.DVBC_Inversion = q.getBodyAsInt("DVBC_Inversion");
 	}
 
-	if (options.has("DVBC_Symbolrate"))
+	if (q.hasBody("DVBC_Symbolrate"))
 	{
-		setupBuffer.DVBC_Symbolrate = q.getOptionAsInt("DVBC_Symbolrate");
+		setupBuffer.DVBC_Symbolrate = q.getBodyAsInt("DVBC_Symbolrate");
 	}
 
-	if (options.has("DVBC_QAM"))
+	if (q.hasBody("DVBC_QAM"))
 	{
-		setupBuffer.DVBC_QAM = q.getOptionAsInt("DVBC_QAM");
+		setupBuffer.DVBC_QAM = q.getBodyAsInt("DVBC_QAM");
 	}
 
-	if (options.has("CountryId"))
+	if (q.hasBody("CountryId"))
 	{
-		setupBuffer.CountryId = q.getOptionAsInt("CountryId");
+		setupBuffer.CountryId = q.getBodyAsInt("CountryId");
 	}
 
-	if (options.has("SatId"))
+	if (q.hasBody("SatId"))
 	{
-		setupBuffer.SatId = q.getOptionAsInt("SatId");
+		setupBuffer.SatId = q.getBodyAsInt("SatId");
 	}
 
-	if (options.has("scanflags"))
+	if (q.hasBody("scanflags"))
 	{
-		setupBuffer.scanflags = q.getOptionAsInt("scanflags");
+		setupBuffer.scanflags = q.getBodyAsInt("scanflags");
 	}
 
-	if (options.has("ATSC_type"))
+	if (q.hasBody("ATSC_type"))
 	{
-		setupBuffer.ATSC_type = q.getOptionAsInt("ATSC_type");
+		setupBuffer.ATSC_type = q.getBodyAsInt("ATSC_type");
 	}
 
 	std::stringstream setcmd;
@@ -247,7 +254,7 @@ void WirbelscanResponder::replySetSetup(ostream& out,
 
 	if (q.isFormat(".json"))
 	{
-		reply.addHeader("Content-Type", "application/json; charset=utf-8");
+		replyGetSetup(out, request, reply);
 	}
 	else
 	{
@@ -262,9 +269,14 @@ void WirbelscanResponder::replyDoCmd(ostream& out, cxxtools::http::Request& requ
     QueryHandler::addHeader(reply);
 	QueryHandler q("/doCommand", request);
 
+	if ( !q.hasBody("command") || q.getBodyAsInt("command") < 0 || q.getBodyAsInt("command") > 2) {
+	    reply.httpReturn(400, "command body parameter is missing!");
+	    return;
+	}
+
 	cWirbelscanCmd commandBuffer;
 
-	commandBuffer.cmd = (s_cmd)q.getOptionAsInt("command");
+	commandBuffer.cmd = (s_cmd)q.getBodyAsInt("command");
 
 	std::stringstream cmd;
 	cmd << SPlugin << SCommand;

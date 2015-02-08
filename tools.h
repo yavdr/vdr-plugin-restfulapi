@@ -247,6 +247,10 @@ class QueryHandler
   public:
     QueryHandler(std::string service, cxxtools::http::Request& request);
     ~QueryHandler();
+    bool has(std::string name);
+    bool hasJson(std::string name);
+    bool hasOption(std::string name);
+    bool hasBody(std::string name);
     std::string getParamAsString(int level);              //Parameters are part of the url (the rest after you cut away the service path)
     std::string getOptionAsString(std::string name);      //Options are the normal url query parameters after the question mark
     std::string getBodyAsString(std::string name);        //Are variables in the body of the http-request -> for now only html/json are supported, xml is not implemented (!)

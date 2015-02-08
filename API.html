@@ -136,7 +136,7 @@ Someone who wants to develop an application which uses this API:
 <br/>
 <ul>
 <li>XML or JSON Parser (Depends on which format you want to use! - You can also use the html-format, but that one is more a proof for the restful concept and does not show all information!)
-<li>URL Decoder or JSON Serializer (to send data to the webservice, required f.e. to create timers, searchtimers usw...)
+<li>URL Decoder or JSON Serializer (to send data to the webservice, required f.e. to create timers, searchtimers usw...) e.g. POSTMan Chrome Extension. There is a wide variety of REST clients available on the web.
 </ul>
 
 <hr />
@@ -1224,18 +1224,34 @@ Description of the setup values:<br />
 
 <h2><a name="WirbelscanSetSetup">Changes the current setup of the Wirbelscan plugin</a></h2>
 <br />
-This service changes the current setup of the Wirbelscan plugin.<br />
+This service changes the current setup of the Wirbelscan plugin and returns the updated setup.<br />
 <br />
-Method: <b>GET</b><br />
+Method: <b>PUT</b><br />
 <br />
 Example:<br />
 <br />
 <div class="code"><code>
-GET http://&lt;ip&gt;:&lt;port&gt;/wirbelscan/setSetup.json?DVB_Type=1&verbosity=3
+PUT http://&lt;ip&gt;:&lt;port&gt;/wirbelscan/setSetup.json
 </code></div>
 <br />
 For a description of the setup values see <a href="#WirbelscanGetSetup">Get the current setup</a>
 <br />
+Example Body-Content:<br /><br />
+<div class="code"><pre>
+{
+    "verbosity": 3,
+    "logFile": 1,
+    "DVB_Type": 3,
+    "DVBT_Inversion": 0,
+    "DVBC_Inversion": 0,
+    "DVBC_Symbolrate": 0,
+    "DVBC_QAM": 0,
+    "CountryId": 82,
+    "SatId": 67,
+    "scanflags": 31,
+    "ATSC_type": 0
+}
+</pre></div>
 <br />
 <br />
 
@@ -1243,13 +1259,18 @@ For a description of the setup values see <a href="#WirbelscanGetSetup">Get the 
 <br />
 This service launches a command with the Wirbelscan plugin.<br />
 <br />
-Method: <b>GET</b><br />
+Method: <b>POST</b><br />
 <br />
 Example:<br />
 <br />
 <div class="code"><code>
-GET http://&lt;ip&gt;:&lt;port&gt;/wirbelscan/doCommand.json?command=0
+POST http://&lt;ip&gt;:&lt;port&gt;/wirbelscan/doCommand.json
 </code></div>
+<br />
+<b>Required Body Parameters:</b><br />
+<ul>
+<li>command
+</ul>
 <br />
 Description of the command values:<br />
 <ul>
@@ -1263,7 +1284,7 @@ Example Body-Content:<br /><br />
 {
   "replycode":true
 }
-</code></div>
+</pre></div>
 <br />
 <br />
 
