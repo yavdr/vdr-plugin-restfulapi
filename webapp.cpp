@@ -16,9 +16,13 @@ void WebappResponder::reply(ostream& out, cxxtools::http::Request& request, cxxt
 
   double timediff = -1;
   string url = request.url();
-  string base = "/webapp/";
+  string base = "/webapp";
 
-  if ( (int)url.find(base) == 0 ) {
+  if ( url.find_last_of("/") == (url.length() - 1) ) {
+      url = url.substr(0, url.length() - 1);
+  }
+
+  if ( (int)url.find(base) == 0) {
 
       esyslog("restfulapi Webapp: file request url %s", request.url().c_str());
 

@@ -1330,6 +1330,21 @@ void QueryHandler::parseRestParams(std::string params)
   }
 }
 
+bool QueryHandler::has(string name) {
+
+  return hasJson(name) || hasOption(name) || hasBody(name);
+};
+
+bool QueryHandler::hasJson(string name) {
+  return jsonObject != NULL && jsonObject->GetItem(name) != NULL;
+};
+bool QueryHandler::hasOption(string name) {
+  return _options.has(name);
+};
+bool QueryHandler::hasBody(string name) {
+  return _body.has(name);
+};
+
 string QueryHandler::getJsonString(string name)
 {
   if ( jsonObject == NULL ) return "";
@@ -1506,7 +1521,7 @@ RestfulService::RestfulService(string path, bool internal, int version, RestfulS
 {
   _path = path;
   _internal = internal;
-  _regex = new cxxtools::Regex((std::string)"^" + path + (std::string)"(.xml|.html|.json|/)*");
+  _regex = new cxxtools::Regex((std::string)"^" + path + (std::string)"(.xml*|.html*|.json*|/*|$)");
   _version = version;
   _parent = parent;
 }

@@ -47,6 +47,7 @@ void cServerThread::Action(void)
   ScraperService scraperService;
   WirbelscanService wirbelscanService;
   WebappService webappService;
+  FemonService femonService;
   
   RestfulServices* services = RestfulServices::get();
   
@@ -68,6 +69,7 @@ void cServerThread::Action(void)
   RestfulService* wirbelscan = new RestfulService("/wirbelscan", true, 1);
   RestfulService* wirbelscanCountries = new RestfulService("/wirbelscan/countries", true, 1, wirbelscan);
   RestfulService* webapp = new RestfulService("/webapp", true, 1);
+  RestfulService* femon = new RestfulService("/femon", true, 1);
   
   services->appendService(info);
   services->appendService(channels);
@@ -87,6 +89,7 @@ void cServerThread::Action(void)
   services->appendService(wirbelscan);
   services->appendService(wirbelscanCountries);
   services->appendService(webapp);
+  services->appendService(femon);
 
   server->addService(*info->Regex(), infoService);
   server->addService(*channels->Regex(), channelsService);
@@ -99,6 +102,7 @@ void cServerThread::Action(void)
   server->addService(*scraper->Regex(), scraperService);
   server->addService(*wirbelscan->Regex(), wirbelscanService);
   server->addService(*webapp->Regex(), webappService);
+  server->addService(*femon->Regex(), femonService);
 
   try {
     loop.run();
