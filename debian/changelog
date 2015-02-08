@@ -1,3 +1,10 @@
+vdr-plugin-restfulapi (0.2.1.1-0yavdr0~precise) precise; urgency=medium
+
+  * add femon service
+  * make use of PUT and POST in wirbelscan service
+
+ -- Henning Künne <hannemann666@gmx.net>  Sat, 10 Jan 2015 17:44:20 +0200
+ 
 vdr-plugin-restfulapi (0.2.1.0-0yavdr0~precise) precise; urgency=medium
 
   * add webapp service

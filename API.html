@@ -90,6 +90,7 @@ Developer: <a href="mailto:eiler.mike@gmail.com">eiler.mike@gmail.com</a> or <a 
 		<li><a href="#WirbelscanDoCommand">Launches a command</a>
 	</ul>
 	<li><a href="#Webapp">Webapp</a></li>
+	<li><a href="#Femon">Femon</a></li>
 </ul>
 
 <hr />
@@ -1050,21 +1051,6 @@ GET http://&lt;ip&gt;:&lt;port&gt;/scraper/image/&lt;path&gt;/&lt;provided&gt;/&
 </code></div>
 <br />
 <br />
-<hr/>
-<h1 class="center"><a name="Webapp">Webapp</a></h1>
-<hr />
-<br />
-<h2>Retrieve Webapp.</h2>
-<br />
-
-This service can deliver files from configured folder.<br />
-Specify folder in plugin settings file (--webapp=/var/lib/vdr/plugins/restfulapi/webapp)<br /><br />
-<div class="code"><code>
-GET http://&lt;ip&gt;:&lt;port&gt;/webapp/&lt;path&gt;/&lt;to&gt;/&lt;file&gt;
-</code></div>
-
-<hr />
-<br />
 <hr />
 <h1 class="center"><a name="Wirbelscan">Control the Wirbelscan plugin</a></h1>
 <hr />
@@ -1286,6 +1272,29 @@ Example Body-Content:<br /><br />
 }
 </pre></div>
 <br />
+<br />
+<hr/>
+<h1 class="center"><a name="Webapp">Webapp</a></h1>
+<hr />
+<br />
+<h2>Retrieve Webapp.</h2>
+<br />
+
+This service can deliver files from configured folder.<br />
+Specify folder in plugin settings file (--webapp=/var/lib/vdr/plugins/restfulapi/webapp)<br /><br />
+<div class="code"><code>
+GET http://&lt;ip&gt;:&lt;port&gt;/webapp/&lt;path&gt;/&lt;to&gt;/&lt;file&gt;
+</code></div>
+<br />
+<hr />
+<h1 class="center"><a name="Femon">Femon</a></h1>
+<hr />
+<br />
+<h2>Retrieve Femon data</h2>
+<br />
+<div class="code"><code>
+GET http://&lt;ip&gt;:&lt;port&gt;/femon.json
+</code></div>
 <br />
 
 </body>
