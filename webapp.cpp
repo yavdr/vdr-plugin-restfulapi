@@ -18,8 +18,10 @@ void WebappResponder::reply(ostream& out, cxxtools::http::Request& request, cxxt
   string url = request.url();
   string base = "/webapp";
 
-  if ( url.find_last_of("/") == (url.length() - 1) ) {
-      url = url.substr(0, url.length() - 1);
+  if ( base == request.url() ) {
+      reply.addHeader("Location", "/webapp/");
+      reply.httpReturn(301, "Moved Permanently");
+      return;
   }
 
   if ( (int)url.find(base) == 0) {
@@ -54,6 +56,15 @@ void WebappResponder::reply(ostream& out, cxxtools::http::Request& request, cxxt
 string WebappResponder::getFile(std::string fileName) {
 
   string webappPath = Settings::get()->WebappDirectory();
+
+  if ( webappPath.find_last_of("/") == (webappPath.length() - 1) ) {
+      webappPath = webappPath.substr(0, webappPath.length() - 1);
+  }
+
+  if ( fileName.find_first_of("/") == 0 ) {
+      fileName = fileName.substr(1, fileName.length() - 1);
+  }
+
   return webappPath + (string)"/" + fileName;
 };
 
@@ -65,6 +76,10 @@ string WebappResponder::getFile(std::string fileName) {
 string WebappResponder::getFileName(string base, string url) {
 
   const char *empty = "";
+
+  if ( url.find_last_of("/") == (url.length() - 1) ) {
+      url = url.substr(0, url.length() - 1);
+  }
   string file = url.replace(0, base.length(), "");
 
   if (strcmp(file.c_str(), empty) == 0) {
