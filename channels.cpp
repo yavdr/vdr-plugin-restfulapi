@@ -130,7 +130,13 @@ void ChannelsResponder::replyImage(ostream& out, cxxtools::http::Request& reques
   }
 
   if (timediff > 0.0 || timediff < 0.0) {
-      string contenttype = (string)"image/" + imageName.substr( imageName.find_last_of('.') + 1 );
+
+      string type = imageName.substr( imageName.find_last_of('.') + 1);
+      if ( strcmp(type.c_str(), "svg") == 0 ) {
+          type = "svg+xml";
+      }
+      string contenttype = (string)"image/" + type;
+
       if ( se.writeBinary(absolute_path) ) {
 	  FileExtension::get()->addModifiedHeader(absolute_path, reply);
          reply.addHeader("Content-Type", contenttype.c_str());
