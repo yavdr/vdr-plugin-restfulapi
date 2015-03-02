@@ -486,8 +486,6 @@ void Scraper2VdrService::getMovieMedia(StreamExtension* s, ScraperGetEventType &
  */
 void ScraperImageResponder::reply(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply) {
 
-  QueryHandler::addHeader(reply);
-
   if ( request.method() == "OPTIONS" ) {
       reply.addHeader("Allow", "GET");
       reply.httpReturn(200, "OK");
@@ -533,6 +531,7 @@ void ScraperImageResponder::reply(ostream& out, cxxtools::http::Request& request
 	      reply.httpReturn(404, "File not found");
 	  }
       } else {
+	  QueryHandler::addHeader(reply);
 	  isyslog("restfulapi Scraper: image %s not modified, returning 304", request.url().c_str());
 	  reply.httpReturn(304, "Not-Modified");
       }
