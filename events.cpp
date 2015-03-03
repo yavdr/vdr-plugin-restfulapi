@@ -189,9 +189,9 @@ void EventsResponder::replySearchResult(ostream& out, cxxtools::http::Request& r
   StreamExtension se(&out);
 
   string query = q.getBodyAsString("query");
- 
-  int mode = q.getBodyAsInt("mode");// search mode (0=phrase, 1=and, 2=or, 3=regular expression)
-  string channelid = q.getBodyAsString("channel"); //id !!
+
+  int mode = q.getBodyAsInt("mode");// search mode (0=phrase, 1=and, 2=or, 3=exact, 4=regular expression, 5=fuzzy)
+  string channelid = q.getBodyAsString("channelid"); //id !!
   bool use_title = q.getBodyAsString("use_title") == "true";
   bool use_subtitle = q.getBodyAsString("use_subtitle") == "true";
   bool use_description = q.getBodyAsString("use_description") == "true";
@@ -226,7 +226,7 @@ void EventsResponder::replySearchResult(ostream& out, cxxtools::http::Request& r
   
   if (!use_title && !use_subtitle && !use_description)
      use_title = true;
-  if (mode < 0 || mode > 3) 
+  if (mode < 0 || mode > 5)
      mode = 0;
   if (channel < 0 || channel > Channels.Count())
      channel = 0;
