@@ -95,7 +95,6 @@ void WirbelscanResponder::replyCountries(ostream& out,
 void WirbelscanResponder::replyGetStatus(ostream& out,
 		cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-    QueryHandler::addHeader(reply);
 	QueryHandler q("/getStatus", request);
 
 	std::stringstream cmd;
@@ -138,7 +137,6 @@ void WirbelscanResponder::replyGetStatus(ostream& out,
 void WirbelscanResponder::replyGetSetup(ostream& out,
 		cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-    QueryHandler::addHeader(reply);
 	QueryHandler q("/getSetup", request);
 
 	std::stringstream cmd;
@@ -266,7 +264,6 @@ void WirbelscanResponder::replySetSetup(ostream& out,
 
 void WirbelscanResponder::replyDoCmd(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-    QueryHandler::addHeader(reply);
 	QueryHandler q("/doCommand", request);
 
 	if ( !q.hasBody("command") || q.getBodyAsInt("command") < 0 || q.getBodyAsInt("command") > 2) {
