@@ -1202,7 +1202,7 @@ Description of the setup values:<br />
   <li>DVBC_QAM - AUTO = 0,QAM64 = 1, QAM128 = 2, QAM256 = 3, ALL = 4
   <li>CountryId - the id according to country, found in country list,   see wirbelscan_GetCountry
   <li>SatId - the id according to satellite, found in list,         see wirbelscan_GetSat
-  <li>scanflags - bitwise flag of wanted channels: TV = (1 << 0), RADIO = (1 << 1), FTA = (1 << 2), SCRAMBLED = (1 << 4), HDTV = (1 << 5)
+  <li>scanflags - bitwise flag of TV=1, RADIO=2, FTA=4, SCRAMBLED=8, HDTV=16 (default 31 -> TV + Radio, SD + HDTV, FTA + Scrambled)
   <li>ATSC_type - VSB = 0, QAM = 1, both VSB+QAM = 2
 </ul>
 <br />
