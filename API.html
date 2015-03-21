@@ -32,8 +32,8 @@ html, body {
 
 <div class="center">
 <h1>RESTFULAPI-Plugin for VDR</h1><br />
-<b>Version 0.1.1</b><br />
-Copyright &copy; 2011 yavdr-Team, Michael Eiler<br /><br />
+<b>Version 0.2.2.0</b><br />
+Copyright &copy; 2015 yavdr-Team, Michael Eiler<br /><br />
 Organization/Community: <a href="mailto:team@yavdr.org">team@yavdr.org</a><br />
 Developer: <a href="mailto:eiler.mike@gmail.com">eiler.mike@gmail.com</a> or <a href="mailto:aelo@yavdr.org">aelo@yavdr.org</a><br />
 <a href="http://www.yavdr.org">www.yavdr.org</a><br />
@@ -1046,8 +1046,18 @@ GET http://&lt;ip&gt;:&lt;port&gt;/searchtimers/search/&lt;id&gt;
 <hr />
 <br />
 <h2>Retrieve Images from additional media.</h2>
+<br/>
+To retrieve resized images add size, width or height to URL
+<br/>
+Images in original size:
 <div class="code"><code>
 GET http://&lt;ip&gt;:&lt;port&gt;/scraper/image/&lt;path&gt;/&lt;provided&gt;/&lt;within&gt;/&lt;additional/&lt;media&gt;.jpg
+</code></div><br/>
+Resized Images:
+<div class="code"><code>
+GET http://&lt;ip&gt;:&lt;port&gt;/scraper/image/size/360/240/&lt;path&gt;/&lt;provided&gt;/&lt;within&gt;/&lt;additional/&lt;media&gt;.jpg<br/>
+GET http://&lt;ip&gt;:&lt;port&gt;/scraper/image/width/360/&lt;path&gt;/&lt;provided&gt;/&lt;within&gt;/&lt;additional/&lt;media&gt;.jpg<br/>
+GET http://&lt;ip&gt;:&lt;port&gt;/scraper/image/heigh/240/&lt;path&gt;/&lt;provided&gt;/&lt;within&gt;/&lt;additional/&lt;media&gt;.jpg<br/>
 </code></div>
 <br />
 <br />
