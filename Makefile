@@ -53,6 +53,9 @@ LIBS    += $(shell cxxtools-config --libs) -lcxxtools-http
 CONFDIR  = $(call PKGCFG,configdir)
 PLGCONFDIR = $(CONFDIR)/plugins/$(PLUGIN)
 
+INCLUDES += $(shell pkg-config --cflags Magick++)
+LIBS += $(shell pkg-config --libs Magick++)
+
 ### The object files (add further files here):
 
 OBJS = $(PLUGIN).o serverthread.o tools.o info.o channels.o events.o recordings.o remote.o timers.o scraper2vdr.o statusmonitor.o osd.o jsonparser.o epgsearch.o searchtimers.o wirbelscan.o webapp.o femon.o

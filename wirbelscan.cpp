@@ -95,7 +95,6 @@ void WirbelscanResponder::replyCountries(ostream& out,
 void WirbelscanResponder::replyGetStatus(ostream& out,
 		cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-    QueryHandler::addHeader(reply);
 	QueryHandler q("/getStatus", request);
 
 	std::stringstream cmd;
@@ -138,7 +137,6 @@ void WirbelscanResponder::replyGetStatus(ostream& out,
 void WirbelscanResponder::replyGetSetup(ostream& out,
 		cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-    QueryHandler::addHeader(reply);
 	QueryHandler q("/getSetup", request);
 
 	std::stringstream cmd;
@@ -193,59 +191,88 @@ void WirbelscanResponder::replySetSetup(ostream& out,
 
 	wirbelscan->Service(getcmd.str().c_str(), &setupBuffer); // query buffer size.
 
-	if (q.hasBody("verbosity"))
+	// deactivated some sanity checks until it's clear which values are valid
+
+	if (q.hasJson("verbosity"))
 	{
-		setupBuffer.verbosity = q.getBodyAsInt("verbosity");
+	    int verbosity = q.getBodyAsInt("verbosity");
+	    if (verbosity >= 0 && verbosity < 6) {
+		setupBuffer.verbosity = verbosity;
+	    }
 	}
 
-	if (q.hasBody("logFile"))
+	if (q.hasJson("logFile"))
 	{
-		setupBuffer.logFile = q.getBodyAsInt("logFile");
+	    int logFile = q.getBodyAsInt("logFile");
+	    if (logFile >= 0 && logFile < 3) {
+		setupBuffer.logFile = logFile;
+	    }
 	}
 
-	if (q.hasBody("DVB_Type"))
+	if (q.hasJson("DVB_Type"))
 	{
-		setupBuffer.DVB_Type = q.getBodyAsInt("DVB_Type");
+	    int dvbType = q.getBodyAsInt("DVB_Type");
+	    //if ((dvbType >= 0 && dvbType < 6) || dvbType == 999) {
+		setupBuffer.DVB_Type = dvbType;
+	    //}
 	}
 
-	if (q.hasBody("DVBT_Inversion"))
+	if (q.hasJson("DVBT_Inversion"))
 	{
-		setupBuffer.DVBT_Inversion = q.getBodyAsInt("DVBT_Inversion");
+	    int dvbtInversion = q.getBodyAsInt("DVBT_Inversion");
+	    if (dvbtInversion >= 0 && dvbtInversion < 2) {
+		setupBuffer.DVBT_Inversion = dvbtInversion;
+	    }
 	}
 
-	if (q.hasBody("DVBC_Inversion"))
+	if (q.hasJson("DVBC_Inversion"))
 	{
-		setupBuffer.DVBC_Inversion = q.getBodyAsInt("DVBC_Inversion");
+	    int dvbcInversion = q.getBodyAsInt("DVBC_Inversion");
+	    if (dvbcInversion >= 0 && dvbcInversion < 2) {
+		setupBuffer.DVBC_Inversion = dvbcInversion;
+	    }
 	}
 
-	if (q.hasBody("DVBC_Symbolrate"))
+	if (q.hasJson("DVBC_Symbolrate"))
 	{
-		setupBuffer.DVBC_Symbolrate = q.getBodyAsInt("DVBC_Symbolrate");
+	    int dvbcSymbolrate = q.getBodyAsInt("DVBC_Symbolrate");
+	    //if (dvbcSymbolrate >= 0 && dvbcSymbolrate < 16) {
+		setupBuffer.DVBC_Symbolrate = dvbcSymbolrate;
+	    //}
 	}
 
-	if (q.hasBody("DVBC_QAM"))
+	if (q.hasJson("DVBC_QAM"))
 	{
-		setupBuffer.DVBC_QAM = q.getBodyAsInt("DVBC_QAM");
+	    int dvbcQam = q.getBodyAsInt("DVBC_QAM");
+	    //if (dvbcQam >= 0 && dvbcQam < 5) {
+		setupBuffer.DVBC_QAM = dvbcQam;
+	    //}
 	}
 
-	if (q.hasBody("CountryId"))
+	if (q.hasJson("CountryId"))
 	{
 		setupBuffer.CountryId = q.getBodyAsInt("CountryId");
 	}
 
-	if (q.hasBody("SatId"))
+	if (q.hasJson("SatId"))
 	{
 		setupBuffer.SatId = q.getBodyAsInt("SatId");
 	}
 
-	if (q.hasBody("scanflags"))
+	if (q.hasJson("scanflags"))
 	{
-		setupBuffer.scanflags = q.getBodyAsInt("scanflags");
+	    int scanFlags = q.getBodyAsInt("scanflags");
+	    if (scanFlags >= 0 && scanFlags < 32) {
+		setupBuffer.scanflags = scanFlags;
+	    }
 	}
 
-	if (q.hasBody("ATSC_type"))
+	if (q.hasJson("ATSC_type"))
 	{
-		setupBuffer.ATSC_type = q.getBodyAsInt("ATSC_type");
+	    int atscType = q.getBodyAsInt("ATSC_type");
+	    //if (atscType >= 0 && atscType < 3) {
+		setupBuffer.ATSC_type = atscType;
+	    //}
 	}
 
 	std::stringstream setcmd;
@@ -266,7 +293,6 @@ void WirbelscanResponder::replySetSetup(ostream& out,
 
 void WirbelscanResponder::replyDoCmd(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-    QueryHandler::addHeader(reply);
 	QueryHandler q("/doCommand", request);
 
 	if ( !q.hasBody("command") || q.getBodyAsInt("command") < 0 || q.getBodyAsInt("command") > 2) {

@@ -3,11 +3,14 @@
 #include <cxxtools/http/responder.h>
 #include <locale.h>
 #include <time.h>
+#include <Magick++.h>
 #include "scraper2vdr/services.h"
 #include "tools.h"
 
 #ifndef SCRAPER2VDRESTFULAPI_H
 #define SCRAPER2VDRESTFULAPI_H
+
+using namespace Magick;
 
 struct SerActor
 {
@@ -96,6 +99,10 @@ public:
 };
 
 class ScraperImageResponder : public cxxtools::http::Responder {
+private:
+  std::string parseResize(std::string url, int& width, int& height, bool& aspect);
+  bool resizeImage(std::string source, std::string target, int& width, int& height, bool& aspect);
+  bool hasPath(std::string targetPath);
 public:
   explicit ScraperImageResponder(cxxtools::http::Service& service) : cxxtools::http::Responder(service) {}
   virtual void reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);

@@ -50,6 +50,7 @@ class Settings
     std::string epgimage_dir;
     std::string channellogo_dir;
     std::string webapp_dir;
+    std::string cache_dir;
     bool activateHeaders;
   public:
     Settings() { initDefault(); }
@@ -61,12 +62,14 @@ class Settings
     std::string EpgImageDirectory() { return epgimage_dir; }
     std::string ChannelLogoDirectory() { return channellogo_dir; }
     std::string WebappDirectory() { return webapp_dir; }
+    std::string CacheDirectory() { return cache_dir; }
     bool Headers() { return activateHeaders; }
     bool SetPort(std::string v);
     bool SetIp(std::string v);
     bool SetEpgImageDirectory(std::string v);
     bool SetChannelLogoDirectory(std::string v);
     bool SetWebappDirectory(std::string v);
+    bool SetCacheDir(std::string v);
     bool SetHeaders(std::string v);
 };
 

@@ -486,8 +486,6 @@ void Scraper2VdrService::getMovieMedia(StreamExtension* s, ScraperGetEventType &
  */
 void ScraperImageResponder::reply(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply) {
 
-  QueryHandler::addHeader(reply);
-
   if ( request.method() == "OPTIONS" ) {
       reply.addHeader("Allow", "GET");
       reply.httpReturn(200, "OK");
@@ -498,45 +496,123 @@ void ScraperImageResponder::reply(ostream& out, cxxtools::http::Request& request
      return;
   }
 
-  double timediff = -1;
   string base = "/scraper/image/";
-  string epgImagesPath = Settings::get()->EpgImageDirectory();
   string url = request.url();
 
   if ( (int)url.find(base) == 0 ) {
 
-      isyslog("restfulapi Scraper: image request url %s", request.url().c_str());
+      dsyslog("restfulapi Scraper: image request url %s", url.c_str());
 
+      bool aspect = false;
+      double timediff = -1;
+      int width = 0;
+      int height = 0;
+      string epgImagesPath = Settings::get()->EpgImageDirectory() + (string)"/";
+      string cacheDir = (string)Settings::get()->CacheDirectory() + base;
       string image = url.replace(0, base.length(), "");
-      string path = epgImagesPath + (string)"/" + image;
+      string targetImage = parseResize(image, width, height, aspect);
+      string outFile = epgImagesPath + image;
 
-      if (!FileExtension::get()->exists(path)) {
-	  isyslog("restfulapi Scraper: image %s does not exist", request.url().c_str());
+      if ( strcmp(image.c_str(), targetImage.c_str()) != 0 ) {
+
+	  string sourceImage = epgImagesPath + targetImage;
+	  outFile = cacheDir + image;
+	  string targetPath = cacheDir + image.substr(0, ( image.find_last_of("/") ));
+
+	  if (
+	      !FileExtension::get()->exists(outFile) &&
+	      !(hasPath(targetPath) && resizeImage(sourceImage, outFile, width, height, aspect))
+	  ) {
+	      outFile = epgImagesPath + image;
+	  }
+      }
+
+      dsyslog("restfulapi Scraper: image file %s", outFile.c_str());
+
+      if (!FileExtension::get()->exists(outFile)) {
+	  esyslog("restfulapi Scraper: image %s does not exist", url.c_str());
 	  reply.httpReturn(404, "File not found");
 	  return;
       }
 
       if (request.hasHeader("If-Modified-Since")) {
-	  timediff = difftime(FileExtension::get()->getModifiedTime(path), FileExtension::get()->getModifiedSinceTime(request));
+	  timediff = difftime(FileExtension::get()->getModifiedTime(outFile), FileExtension::get()->getModifiedSinceTime(request));
       }
       if (timediff > 0.0 || timediff < 0.0) {
 	  string type = image.substr(image.find_last_of(".")+1);
 	  string contenttype = (string)"image/" + type;
 	  StreamExtension se(&out);
-	  if ( se.writeBinary(path) ) {
-	      isyslog("restfulapi Scraper: successfully piped image %s", request.url().c_str());
+	  if ( se.writeBinary(outFile) ) {
+	      dsyslog("restfulapi Scraper: successfully piped image %s", url.c_str());
 	      QueryHandler::addHeader(reply);
-	      FileExtension::get()->addModifiedHeader(path, reply);
+	      FileExtension::get()->addModifiedHeader(outFile, reply);
 	      reply.addHeader("Content-Type", contenttype.c_str());
 	  } else {
-	      isyslog("restfulapi Scraper: error piping image %s", request.url().c_str());
+	      dsyslog("restfulapi Scraper: error piping image %s", url.c_str());
 	      reply.httpReturn(404, "File not found");
 	  }
       } else {
-	  isyslog("restfulapi Scraper: image %s not modified, returning 304", request.url().c_str());
+	  QueryHandler::addHeader(reply);
+	  dsyslog("restfulapi Scraper: image %s not modified, returning 304", url.c_str());
 	  reply.httpReturn(304, "Not-Modified");
       }
   }
+};
+
+bool ScraperImageResponder::hasPath(std::string targetPath) {
+
+  return FileExtension::get()->exists(targetPath) || system(("mkdir -p " + targetPath).c_str()) == 0;
+};
+
+std::string ScraperImageResponder::parseResize(std::string url, int& width, int& height, bool& aspect) {
+
+  dsyslog("restfulapi Scraper: url to parse: %s", url.c_str());
+  if ( url.find("size/") == 0 ) {
+      esyslog("restfulapi: parsing size");
+      url = url.erase(0, (url.find_first_of("/") + 1) );
+      width = atoi( url.substr(0, url.find_first_of("/") ).c_str() );
+      url = url.erase(0, (url.find_first_of("/") + 1) );
+      height = atoi( url.substr(0, url.find_first_of("/") ).c_str() );
+      url = url.erase(0, (url.find_first_of("/") + 1) );
+      aspect = true;
+  }
+
+  if ( url.find("width/") == 0 ) {
+      dsyslog("restfulapi Scraper: parsing width");
+      url = url.erase(0, (url.find_first_of("/") + 1) );
+      width = atoi( url.substr(0, url.find_first_of("/") ).c_str() );
+      url = url.erase(0, (url.find_first_of("/") + 1) );
+      height = 0;
+  }
+
+  if ( url.find("height/") == 0 ) {
+      dsyslog("restfulapi Scraper: parsing height");
+      url = url.erase(0, (url.find_first_of("/") + 1) );
+      height = atoi( url.substr(0, url.find_first_of("/") ).c_str() );
+      url = url.erase(0, (url.find_first_of("/") + 1) );
+      width = 0;
+  }
+
+  dsyslog("restfulapi Scraper: parsed url: %s, width: %d, height: %d", url.c_str(), width, height);
+
+  return url;
+};
+
+bool ScraperImageResponder::resizeImage(std::string source, std::string target, int& width, int& height, bool& aspect) {
+
+  try {
+    dsyslog("restfulapi Scraper: attempt to resize file %s", source.c_str());
+    Image newImage;
+    Geometry newSize = Geometry(width, height);
+    newSize.aspect(aspect);
+    newImage.read(source);
+    newImage.resize(newSize);
+    newImage.write(target);
+  } catch ( Exception &error ) {
+      esyslog("restfulapi Scraper: error procesing file %s", source.c_str());
+      return false;
+  }
+  return true;
 };
 
 /* ********* */

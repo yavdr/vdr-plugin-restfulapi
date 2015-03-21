@@ -11,7 +11,7 @@
 #include "serverthread.h"
 #include "statusmonitor.h"
 
-static const char *VERSION        = "0.2.1.3";
+static const char *VERSION        = "0.2.2.0";
 static const char *DESCRIPTION    = "Offers a RESTful-API to retrieve data from VDR";
 static const char *MAINMENUENTRY  = NULL;//"Restfulapi";
 
@@ -130,6 +130,8 @@ bool cPluginRestfulapi::Start(void)
           headers.c_str());
 
   FileCaches::get(); //cache files
+  settings->SetCacheDir((string) cPlugin::CacheDirectory(PLUGIN_NAME_I18N));
+
   serverThread.Initialize();
   serverThread.Start();
   return true;
