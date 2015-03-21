@@ -130,6 +130,8 @@ bool cPluginRestfulapi::Start(void)
           headers.c_str());
 
   FileCaches::get(); //cache files
+  settings->SetCacheDir((string) cPlugin::CacheDirectory(PLUGIN_NAME_I18N));
+
   serverThread.Initialize();
   serverThread.Start();
   return true;

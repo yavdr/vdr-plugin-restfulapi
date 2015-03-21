@@ -75,6 +75,19 @@ bool Settings::SetWebappDirectory(std::string v)
   return false;
 }
 
+bool Settings::SetCacheDir(std::string v) {
+  struct stat stat_info;
+  if ( stat(v.c_str(), &stat_info) == 0) {
+     if (v[v.length()-1] == '/')
+        cache_dir = v.substr(0, v.length()-1);
+     else
+        cache_dir = v;
+     esyslog("restfulapi: The cached files will be loaded from %s!", cache_dir.c_str());
+     return true;
+  }
+  return false;
+}
+
 bool Settings::SetHeaders(std::string v)
 {
   if ( v == "false" ) {
@@ -443,7 +456,7 @@ void FileExtension::addModifiedHeader(string path, cxxtools::http::Reply& reply)
   setlocale(LC_TIME,"POSIX");
   strftime(buffer,30,"%a, %d %b %Y %H:%M:%S %Z",tm);
   setlocale(LC_TIME,getLocale());
-  esyslog("restfulapi: FileExtension: adding last-modified-header %s to file %s", buffer, path.c_str());
+  dsyslog("restfulapi: FileExtension: adding last-modified-header %s to file %s", buffer, path.c_str());
   reply.addHeader("Last-Modified", buffer);
 };
 
@@ -474,11 +487,11 @@ bool FileExtension::exists(string path) {
   const char* cPath = path.c_str();
   char* rPath = realpath(cPath, nptr);
 
-  esyslog("restfulapi: FileExtension: requested path %s", cPath);
-  esyslog("restfulapi: FileExtension: realpath %s", rPath);
+  dsyslog("restfulapi: FileExtension: requested path %s", cPath);
+  dsyslog("restfulapi: FileExtension: realpath %s", rPath);
 
   if (!rPath || (rPath && strcmp(cPath, rPath) != 0)) {
-      esyslog("restfulapi: realpath does not match requested path");
+      dsyslog("restfulapi: realpath does not match requested path");
       return false;
   }
   FILE *fp = fopen(path.c_str(),"r");
@@ -486,7 +499,7 @@ bool FileExtension::exists(string path) {
     fclose(fp);
     return true;
   }
-  esyslog("restfulapi: FileExtension: requested file %s does not exists", cPath);
+  dsyslog("restfulapi: FileExtension: requested file %s does not exists", cPath);
 
   return false;
 };
