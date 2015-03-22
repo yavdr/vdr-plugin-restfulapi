@@ -13,4 +13,8 @@ How to install on Arch-Linux:
 Alternate way on Arch-Linux:
  Move to archlinux/vdr-plugin-resfulapi-git/ on github and download the PKGBUILD and vdr-plugin-restfulapi-git.install in it.
  Move to the directory where you've downloaded them and execute "makepkg PKGBUILD".
+ 
+ If you want to build restfulapi without libmagick++ compile with
+ 
+ make USE_LIBMAGICKPLUSPLUS=0 
 
