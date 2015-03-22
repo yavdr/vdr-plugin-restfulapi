@@ -9,6 +9,8 @@
 
 PLUGIN = restfulapi
 
+USE_LIBMAGICKPLUSPLUS ?= 1
+
 ### The version number of this plugin (taken from the main source file):
 
 VERSION = $(shell grep 'static const char \*VERSION *=' $(PLUGIN).cpp | awk '{ print $$6 }' | sed -e 's/[";]//g')
@@ -53,8 +55,11 @@ LIBS    += $(shell cxxtools-config --libs) -lcxxtools-http
 CONFDIR  = $(call PKGCFG,configdir)
 PLGCONFDIR = $(CONFDIR)/plugins/$(PLUGIN)
 
+ifeq ($(USE_LIBMAGICKPLUSPLUS), 1)
 INCLUDES += $(shell pkg-config --cflags Magick++)
 LIBS += $(shell pkg-config --libs Magick++)
+CXXFLAGS += -DUSE_LIBMAGICKPLUSPLUS
+endif
 
 ### The object files (add further files here):
 
