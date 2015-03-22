@@ -503,17 +503,20 @@ void ScraperImageResponder::reply(ostream& out, cxxtools::http::Request& request
 
       dsyslog("restfulapi Scraper: image request url %s", url.c_str());
 
+#ifdef USE_LIBMAGICKPLUSPLUS
       bool aspect = false;
-      double timediff = -1;
       int width = 0;
       int height = 0;
+#endif
+      double timediff = -1;
       string epgImagesPath = Settings::get()->EpgImageDirectory() + (string)"/";
       string cacheDir = (string)Settings::get()->CacheDirectory() + base;
       string image = url.replace(0, base.length(), "");
-      string targetImage = parseResize(image, width, height, aspect);
       string outFile = epgImagesPath + image;
+#ifdef USE_LIBMAGICKPLUSPLUS
+      string targetImage = parseResize(image, width, height, aspect);
 
-      if ( strcmp(image.c_str(), targetImage.c_str()) != 0 ) {
+      if ( image != targetImage ) {
 
 	  string sourceImage = epgImagesPath + targetImage;
 	  outFile = cacheDir + image;
@@ -526,11 +529,13 @@ void ScraperImageResponder::reply(ostream& out, cxxtools::http::Request& request
 	      outFile = epgImagesPath + image;
 	  }
       }
+#endif
 
       dsyslog("restfulapi Scraper: image file %s", outFile.c_str());
 
       if (!FileExtension::get()->exists(outFile)) {
 	  esyslog("restfulapi Scraper: image %s does not exist", url.c_str());
+	  QueryHandler::addHeader(reply);
 	  reply.httpReturn(404, "File not found");
 	  return;
       }
@@ -564,6 +569,7 @@ bool ScraperImageResponder::hasPath(std::string targetPath) {
   return FileExtension::get()->exists(targetPath) || system(("mkdir -p " + targetPath).c_str()) == 0;
 };
 
+#ifdef USE_LIBMAGICKPLUSPLUS
 std::string ScraperImageResponder::parseResize(std::string url, int& width, int& height, bool& aspect) {
 
   dsyslog("restfulapi Scraper: url to parse: %s", url.c_str());
@@ -592,12 +598,13 @@ std::string ScraperImageResponder::parseResize(std::string url, int& width, int&
       url = url.erase(0, (url.find_first_of("/") + 1) );
       width = 0;
   }
-
   dsyslog("restfulapi Scraper: parsed url: %s, width: %d, height: %d", url.c_str(), width, height);
 
   return url;
 };
+#endif
 
+#ifdef USE_LIBMAGICKPLUSPLUS
 bool ScraperImageResponder::resizeImage(std::string source, std::string target, int& width, int& height, bool& aspect) {
 
   try {
@@ -614,6 +621,7 @@ bool ScraperImageResponder::resizeImage(std::string source, std::string target, 
   }
   return true;
 };
+#endif
 
 /* ********* */
 
