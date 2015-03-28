@@ -381,6 +381,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerRecording& p)
   si.addMember("name") <<= p.Name;
   si.addMember("file_name") <<= p.FileName;
   si.addMember("relative_file_name") <<= p.RelativeFileName;
+  si.addMember("inode") <<= p.Inode;
   si.addMember("is_new") <<= p.IsNew;
   si.addMember("is_edited") <<= p.IsEdited;
   si.addMember("is_pes_recording") <<= p.IsPesRecording;
@@ -466,6 +467,12 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
   serRecording.IsNew = recording->IsNew();
   serRecording.IsEdited = recording->IsEdited();
 
+  const char* filename = recording->FileName();
+  struct stat st;
+  if (stat(filename, &st) == 0) {
+      serRecording.Inode = StringExtension::encodeToJson((const char*)cString::sprintf("%lu:%llu", (unsigned long) st.st_dev, (unsigned long long) st.st_ino));
+  }
+
   #if APIVERSNUM >= 10703
   serRecording.IsPesRecording = recording->IsPesRecording();
   serRecording.FramesPerSecond = recording->FramesPerSecond();
@@ -534,6 +541,25 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr)
   s->write(cString::sprintf("  <param name=\"name\">%s</param>\n", StringExtension::encodeToXml(recording->Name()).c_str() ));
   s->write(cString::sprintf("  <param name=\"filename\">%s</param>\n", StringExtension::encodeToXml(recording->FileName()).c_str()) );
   s->write(cString::sprintf("  <param name=\"relative_filename\">%s</param>\n", StringExtension::encodeToXml(VdrExtension::getRelativeVideoPath(recording).c_str()).c_str()));
+
+
+
+  const char* filename = recording->FileName();
+  struct stat st;
+  if (stat(filename, &st) == 0) {
+
+      s->write(
+	  cString::sprintf(
+	    "  <param name=\"inode\">%s</param>\n",
+	    StringExtension::encodeToXml(
+		(const char*)cString::sprintf("%lu:%llu", (unsigned long) st.st_dev, (unsigned long long) st.st_ino)
+	    ).c_str()
+	  )
+      );
+
+  }
+
+
   s->write(cString::sprintf("  <param name=\"is_new\">%s</param>\n", recording->IsNew() ? "true" : "false" ));
   s->write(cString::sprintf("  <param name=\"is_edited\">%s</param>\n", recording->IsEdited() ? "true" : "false" ));
 
