@@ -218,19 +218,18 @@ void InfoResponder::replyXml(StreamExtension& se)
 SerDevice InfoResponder::getDeviceSerializeInfo(int index) {
 
   SerDevice sd;
-  cDevice * d = cDevice::GetDevice(index);
-  cDvbDevice* dev = (cDvbDevice*)d;
+  cDvbDevice* dev = VdrExtension::getDevice(index);
   cString deviceName = dev->DeviceName();
   const char * name = deviceName;
 
-  sd.dvbc = d->ProvidesSource(cSource::stCable);
-  sd.dvbs = d->ProvidesSource(cSource::stSat);
-  sd.dvbt = d->ProvidesSource(cSource::stTerr);
-  sd.atsc = d->ProvidesSource(cSource::stAtsc);
-  sd.primary = d->IsPrimaryDevice();
-  sd.hasDecoder = d->HasDecoder();
+  sd.dvbc = dev->ProvidesSource(cSource::stCable);
+  sd.dvbs = dev->ProvidesSource(cSource::stSat);
+  sd.dvbt = dev->ProvidesSource(cSource::stTerr);
+  sd.atsc = dev->ProvidesSource(cSource::stAtsc);
+  sd.primary = dev->IsPrimaryDevice();
+  sd.hasDecoder = dev->HasDecoder();
   sd.Name = name;
-  sd.Number = d->CardIndex();
+  sd.Number = dev->CardIndex();
 
   return sd;
 };

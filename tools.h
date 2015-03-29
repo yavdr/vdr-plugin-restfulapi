@@ -199,6 +199,7 @@ class VdrExtension
     static std::string getVideoDiskSpace();
     static std::string FileSystemExchangeChars(std::string const & s, bool ToFileSystem);
     static std::string MoveRecording(cRecording const * recording, std::string const & name, bool copy = false);
+    static cDvbDevice* getDevice(int index);
 };
 
 class VdrMarks
@@ -232,6 +233,7 @@ class StringExtension
     static std::string dateToString(time_t time);
     static std::string addZeros(int value, int digits);
     static std::string toString(cxxtools::String value);
+    static std::string toString(cString value);
 };
 
 class QueryHandler
