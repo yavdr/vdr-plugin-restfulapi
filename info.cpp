@@ -59,7 +59,7 @@ void InfoResponder::replyJson(StreamExtension& se)
      services.push_back(s);
   }
 
-  struct SerPluginList pl;
+  struct SerVDR vdr;
 
   cPlugin* p = NULL;
   int counter = 0;
@@ -67,7 +67,7 @@ void InfoResponder::replyJson(StreamExtension& se)
      struct SerPlugin sp;
      sp.Name = StringExtension::UTF8Decode(p->Name());
      sp.Version = StringExtension::UTF8Decode(p->Version());
-     pl.plugins.push_back(sp);
+     vdr.plugins.push_back(sp);
      counter++;
   }
 
@@ -112,8 +112,15 @@ void InfoResponder::replyJson(StreamExtension& se)
   ds.FreeMinutes = cVideoDiskUsage::FreeMinutes();
   serializer.serialize(ds, "diskusage");
 
+  int numDevices = cDevice::NumDevices();
+  int i;
+  for (i=0; i<numDevices;i++) {
+      SerDevice sd = getDeviceSerializeInfo(i);
+      vdr.devices.push_back(sd);
+  }
 
-  serializer.serialize(pl, "vdr");
+  serializer.serialize(vdr, "vdr");
+
   serializer.finish();  
 }
 
@@ -186,9 +193,47 @@ void InfoResponder::replyXml(StreamExtension& se)
 
   se.write("  </plugins>\n");
   se.write(" </vdr>\n");
+  se.write(" <devices>");
+
+  int numDevices = cDevice::NumDevices();
+  int i;
+  for (i=0; i<numDevices;i++) {
+      SerDevice sd = getDeviceSerializeInfo(i);
+      se.write(" <device>");
+      se.write(cString::sprintf("    <dvb_c>%s</dvb_c>\n", (sd.dvbc ? "true" : "false")));
+      se.write(cString::sprintf("    <dvb_s>%s</dvb_s>\n", (sd.dvbs ? "true" : "false")));
+      se.write(cString::sprintf("    <dvb_t>%s</dvb_t>\n", (sd.dvbt ? "true" : "false")));
+      se.write(cString::sprintf("    <atsc>%s</atsc>\n", (sd.atsc ? "true" : "false")));
+      se.write(cString::sprintf("    <primary>%s</primary>\n", (sd.primary ? "true" : "false")));
+      se.write(cString::sprintf("    <has_decoder>%s</has_decoder>\n", (sd.hasDecoder ? "true" : "false")));
+      se.write(cString::sprintf("    <name>%s</name>\n", StringExtension::encodeToXml(sd.Name).c_str()));
+      se.write(cString::sprintf("    <number>%i</number>\n", sd.Number));
+      se.write(" </device>");
+  }
+  se.write(" </devices>");
 
   se.write("</info>");
 }
+
+SerDevice InfoResponder::getDeviceSerializeInfo(int index) {
+
+  SerDevice sd;
+  cDevice * d = cDevice::GetDevice(index);
+  cDvbDevice* dev = (cDvbDevice*)d;
+  cString deviceName = dev->DeviceName();
+  const char * name = deviceName;
+
+  sd.dvbc = d->ProvidesSource(cSource::stCable);
+  sd.dvbs = d->ProvidesSource(cSource::stSat);
+  sd.dvbt = d->ProvidesSource(cSource::stTerr);
+  sd.atsc = d->ProvidesSource(cSource::stAtsc);
+  sd.primary = d->IsPrimaryDevice();
+  sd.hasDecoder = d->HasDecoder();
+  sd.Name = name;
+  sd.Number = d->CardIndex();
+
+  return sd;
+};
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerService& s)
 {
@@ -202,9 +247,10 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerPlugin& p)
   si.addMember("version") <<= p.Version;
 }
 
-void operator<<= (cxxtools::SerializationInfo& si, const SerPluginList& pl)
+void operator<<= (cxxtools::SerializationInfo& si, const SerVDR& vdr)
 {
-  si.addMember("plugins") <<= pl.plugins;
+  si.addMember("plugins") <<= vdr.plugins;
+  si.addMember("devices") <<= vdr.devices;
 }
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerPlayerInfo& pi)
@@ -219,4 +265,16 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerDiskSpaceInfo& ds)
   si.addMember("used_percent") <<= ds.UsedPercent;
   si.addMember("free_minutes") <<= ds.FreeMinutes;
   si.addMember("description_localized") <<= ds.Description;
+}
+
+void operator<<= (cxxtools::SerializationInfo& si, const SerDevice& d)
+{
+  si.addMember("name") <<= d.Name;
+  si.addMember("dvb_c") <<= d.dvbc;
+  si.addMember("dvb_s") <<= d.dvbs;
+  si.addMember("dvb_t") <<= d.dvbt;
+  si.addMember("atsc") <<= d.atsc;
+  si.addMember("primary") <<= d.primary;
+  si.addMember("has_decoder") <<= d.hasDecoder;
+  si.addMember("number") <<= d.Number;
 }

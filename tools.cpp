@@ -1164,6 +1164,11 @@ string StringExtension::encodeToXml(const string &str)
     }
 }
 
+string StringExtension::encodeToXml(cxxtools::String &str) {
+
+  return encodeToXml(toString(str));
+};
+
 
 cxxtools::String StringExtension::encodeToJson(const string &str)
 {
@@ -1273,6 +1278,14 @@ string StringExtension::addZeros(int value, int digits)
   }
 
   return strValue;
+}
+
+string StringExtension::toString(cxxtools::String value) {
+
+  std::ostringstream returnValue;
+  returnValue << value;
+
+  return returnValue.str();
 }
 
 // --- QueryHandler -----------------------------------------------------------

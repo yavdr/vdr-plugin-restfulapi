@@ -222,6 +222,7 @@ class StringExtension
     static int strtoi(std::string str);
     static std::string replace(std::string const& text, std::string const& substring, std::string const& replacement);
     static std::string encodeToXml(const std::string &str);
+    static std::string encodeToXml(cxxtools::String &str);
     static cxxtools::String encodeToJson(const std::string &str);
     static cxxtools::String UTF8Decode(std::string str);
     static std::string toLowerCase(std::string str);
@@ -230,6 +231,7 @@ class StringExtension
     static std::string timeToString(time_t time);
     static std::string dateToString(time_t time);
     static std::string addZeros(int value, int digits);
+    static std::string toString(cxxtools::String value);
 };
 
 class QueryHandler
