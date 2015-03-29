@@ -494,6 +494,7 @@ GET http://&lt;ip&gt;:&lt;port&gt;/info.&lt;format&gt;
 <br />
 <div class="code"><code>
 <br />
+<pre>
 &lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;
 &lt;info xmlns="http://www.domain.org/restfulapi/2011/info-xml"&gt;
  &lt;version&gt;0.0.1&lt;/version&gt;
@@ -530,9 +531,11 @@ GET http://&lt;ip&gt;:&lt;port&gt;/info.&lt;format&gt;
   &lt;/plugins&gt;
  &lt;/vdr&gt;
 &lt;/info&gt;
+</pre>
 </code></div>
 <br />
 Instead of the channel it can also contain the currently playing video file:<br />
+Since Version 0.2.2.2 node "vdr" also contains info about the TV-Cards attached to the system<br />
 <br />
 <div class="code"><code>
 &lt;video name="Asterix in Amerika"&gt;/var/lib/video.00/Asterix_in_Amerika/2011-06-19.12.40.1-0.rec&lt;/video&gt;
