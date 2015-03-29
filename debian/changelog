@@ -1,5 +1,12 @@
 vdr-plugin-restfulapi (0.2.2.1-0yavdr0~precise) precise; urgency=medium
 
+  * add devices to info service
+  * add inode to recordings
+
+ -- Henning Künne <hannemann666@gmx.net>  Sun, 22 Mar 2015 21:09:20 +0200
+ 
+vdr-plugin-restfulapi (0.2.2.1-0yavdr0~precise) precise; urgency=medium
+
   * make dependency to libmagick++ optional
 
  -- Henning Künne <hannemann666@gmx.net>  Sun, 22 Mar 2015 21:09:20 +0200

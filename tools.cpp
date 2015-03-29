@@ -975,6 +975,14 @@ string VdrExtension::MoveRecording(cRecording const * recording, string const & 
   return newname;
 }
 
+cDvbDevice* VdrExtension::getDevice(int index) {
+
+  cDevice * d = cDevice::GetDevice(index);
+  cDvbDevice* dev = (cDvbDevice*)d;
+
+  return dev;
+};
+
 // --- VdrMarks ---------------------------------------------------------------
 
 VdrMarks* VdrMarks::get()
@@ -1164,6 +1172,11 @@ string StringExtension::encodeToXml(const string &str)
     }
 }
 
+string StringExtension::encodeToXml(cxxtools::String &str) {
+
+  return encodeToXml(toString(str));
+};
+
 
 cxxtools::String StringExtension::encodeToJson(const string &str)
 {
@@ -1273,6 +1286,22 @@ string StringExtension::addZeros(int value, int digits)
   }
 
   return strValue;
+}
+
+string StringExtension::toString(cxxtools::String value) {
+
+  std::ostringstream returnValue;
+  returnValue << value;
+
+  return returnValue.str();
+}
+
+string StringExtension::toString(cString value) {
+
+  const char* v = value;
+  string returnValue(v);
+
+  return returnValue;
 }
 
 // --- QueryHandler -----------------------------------------------------------

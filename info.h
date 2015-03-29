@@ -21,9 +21,10 @@ struct SerPlugin
   cxxtools::String Version;
 };
 
-struct SerPluginList
+struct SerVDR
 {
   std::vector< struct SerPlugin > plugins;
+  std::vector< struct SerDevice > devices;
 };
 
 struct SerPlayerInfo
@@ -40,14 +41,28 @@ struct SerDiskSpaceInfo
   std::string Description;
 };
 
+struct SerDevice {
+  cxxtools::String Name;
+  bool dvbc;
+  bool dvbs;
+  bool dvbt;
+  bool atsc;
+  bool primary;
+  bool hasDecoder;
+  int Number;
+};
+
 void operator<<= (cxxtools::SerializationInfo& si, const SerService& s);
 void operator<<= (cxxtools::SerializationInfo& si, const SerPlugin& p);
-void operator<<= (cxxtools::SerializationInfo& si, const SerPluginList& pl);
+void operator<<= (cxxtools::SerializationInfo& si, const SerVDR& vdr);
 void operator<<= (cxxtools::SerializationInfo& si, const SerPlayerInfo& pi);
 void operator<<= (cxxtools::SerializationInfo& si, const SerDiskSpaceInfo& ds);
+void operator<<= (cxxtools::SerializationInfo& si, const SerDevice& d);
 
 class InfoResponder : public cxxtools::http::Responder
 {
+private:
+  SerDevice getDeviceSerializeInfo(int index);
   public:
     explicit InfoResponder(cxxtools::http::Service& service)
       : cxxtools::http::Responder(service) { };
