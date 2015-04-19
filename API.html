@@ -32,7 +32,7 @@ html, body {
 
 <div class="center">
 <h1>RESTFULAPI-Plugin for VDR</h1><br />
-<b>Version 0.2.3.0</b><br />
+<b>Version 0.2.3.1</b><br />
 Copyright &copy; 2015 yavdr-Team, Michael Eiler<br /><br />
 Organization/Community: <a href="mailto:team@yavdr.org">team@yavdr.org</a><br />
 Developer: <a href="mailto:eiler.mike@gmail.com">eiler.mike@gmail.com</a> or <a href="mailto:aelo@yavdr.org">aelo@yavdr.org</a><br />
@@ -82,6 +82,7 @@ Developer: <a href="mailto:eiler.mike@gmail.com">eiler.mike@gmail.com</a> or <a 
 		<li><a href="#SearchTimersRecordingdirs">Get recording dirs</a>
 		<li><a href="#SearchTimersChannelgroups">Get channel groups</a>
 		<li><a href="#SearchTimersConflicts">Check timer conflicts</a>
+		<li><a href="#SearchTimersExtEPGInfo">Fetch ext EPG info (epgsearchcats.conf)</a>
 	</ul>
 	<li><a href="#ScraperImages">ScraperImages</a></li>
 	<li><a href="#Wirbelscan">Control the Wirbelscan plugin</a>
@@ -1077,6 +1078,14 @@ GET http://&lt;ip&gt;:&lt;port&gt;/searchtimers/channelgroups.json|xml|html&lt;i
 <br />
 <div class="code"><code>
 GET http://&lt;ip&gt;:&lt;port&gt;/searchtimers/conflicts.json|xml|html&lt;id&gt;
+</code></div>
+<br />
+<br />
+
+<h2><a name="SearchTimersExtEPGInfo">Fetch searchtimer ext EPG info defined in epgsearchcats.conf</a></h2>
+<br />
+<div class="code"><code>
+GET http://&lt;ip&gt;:&lt;port&gt;/searchtimers/extepginfo.json|xml|html&lt;id&gt;
 </code></div>
 <br />
 <br />

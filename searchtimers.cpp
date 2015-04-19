@@ -27,6 +27,8 @@ void SearchTimersResponder::reply(ostream& out, cxxtools::http::Request& request
       replyBlacklists(out, request, reply);
   } else if (request.method() == "GET" && (int)request.url().find("/searchtimers/conflicts") == 0 ) {
       replyTimerConflicts(out, request, reply);
+  } else if (request.method() == "GET" && (int)request.url().find("/searchtimers/extepginfo") == 0 ) {
+      replyExtEpgInfo(out, request, reply);
   } else { 
      if (request.method() == "GET") {
         replyShow(out, request, reply);
@@ -571,6 +573,121 @@ void XmlTimerConflicts::finish()
 {
   s->write(cString::sprintf(" <count>%i</count><total>%i</total>", Count(), total));
   s->write("</conflicts>");
+}
+
+// Timerconflicts responder
+
+void SearchTimersResponder::replyExtEpgInfo(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply) {
+
+  QueryHandler q("/searchtimers/extepginfo", request);
+  ExtEpgInfos* list;
+  vdrlive::ExtEPGInfos extepginfos;
+
+  if ( q.isFormat(".json") ) {
+     reply.addHeader("Content-Type", "application/json; charset=utf-8");
+     list = (ExtEpgInfos*)new JsonExtEpgInfos(&out);
+  } else if ( q.isFormat(".html") ) {
+     reply.addHeader("Content-Type", "text/html; charset=utf-8");
+     list = (ExtEpgInfos*)new HtmlExtEpgInfos(&out);
+  } else if ( q.isFormat(".xml") ) {
+     reply.addHeader("Content-Type", "text/xml; charset=utf-8");
+     list = (ExtEpgInfos*)new XmlExtEpgInfos(&out);
+  } else {
+     reply.httpReturn(403, "Resources are not available for the selected format. (Use: .json, .xml or .html)");
+     return;
+  }
+
+  list->init();
+  int total = 0;
+
+  for (vdrlive::ExtEPGInfos::iterator item = extepginfos.begin(); item != extepginfos.end(); ++item) {
+
+      ExtEpgInfo info;
+      info.name = item->Name();
+      info.id = item->Id();
+      info.values = item->Values();
+      info.config = item->Get();
+
+      list->addInfo(info);
+      total++;
+  }
+
+  list->setTotal(total);
+  list->finish();
+  delete list;
+
+}
+
+ExtEpgInfos::ExtEpgInfos(std::ostream* _out)
+{
+  s = new StreamExtension(_out);
+  total = 0;
+}
+
+ExtEpgInfos::~ExtEpgInfos()
+{
+  delete s;
+}
+
+void HtmlExtEpgInfos::init()
+{
+  s->writeHtmlHeader( "Ext EPG Info" );
+  s->write("<ul>");
+}
+
+void HtmlExtEpgInfos::addInfo(ExtEpgInfo info)
+{
+  if ( filtered() ) return;
+
+  //s->write(cString::sprintf("<li>%s</li>", info.c_str()));
+}
+
+void HtmlExtEpgInfos::finish()
+{
+  s->write("</ul>");
+  s->write("</body></html>");
+}
+
+
+void JsonExtEpgInfos::addInfo(ExtEpgInfo info)
+{
+  if ( filtered() ) return;
+  infos.push_back(info);
+}
+
+void JsonExtEpgInfos::finish()
+{
+  cxxtools::JsonSerializer serializer(*s->getBasicStream());
+  serializer.serialize(infos, "ext_epg_info");
+  serializer.serialize(Count(), "count");
+  serializer.serialize(total, "total");
+  serializer.finish();
+}
+
+void XmlExtEpgInfos::init()
+{
+  s->writeXmlHeader();
+  s->write("<ext_epg_infos xmlns=\"http://www.domain.org/restfulapi/2011/groups-xml\">\n");
+}
+
+void XmlExtEpgInfos::addInfo(ExtEpgInfo info)
+{
+  if ( filtered() ) return;
+  //s->write(cString::sprintf(" <ext_epg_info>%s</ext_epg_info>\n", StringExtension::encodeToXml( info ).c_str()));
+}
+
+void XmlExtEpgInfos::finish()
+{
+  s->write(cString::sprintf(" <count>%i</count><total>%i</total>", Count(), total));
+  s->write("</ext_epg_infos>");
+}
+
+void operator<<= (cxxtools::SerializationInfo& si, const ExtEpgInfo& t)
+{
+  si.addMember("id") <<= t.id;
+  si.addMember("name") <<= t.name;
+  si.addMember("values") <<= t.values;
+  si.addMember("config") <<= t.config;
 }
 
 

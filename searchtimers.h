@@ -32,6 +32,7 @@ class SearchTimersResponder : public cxxtools::http::Responder
     virtual void replyRecordingDirs(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     virtual void replyBlacklists(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     virtual void replyTimerConflicts(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+    virtual void replyExtEpgInfo(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
 };
 
 typedef cxxtools::http::CachedService<SearchTimersResponder> SearchTimersService;
@@ -218,6 +219,61 @@ class XmlTimerConflicts : TimerConflicts
     ~XmlTimerConflicts() { };
     virtual void init(bool checkAdvised);
     virtual void addConflict(std::string conflict);
+    virtual void finish();
+};
+
+struct ExtEpgInfo {
+  std::string name;
+  int id;
+  std::vector< std::string > values;
+  std::string config;
+};
+
+void operator<<= (cxxtools::SerializationInfo& si, const ExtEpgInfo& t);
+
+class ExtEpgInfos : public BaseList
+{
+  protected:
+    StreamExtension *s;
+    int total;
+  public:
+    explicit ExtEpgInfos(std::ostream* _out);
+    virtual ~ExtEpgInfos();
+    virtual void init() { };
+    virtual void addInfo(ExtEpgInfo info) { };
+    virtual void finish() { };
+    virtual void setTotal(int _total) { total = _total; }
+};
+
+class HtmlExtEpgInfos : ExtEpgInfos
+{
+  public:
+    explicit HtmlExtEpgInfos(std::ostream* _out) : ExtEpgInfos(_out) { };
+    ~HtmlExtEpgInfos() { };
+    virtual void init();
+    virtual void addInfo(ExtEpgInfo info);
+    virtual void finish();
+};
+
+class JsonExtEpgInfos : ExtEpgInfos
+{
+  private:
+    std::vector< ExtEpgInfo > infos;
+  public:
+    explicit JsonExtEpgInfos(std::ostream* _out) : ExtEpgInfos(_out) { };
+    ~JsonExtEpgInfos() { };
+    virtual void init() { };
+    virtual void addInfo(ExtEpgInfo info);
+    virtual void finish();
+};
+
+class XmlExtEpgInfos : ExtEpgInfos
+{
+  public:
+    explicit XmlExtEpgInfos(std::ostream* _out) : ExtEpgInfos(_out) { };
+    ~XmlExtEpgInfos() { };
+    virtual void init();
+    virtual void addInfo(ExtEpgInfo info);
     virtual void finish();
 };
 
