@@ -209,6 +209,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerChannel& c)
 ChannelList::ChannelList(ostream* _out)
 {
   s = new StreamExtension(_out);
+  total = 0;
 }
 
 ChannelList::~ChannelList()
@@ -316,6 +317,7 @@ void XmlChannelList::finish()
 ChannelGroupList::ChannelGroupList(std::ostream* _out) 
 {
   s = new StreamExtension(_out);
+  total = 0;
 }
 
 ChannelGroupList::~ChannelGroupList()
@@ -332,10 +334,7 @@ void HtmlChannelGroupList::init()
 void HtmlChannelGroupList::addGroup(string group)
 {
   if ( filtered() ) return;
-
-  s->write("<li>");
-  s->write(group.c_str());
-  s->write("\n");
+  s->write(cString::sprintf("<li>%s</li>", group.c_str()));
 }
 
 void HtmlChannelGroupList::finish()

@@ -19,6 +19,14 @@ void SearchTimersResponder::reply(ostream& out, cxxtools::http::Request& request
 
   if ((int)request.url().find("/searchtimers/search/") == 0 ) {
      replySearch(out, request, reply);
+  } else if (request.method() == "GET" && (int)request.url().find("/searchtimers/channelgroups") == 0 ) {
+      replyChannelGroups(out, request, reply);
+  } else if (request.method() == "GET" && (int)request.url().find("/searchtimers/recordingdirs") == 0 ) {
+      replyRecordingDirs(out, request, reply);
+  } else if (request.method() == "GET" && (int)request.url().find("/searchtimers/blacklists") == 0 ) {
+      replyBlacklists(out, request, reply);
+  } else if (request.method() == "GET" && (int)request.url().find("/searchtimers/conflicts") == 0 ) {
+      replyTimerConflicts(out, request, reply);
   } else { 
      if (request.method() == "GET") {
         replyShow(out, request, reply);
@@ -211,4 +219,358 @@ void XmlSearchTimerList::finish()
   s->write(cString::sprintf(" <count>%i</count><total>%i</total>\n", Count(), total));
   s->write("</searchtimers>\n");
 }
+
+
+// recordingdirs responder
+
+void SearchTimersResponder::replyRecordingDirs(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply) {
+
+  QueryHandler q("/searchtimers/recordingdirs", request);
+  RecordingDirsList* dirsList;
+  vdrlive::RecordingDirs recordingDirs;
+
+
+  if ( q.isFormat(".json") ) {
+     reply.addHeader("Content-Type", "application/json; charset=utf-8");
+     dirsList = (RecordingDirsList*)new JsonRecordingDirsList(&out);
+  } else if ( q.isFormat(".html") ) {
+     reply.addHeader("Content-Type", "text/html; charset=utf-8");
+     dirsList = (RecordingDirsList*)new HtmlRecordingDirsList(&out);
+  } else if ( q.isFormat(".xml") ) {
+     reply.addHeader("Content-Type", "text/xml; charset=utf-8");
+     dirsList = (RecordingDirsList*)new XmlRecordingDirsList(&out);
+  } else {
+     reply.httpReturn(403, "Resources are not available for the selected format. (Use: .json, .xml or .html)");
+     return;
+  }
+
+  dirsList->init();
+  int total = 0;
+
+  for (vdrlive::RecordingDirs::iterator item = recordingDirs.begin(); item != recordingDirs.end(); ++item) {
+
+      //esyslog("restful: dir: %s", (std::string)item);
+
+      dirsList->addDir(*item);
+      total++;
+  }
+
+  dirsList->setTotal(total);
+  dirsList->finish();
+  delete dirsList;
+
+}
+
+RecordingDirsList::RecordingDirsList(std::ostream* _out)
+{
+  s = new StreamExtension(_out);
+  total = 0;
+}
+
+RecordingDirsList::~RecordingDirsList()
+{
+  delete s;
+}
+
+void HtmlRecordingDirsList::init()
+{
+  s->writeHtmlHeader( "HtmlRecordingDirsList" );
+  s->write("<ul>");
+}
+
+void HtmlRecordingDirsList::addDir(string dir)
+{
+  if ( filtered() ) return;
+
+  s->write(cString::sprintf("<li>%s</li>", dir.c_str()));
+}
+
+void HtmlRecordingDirsList::finish()
+{
+  s->write("</ul>");
+  s->write("</body></html>");
+}
+
+void JsonRecordingDirsList::addDir(string dir)
+{
+  if ( filtered() ) return;
+  dirs.push_back(StringExtension::UTF8Decode(dir));
+}
+
+void JsonRecordingDirsList::finish()
+{
+  cxxtools::JsonSerializer serializer(*s->getBasicStream());
+  serializer.serialize(dirs, "dirs");
+  serializer.serialize(Count(), "count");
+  serializer.serialize(total, "total");
+  serializer.finish();
+}
+
+void XmlRecordingDirsList::init()
+{
+  s->writeXmlHeader();
+  s->write("<dirs xmlns=\"http://www.domain.org/restfulapi/2011/groups-xml\">\n");
+}
+
+void XmlRecordingDirsList::addDir(string dir)
+{
+  if ( filtered() ) return;
+  s->write(cString::sprintf(" <dir>%s</dir>\n", StringExtension::encodeToXml( dir ).c_str()));
+}
+
+void XmlRecordingDirsList::finish()
+{
+  s->write(cString::sprintf(" <count>%i</count><total>%i</total>", Count(), total));
+  s->write("</dirs>");
+}
+
+
+// Blacklists responder
+
+void SearchTimersResponder::replyBlacklists(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply) {
+
+  QueryHandler q("/searchtimers/blacklists", request);
+  Blacklists* list;
+  vdrlive::Blacklists blacklists;
+
+
+  if ( q.isFormat(".json") ) {
+     reply.addHeader("Content-Type", "application/json; charset=utf-8");
+     list = (Blacklists*)new JsonBlacklists(&out);
+  } else if ( q.isFormat(".html") ) {
+     reply.addHeader("Content-Type", "text/html; charset=utf-8");
+     list = (Blacklists*)new HtmlBlacklists(&out);
+  } else if ( q.isFormat(".xml") ) {
+     reply.addHeader("Content-Type", "text/xml; charset=utf-8");
+     list = (Blacklists*)new XmlBlacklists(&out);
+  } else {
+     reply.httpReturn(403, "Resources are not available for the selected format. (Use: .json, .xml or .html)");
+     return;
+  }
+
+  list->init();
+  int total = 0;
+
+  for (vdrlive::Blacklists::iterator item = blacklists.begin(); item != blacklists.end(); ++item) {
+
+      list->addList(item->Id());
+      total++;
+  }
+
+  list->setTotal(total);
+  list->finish();
+  delete list;
+
+}
+
+Blacklists::Blacklists(std::ostream* _out)
+{
+  s = new StreamExtension(_out);
+  total = 0;
+}
+
+Blacklists::~Blacklists()
+{
+  delete s;
+}
+
+void HtmlBlacklists::init()
+{
+  s->writeHtmlHeader( "Blacklists" );
+  s->write("<ul>");
+}
+
+void HtmlBlacklists::addList(int list)
+{
+  if ( filtered() ) return;
+
+  s->write(cString::sprintf("<li>%d</li>", list));
+}
+
+void HtmlBlacklists::finish()
+{
+  s->write("</ul>");
+  s->write("</body></html>");
+}
+
+void JsonBlacklists::addList(int list)
+{
+  if ( filtered() ) return;
+  blacklists.push_back(list);
+}
+
+void JsonBlacklists::finish()
+{
+  cxxtools::JsonSerializer serializer(*s->getBasicStream());
+  serializer.serialize(blacklists, "blacklists");
+  serializer.serialize(Count(), "count");
+  serializer.serialize(total, "total");
+  serializer.finish();
+}
+
+void XmlBlacklists::init()
+{
+  s->writeXmlHeader();
+  s->write("<lists xmlns=\"http://www.domain.org/restfulapi/2011/groups-xml\">\n");
+}
+
+void XmlBlacklists::addList(int list)
+{
+  if ( filtered() ) return;
+  s->write(cString::sprintf(" <list>%d</list>\n", list));
+}
+
+void XmlBlacklists::finish()
+{
+  s->write(cString::sprintf(" <count>%i</count><total>%i</total>", Count(), total));
+  s->write("</lists>");
+}
+
+// channlegroups responder
+
+
+void SearchTimersResponder::replyChannelGroups(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply) {
+
+  QueryHandler q("/searchtimers/channelgroups", request);
+  ChannelGroupList* groupList;
+  vdrlive::ChannelGroups channelGroups;
+
+
+  if ( q.isFormat(".json") ) {
+     reply.addHeader("Content-Type", "application/json; charset=utf-8");
+     groupList = (ChannelGroupList*)new JsonChannelGroupList(&out);
+  } else if ( q.isFormat(".html") ) {
+     reply.addHeader("Content-Type", "text/html; charset=utf-8");
+     groupList = (ChannelGroupList*)new HtmlChannelGroupList(&out);
+  } else if ( q.isFormat(".xml") ) {
+     reply.addHeader("Content-Type", "text/xml; charset=utf-8");
+     groupList = (ChannelGroupList*)new XmlChannelGroupList(&out);
+  } else {
+     reply.httpReturn(403, "Resources are not available for the selected format. (Use: .json, .xml or .html)");
+     return;
+  }
+
+  groupList->init();
+  int total = 0;
+
+  for (vdrlive::ChannelGroups::iterator item = channelGroups.begin(); item != channelGroups.end(); ++item) {
+      groupList->addGroup(item->Name());
+    total++;
+  }
+
+  groupList->setTotal(total);
+  groupList->finish();
+  delete groupList;
+
+}
+
+// Timerconflicts responder
+
+void SearchTimersResponder::replyTimerConflicts(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply) {
+
+  QueryHandler q("/searchtimers/conflicts", request);
+  TimerConflicts* list;
+  vdrlive::TimerConflicts conflicts;
+
+  if ( q.isFormat(".json") ) {
+     reply.addHeader("Content-Type", "application/json; charset=utf-8");
+     list = (TimerConflicts*)new JsonTimerConflicts(&out);
+  } else if ( q.isFormat(".html") ) {
+     reply.addHeader("Content-Type", "text/html; charset=utf-8");
+     list = (TimerConflicts*)new HtmlTimerConflicts(&out);
+  } else if ( q.isFormat(".xml") ) {
+     reply.addHeader("Content-Type", "text/xml; charset=utf-8");
+     list = (TimerConflicts*)new XmlTimerConflicts(&out);
+  } else {
+     reply.httpReturn(403, "Resources are not available for the selected format. (Use: .json, .xml or .html)");
+     return;
+  }
+
+  list->init(conflicts.CheckAdvised());
+  int total = 0;
+
+  for (vdrlive::TimerConflicts::iterator item = conflicts.begin(); item != conflicts.end(); ++item) {
+
+      list->addConflict(*item);
+      total++;
+  }
+
+  list->setTotal(total);
+  list->finish();
+  delete list;
+
+}
+
+TimerConflicts::TimerConflicts(std::ostream* _out)
+{
+  s = new StreamExtension(_out);
+  total = 0;
+}
+
+TimerConflicts::~TimerConflicts()
+{
+  delete s;
+}
+
+void HtmlTimerConflicts::init(bool checkAdvised)
+{
+  s->writeHtmlHeader( "Blacklists" );
+  s->write(cString::sprintf("<p>Check advised: %s</p>", checkAdvised ? "true" : "false"));
+  s->write("<ul>");
+}
+
+void HtmlTimerConflicts::addConflict(std::string conflict)
+{
+  if ( filtered() ) return;
+
+  s->write(cString::sprintf("<li>%s</li>", conflict.c_str()));
+}
+
+void HtmlTimerConflicts::finish()
+{
+  s->write("</ul>");
+  s->write("</body></html>");
+}
+
+
+void JsonTimerConflicts::init(bool checkAdvised) {
+
+  isCheckAdvised = checkAdvised;
+}
+
+void JsonTimerConflicts::addConflict(std::string conflict)
+{
+  if ( filtered() ) return;
+  conflicts.push_back(conflict);
+}
+
+void JsonTimerConflicts::finish()
+{
+  cxxtools::JsonSerializer serializer(*s->getBasicStream());
+  serializer.serialize(isCheckAdvised, "check_advised");
+  serializer.serialize(conflicts, "conflicts");
+  serializer.serialize(Count(), "count");
+  serializer.serialize(total, "total");
+  serializer.finish();
+}
+
+void XmlTimerConflicts::init(bool checkAdvised)
+{
+  s->writeXmlHeader();
+  s->write("<conflicts xmlns=\"http://www.domain.org/restfulapi/2011/groups-xml\">\n");
+  s->write(cString::sprintf(" <check_advised>%s</check_advised>\n", checkAdvised ? "true" : "false"));
+}
+
+void XmlTimerConflicts::addConflict(string conflict)
+{
+  if ( filtered() ) return;
+  s->write(cString::sprintf(" <conflict>%s</conflict>\n", StringExtension::encodeToXml( conflict ).c_str()));
+}
+
+void XmlTimerConflicts::finish()
+{
+  s->write(cString::sprintf(" <count>%i</count><total>%i</total>", Count(), total));
+  s->write("</conflicts>");
+}
+
 

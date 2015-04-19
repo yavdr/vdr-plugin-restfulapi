@@ -466,6 +466,39 @@ public:
 };
 
 
+class TimerConflict {
+public:
+	TimerConflict();
+	time_t Next() const { return nextConflict; }
+	int Relevant() const { return relevantConflicts; }
+	int Total() const { return totalConflicts; }
+
+private:
+	time_t nextConflict;       // next conflict date, 0 if none
+	int relevantConflicts;     // number of relevant conflicts
+	int totalConflicts;        // total number of conflicts
+};
+
+class TimerConflicts {
+public:
+	typedef std::list< std::string > TimerConflictList;
+	typedef TimerConflictList::size_type size_type;
+	typedef TimerConflictList::iterator iterator;
+	typedef TimerConflictList::const_iterator const_iterator;
+
+	TimerConflicts();
+
+	size_type size() const { return m_list.size(); }
+	bool CheckAdvised() { return m_checkAdvised; }
+
+	iterator begin() { return m_list.begin(); }
+	const_iterator begin() const { return m_list.begin(); }
+	iterator end() { return m_list.end(); }
+	const_iterator end() const { return m_list.end(); }
+private:
+	TimerConflictList m_list;
+	bool m_checkAdvised;
+};
 
 
 }

@@ -9,6 +9,9 @@
 #include "tools.h"
 #include "scraper2vdr.h"
 
+#ifndef __RESTFUL_CHANNELSRESPONDER_H
+#define __RESTFUL_CHANNELSRESPONDER_H
+
 class ChannelsResponder : public cxxtools::http::Responder
 {
   public:
@@ -131,3 +134,5 @@ class XmlChannelGroupList : ChannelGroupList
     virtual void addGroup(std::string group);
     virtual void finish();
 };
+
+#endif // __RESTFUL_CHANNELSRESPONDER_H
