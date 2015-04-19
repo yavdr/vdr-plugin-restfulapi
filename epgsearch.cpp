@@ -662,6 +662,7 @@ ExtEPGInfo::ExtEPGInfo( string const& data )
 {
    m_id = -1;
    m_searchmode = 0;
+   m_data = data;
 
    vector< string > parts = StringExtension::split( data, "|" );
    try {
@@ -682,6 +683,10 @@ ExtEPGInfo::ExtEPGInfo( string const& data )
 void ExtEPGInfo::ParseValues( string const& data )
 {
    m_values = StringExtension::split( data, "," );
+
+   for(std::vector<int>::size_type i = 0; i != m_values.size(); i++) {
+       m_values[i] = StringExtension::trim(m_values[i]);
+   }
 }
 
 bool ExtEPGInfo::Selected(unsigned int index, string const& values)

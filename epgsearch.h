@@ -254,12 +254,14 @@ public:
 	std::string Name() const { return m_menuname; }
 	std::vector< std::string > Values() const { return m_values; }
 	bool Selected(unsigned int index, std::string const& values);
+	std::string Get() { return m_data; };
 private:
 	int m_id;
 	std::string m_name;
 	std::string m_menuname;
 	std::vector< std::string > m_values;
 	int m_searchmode;
+	std::string m_data;
 
 	void ParseValues( std::string const& data );
 };
