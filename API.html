@@ -32,7 +32,7 @@ html, body {
 
 <div class="center">
 <h1>RESTFULAPI-Plugin for VDR</h1><br />
-<b>Version 0.2.2.0</b><br />
+<b>Version 0.2.3.0</b><br />
 Copyright &copy; 2015 yavdr-Team, Michael Eiler<br /><br />
 Organization/Community: <a href="mailto:team@yavdr.org">team@yavdr.org</a><br />
 Developer: <a href="mailto:eiler.mike@gmail.com">eiler.mike@gmail.com</a> or <a href="mailto:aelo@yavdr.org">aelo@yavdr.org</a><br />
@@ -78,6 +78,10 @@ Developer: <a href="mailto:eiler.mike@gmail.com">eiler.mike@gmail.com</a> or <a 
 		<li><a href="#SearchTimersDelete">Delete</a>
 		<li><a href="#SearchTimersShow">Show</a>
 		<li><a href="#SearchTimersSearch">Search</a>
+		<li><a href="#SearchTimersBlacklists">Get blacklists</a>
+		<li><a href="#SearchTimersRecordingdirs">Get recording dirs</a>
+		<li><a href="#SearchTimersChannelgroups">Get channel groups</a>
+		<li><a href="#SearchTimersConflicts">Check timer conflicts</a>
 	</ul>
 	<li><a href="#ScraperImages">ScraperImages</a></li>
 	<li><a href="#Wirbelscan">Control the Wirbelscan plugin</a>
@@ -1041,6 +1045,38 @@ GET http://&lt;ip&gt;:&lt;port&gt;/searchtimers.&lt;format&gt;
 <br />
 <div class="code"><code>
 GET http://&lt;ip&gt;:&lt;port&gt;/searchtimers/search/&lt;id&gt;
+</code></div>
+<br />
+<br />
+
+<h2><a name="SearchTimersBlacklists">Fetch searchtimer blacklists</a></h2>
+<br />
+<div class="code"><code>
+GET http://&lt;ip&gt;:&lt;port&gt;/searchtimers/blacklists.json|xml|html&lt;id&gt;
+</code></div>
+<br />
+<br />
+
+<h2><a name="SearchTimersRecordingdirs">Fetch searchtimer recording dirs</a></h2>
+<br />
+<div class="code"><code>
+GET http://&lt;ip&gt;:&lt;port&gt;/searchtimers/recordingdirs.json|xml|html&lt;id&gt;
+</code></div>
+<br />
+<br />
+
+<h2><a name="SearchTimersChannelgroups">Fetch searchtimer channel groups</a></h2>
+<br />
+<div class="code"><code>
+GET http://&lt;ip&gt;:&lt;port&gt;/searchtimers/channelgroups.json|xml|html&lt;id&gt;
+</code></div>
+<br />
+<br />
+
+<h2><a name="SearchTimersConflicts">Check timer conflicts</a></h2>
+<br />
+<div class="code"><code>
+GET http://&lt;ip&gt;:&lt;port&gt;/searchtimers/conflicts.json|xml|html&lt;id&gt;
 </code></div>
 <br />
 <br />

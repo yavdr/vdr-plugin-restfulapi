@@ -856,6 +856,14 @@ string EPGSearchExpr::EvaluateExpr(const string& expr, const cEvent* event)
    return service.handler->Evaluate(expr, event);
 }
 
+TimerConflicts::TimerConflicts() {
+
+  Epgsearch_services_v1_1 service;
+  cPluginManager::CallFirstService(ServiceInterface, &service);
+
+  m_list = service.handler->TimerConflictList();
+  m_checkAdvised = service.handler->IsConflictCheckAdvised();
+}
 
 } // namespace vdrlive
 
