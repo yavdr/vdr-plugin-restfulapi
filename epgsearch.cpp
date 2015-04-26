@@ -255,16 +255,21 @@ string SearchTimer::LoadFromQuery(QueryHandler& q)
   int repeatsWithinDays = q.getBodyAsInt("repeats_within_days");
   if (repeatsWithinDays > 0) m_repeatsWithinDays = repeatsWithinDays;
 
-  //int m_blacklistmode
-  //std::vecotr< std::string > m_blacklist_IDs;
+  //TODO: test
+  JsonArray *blacklistIds = q.getBodyAsArray("blacklist_ids");
+  if (blacklistIds != NULL) {
+    for (int i=0; i < blacklistIds->CountItem(); i++) {
+	JsonBase* jsonBase = blacklistIds->GetItem(i);
+	if (jsonBase->IsBasicValue()) {
+	    JsonBasicValue* jsonBasicValue = (JsonBasicValue*)jsonBase;
+	    if (jsonBasicValue->IsDouble()) {
+		int id = jsonBasicValue->ValueAsDouble();
+		m_blacklistIDs.push_back(id);
+	    }
+	}
+    }
+  }
   //m_blacklistmode: 0=no, 1=Selection, 2=all
-  //TODO: to be implemented, requires array-support in QueryHandler for xml/html and json -> html param-parser has to be impelemented???
-
-  /*JsonArray blacklistIds = q.getBodyAsArray("blacklist_ids");
-  for (int i=0; i < blacklistIds.CountItem(); i++) {
-      m_blacklistIDs.push_back(blacklistIds[i]);
-  }*/
-
   int blacklistmode = q.getBodyAsInt("blackliste_mode");
   if (blacklistmode > 0) return "blacklist currently not implemented";
 
