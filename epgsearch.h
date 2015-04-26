@@ -122,6 +122,10 @@ public:
 	void SetChannelText(std::string channels) { m_channels = channels; }
 	int UseAsSearchTimer() const { return m_useAsSearchtimer; }
 	void SetUseAsSearchTimer(int useAsSearchtimer) { m_useAsSearchtimer = useAsSearchtimer; }
+	time_t UseAsSearchTimerFrom() const { return m_useAsSearchTimerFrom; }
+	void SetUseAsSearchTimerFrom(time_t useAsSearchtimerFrom) { m_useAsSearchTimerFrom = useAsSearchtimerFrom; }
+	time_t UseAsSearchTimerTil() const { return m_useAsSearchTimerTil; }
+	void SetUseAsSearchTimerTil(time_t useAsSearchtimerTil) { m_useAsSearchTimerTil = useAsSearchtimerTil; }
 	bool UseDuration() const { return m_useDuration; }
 	void SetUseDuration(bool useDuration) { m_useDuration = useDuration; }
 	int MinDuration() const { return m_minDuration; }
@@ -148,6 +152,8 @@ public:
 	void SetPauseOnRecs(int pauseOnNrRecordings) { m_pauseOnNrRecordings = pauseOnNrRecordings; }
 	int BlacklistMode() const {return m_blacklistmode; }
 	void SetBlacklistMode(int blacklistmode) { m_blacklistmode = blacklistmode; }
+	std::vector< int > BlacklistIds() const { return m_blacklistIDs; }
+	void SetBlacklistIds(std::vector< int > blacklist_ids) { m_blacklistIDs = blacklist_ids; }
 	bool BlacklistSelected(int id) const;
 	void ParseBlacklist( std::string const& data );
 	int SwitchMinBefore() const { return m_switchMinBefore; }
@@ -231,7 +237,7 @@ private:
 	bool m_compareSummary;
 	int m_repeatsWithinDays;
 	int m_blacklistmode;
-	std::vector< std::string > m_blacklistIDs;
+	std::vector< int > m_blacklistIDs;
 	int m_menuTemplate;
 	unsigned long m_catvaluesAvoidRepeat;
 	int m_delMode;
@@ -291,8 +297,10 @@ class ChannelGroup
 public:
 	ChannelGroup(std::string const& data );
 	std::string Name() { return m_name; }
+	std::string Get() { return m_data; };
 private:
 	std::string m_name;
+	std::string m_data;
 };
 
 class ChannelGroups

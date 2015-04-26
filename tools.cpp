@@ -1240,7 +1240,7 @@ string StringExtension::trim(string str)
 vector<string > StringExtension::split(string str, string s)
 {
   vector< string > result;
-  if ( str.length() <= 1 ) return result;
+  if ( str.length() < 1 ) return result;
 
   int found = 0;
   int previous = -1;

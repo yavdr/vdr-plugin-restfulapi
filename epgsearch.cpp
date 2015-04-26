@@ -20,6 +20,8 @@ void operator<<= (cxxtools::SerializationInfo& si, SerSearchTimerContainer s)
   si.addMember("channel_max") <<= (const char*)s.timer->ChannelMax().ToString();
   si.addMember("channels") <<= s.timer->ChannelText();
   si.addMember("use_as_searchtimer") <<= s.timer->UseAsSearchTimer();
+  si.addMember("use_as_searchtimer_from") <<= s.timer->UseAsSearchTimerFrom();
+  si.addMember("use_as_searchtimer_til") <<= s.timer->UseAsSearchTimerTil();
   si.addMember("use_duration") <<= s.timer->UseDuration();
   si.addMember("duration_min") <<= s.timer->MinDuration();
   si.addMember("duration_max") <<= s.timer->MaxDuration();
@@ -33,6 +35,7 @@ void operator<<= (cxxtools::SerializationInfo& si, SerSearchTimerContainer s)
   si.addMember("keep_recs") <<= s.timer->KeepRecs();
   si.addMember("pause_on_recs") <<= s.timer->PauseOnRecs();
   si.addMember("blacklist_mode") <<= s.timer->BlacklistMode();
+  si.addMember("blacklist_ids") <<= s.timer->BlacklistIds();
   si.addMember("switch_min_before") <<= s.timer->SwitchMinBefore();
   si.addMember("use_ext_epg_info") <<= s.timer->UseExtEPGInfo();
   si.addMember("ext_epg_info") <<= s.timer->ExtEPGInfo();
@@ -75,6 +78,8 @@ string SearchTimer::ToXml()
   << "<channel_max>" << ChannelMax() << "</channel_max>\n"
   << "<channels>" << ChannelText() << "</channels>\n"
   << "<use_as_searchtimer>" << UseAsSearchTimer() << "</use_as_searchtimer>\n"
+  << "<use_as_searchtimer_from>" << UseAsSearchTimerTil() << "</use_as_searchtimer_from>\n"
+  << "<use_as_searchtimer_til>" << UseAsSearchTimerFrom() << "</use_as_searchtimer_til>\n"
   << "<use_duration>" << UseDuration() << "</use_duration>\n"
   << "<duration_min>" << MinDuration() << "</duration_min>\n"
   << "<duration_max>" << MaxDuration() << "</duration_max>\n"
@@ -86,6 +91,13 @@ string SearchTimer::ToXml()
   << "<keep_recs>" << KeepRecs() << "</keep_recs>\n"
   << "<pause_on_recs>" << PauseOnRecs() << "</pause_on_recs>\n"
   << "<blacklist_mode>" << BlacklistMode() << "</blacklist_mode>\n"
+  << "<blacklist_ids>\n";
+  vector< int > blacklists = BlacklistIds();
+  for (int i=0;i<(int)blacklists.size();i++)
+  {
+    s << " <id>" << blacklists[i] << "</id>\n";
+  }
+  s << "</blacklist_ids>\n"
   << "<switch_min_before>" << SwitchMinBefore() << "</switch_min_before>\n"
   << "<use_ext_epg_info>" << UseExtEPGInfo() << "</use_ext_epg_info>\n"
   << "<ext_epg_info>\n";
@@ -147,6 +159,7 @@ string SearchTimer::LoadFromQuery(QueryHandler& q)
      m_channelMin = minChannel->GetChannelID();
      m_channelMax = maxChannel->GetChannelID();
   } else if(use_channel != 0) {
+      // TODO: check if implementation is valid, check if channelgroups are supported properly
      m_channels = q.getBodyAsString("channels");
      if ( m_channels.length() == 0 ) { return "use_channels activated but no channel selected"; }
   }
@@ -194,7 +207,7 @@ string SearchTimer::LoadFromQuery(QueryHandler& q)
      return "use_as_searchtimer invalid (0=no, 1=yes, 2=user defined";
 
   if (useAsSearchtimer == 2 /*user defined*/) {
-     //read time_t m_useAsSearchTimerFrom
+     //TODO: read time_t m_useAsSearchTimerFrom
      //read time_t m_useAsSearchTimerTil
      //to be implemented in the parser and in the webservice output // add methods to SearchTimer-class
      return "use_as_searchtimer mode user defined not supported in restfulapi (at least currently)";
@@ -245,8 +258,13 @@ string SearchTimer::LoadFromQuery(QueryHandler& q)
   //int m_blacklistmode
   //std::vecotr< std::string > m_blacklist_IDs;
   //m_blacklistmode: 0=no, 1=Selection, 2=all
-  //to be implemented, requires array-support in QueryHandler for xml/html and json -> html param-parser has to be impelemented???
-  //and blacklist ids should be added to the webservice output 
+  //TODO: to be implemented, requires array-support in QueryHandler for xml/html and json -> html param-parser has to be impelemented???
+
+  /*JsonArray blacklistIds = q.getBodyAsArray("blacklist_ids");
+  for (int i=0; i < blacklistIds.CountItem(); i++) {
+      m_blacklistIDs.push_back(blacklistIds[i]);
+  }*/
+
   int blacklistmode = q.getBodyAsInt("blackliste_mode");
   if (blacklistmode > 0) return "blacklist currently not implemented";
 
@@ -576,7 +594,13 @@ void SearchTimer::ParseExtEPGInfo( string const& data )
 
 void SearchTimer::ParseBlacklist( string const& data )
 {
-   m_blacklistIDs = StringExtension::split( data, "|" );
+  vector< string > ids = StringExtension::split( data, "|" );
+
+  vector< string >::const_iterator id = ids.begin();
+  for ( int i = 0; id != ids.end(); ++i, ++id ) {
+
+      m_blacklistIDs.push_back(atoi(ids[i].c_str()));
+  }
 }
 
 SearchTimers::SearchTimers()
@@ -654,7 +678,7 @@ void SearchTimers::TriggerUpdate()
 bool SearchTimer::BlacklistSelected(int id) const
 { 
    for(unsigned int i=0; i<m_blacklistIDs.size(); i++) 
-      if (StringExtension::strtoi(m_blacklistIDs[i]) == id) return true; 
+      if (m_blacklistIDs[i] == id) return true;
    return false; 
 }
 
@@ -718,6 +742,9 @@ ExtEPGInfos::ExtEPGInfos()
 ChannelGroup::ChannelGroup( string const& data )
 {
    vector< string > parts = StringExtension::split( data, "|" );
+
+   // TODO: check what else is provided in data -> Channel ids -> epgsearch accepts *char channelgroupname
+
    try {
       vector< string >::const_iterator part = parts.begin();
       for ( int i = 0; part != parts.end(); ++i, ++part ) {
