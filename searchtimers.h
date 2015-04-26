@@ -129,6 +129,11 @@ class XmlRecordingDirsList : RecordingDirsList
     virtual void finish();
 };
 
+struct Blacklist {
+  std::string search;
+  int id;
+};
+
 class Blacklists : public BaseList
 {
   protected:
@@ -138,10 +143,12 @@ class Blacklists : public BaseList
     explicit Blacklists(std::ostream* _out);
     virtual ~Blacklists();
     virtual void init() { };
-    virtual void addList(int list) { };
+    virtual void addList(Blacklist list) { };
     virtual void finish() { };
     virtual void setTotal(int _total) { total = _total; }
 };
+
+void operator<<= (cxxtools::SerializationInfo& si, const Blacklist& t);
 
 class HtmlBlacklists : Blacklists
 {
@@ -149,19 +156,19 @@ class HtmlBlacklists : Blacklists
     explicit HtmlBlacklists(std::ostream* _out) : Blacklists(_out) { };
     ~HtmlBlacklists() { };
     virtual void init();
-    virtual void addList(int list);
+    virtual void addList(Blacklist list);
     virtual void finish();
 };
 
 class JsonBlacklists : Blacklists
 {
   private:
-    std::vector< int > blacklists;
+    std::vector< Blacklist > blacklists;
   public:
     explicit JsonBlacklists(std::ostream* _out) : Blacklists(_out) { };
     ~JsonBlacklists() { };
     virtual void init() { };
-    virtual void addList(int list);
+    virtual void addList(Blacklist list);
     virtual void finish();
 };
 
@@ -171,7 +178,7 @@ class XmlBlacklists : Blacklists
     explicit XmlBlacklists(std::ostream* _out) : Blacklists(_out) { };
     ~XmlBlacklists() { };
     virtual void init();
-    virtual void addList(int list);
+    virtual void addList(Blacklist list);
     virtual void finish();
 };
 

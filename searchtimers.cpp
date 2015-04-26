@@ -355,7 +355,10 @@ void SearchTimersResponder::replyBlacklists(std::ostream& out, cxxtools::http::R
 
   for (vdrlive::Blacklists::iterator item = blacklists.begin(); item != blacklists.end(); ++item) {
 
-      list->addList(item->Id());
+      Blacklist bList;
+      bList.search = item->Search();
+      bList.id = item->Id();
+      list->addList(bList);
       total++;
   }
 
@@ -382,11 +385,11 @@ void HtmlBlacklists::init()
   s->write("<ul>");
 }
 
-void HtmlBlacklists::addList(int list)
+void HtmlBlacklists::addList(Blacklist list)
 {
   if ( filtered() ) return;
 
-  s->write(cString::sprintf("<li>%d</li>", list));
+  s->write(cString::sprintf("<li>%d - %s</li>", list.id, list.search.c_str()));
 }
 
 void HtmlBlacklists::finish()
@@ -395,7 +398,7 @@ void HtmlBlacklists::finish()
   s->write("</body></html>");
 }
 
-void JsonBlacklists::addList(int list)
+void JsonBlacklists::addList(Blacklist list)
 {
   if ( filtered() ) return;
   blacklists.push_back(list);
@@ -416,16 +419,25 @@ void XmlBlacklists::init()
   s->write("<lists xmlns=\"http://www.domain.org/restfulapi/2011/groups-xml\">\n");
 }
 
-void XmlBlacklists::addList(int list)
+void XmlBlacklists::addList(Blacklist list)
 {
   if ( filtered() ) return;
-  s->write(cString::sprintf(" <list>%d</list>\n", list));
+  s->write(cString::sprintf(" <list>\n"));
+  s->write(cString::sprintf("  <id>%d</id>\n", list.id));
+  s->write(cString::sprintf("  <search>%s</search>\n", list.search.c_str()));
+  s->write(cString::sprintf(" </list>\n"));
 }
 
 void XmlBlacklists::finish()
 {
   s->write(cString::sprintf(" <count>%i</count><total>%i</total>", Count(), total));
   s->write("</lists>");
+}
+
+void operator<<= (cxxtools::SerializationInfo& si, const Blacklist& t)
+{
+  si.addMember("id") <<= t.id;
+  si.addMember("search") <<= t.search;
 }
 
 // channlegroups responder
@@ -639,7 +651,7 @@ void HtmlExtEpgInfos::addInfo(ExtEpgInfo info)
 {
   if ( filtered() ) return;
 
-  //s->write(cString::sprintf("<li>%s</li>", info.c_str()));
+  s->write(cString::sprintf("<li>%s</li>", info.config.c_str()));
 }
 
 void HtmlExtEpgInfos::finish()
@@ -673,7 +685,22 @@ void XmlExtEpgInfos::init()
 void XmlExtEpgInfos::addInfo(ExtEpgInfo info)
 {
   if ( filtered() ) return;
-  //s->write(cString::sprintf(" <ext_epg_info>%s</ext_epg_info>\n", StringExtension::encodeToXml( info ).c_str()));
+  s->write(cString::sprintf(" <ext_epg_info>\n"));
+  s->write(cString::sprintf(" <ext_epg_info>%d</ext_epg_info>\n", info.id));
+  s->write(cString::sprintf(" <name>%s</name>\n", StringExtension::encodeToXml( info.name ).c_str()));
+
+
+  s->write(cString::sprintf(" <values>\n"));
+  vector< string >::const_iterator value = info.values.begin();
+  for ( int i = 0; value != info.values.end(); ++i, ++value ) {
+      s->write(cString::sprintf(" <value>%s</value>\n", StringExtension::encodeToXml( info.values[i] ).c_str()));
+  }
+
+
+  s->write(cString::sprintf(" </values>\n"));
+
+  s->write(cString::sprintf(" <config>%s</config>\n", StringExtension::encodeToXml( info.config ).c_str()));
+  s->write(cString::sprintf(" </ext_epg_info>\n"));
 }
 
 void XmlExtEpgInfos::finish()
