@@ -14,7 +14,15 @@ void EventsResponder::reply(ostream& out, cxxtools::http::Request& request, cxxt
      replyImage(out, request, reply);
   } else if ( (int)request.url().find("/events/search") == 0 ){
      replySearchResult(out, request, reply);
-  } else {
+  }
+
+#if APIVERSNUM > 10710
+  else if ( (int)request.url().find("/events/contentdescriptors") == 0 ){
+      replyContentDescriptors(out, request, reply);
+  }
+#endif
+
+  else {
      replyEvents(out, request, reply);
   }
 }
@@ -572,3 +580,160 @@ void XmlEventList::finish()
   s->write(cString::sprintf(" <count>%i</count><total>%i</total>\n", Count(), total));
   s->write("</events>");
 }
+
+// content strings
+
+#if APIVERSNUM > 10710
+void EventsResponder::replyContentDescriptors(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply) {
+
+  QueryHandler q("/events/contentdescriptors", request);
+
+  if ( request.method() != "GET") {
+     reply.httpReturn(403, "To retrieve content descriptors use the POST method!");
+     return;
+  }
+
+  StreamExtension se(&out);
+
+  ContentDescriptorList* list;
+
+  if ( q.isFormat(".json") ) {
+     reply.addHeader("Content-Type", "application/json; charset=utf-8");
+     list = (ContentDescriptorList*)new JsonContentDescriptorList(&out);
+  } else if ( q.isFormat(".html") ) {
+     reply.addHeader("Content-Type", "text/html; charset=utf-8");
+     list = (ContentDescriptorList*)new HtmlContentDescriptorList(&out);
+  } else if ( q.isFormat(".xml") ) {
+     reply.addHeader("Content-Type", "text/xml; charset=utf-8");
+     list = (ContentDescriptorList*)new XmlContentDescriptorList(&out);
+  } else {
+     reply.httpReturn(403, "Resources are not available for the selected format. (Use: .json, .xml or .html)");
+     return;
+  }
+
+  list->init();
+  int total = 0;
+  std::set<std::string> contentStrings;
+
+  for(unsigned int i=0; i<CONTENT_DESCRIPTOR_MAX;i++) {
+
+    const string contentDescr = cEvent::ContentToString(i);
+    SerContentDescriptor cDescr;
+    if (!contentDescr.empty() && contentStrings.find(contentDescr) == contentStrings.end()) {
+
+	contentStrings.insert(contentDescr);
+	cDescr.name = StringExtension::UTF8Decode(contentDescr);
+	std::stringstream stream;
+	stream << std::hex << i;
+	std::string result( stream.str() );
+
+	switch (i) {
+	  case ecgArtsCulture:
+	  case ecgChildrenYouth:
+	  case ecgEducationalScience:
+	  case ecgLeisureHobbies:
+	  case ecgMovieDrama:
+	  case ecgMusicBalletDance:
+	  case ecgNewsCurrentAffairs:
+	  case ecgShow:
+	  case ecgSocialPoliticalEconomics:
+	  case ecgSpecial:
+	  case ecgSports:
+	  case ecgUserDefined:
+	      cDescr.isGroup = true;
+	      break;
+	  default:
+	      cDescr.isGroup = false;
+	}
+
+	cDescr.id = result;
+	list->addDescr(cDescr);
+	total++;
+    }
+  }
+
+  list->setTotal(total);
+  list->finish();
+  delete list;
+};
+
+ContentDescriptorList::ContentDescriptorList(std::ostream* _out)
+{
+  s = new StreamExtension(_out);
+  total = 0;
+}
+
+ContentDescriptorList::~ContentDescriptorList()
+{
+  delete s;
+}
+
+void HtmlContentDescriptorList::init()
+{
+  s->writeHtmlHeader( "Content descriptors" );
+  s->write("<ul>");
+}
+
+void HtmlContentDescriptorList::addDescr(SerContentDescriptor &descr)
+{
+  if ( filtered() ) return;
+
+  s->write(cString::sprintf("<li>%s - %s</li>", StringExtension::encodeToXml(descr.id).c_str(), StringExtension::encodeToXml(descr.name).c_str()));
+}
+
+void HtmlContentDescriptorList::finish()
+{
+  s->write("</ul>");
+  s->write("</body></html>");
+}
+
+void JsonContentDescriptorList::addDescr(SerContentDescriptor &descr)
+{
+  if ( filtered() ) return;
+  descr.id = StringExtension::encodeToJson(descr.id);
+  descr.name = StringExtension::encodeToJson(descr.name);
+  serContentDescriptors.push_back(descr);
+}
+
+void JsonContentDescriptorList::finish()
+{
+  cxxtools::JsonSerializer serializer(*s->getBasicStream());
+  serializer.serialize(serContentDescriptors, "content_descriptors");
+  serializer.serialize(Count(), "count");
+  serializer.serialize(total, "total");
+  serializer.finish();
+}
+
+void XmlContentDescriptorList::init()
+{
+  s->writeXmlHeader();
+  s->write("<lists xmlns=\"http://www.domain.org/restfulapi/2011/groups-xml\">\n");
+}
+
+void XmlContentDescriptorList::addDescr(SerContentDescriptor &descr)
+{
+  if ( filtered() ) return;
+  s->write(cString::sprintf(" <content_descriptor>\n"));
+  s->write(cString::sprintf("  <id>%s</id>\n", StringExtension::encodeToXml(descr.id).c_str()));
+  s->write(cString::sprintf("  <name>%s</name>\n", StringExtension::encodeToXml(descr.name).c_str()));
+  s->write(cString::sprintf("  <is_group>%s</is_group>\n", descr.isGroup ? "true" : "false"));
+  s->write(cString::sprintf(" </content_descriptor>\n"));
+}
+
+void XmlContentDescriptorList::finish()
+{
+  s->write(cString::sprintf(" <count>%i</count><total>%i</total>", Count(), total));
+  s->write("</lists>");
+}
+
+void operator<<= (cxxtools::SerializationInfo& si, const SerContentDescriptor& t)
+{
+  si.addMember("id") <<= t.id;
+  si.addMember("name") <<= t.name;
+  si.addMember("is_group") <<= t.isGroup;
+}
+
+
+
+#endif
+

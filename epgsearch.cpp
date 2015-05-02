@@ -58,7 +58,7 @@ void operator<<= (cxxtools::SerializationInfo& si, SerSearchTimerContainer s)
   si.addMember("ignore_missing_epg_cats") <<= s.timer->IgnoreMissingEPGCats();
   si.addMember("unmute_sound_on_switch") <<= s.timer->UnmuteSoundOnSwitch();
   si.addMember("summary_match") <<= s.timer->SummaryMatch();
-  si.addMember("content_recognition") <<= s.timer->ContentRecognition();
+  si.addMember("content_descriptors") <<= s.timer->ContentRecognition();
   si.addMember("compare_time") <<= s.timer->CompareTime();
 }
 
@@ -131,7 +131,7 @@ string SearchTimer::ToXml()
   << "<ignore_missing_epg_cats>" << IgnoreMissingEPGCats() << "</ignore_missing_epg_cats>\n"
   << "<unmute_sound_on_switch>" << UnmuteSoundOnSwitch() << "</unmute_sound_on_switch>\n"
   << "<summary_match>" << SummaryMatch() << "</summary_match>\n"
-  << "<content_recognition>" << ContentRecognition() << "</content_recognition>\n"
+  << "<content_descriptors>" << ContentRecognition() << "</content_descriptors>\n"
   << "<compare_time>" << CompareTime() << "</compare_time>\n"
   << "</searchtimer>\n";
   
@@ -395,7 +395,7 @@ void SearchTimer::Init()
 	m_ignoreMissingEPGCats = false;
 	m_unmuteSoundOnSwitch = false;
 	m_summaryMatch = 90;
-	m_contentRecognition = "";
+	m_contentDescriptors = "";
 	m_compareTime = 0;
 }
 
@@ -459,7 +459,7 @@ SearchTimer::SearchTimer( string const& data )
 			case 49: m_ignoreMissingEPGCats = lexical_cast< bool >( *part ); break;
 			case 50: m_unmuteSoundOnSwitch = lexical_cast< bool >( *part ); break;
 			case 51: m_summaryMatch = lexical_cast< int >( *part ); break;
-			case 52: m_contentRecognition =  *part; break;
+			case 52: m_contentDescriptors =  *part; break;
 			case 53: m_compareTime = lexical_cast< int >( *part ); break;
 
 			}
@@ -581,7 +581,7 @@ string SearchTimer::ToText()
       << m_ignoreMissingEPGCats << ":"
       << m_unmuteSoundOnSwitch << ":"
       << m_summaryMatch << ":"
-      << m_contentRecognition << ":"
+      << m_contentDescriptors << ":"
       << m_compareTime << ":";
 
    return os.str();

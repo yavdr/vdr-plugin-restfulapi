@@ -15,6 +15,8 @@
 #ifndef __RESTFUL_EVENTS_H
 #define __RESTFUL_EVENTS_H
 
+#define CONTENT_DESCRIPTOR_MAX 255
+
 class EventsResponder : public cxxtools::http::Responder
 {
   public:
@@ -25,6 +27,9 @@ class EventsResponder : public cxxtools::http::Responder
     void replyEvents(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void replyImage(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void replySearchResult(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+#if APIVERSNUM > 10710
+    void replyContentDescriptors(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+#endif
 };
 
 typedef cxxtools::http::CachedService<EventsResponder> EventsService;
@@ -115,5 +120,62 @@ class XmlEventList : EventList
     virtual void addEvent(cEvent* event);
     virtual void finish();
 };
+
+#if APIVERSNUM > 10710
+
+struct SerContentDescriptor {
+  cxxtools::String id;
+  cxxtools::String name;
+  bool isGroup;
+};
+
+
+class ContentDescriptorList : public BaseList
+{
+  protected:
+    StreamExtension *s;
+    int total;
+  public:
+    explicit ContentDescriptorList(std::ostream* _out);
+    virtual ~ContentDescriptorList();
+    virtual void init() { };
+    virtual void addDescr(SerContentDescriptor &descr) { };
+    virtual void finish() { };
+    virtual void setTotal(int _total) { total = _total; }
+};
+
+class HtmlContentDescriptorList : ContentDescriptorList
+{
+  public:
+    explicit HtmlContentDescriptorList(std::ostream* _out) : ContentDescriptorList(_out) { };
+    ~HtmlContentDescriptorList() { };
+    virtual void init();
+    virtual void addDescr(SerContentDescriptor &descr);
+    virtual void finish();
+};
+
+class JsonContentDescriptorList : ContentDescriptorList
+{
+  private:
+    std::vector < struct SerContentDescriptor > serContentDescriptors;
+  public:
+    explicit JsonContentDescriptorList(std::ostream* _out) : ContentDescriptorList(_out) { };
+    ~JsonContentDescriptorList() { };
+    virtual void addDescr(SerContentDescriptor &descr);
+    virtual void finish();
+};
+
+class XmlContentDescriptorList : ContentDescriptorList
+{
+  public:
+    explicit XmlContentDescriptorList(std::ostream* _out) : ContentDescriptorList(_out) { };
+    ~XmlContentDescriptorList() { };
+    virtual void init();
+    virtual void addDescr(SerContentDescriptor &descr);
+    virtual void finish();
+};
+
+#endif
+
 
 #endif //__RESTFUL_EVENTS_H
