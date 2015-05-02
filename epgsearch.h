@@ -193,6 +193,21 @@ public:
 	int DelAfterDaysOfFirstRec() const { return m_delAfterDaysOfFirstRec; }
 	void SetDelAfterDaysOfFirstRec(int delAfterDaysOfFirstRec) { m_delAfterDaysOfFirstRec = delAfterDaysOfFirstRec; }
 
+	bool IgnoreMissingEPGCats() const { return m_ignoreMissingEPGCats; }
+	void SetIgnoreMissingEPGCats(bool ignoreMissingEPGCats) { m_ignoreMissingEPGCats = ignoreMissingEPGCats; }
+
+	bool UnmuteSoundOnSwitch() const { return m_unmuteSoundOnSwitch; }
+	void SetUnmuteSoundOnSwitch(bool p) { m_unmuteSoundOnSwitch = p; }
+
+	int SummaryMatch() const { return m_summaryMatch; }
+	void SetSummaryMatch(int p) { m_summaryMatch = p; }
+
+	std::string const& ContentRecognition() const { return m_contentRecognition; }
+	void SetContentRecognition(std::string const& s) { m_contentRecognition = s; }
+
+	int CompareTime() const { return m_compareTime; }
+	void SetCompareTime(int p) { m_compareTime = p; }
+
 private:
 	int m_id;
 	std::string m_search;
@@ -246,6 +261,10 @@ private:
 	time_t m_useAsSearchTimerFrom;
 	time_t m_useAsSearchTimerTil;
 	bool m_ignoreMissingEPGCats;
+	bool m_unmuteSoundOnSwitch;
+	int m_summaryMatch;
+	std::string m_contentRecognition;
+	int m_compareTime;
 
 	void ParseChannel( std::string const& data );
 	void ParseChannelIDs( std::string const& data );
