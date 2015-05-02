@@ -225,6 +225,7 @@ class StringExtension
     static std::string encodeToXml(const std::string &str);
     static std::string encodeToXml(cxxtools::String &str);
     static cxxtools::String encodeToJson(const std::string &str);
+    static cxxtools::String encodeToJson(cxxtools::String &str);
     static cxxtools::String UTF8Decode(std::string str);
     static std::string toLowerCase(std::string str);
     static std::string trim(std::string str);

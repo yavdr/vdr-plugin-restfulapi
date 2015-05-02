@@ -202,8 +202,8 @@ public:
 	int SummaryMatch() const { return m_summaryMatch; }
 	void SetSummaryMatch(int p) { m_summaryMatch = p; }
 
-	std::string const& ContentRecognition() const { return m_contentRecognition; }
-	void SetContentRecognition(std::string const& s) { m_contentRecognition = s; }
+	std::string const& ContentRecognition() const { return m_contentDescriptors; }
+	void SetContentRecognition(std::string const& s) { m_contentDescriptors = s; }
 
 	int CompareTime() const { return m_compareTime; }
 	void SetCompareTime(int p) { m_compareTime = p; }
@@ -263,7 +263,7 @@ private:
 	bool m_ignoreMissingEPGCats;
 	bool m_unmuteSoundOnSwitch;
 	int m_summaryMatch;
-	std::string m_contentRecognition;
+	std::string m_contentDescriptors;
 	int m_compareTime;
 
 	void ParseChannel( std::string const& data );

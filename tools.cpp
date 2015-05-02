@@ -1205,6 +1205,11 @@ cxxtools::String StringExtension::encodeToJson(const string &str)
   }
 }
 
+cxxtools::String StringExtension::encodeToJson(cxxtools::String &str) {
+
+  return encodeToJson(toString(str));
+};
+
 
 cxxtools::String StringExtension::UTF8Decode(string str)
 {

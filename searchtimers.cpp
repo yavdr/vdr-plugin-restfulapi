@@ -424,7 +424,7 @@ void XmlBlacklists::addList(Blacklist list)
   if ( filtered() ) return;
   s->write(cString::sprintf(" <list>\n"));
   s->write(cString::sprintf("  <id>%d</id>\n", list.id));
-  s->write(cString::sprintf("  <search>%s</search>\n", list.search.c_str()));
+  s->write(cString::sprintf("  <search>%s</search>\n", StringExtension::encodeToXml(list.search).c_str()));
   s->write(cString::sprintf(" </list>\n"));
 }
 
