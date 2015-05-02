@@ -54,6 +54,12 @@ void operator<<= (cxxtools::SerializationInfo& si, SerSearchTimerContainer s)
   si.addMember("del_mode") <<= s.timer->DelMode();
   si.addMember("del_after_count_recs") <<= s.timer->DelAfterCountRecs();
   si.addMember("del_after_days_of_first_rec") <<= s.timer->DelAfterDaysOfFirstRec();
+
+  si.addMember("ignore_missing_epg_cats") <<= s.timer->IgnoreMissingEPGCats();
+  si.addMember("unmute_sound_on_switch") <<= s.timer->UnmuteSoundOnSwitch();
+  si.addMember("summary_match") <<= s.timer->SummaryMatch();
+  si.addMember("content_recognition") <<= s.timer->ContentRecognition();
+  si.addMember("compare_time") <<= s.timer->CompareTime();
 }
 
 namespace vdrlive {
@@ -122,6 +128,11 @@ string SearchTimer::ToXml()
   << "<del_mode>" << DelMode() << "</del_mode>\n"
   << "<del_after_count_recs>" << DelAfterCountRecs() << "</del_after_count_recs>\n"
   << "<del_after_days_of_first_rec>" << DelAfterDaysOfFirstRec() << "</del_after_days_of_first_rec>\n"
+  << "<ignore_missing_epg_cats>" << IgnoreMissingEPGCats() << "</ignore_missing_epg_cats>\n"
+  << "<unmute_sound_on_switch>" << UnmuteSoundOnSwitch() << "</unmute_sound_on_switch>\n"
+  << "<summary_match>" << SummaryMatch() << "</summary_match>\n"
+  << "<content_recognition>" << ContentRecognition() << "</content_recognition>\n"
+  << "<compare_time>" << CompareTime() << "</compare_time>\n"
   << "</searchtimer>\n";
   
   return s.str();
@@ -382,6 +393,10 @@ void SearchTimer::Init()
 	m_useAsSearchTimerTil = 0;	
 	m_catvaluesAvoidRepeat = 0;
 	m_ignoreMissingEPGCats = false;
+	m_unmuteSoundOnSwitch = false;
+	m_summaryMatch = 90;
+	m_contentRecognition = "";
+	m_compareTime = 0;
 }
 
 SearchTimer::SearchTimer( string const& data )
@@ -442,6 +457,11 @@ SearchTimer::SearchTimer( string const& data )
 			case 47: m_useAsSearchTimerFrom = lexical_cast< time_t >( *part ); break;
 			case 48: m_useAsSearchTimerTil = lexical_cast< time_t >( *part ); break;
 			case 49: m_ignoreMissingEPGCats = lexical_cast< bool >( *part ); break;
+			case 50: m_unmuteSoundOnSwitch = lexical_cast< bool >( *part ); break;
+			case 51: m_summaryMatch = lexical_cast< int >( *part ); break;
+			case 52: m_contentRecognition =  *part; break;
+			case 53: m_compareTime = lexical_cast< int >( *part ); break;
+
 			}
 		}
 	} catch ( bad_lexical_cast const& ex ) {
@@ -558,7 +578,11 @@ string SearchTimer::ToText()
       << m_delAfterDaysOfFirstRec << ":"
       << (long) m_useAsSearchTimerFrom << ":"
       << (long) m_useAsSearchTimerTil << ":"
-      << m_ignoreMissingEPGCats;
+      << m_ignoreMissingEPGCats << ":"
+      << m_unmuteSoundOnSwitch << ":"
+      << m_summaryMatch << ":"
+      << m_contentRecognition << ":"
+      << m_compareTime << ":";
 
    return os.str();
 }
