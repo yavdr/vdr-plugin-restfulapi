@@ -29,6 +29,8 @@ void SearchTimersResponder::reply(ostream& out, cxxtools::http::Request& request
       replyTimerConflicts(out, request, reply);
   } else if (request.method() == "GET" && (int)request.url().find("/searchtimers/extepginfo") == 0 ) {
       replyExtEpgInfo(out, request, reply);
+  } else if (request.method() == "POST" && (int)request.url().find("/searchtimers/update") == 0 ) {
+      replyTriggerUpdate(out, request, reply);
   } else { 
      if (request.method() == "GET") {
         replyShow(out, request, reply);
@@ -159,6 +161,14 @@ void SearchTimersResponder::replySearch(ostream& out, cxxtools::http::Request& r
   eventList->finish();
   delete eventList;
 }
+
+void SearchTimersResponder::replyTriggerUpdate(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply) {
+
+  QueryHandler q("/searchtimers/update", request);
+  vdrlive::SearchTimers service;
+  service.TriggerUpdate();
+  reply.httpReturn(200, "OK - Update triggered");
+};
 
 SearchTimerList::SearchTimerList(ostream* _out)
 {
