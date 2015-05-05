@@ -33,6 +33,7 @@ class SearchTimersResponder : public cxxtools::http::Responder
     virtual void replyBlacklists(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     virtual void replyTimerConflicts(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     virtual void replyExtEpgInfo(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+    virtual void replyTriggerUpdate(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
 };
 
 typedef cxxtools::http::CachedService<SearchTimersResponder> SearchTimersService;
