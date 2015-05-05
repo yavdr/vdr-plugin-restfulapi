@@ -1506,9 +1506,18 @@ bool QueryHandler::getBodyAsBool(string name)
 JsonArray* QueryHandler::getBodyAsArray(string name)
 {
   if ( jsonObject == NULL ) {
-     return NULL;
+    if (_body.has(name + "[]")) {
+      JsonArray* jsonArray = new JsonArray();
+      int length=_body.paramcount(name + "[]");
+      for (int i=0;i<length;i++) {
+	  jsonArray->AddItem((JsonBase*)new JsonBasicValue(_body.param(name + "[]", i)));
+      }
+      return jsonArray;
+    }
+    return NULL;
   }
   JsonValue* jsonValue = jsonObject->GetItem(name);
+
   if ( jsonValue == NULL || jsonValue->Value() == NULL || !jsonValue->Value()->IsArray() ) {
      return NULL;
   }
