@@ -9,25 +9,36 @@ void operator<<= (cxxtools::SerializationInfo& si, SerSearchTimerContainer s)
   si.addMember("mode") <<= s.timer->SearchMode();
   si.addMember("tolerance") <<= s.timer->Tolerance();
   si.addMember("match_case") <<= s.timer->MatchCase();
-  si.addMember("use_time") <<= s.timer->UseTime();
+
   si.addMember("use_title") <<= s.timer->UseTitle();
   si.addMember("use_subtitle") <<= s.timer->UseSubtitle();
   si.addMember("use_description") <<= s.timer->UseDescription();
+  si.addMember("content_descriptors") <<= s.timer->ContentRecognition();
+
+  si.addMember("use_ext_epg_info") <<= s.timer->UseExtEPGInfo();
+  si.addMember("ext_epg_info") <<= s.timer->ExtEPGInfo();
+
+  si.addMember("use_in_favorites") <<= s.timer->UseInFavorites();
+
+  si.addMember("use_time") <<= s.timer->UseTime();
   si.addMember("start_time") <<= s.timer->StartTime();
   si.addMember("stop_time") <<= s.timer->StopTime();
+
   si.addMember("use_channel") <<= s.timer->UseChannel();
-  si.addMember("channel_min") <<= (const char*)s.timer->ChannelMin().ToString();
-  si.addMember("channel_max") <<= (const char*)s.timer->ChannelMax().ToString();
-  si.addMember("channels") <<= s.timer->ChannelText();
-  si.addMember("use_as_searchtimer") <<= s.timer->UseAsSearchTimer();
-  si.addMember("use_as_searchtimer_from") <<= s.timer->UseAsSearchTimerFrom();
-  si.addMember("use_as_searchtimer_til") <<= s.timer->UseAsSearchTimerTil();
+  si.addMember("channel_min") <<= StringExtension::UTF8Decode((const char*)s.timer->ChannelMin().ToString());
+  si.addMember("channel_max") <<= StringExtension::UTF8Decode((const char*)s.timer->ChannelMax().ToString());
+  si.addMember("channels") <<= StringExtension::UTF8Decode(s.timer->ChannelText());
+
   si.addMember("use_duration") <<= s.timer->UseDuration();
   si.addMember("duration_min") <<= s.timer->MinDuration();
   si.addMember("duration_max") <<= s.timer->MaxDuration();
+
   si.addMember("use_dayofweek") <<= s.timer->UseDayOfWeek();
   si.addMember("dayofweek") <<= s.timer->DayOfWeek();
-  si.addMember("use_in_favorites") <<= s.timer->UseInFavorites();
+
+  si.addMember("use_as_searchtimer") <<= s.timer->UseAsSearchTimer();
+  si.addMember("use_as_searchtimer_from") <<= s.timer->UseAsSearchTimerFrom();
+  si.addMember("use_as_searchtimer_til") <<= s.timer->UseAsSearchTimerTil();
   si.addMember("search_timer_action") <<= s.timer->SearchTimerAction();
   si.addMember("use_series_recording") <<= s.timer->UseSeriesRecording();
   si.addMember("directory") <<= s.timer->Directory();
@@ -37,8 +48,6 @@ void operator<<= (cxxtools::SerializationInfo& si, SerSearchTimerContainer s)
   si.addMember("blacklist_mode") <<= s.timer->BlacklistMode();
   si.addMember("blacklist_ids") <<= s.timer->BlacklistIds();
   si.addMember("switch_min_before") <<= s.timer->SwitchMinBefore();
-  si.addMember("use_ext_epg_info") <<= s.timer->UseExtEPGInfo();
-  si.addMember("ext_epg_info") <<= s.timer->ExtEPGInfo();
   si.addMember("avoid_repeats") <<= s.timer->AvoidRepeats();
   si.addMember("allowed_repeats") <<= s.timer->AllowedRepeats();
   si.addMember("repeats_within_days") <<= s.timer->RepeatsWithinDays();
@@ -58,7 +67,6 @@ void operator<<= (cxxtools::SerializationInfo& si, SerSearchTimerContainer s)
   si.addMember("ignore_missing_epg_cats") <<= s.timer->IgnoreMissingEPGCats();
   si.addMember("unmute_sound_on_switch") <<= s.timer->UnmuteSoundOnSwitch();
   si.addMember("summary_match") <<= s.timer->SummaryMatch();
-  si.addMember("content_descriptors") <<= s.timer->ContentRecognition();
   si.addMember("compare_time") <<= s.timer->CompareTime();
 }
 
@@ -82,7 +90,7 @@ string SearchTimer::ToXml()
   << "<use_channel>" << UseChannel() << "</use_channel>\n"
   << "<channel_min>" << ChannelMin() << "</channel_min>\n"
   << "<channel_max>" << ChannelMax() << "</channel_max>\n"
-  << "<channels>" << ChannelText() << "</channels>\n"
+  << "<channels>" << StringExtension::UTF8Decode(ChannelText()) << "</channels>\n"
   << "<use_as_searchtimer>" << UseAsSearchTimer() << "</use_as_searchtimer>\n"
   << "<use_as_searchtimer_from>" << UseAsSearchTimerTil() << "</use_as_searchtimer_from>\n"
   << "<use_as_searchtimer_til>" << UseAsSearchTimerFrom() << "</use_as_searchtimer_til>\n"
@@ -151,6 +159,42 @@ string SearchTimer::LoadFromQuery(QueryHandler& q)
   string search = q.getBodyAsString("search");
   if ( search.length() > 0 ) { m_search = search; } else { return "Search required."; }
 
+  m_mode = q.getBodyAsInt("mode");
+  if ( m_mode < 0 | m_mode > 5 ) return "mode invalid, (0=phrase, 1=all words, 2=at least one word, 3=match exactly, 4=regex, 5=fuzzy";
+
+  //only required in fuzzy mode
+  int tolerance = q.getBodyAsInt("tolerance");
+  if ( tolerance >= 0 && m_mode == 5 ) m_fuzzytolerance = tolerance;
+
+  m_useCase = q.getBodyAsBool("match_case");
+
+  m_useTitle = q.getBodyAsBool("use_title");
+  m_useSubtitle = q.getBodyAsBool("use_subtitle");
+  m_useDescription = q.getBodyAsBool("use_description");
+  if ( !m_useTitle && !m_useSubtitle && !m_useDescription ) {
+      return "You have to select at least one of the following three values: use_title, use_subtitle or/and use_description.";
+  }
+
+  m_contentDescriptors = q.getBodyAsString("content_descriptors");
+
+  // ext EPG Info
+  m_useExtEPGInfo = q.getBodyAsBool("use_ext_epg_info");
+
+  JsonArray *extepg = q.getBodyAsArray("ext_epg_info");
+  if (extepg != NULL) {
+    for (int i=0; i < extepg->CountItem(); i++) {
+	JsonBase* jsonBase = extepg->GetItem(i);
+	if (jsonBase->IsBasicValue()) {
+	    JsonBasicValue* jsonBasicValue = (JsonBasicValue*)jsonBase;
+	    if (jsonBasicValue->IsString()) {
+		m_ExtEPGInfo.push_back(jsonBasicValue->ValueAsString()) ;
+	    }
+	}
+    }
+  }
+  m_ignoreMissingEPGCats = q.getBodyAsBool("ignore_missing_epg_cats");
+
+
   m_useTime = q.getBodyAsBool("use_time");
   if ( m_useTime ) {
      m_startTime = q.getBodyAsInt("start_time");
@@ -170,20 +214,10 @@ string SearchTimer::LoadFromQuery(QueryHandler& q)
      m_channelMin = minChannel->GetChannelID();
      m_channelMax = maxChannel->GetChannelID();
   } else if(use_channel != 0) {
-      // TODO: check if implementation is valid, check if channelgroups are supported properly
      m_channels = q.getBodyAsString("channels");
      if ( m_channels.length() == 0 ) { return "use_channels activated but no channel selected"; }
   }
   
-  m_useCase = q.getBodyAsBool("use_case");
-  m_mode = q.getBodyAsInt("mode");
-  if ( m_mode < 0 | m_mode > 5 ) return "mode invalid, (0=phrase, 1=all words, 2=at least one word, 3=match exactly, 4=regex, 5=fuzzy";
-  
-  m_useTitle = q.getBodyAsBool("use_title");
-  m_useSubtitle = q.getBodyAsBool("use_subtitle");
-  m_useDescription = q.getBodyAsBool("use_description");
-  if ( !m_useTitle && !m_useSubtitle && !m_useDescription ) return "You have to select at least one of the following three values: use_title, use_subtitle or/and use_description.";
-
   m_useDuration = q.getBodyAsBool("use_duration");
   if ( m_useDuration ) {
      m_minDuration = q.getBodyAsInt("duration_min");
@@ -205,10 +239,6 @@ string SearchTimer::LoadFromQuery(QueryHandler& q)
   int lifetime = q.getBodyAsInt("lifetime");
   if (lifetime >= 0) m_lifetime = lifetime;
 
-  //only required in fuzzy mode
-  int tolerance = q.getBodyAsInt("tolerance");  
-  if ( tolerance >= 0 && m_mode == 5 ) m_fuzzytolerance = tolerance;
-
   m_useInFavorites = q.getBodyAsBool("use_in_favorites");
 
   int useAsSearchtimer = q.getBodyAsInt("use_as_searchtimer");
@@ -217,11 +247,16 @@ string SearchTimer::LoadFromQuery(QueryHandler& q)
   else
      return "use_as_searchtimer invalid (0=no, 1=yes, 2=user defined";
 
-  if (useAsSearchtimer == 2 /*user defined*/) {
-     //TODO: read time_t m_useAsSearchTimerFrom
-     //read time_t m_useAsSearchTimerTil
-     //to be implemented in the parser and in the webservice output // add methods to SearchTimer-class
-     return "use_as_searchtimer mode user defined not supported in restfulapi (at least currently)";
+  if (useAsSearchtimer == 2) {
+
+     int f = q.getBodyAsInt("use_as_searchtimer_from");
+     int t = q.getBodyAsInt("use_as_searchtimer_til");
+     if (f > 0) {
+	 m_useAsSearchTimerFrom = f;
+	 m_useAsSearchTimerTil = t > 0 ? t : 0;
+     } else {
+	 return "user defined start time not valid (use unix timestamp)";
+     }
   }
 
   int action = q.getBodyAsInt("search_timer_action");
@@ -266,23 +301,24 @@ string SearchTimer::LoadFromQuery(QueryHandler& q)
   int repeatsWithinDays = q.getBodyAsInt("repeats_within_days");
   if (repeatsWithinDays > 0) m_repeatsWithinDays = repeatsWithinDays;
 
-  //TODO: test
-  JsonArray *blacklistIds = q.getBodyAsArray("blacklist_ids");
-  if (blacklistIds != NULL) {
-    for (int i=0; i < blacklistIds->CountItem(); i++) {
+  //m_blacklistmode: 0=global, 1=Selection, 2=all, 3=none
+  m_blacklistmode = q.getBodyAsInt("blacklist_mode");
+
+  if (m_blacklistmode == 1) {
+    JsonArray *blacklistIds = q.getBodyAsArray("blacklist_ids");
+    if (blacklistIds != NULL) {
+      for (int i=0; i < blacklistIds->CountItem(); i++) {
 	JsonBase* jsonBase = blacklistIds->GetItem(i);
 	if (jsonBase->IsBasicValue()) {
-	    JsonBasicValue* jsonBasicValue = (JsonBasicValue*)jsonBase;
-	    if (jsonBasicValue->IsDouble()) {
-		int id = jsonBasicValue->ValueAsDouble();
-		m_blacklistIDs.push_back(id);
-	    }
+	  JsonBasicValue* jsonBasicValue = (JsonBasicValue*)jsonBase;
+	  if (jsonBasicValue->IsString()) {
+	    int id = atoi(jsonBasicValue->ValueAsString().c_str());
+	    m_blacklistIDs.push_back(id);
+	  }
 	}
+      }
     }
   }
-  //m_blacklistmode: 0=no, 1=Selection, 2=all
-  int blacklistmode = q.getBodyAsInt("blackliste_mode");
-  if (blacklistmode > 0) return "blacklist currently not implemented";
 
   int compareCategories = q.getBodyAsInt("compare_categories");
   if (compareCategories >= 0) { m_catvaluesAvoidRepeat = compareCategories; }
@@ -295,6 +331,31 @@ string SearchTimer::LoadFromQuery(QueryHandler& q)
 
   int delAfterDaysOfFirstRec = q.getBodyAsInt("del_after_days_of_first_rec");
   if (delAfterDaysOfFirstRec >= 0) m_delAfterDaysOfFirstRec = delAfterDaysOfFirstRec;
+
+  m_unmuteSoundOnSwitch = q.getBodyAsBool("unmute_sound_on_switch");
+
+  m_compareTime = q.getBodyAsInt("compare_time");
+  if (m_compareTime < 0 || m_compareTime > 3) {
+      m_compareTime = 0;
+  }
+  m_summaryMatch = q.getBodyAsInt("summary_match");
+  if (m_compareTime < 0 || m_compareTime > 100) {
+      m_compareTime = 90;
+  }
+
+  m_catvaluesAvoidRepeat = q.getBodyAsInt("compare_categories");
+
+  size_t max = 0; int t=1;
+  ExtEPGInfos extepginfos;
+  size_t i;
+  for (i=0; i < extepginfos.size();i++) {
+      max = max | t;
+      t*=2;
+  }
+  if (m_catvaluesAvoidRepeat < 0 || m_catvaluesAvoidRepeat > max) {
+      m_catvaluesAvoidRepeat = 0;
+  }
+
 
   return ""; 
 } 
@@ -502,8 +563,8 @@ string SearchTimer::ToText()
       tmp_maxDuration = os.str();
    }
 
-   if (m_useChannel==1)
-   {
+   if (m_useChannel==1) {
+
       cChannel const* channelMin = Channels.GetByChannelID( m_channelMin );
       cChannel const* channelMax = Channels.GetByChannelID( m_channelMax );
 
@@ -517,15 +578,18 @@ string SearchTimer::ToText()
 
    if (m_useExtEPGInfo)
    {
-      for(unsigned int i=0; i<m_ExtEPGInfo.size(); i++)
+      for(unsigned int i=0; i<m_ExtEPGInfo.size(); i++) {
          tmp_catvalues += (tmp_catvalues != ""?"|":"") + 
             StringExtension::replace(StringExtension::replace(m_ExtEPGInfo[i], ":", "!^colon^!"), "|", "!^pipe^!");
+      }
    }
 
    if (m_blacklistmode == 1)
    {
-      for(unsigned int i=0; i<m_blacklistIDs.size(); i++)
-         tmp_blacklists += (tmp_blacklists != ""?"|":"") +  m_blacklistIDs[i];
+      for(unsigned int i=0; i<m_blacklistIDs.size(); i++) {
+	 string blacklist_id = StringExtension::toString(itoa(m_blacklistIDs[i]));
+         tmp_blacklists += (tmp_blacklists != ""?"|":"") + blacklist_id;
+      }
    }
 
    ostringstream os;
@@ -582,7 +646,7 @@ string SearchTimer::ToText()
       << m_unmuteSoundOnSwitch << ":"
       << m_summaryMatch << ":"
       << m_contentDescriptors << ":"
-      << m_compareTime << ":";
+      << m_compareTime;
 
    return os.str();
 }
@@ -778,7 +842,7 @@ ChannelGroup::ChannelGroup( string const& data )
       vector< string >::const_iterator part = parts.begin();
       for ( int i = 0; part != parts.end(); ++i, ++part ) {
          switch ( i ) {
-			case  0: m_name = *part; break;
+           case  0: m_name = *part; break;
          }
       }
    } catch ( bad_lexical_cast const& ex ) {

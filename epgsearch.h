@@ -150,7 +150,7 @@ public:
 	void SetKeepRecs(int recordingsKeep) { m_recordingsKeep = recordingsKeep; }
 	int PauseOnRecs() const {return m_pauseOnNrRecordings; }
 	void SetPauseOnRecs(int pauseOnNrRecordings) { m_pauseOnNrRecordings = pauseOnNrRecordings; }
-	int BlacklistMode() const {return m_blacklistmode; }
+	int BlacklistMode() const { return m_blacklistmode; }
 	void SetBlacklistMode(int blacklistmode) { m_blacklistmode = blacklistmode; }
 	std::vector< int > BlacklistIds() const { return m_blacklistIDs; }
 	void SetBlacklistIds(std::vector< int > blacklist_ids) { m_blacklistIDs = blacklist_ids; }
