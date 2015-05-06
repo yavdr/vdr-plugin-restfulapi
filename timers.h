@@ -30,6 +30,7 @@ class TimersResponder : public cxxtools::http::Responder
      void deleteTimer(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
      void showTimers(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
      void replyCreatedId(cTimer* timer, cxxtools::http::Request& request, cxxtools::http::Reply& reply, std::ostream& out);
+     void replyBulkdelete(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
 };
 
 typedef cxxtools::http::CachedService<TimersResponder> TimersService;
@@ -100,6 +101,58 @@ class XmlTimerList : TimerList
     ~XmlTimerList() { };
     virtual void init();
     virtual void addTimer(cTimer* timer);
+    virtual void finish();
+};
+
+struct SerBulkDeleted {
+  cxxtools::String id;
+  bool deleted;
+};
+
+void operator<<= (cxxtools::SerializationInfo& si, const SerBulkDeleted& t);
+
+class TimerDeletedList : public BaseList
+{
+  protected:
+    StreamExtension *s;
+    int total;
+  public:
+    explicit TimerDeletedList(std::ostream* _out);
+    virtual ~TimerDeletedList();
+    virtual void init() { };
+    virtual void addDeleted(SerBulkDeleted &timer) { };
+    virtual void finish() { };
+    virtual void setTotal(int _total) { total = _total; }
+};
+
+class HtmlTimerDeletedList : TimerDeletedList
+{
+  public:
+    explicit HtmlTimerDeletedList(std::ostream* _out) : TimerDeletedList(_out) { };
+    ~HtmlTimerDeletedList() { };
+    virtual void init();
+    virtual void addDeleted(SerBulkDeleted &timer);
+    virtual void finish();
+};
+
+class JsonTimerDeletedList : TimerDeletedList
+{
+  private:
+    std::vector < struct SerBulkDeleted > serDeleted;
+  public:
+    explicit JsonTimerDeletedList(std::ostream* _out) : TimerDeletedList(_out) { };
+    ~JsonTimerDeletedList() { };
+    virtual void addDeleted(SerBulkDeleted &timer);
+    virtual void finish();
+};
+
+class XmlTimerDeletedList : TimerDeletedList
+{
+  public:
+    explicit XmlTimerDeletedList(std::ostream* _out) : TimerDeletedList(_out) { };
+    ~XmlTimerDeletedList() { };
+    virtual void init();
+    virtual void addDeleted(SerBulkDeleted &timer);
     virtual void finish();
 };
 

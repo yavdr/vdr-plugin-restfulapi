@@ -12,17 +12,17 @@ void TimersResponder::reply(ostream& out, cxxtools::http::Request& request, cxxt
   }
 
   if ( request.method() == "GET" ) {
-     showTimers(out, request, reply);
-  } else if ( request.method() == "DELETE" ) {
-     deleteTimer(out, request, reply);
+      showTimers(out, request, reply);
+  } else if ( request.method() == "DELETE" && (int)request.url().find("/timers/bulkdelete") == 0 ) {
+      replyBulkdelete(out, request, reply);
+  } else if (request.method() == "DELETE") {
+      deleteTimer(out, request, reply);
   } else if ( request.method() == "POST" ) {
-     createOrUpdateTimer(out, request, reply, false);
+      createOrUpdateTimer(out, request, reply, false);
   } else if ( request.method() == "PUT" ) {
-     createOrUpdateTimer(out, request, reply, true);
-  } else if (request.method() == "OPTIONS") {
-     return;
+      createOrUpdateTimer(out, request, reply, true);
   } else {
-     reply.httpReturn(501, "Only GET, DELETE, POST and PUT methods are supported.");
+      reply.httpReturn(501, "Only GET, DELETE, POST and PUT methods are supported.");
   }
 }
 
@@ -214,6 +214,64 @@ void TimersResponder::deleteTimer(ostream& out, cxxtools::http::Request& request
   }
 }
 
+void TimersResponder::replyBulkdelete(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply) {
+
+  QueryHandler q("/timers/bulkdelete", request);
+
+  if ( Timers.BeingEdited() ) {
+     reply.httpReturn(502, "Timers are being edited - try again later");
+     return;
+  }
+
+  TimerDeletedList* list;
+
+  if ( q.isFormat(".json") ) {
+     reply.addHeader("Content-Type", "application/json; charset=utf-8");
+     list = (TimerDeletedList*)new JsonTimerDeletedList(&out);
+  } else if ( q.isFormat(".html") ) {
+     reply.addHeader("Content-Type", "text/html; charset=utf-8");
+     list = (TimerDeletedList*)new HtmlTimerDeletedList(&out);
+  } else if ( q.isFormat(".xml") ) {
+     reply.addHeader("Content-Type", "text/xml; charset=utf-8");
+     list = (TimerDeletedList*)new XmlTimerDeletedList(&out);
+  } else {
+     reply.httpReturn(404, "Resources are not available for the selected format. (Use: .json, .html or .xml)");
+     return;
+  }
+
+  TimerValues v;
+  cTimer* timer;
+
+  vector< string > timers = q.getBodyAsStringArray("timers");
+  vector< SerBulkDeleted > results;
+  SerBulkDeleted result;
+
+  size_t i;
+
+  list->init();
+
+  for ( i = 0; i < timers.size(); i++ ) {
+    timer = v.ConvertTimer(timers[i]);
+    result.id = timers[i];
+    if ( timer == NULL ) {
+	result.deleted = false;
+    } else {
+      if ( timer->Recording() ) {
+	timer->Skip();
+	cRecordControls::Process(time(NULL));
+      }
+      Timers.Del(timer);
+      Timers.SetModified();
+      result.deleted = true;
+    }
+    list->addDeleted(result);
+  }
+  list->setTotal((int)timers.size());
+  list->finish();
+  delete list;
+
+};
+
 void TimersResponder::showTimers(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/timers", request);
@@ -399,6 +457,79 @@ void XmlTimerList::finish()
 {
   s->write((const char*)cString::sprintf(" <count>%i</count><total>%i</total>", Count(), total));
   s->write("</timers>");
+}
+
+// Timerdeleted list
+
+void operator<<= (cxxtools::SerializationInfo& si, const SerBulkDeleted& t)
+{
+  si.addMember("id") <<= t.id;
+  si.addMember("deleted") <<= t.deleted;
+}
+
+TimerDeletedList::TimerDeletedList(ostream *out)
+{
+  s = new StreamExtension(out);
+}
+
+TimerDeletedList::~TimerDeletedList()
+{
+  delete s;
+}
+
+void HtmlTimerDeletedList::init()
+{
+  s->writeHtmlHeader("HtmlTimerDeletedList");
+  s->write("<ul>");
+}
+
+void HtmlTimerDeletedList::addDeleted(SerBulkDeleted &timer)
+{
+  s->write(cString::sprintf("<li>%s deleted: %s</li>\n", StringExtension::toString(timer.id).c_str(), timer.deleted ? "true" : "false"));
+}
+
+void HtmlTimerDeletedList::finish()
+{
+  s->write("</ul>");
+  s->write("</body></html>");
+}
+
+void JsonTimerDeletedList::addDeleted(SerBulkDeleted &timer)
+{
+  serDeleted.push_back(timer);
+}
+
+void JsonTimerDeletedList::finish()
+{
+  cxxtools::JsonSerializer serializer(*s->getBasicStream());
+  serializer.serialize(serDeleted, "timers");
+  serializer.serialize(serDeleted.size(), "count");
+  serializer.serialize(total, "total");
+  serializer.finish();
+}
+
+void XmlTimerDeletedList::init()
+{
+  counter = 0;
+  s->writeXmlHeader();
+  s->write("<timers_deleted xmlns=\"http://www.domain.org/restfulapi/2011/timers-xml\">\n");
+}
+
+void XmlTimerDeletedList::addDeleted(SerBulkDeleted &timer)
+{
+  if ( filtered() ) return;
+  static TimerValues v;
+
+  s->write(" <timer>\n");
+  s->write(cString::sprintf("<id>%s</id>\n", StringExtension::toString(timer.id).c_str()));
+  s->write(cString::sprintf("<deleted>%s</deleted>\n", timer.deleted ? "true" : "false"));
+  s->write(" </timer>\n");
+}
+
+void XmlTimerDeletedList::finish()
+{
+  s->write((const char*)cString::sprintf(" <count>%i</count><total>%i</total>", Count(), total));
+  s->write("</timers_deleted>");
 }
 
 // --- TimerValues class ------------------------------------------------------------
