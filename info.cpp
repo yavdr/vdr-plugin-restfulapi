@@ -208,6 +208,16 @@ void InfoResponder::replyXml(StreamExtension& se)
       se.write(cString::sprintf("    <has_decoder>%s</has_decoder>\n", (sd.hasDecoder ? "true" : "false")));
       se.write(cString::sprintf("    <name>%s</name>\n", StringExtension::encodeToXml(sd.Name).c_str()));
       se.write(cString::sprintf("    <number>%i</number>\n", sd.Number));
+      se.write(cString::sprintf("    <channel_id>%s</channel_id>\n", StringExtension::encodeToXml(sd.ChannelId).c_str()));
+      se.write(cString::sprintf("    <channel_name>%s</channel_name>\n", StringExtension::encodeToXml(sd.ChannelName).c_str()));
+      se.write(cString::sprintf("    <channel_nr>%i</channel_nr>\n", sd.ChannelNr));
+      se.write(cString::sprintf("    <live>%s</live>\n", (sd.Live ? "true" : "false")));
+      se.write(cString::sprintf("    <has_ci>%s</has_ci>\n", (sd.HasCi ? "true" : "false")));
+      se.write(cString::sprintf("    <signal_strength>%i</signal_strength>\n", sd.SignalStrength));
+      se.write(cString::sprintf("    <signal_quality>%i</signal_quality>\n", sd.SignalQuality));
+      se.write(cString::sprintf("    <adapter>%i</adapter>\n", sd.Adapter));
+      se.write(cString::sprintf("    <frontend>%i</frontend>\n", sd.Frontend));
+      se.write(cString::sprintf("    <type>%s</type>\n", StringExtension::encodeToXml(sd.Type).c_str()));
       se.write(" </device>");
   }
   se.write(" </devices>");
@@ -221,6 +231,33 @@ SerDevice InfoResponder::getDeviceSerializeInfo(int index) {
   cDvbDevice* dev = VdrExtension::getDevice(index);
   cString deviceName = dev->DeviceName();
   const char * name = deviceName;
+  const cChannel * chan = dev->GetCurrentlyTunedTransponder();
+  string channelName = "n.a.";
+  string channelId = "n.a.";
+  bool hasCi = false;
+
+  int signalStrength = -1;
+  int signalQuality = -1;
+  int adapter = -1;
+  int frontend = -1;
+
+  string type = "n.a.";
+  int channelNr = -1;
+  bool live = false;
+
+  if (dev->ProvidesSource(cSource::stCable) || dev->ProvidesSource(cSource::stSat) || dev->ProvidesSource(cSource::stTerr) || dev->ProvidesSource(cSource::stAtsc)) {
+      channelName = (string)chan->Name();
+      channelId = (string)chan->GetChannelID().ToString();
+      channelNr = chan->Number();
+      live = channelNr == StatusMonitor::get()->getChannel();
+
+      hasCi = dev->HasCi();
+      signalStrength = dev->SignalStrength();
+      signalQuality = dev->SignalQuality();
+      adapter = dev->Adapter();
+      frontend = dev->Frontend();
+      type = (string)dev->DeviceType();
+  }
 
   sd.dvbc = dev->ProvidesSource(cSource::stCable);
   sd.dvbs = dev->ProvidesSource(cSource::stSat);
@@ -230,6 +267,16 @@ SerDevice InfoResponder::getDeviceSerializeInfo(int index) {
   sd.hasDecoder = dev->HasDecoder();
   sd.Name = name;
   sd.Number = dev->CardIndex();
+  sd.ChannelId = StringExtension::UTF8Decode(channelId);
+  sd.ChannelName = StringExtension::UTF8Decode(channelName);
+  sd.ChannelNr = channelNr;
+  sd.Live = live;
+  sd.HasCi = hasCi;
+  sd.SignalStrength = signalStrength;
+  sd.SignalQuality = signalQuality;
+  sd.Adapter = adapter;
+  sd.Frontend = frontend;
+  sd.Type = type;
 
   return sd;
 };
@@ -276,4 +323,14 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerDevice& d)
   si.addMember("primary") <<= d.primary;
   si.addMember("has_decoder") <<= d.hasDecoder;
   si.addMember("number") <<= d.Number;
+  si.addMember("channel_id") <<= d.ChannelId;
+  si.addMember("channel_name") <<= d.ChannelName;
+  si.addMember("channel_nr") <<= d.ChannelNr;
+  si.addMember("live") <<= d.Live;
+  si.addMember("has_ci") <<= d.HasCi;
+  si.addMember("signal_strength") <<= d.SignalStrength;
+  si.addMember("signal_quality") <<= d.SignalQuality;
+  si.addMember("adapter") <<= d.Adapter;
+  si.addMember("frontend") <<= d.Frontend;
+  si.addMember("type") <<= d.Type;
 }
