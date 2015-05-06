@@ -49,7 +49,19 @@ struct SerDevice {
   bool atsc;
   bool primary;
   bool hasDecoder;
+
+  bool HasCi;
+  int SignalStrength;
+  int SignalQuality;
+  int Adapter;
+  int Frontend;
+  cxxtools::String Type;
+
   int Number;
+  cxxtools::String ChannelId;
+  cxxtools::String ChannelName;
+  int ChannelNr;
+  bool Live;
 };
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerService& s);
