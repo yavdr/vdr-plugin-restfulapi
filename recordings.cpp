@@ -396,6 +396,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerRecording& p)
   si.addMember("event_start_time") <<= p.EventStartTime;
   si.addMember("event_duration") <<= p.EventDuration;
   si.addMember("additional_media") <<= p.AdditionalMedia;
+  si.addMember("aux") <<= p.Aux;
 }
 
 RecordingList::RecordingList(ostream *out, bool _read_marks)
@@ -490,6 +491,9 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
   serRecording.EventDescription = eventDescription;
   serRecording.EventStartTime = eventStartTime;
   serRecording.EventDuration = eventDuration;
+
+  const char* aux = recording->Info()->Aux();
+  serRecording.Aux = (aux != NULL ? StringExtension::UTF8Decode(aux) : empty);
 
   SerMarks serMarks;
   if (read_marks) {
@@ -588,6 +592,7 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr)
   s->write(cString::sprintf("  <param name=\"event_description\">%s</param>\n", StringExtension::encodeToXml(eventDescription).c_str()));
   s->write(cString::sprintf("  <param name=\"event_start_time\">%i</param>\n", eventStartTime));
   s->write(cString::sprintf("  <param name=\"event_duration\">%i</param>\n", eventDuration));
+  s->write(cString::sprintf("  <param name=\"aux\">%s</param>\n", StringExtension::encodeToXml(recording->Info()->Aux()).c_str()));
 
 
   sc.getMedia(recording, s);

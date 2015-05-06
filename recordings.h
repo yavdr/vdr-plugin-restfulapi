@@ -64,6 +64,7 @@ struct SerRecording
   cxxtools::String EventDescription;
   int EventStartTime;
   int EventDuration;
+  cxxtools::String Aux;
   struct SerAdditionalMedia AdditionalMedia;
 };
 
