@@ -271,6 +271,8 @@ class QueryHandler
     bool isFormat(std::string format);
     std::string getFormat() { return _format; }
     static void addHeader(cxxtools::http::Reply& reply);
+    std::vector< std::string > getBodyAsStringArray(std::string name);
+    std::vector< int > getBodyAsIntArray(std::string name);
 };
 
 class BaseList

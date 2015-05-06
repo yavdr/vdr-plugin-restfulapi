@@ -1537,6 +1537,46 @@ void QueryHandler::addHeader(cxxtools::http::Reply& reply)
   reply.addHeader("Access-Control-Allow-Methods", "POST, GET, DELETE, PUT");
 }
 
+vector< string > QueryHandler::getBodyAsStringArray(string name) {
+
+  vector< string > returnVector;
+
+  JsonArray *json = getBodyAsArray(name);
+  if (json != NULL) {
+    for (int i=0; i < json->CountItem(); i++) {
+	JsonBase* jsonBase = json->GetItem(i);
+	if (jsonBase->IsBasicValue()) {
+	  JsonBasicValue* jsonBasicValue = (JsonBasicValue*)jsonBase;
+	  if (jsonBasicValue->IsString()) {
+	    string value = jsonBasicValue->ValueAsString().c_str();
+	    returnVector.push_back(value);
+	  }
+	}
+    }
+  }
+  return returnVector;
+};
+
+vector< int > QueryHandler::getBodyAsIntArray(string name) {
+
+  vector< int > returnVector;
+
+  JsonArray *json = getBodyAsArray(name);
+  if (json != NULL) {
+    for (int i=0; i < json->CountItem(); i++) {
+	JsonBase* jsonBase = json->GetItem(i);
+	if (jsonBase->IsBasicValue()) {
+	  JsonBasicValue* jsonBasicValue = (JsonBasicValue*)jsonBase;
+	  if (jsonBasicValue->IsString()) {
+	    int value = atoi(jsonBasicValue->ValueAsString().c_str());
+	    returnVector.push_back(value);
+	  }
+	}
+    }
+  }
+  return returnVector;
+};
+
 // --- BaseList ---------------------------------------------------------------
 
 BaseList::BaseList()
