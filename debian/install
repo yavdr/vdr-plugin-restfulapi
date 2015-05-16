@@ -2,4 +2,3 @@
 API.html                var/lib/vdr/plugins/restfulapi/
 web/osd.css             var/lib/vdr/plugins/restfulapi/
 web/osd.js              var/lib/vdr/plugins/restfulapi/
-plugin.restfulapi.conf  etc/vdr/plugins/
