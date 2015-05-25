@@ -46,7 +46,7 @@ void InfoResponder::replyJson(StreamExtension& se)
   StatusMonitor* statm = StatusMonitor::get();
 
   cxxtools::JsonSerializer serializer(*se.getBasicStream());
-  serializer.serialize("0.0.1", "version");
+  serializer.serialize(cPluginManager::GetPlugin("restfulapi")->Version(), "version");
   serializer.serialize((int)now, "time");
   
   vector< struct SerService > services;
@@ -132,7 +132,7 @@ void InfoResponder::replyXml(StreamExtension& se)
 
   se.writeXmlHeader();
   se.write("<info xmlns=\"http://www.domain.org/restfulapi/2011/info-xml\">\n");
-  se.write(" <version>0.0.1</version>\n");
+  se.write(cString::sprintf(" <version>%s</version>\n", cPluginManager::GetPlugin("restfulapi")->Version()));
   se.write(cString::sprintf(" <time>%i</time>\n", (int)now)); 
   se.write(" <services>\n");
   
@@ -182,6 +182,7 @@ void InfoResponder::replyXml(StreamExtension& se)
   se.write(" </diskusage>\n");
 
   se.write(" <vdr>\n");
+  se.write(cString::sprintf(" <version>%s</version>\n", VDRVERSION));
   se.write("  <plugins>\n");
  
   cPlugin* p = NULL; 
@@ -295,6 +296,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerPlugin& p)
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerVDR& vdr)
 {
+  si.addMember("version") <<= VDRVERSION;
   si.addMember("plugins") <<= vdr.plugins;
   si.addMember("devices") <<= vdr.devices;
 }

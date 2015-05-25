@@ -23,6 +23,7 @@ struct SerPlugin
 
 struct SerVDR
 {
+  std::string version;
   std::vector< struct SerPlugin > plugins;
   std::vector< struct SerDevice > devices;
 };
