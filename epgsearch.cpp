@@ -339,8 +339,8 @@ string SearchTimer::LoadFromQuery(QueryHandler& q)
       m_compareTime = 0;
   }
   m_summaryMatch = q.getBodyAsInt("summary_match");
-  if (m_compareTime < 0 || m_compareTime > 100) {
-      m_compareTime = 90;
+  if (m_summaryMatch < 0 || m_summaryMatch > 100) {
+      m_summaryMatch = 90;
   }
 
   m_catvaluesAvoidRepeat = q.getBodyAsInt("compare_categories");
