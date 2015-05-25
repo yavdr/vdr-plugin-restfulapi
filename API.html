@@ -147,8 +147,11 @@
         }
 
         ul.param-desc {
-            background-color: #0A2419;
             padding-left: 40px;
+        }
+
+        div.param-desc {
+            white-space: pre-line;
         }
 
         .param-desc[data-header] {
@@ -210,6 +213,7 @@
                 <li><a href="#Timers">Timers</a>
                     <ul>
                         <li><a href="#ReadingTimers">Reading/Deleting Timers</a>
+                        <li><a href="#BulkDeleteTimers">Bulk Delete Timers</a>
                         <li><a href="#CreatingTimers">Creating Timers</a>
                         <li><a href="#UpdatingTimers">Updating Timers</a>
                     </ul>
@@ -1361,6 +1365,43 @@
                     &nbsp;&nbsp;&nbsp;&nbsp;],
                     &nbsp;&nbsp;&nbsp;&nbsp;"count": 1,
                     &nbsp;&nbsp;&nbsp;&nbsp;"total": 20
+                    }
+                </div>
+
+                <h3><a name="BulkDeleteTimers"></a>Bulk delete Timers</h3>
+                <p class="description">Deletes multiple Timers at once</p>
+                <p class="method">DELETE</p>
+
+                <div class="code" data-header="Example:">
+                    DELETE http:/&lt;ip&gt;:&lt;port&gt;/timers/bulkdelete.json
+                </div>
+                <div class="param-desc" data-header="Example Body Parameter:">
+                    {
+                    &nbsp;&nbsp;&nbsp;&nbsp;"timers" : [
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"C-61441-10004-50101:0:1432504800:1923:2025",
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"C-61441-10013-50001:0:1432504800:2013:2110",
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"C-61441-10012-50008:0:1432591200:2013:2230"
+                    &nbsp;&nbsp;&nbsp;&nbsp;]
+                    }
+                </div>
+                <div class="code " data-header="Example Result:">
+                    {
+                    &nbsp;&nbsp;&nbsp;&nbsp;"timers" : [
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"id" : "C-61441-10004-50101:0:1432504800:1923:2025",
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"deleted" : true
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"id" : "C-61441-10013-50001:0:1432504800:2013:2110",
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"deleted" : true
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"id" : "C-61441-10012-50008:0:1432591200:2013:2230",
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"deleted" : true
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+                    &nbsp;&nbsp;&nbsp;&nbsp;],
+                    &nbsp;&nbsp;&nbsp;&nbsp;"count" : 3,
+                    &nbsp;&nbsp;&nbsp;&nbsp;"total" : 3
                     }
                 </div>
 
