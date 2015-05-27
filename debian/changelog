@@ -1,3 +1,9 @@
+vdr-plugin-restfulapi (0.2.3.6-1yavdr0~trusty) trusty; urgency=medium
+
+  * convert to conf.d
+
+ -- Lars Hanisch <dvb@flensrocker.de>  Thu, 28 May 2015 00:46:37 +0200
+
 vdr-plugin-restfulapi (0.2.3.6-0yavdr0~precise) precise; urgency=medium
 
   * add documentation for bulk delete timers
