@@ -52,6 +52,7 @@ void ChannelsResponder::replyChannels(ostream& out, cxxtools::http::Request& req
   int limit_filter = q.getOptionAsInt("limit");
   string group_filter = q.getOptionAsString("group");
 
+  int index = 0;
   if (channel_details.length() > 0) {
      cChannel* channel = VdrExtension::getChannel(channel_details);
      if (channel == NULL || channel->GroupSep()) {
@@ -63,17 +64,23 @@ void ChannelsResponder::replyChannels(ostream& out, cxxtools::http::Request& req
         
         string group = "";
         int total = 0;
+        int c = 0;
         for (cChannel *channelIt = Channels.First(); channelIt; channelIt = Channels.Next(channelIt))
         { 
-           if (!channelIt->GroupSep()) 
-              total++; 
-           else
+           if (!channelIt->GroupSep()) {
+              total++;
+              if (strcmp(channelIt->Name(), channel->Name()) == 0) {
+        	  index = c;
+              }
+           } else
               if ( total < channel->Number())
                  group = channelIt->Name();
+
+           c++;
         }
         channelList->setTotal(total);
         string image = FileCaches::get()->searchChannelLogo(channel);
-        channelList->addChannel(channel, group, image.length() == 0);
+        channelList->addChannel(channel, group, image.length() == 0, index);
      }
   } else {
      if ( start_filter >= 0 && limit_filter >= 1 ) {
@@ -87,12 +94,13 @@ void ChannelsResponder::replyChannels(ostream& out, cxxtools::http::Request& req
        if (!channel->GroupSep()) {
           if ( group_filter.length() == 0 || group == group_filter ) {
              string image = FileCaches::get()->searchChannelLogo(channel);
-             channelList->addChannel(channel, group, image.length() != 0);
+             channelList->addChannel(channel, group, image.length() != 0, index);
              total++;
           }
        } else {
          group = channel->Name();
        }
+       index++;
      }
      channelList->setTotal(total);
   }
@@ -204,6 +212,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerChannel& c)
   si.addMember("is_terr") <<= c.IsTerr;
   si.addMember("is_sat") <<= c.IsSat;
   si.addMember("is_radio") <<= c.IsRadio;
+  si.addMember("index") <<= c.index;
 }
 
 ChannelList::ChannelList(ostream* _out)
@@ -223,7 +232,7 @@ void HtmlChannelList::init()
   s->write("<ul>");
 }
 
-void HtmlChannelList::addChannel(cChannel* channel, string group, bool image)
+void HtmlChannelList::addChannel(cChannel* channel, string group, bool image, int index)
 {
   if ( filtered() ) return;
 
@@ -238,7 +247,7 @@ void HtmlChannelList::finish()
   s->write("</body></html>");
 }
 
-void JsonChannelList::addChannel(cChannel* channel, string group, bool image)
+void JsonChannelList::addChannel(cChannel* channel, string group, bool image, int index)
 {  
   if ( filtered() ) return;
 
@@ -262,6 +271,7 @@ void JsonChannelList::addChannel(cChannel* channel, string group, bool image)
   serChannel.IsSat = channel->IsSat();
   serChannel.IsTerr = channel->IsTerr();
   serChannel.IsRadio = VdrExtension::IsRadio(channel);
+  serChannel.index = index;
   serChannels.push_back(serChannel);
 }
 
@@ -280,7 +290,7 @@ void XmlChannelList::init()
   s->write("<channels xmlns=\"http://www.domain.org/restfulapi/2011/channels-xml\">\n");
 }
 
-void XmlChannelList::addChannel(cChannel* channel, string group, bool image)
+void XmlChannelList::addChannel(cChannel* channel, string group, bool image, int index)
 {
   if ( filtered() ) return;
 
@@ -305,6 +315,7 @@ void XmlChannelList::addChannel(cChannel* channel, string group, bool image)
   s->write(cString::sprintf("  <param name=\"is_terr\">%s</param>\n", channel->IsTerr() ? "true" : "false"));
   bool is_radio = VdrExtension::IsRadio(channel);
   s->write(cString::sprintf("  <param name=\"is_radio\">%s</param>\n", is_radio ? "true" : "false"));
+  s->write(cString::sprintf("  <param name=\"index\">%i</param>\n", index));
   s->write(" </channel>\n");
 }
 
