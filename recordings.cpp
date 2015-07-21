@@ -283,25 +283,26 @@ void RecordingsResponder::saveMarks(ostream& out, cxxtools::http::Request& reque
 
   if (jsonArray == NULL) {
      reply.httpReturn(503, "Marks in HTTP-Body are missing.");
-  }
-
-  cThreadLock RecordingsLock(&Recordings);
-  if (recording < 0 || recording >= Recordings.Count()) {
-     reply.httpReturn(504, "Recording number missing or invalid.");
   } else {
-     vector< string > marks;
 
-     for (int i = 0; i < jsonArray->CountItem(); i++) {
-        JsonBase* jsonBase = jsonArray->GetItem(i);
-        if (jsonBase->IsBasicValue()) {
-           JsonBasicValue* jsonBasicValue = (JsonBasicValue*)jsonBase;
-           if (jsonBasicValue->IsString()) {
-              marks.push_back(jsonBasicValue->ValueAsString());
-           }
-        }
-     }
+    cThreadLock RecordingsLock(&Recordings);
+    if (recording < 0 || recording >= Recordings.Count()) {
+       reply.httpReturn(504, "Recording number missing or invalid.");
+    } else {
+       vector< string > marks;
 
-     VdrMarks::get()->saveMarks(Recordings.Get(recording), marks);
+       for (int i = 0; i < jsonArray->CountItem(); i++) {
+	  JsonBase* jsonBase = jsonArray->GetItem(i);
+	  if (jsonBase->IsBasicValue()) {
+	     JsonBasicValue* jsonBasicValue = (JsonBasicValue*)jsonBase;
+	     if (jsonBasicValue->IsString()) {
+		marks.push_back(jsonBasicValue->ValueAsString());
+	     }
+	  }
+       }
+
+       VdrMarks::get()->saveMarks(Recordings.Get(recording), marks);
+    }
   }
 }
 
