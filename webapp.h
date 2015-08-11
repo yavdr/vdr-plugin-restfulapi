@@ -14,7 +14,7 @@ class WebappResponder : public cxxtools::http::Responder {
 private:
   string getFile(string fileName);
   string getFileName(string base, string url);
-  const char *getContentType(string fileName);
+  string getContentType(string fileName);
   void streamResponse(string fileName, ostream& out, string file, cxxtools::http::Reply& reply);
 public:
   explicit WebappResponder(cxxtools::http::Service& service) : cxxtools::http::Responder(service) {};

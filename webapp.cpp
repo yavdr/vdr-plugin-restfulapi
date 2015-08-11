@@ -75,14 +75,12 @@ string WebappResponder::getFile(std::string fileName) {
  */
 string WebappResponder::getFileName(string base, string url) {
 
-  const char *empty = "";
-
   if ( url.find_last_of("/") == (url.length() - 1) ) {
       url = url.substr(0, url.length() - 1);
   }
   string file = url.replace(0, base.length(), "");
 
-  if (strcmp(file.c_str(), empty) == 0) {
+  if ( file == "" ) {
       file = "index.html";
   }
   return file;
@@ -92,49 +90,58 @@ string WebappResponder::getFileName(string base, string url) {
  * determine contenttype
  * @param string fileName
  */
-const char *WebappResponder::getContentType(string fileName) {
+string WebappResponder::getContentType(string fileName) {
 
-  const char *type = fileName.substr(fileName.find_last_of(".")+1).c_str();
-  const char *contentType = "";
-  const char *extHtml = "html";
-  const char *extJs = "js";
-  const char *extCss = "css";
-  const char *extJpg = "jpg";
-  const char *extJpeg = "jpeg";
-  const char *extGif = "gif";
-  const char *extPng = "png";
-  const char *extIco = "ico";
-  const char *extAppCacheManifest = "appcache";
-  esyslog("restfulapi Webapp: file extension of %s is %s", fileName.c_str(), type);
+  string type = fileName.substr(fileName.find_last_of(".")+1);
+  string contentType = "";
+  string extHtml = "html";
+  string extJs = "js";
+  string extCss = "css";
+  string extJpg = "jpg";
+  string extJpeg = "jpeg";
+  string extJpe = "jpe";
+  string extGif = "gif";
+  string extPng = "png";
+  string extSvg = "svg";
+  string extIco = "ico";
+  string extAppCacheManifest = "appcache";
+  string extAppCacheManifestAlternative = "manifest";
+  esyslog("restfulapi Webapp: file extension of %s is %s", fileName.c_str(), type.c_str());
 
-  if ( strcmp(type, extHtml) == 0 ) {
+  if ( extHtml == type ) {
       contentType = "text/html";
-  } else if ( strcmp(type, extJs) == 0 ) {
+  } else if ( type == extJs ) {
       contentType = "application/javascript";
-  } else if ( strcmp(type, extCss) == 0 ) {
+  } else if ( type == extCss ) {
       contentType = "text/css";
-  } else if ( strcmp(type, extJpg) == 0 || strcmp(type, extJpeg) == 0 || strcmp(type, extGif) == 0 || strcmp(type, extPng) == 0 ) {
-      contentType = ("image/" + (string)type).c_str();
-  } else if ( strcmp(type, extIco) == 0 ) {
+  } else if ( type == extGif || type == extPng ) {
+      contentType = "image/" + type;
+  } else if ( type == extJpg || type == extJpeg || type == extJpe ) {
+      contentType = "image/jpeg";
+  } else if ( type == extSvg ) {
+      contentType = "image/svg+xml";
+  } else if ( type == extIco ) {
       contentType = "image/x-icon";
-  } else if ( strcmp(type, extAppCacheManifest) == 0 ) {
+  } else if ( type == extAppCacheManifest || type == extAppCacheManifestAlternative ) {
       contentType = "text/cache-manifest";
   }
-  esyslog("restfulapi Webapp: file type of %s is %s", fileName.c_str(), contentType);
+  esyslog("restfulapi Webapp: file type of %s is %s", fileName.c_str(), contentType.c_str());
 
   return contentType;
 };
 
+/**
+ * stream file
+ */
 void WebappResponder::streamResponse(string fileName, ostream& out, string file, cxxtools::http::Reply& reply) {
 
-  const char *empty = "";
-  const char * contentType = getContentType(fileName);
+  string contentType = getContentType(fileName);
 
   StreamExtension se(&out);
-  if ( strcmp(contentType, empty) != 0 && se.writeBinary(file) ) {
+  if ( contentType  != "" && se.writeBinary(file) ) {
       esyslog("restfulapi Webapp: successfully piped file %s", fileName.c_str());
       FileExtension::get()->addModifiedHeader(file, reply);
-      reply.addHeader("Content-Type", contentType);
+      reply.addHeader("Content-Type", contentType.c_str());
   } else {
       esyslog("restfulapi Webapp: error piping file %s", fileName.c_str());
       reply.httpReturn(404, "File not found");
