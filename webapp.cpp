@@ -92,39 +92,37 @@ string WebappResponder::getFileName(string base, string url) {
  */
 string WebappResponder::getContentType(string fileName) {
 
+  map<string, string> types;
+  map<string, string>::iterator it;
+
+  types["html"]		= "text/html";
+  types["js"]		= "application/javascript";
+  types["css"]		= "text/css";
+  types["gif"]		= "image/gif";
+  types["png"]		= "image/png";
+  types["jpg"]		= "image/jpeg";
+  types["jpeg"]		= types["jpg"];
+  types["jpe"]		= types["jpg"];
+  types["svg"]		= "image/svg+xml";
+  types["ico"]		= "image/vnd.microsoft.icon";
+  types["xml"]		= "application/xml";
+  types["appcache"]	= "text/cache-manifest";
+  types["manifest"]	= types["appcache"];
+  types["mkv"]		= "video/mkv";
+  types["map"]		= "application/json";
+  types["txt"]		= "text/plain";
+
   string type = fileName.substr(fileName.find_last_of(".")+1);
   string contentType = "";
-  string extHtml = "html";
-  string extJs = "js";
-  string extCss = "css";
-  string extJpg = "jpg";
-  string extJpeg = "jpeg";
-  string extJpe = "jpe";
-  string extGif = "gif";
-  string extPng = "png";
-  string extSvg = "svg";
-  string extIco = "ico";
-  string extAppCacheManifest = "appcache";
-  string extAppCacheManifestAlternative = "manifest";
   esyslog("restfulapi Webapp: file extension of %s is %s", fileName.c_str(), type.c_str());
 
-  if ( extHtml == type ) {
-      contentType = "text/html";
-  } else if ( type == extJs ) {
-      contentType = "application/javascript";
-  } else if ( type == extCss ) {
-      contentType = "text/css";
-  } else if ( type == extGif || type == extPng ) {
-      contentType = "image/" + type;
-  } else if ( type == extJpg || type == extJpeg || type == extJpe ) {
-      contentType = "image/jpeg";
-  } else if ( type == extSvg ) {
-      contentType = "image/svg+xml";
-  } else if ( type == extIco ) {
-      contentType = "image/x-icon";
-  } else if ( type == extAppCacheManifest || type == extAppCacheManifestAlternative ) {
-      contentType = "text/cache-manifest";
+  it = types.find(type);
+  if (it != types.end()) {
+      contentType = it->second;
+  } else {
+      contentType = "application/octet-stream";
   }
+
   esyslog("restfulapi Webapp: file type of %s is %s", fileName.c_str(), contentType.c_str());
 
   return contentType;
