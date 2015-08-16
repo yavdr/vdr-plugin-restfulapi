@@ -92,38 +92,19 @@ string WebappResponder::getFileName(string base, string url) {
  */
 string WebappResponder::getContentType(string fileName) {
 
-  map<string, string> types;
+  map<string, string> types = Settings::get()->WebappFileTypes();
   map<string, string>::iterator it;
 
-  types["html"]		= "text/html";
-  types["js"]		= "application/javascript";
-  types["css"]		= "text/css";
-  types["gif"]		= "image/gif";
-  types["png"]		= "image/png";
-  types["jpg"]		= "image/jpeg";
-  types["jpeg"]		= types["jpg"];
-  types["jpe"]		= types["jpg"];
-  types["svg"]		= "image/svg+xml";
-  types["ico"]		= "image/vnd.microsoft.icon";
-  types["xml"]		= "application/xml";
-  types["appcache"]	= "text/cache-manifest";
-  types["manifest"]	= types["appcache"];
-  types["mkv"]		= "video/mkv";
-  types["map"]		= "application/json";
-  types["txt"]		= "text/plain";
-
   string type = fileName.substr(fileName.find_last_of(".")+1);
-  string contentType = "";
-  esyslog("restfulapi Webapp: file extension of %s is %s", fileName.c_str(), type.c_str());
+  string contentType = "application/octet-stream";
+  esyslog("restfulapi Webapp: file extension of %s is '%s'", fileName.c_str(), type.c_str());
 
   it = types.find(type);
   if (it != types.end()) {
       contentType = it->second;
-  } else {
-      contentType = "application/octet-stream";
   }
 
-  esyslog("restfulapi Webapp: file type of %s is %s", fileName.c_str(), contentType.c_str());
+  esyslog("restfulapi Webapp: file type of %s is '%s'", fileName.c_str(), contentType.c_str());
 
   return contentType;
 };

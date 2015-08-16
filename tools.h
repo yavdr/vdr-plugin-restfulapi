@@ -51,6 +51,9 @@ class Settings
     std::string channellogo_dir;
     std::string webapp_dir;
     std::string cache_dir;
+    std::string conf_dir;
+    std::string webapp_filetypes_filename;
+    std::map<std::string, std::string> webapp_file_types;
     bool activateHeaders;
   public:
     Settings() { initDefault(); }
@@ -63,6 +66,11 @@ class Settings
     std::string ChannelLogoDirectory() { return channellogo_dir; }
     std::string WebappDirectory() { return webapp_dir; }
     std::string CacheDirectory() { return cache_dir; }
+    std::string ConfDirectory() { return conf_dir; }
+    std::string WebAppFileTypesFilename() { return webapp_filetypes_filename; }
+    bool InitWebappFileTypes();
+    bool AddWebappFileType(std::string ext, std::string type);
+    std::map<std::string, std::string> WebappFileTypes();
     bool Headers() { return activateHeaders; }
     bool SetPort(std::string v);
     bool SetIp(std::string v);
@@ -70,6 +78,7 @@ class Settings
     bool SetChannelLogoDirectory(std::string v);
     bool SetWebappDirectory(std::string v);
     bool SetCacheDir(std::string v);
+    bool SetConfDir(std::string v);
     bool SetHeaders(std::string v);
 };
 
@@ -128,6 +137,7 @@ class FileNotifier : public cThread
   public:
     static const int EVENTS = 0x01;
     static const int CHANNELS = 0x02;
+    static const int WEBAPPFILETYPES = 0x03;
     FileNotifier() { active = false; };
     ~FileNotifier();
     void Initialize(int mode);
@@ -142,17 +152,21 @@ class FileCaches
     std::vector< std::string > channelLogos;
     FileNotifier notifierEvents;
     FileNotifier notifierChannels;
+    FileNotifier notifierWebappFileTypes;
   public:
     FileCaches() {
          cacheEventImages();
          cacheChannelLogos();
+         cacheWebappFileTypes();
          notifierEvents.Initialize(FileNotifier::EVENTS);
          notifierChannels.Initialize(FileNotifier::CHANNELS);
+         notifierWebappFileTypes.Initialize(FileNotifier::WEBAPPFILETYPES);
       };
     ~FileCaches() { };
     static FileCaches* get();
     void cacheEventImages();
     void cacheChannelLogos();
+    void cacheWebappFileTypes();
     void searchEventImages(int eventid, std::vector< std::string >& files);
     std::string searchChannelLogo(cChannel *channel);
     void addEventImage(std::string file);
@@ -162,6 +176,7 @@ class FileCaches
     void stopNotifier() {
       notifierEvents.Stop();
       notifierChannels.Stop();
+      notifierWebappFileTypes.Stop();
     };
 };
 

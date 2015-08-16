@@ -88,6 +88,19 @@ bool Settings::SetCacheDir(std::string v) {
   return false;
 }
 
+bool Settings::SetConfDir(std::string v) {
+  struct stat stat_info;
+  if ( stat(v.c_str(), &stat_info) == 0) {
+     if (v[v.length()-1] == '/')
+        conf_dir = v.substr(0, v.length()-1);
+     else
+        conf_dir = v;
+     esyslog("restfulapi: The config dir is %s!", cache_dir.c_str());
+     return true;
+  }
+  return false;
+}
+
 bool Settings::SetHeaders(std::string v)
 {
   if ( v == "false" ) {
@@ -97,6 +110,62 @@ bool Settings::SetHeaders(std::string v)
   }
   return true;
 }
+
+bool Settings::InitWebappFileTypes() {
+
+  webapp_file_types["html"]		= "text/html";
+  webapp_file_types["js"]		= "application/javascript";
+  webapp_file_types["css"]		= "text/css";
+  webapp_file_types["gif"]		= "image/gif";
+  webapp_file_types["png"]		= "image/png";
+  webapp_file_types["jpg"]		= "image/jpeg";
+  webapp_file_types["jpeg"]		= webapp_file_types["jpg"];
+  webapp_file_types["jpe"]		= webapp_file_types["jpg"];
+  webapp_file_types["svg"]		= "image/svg+xml";
+  webapp_file_types["ico"]		= "image/vnd.microsoft.icon";
+  webapp_file_types["xml"]		= "application/xml";
+  webapp_file_types["appcache"]		= "text/cache-manifest";
+  webapp_file_types["manifest"]		= webapp_file_types["appcache"];
+  webapp_file_types["mkv"]		= "video/mkv";
+  webapp_file_types["map"]		= "application/json";
+  webapp_file_types["txt"]		= "text/plain";
+
+  string fileTypesPath = ConfDirectory() + "/" + webapp_filetypes_filename;
+  if ( !FileExtension::get()->exists(fileTypesPath)) {
+
+      FILE * fp;
+      fp = fopen(fileTypesPath.c_str(), "w");
+      map<string, string>::iterator it;
+
+      esyslog("restfulapi: Webapp file types config file %s missing... Creating it with defaults.", fileTypesPath.c_str());
+
+      if ( fp != NULL ) {
+	for (it = webapp_file_types.begin(); it != webapp_file_types.end(); it++) {
+
+	    fputs((it->first + "=" + it->second + "\n").c_str(), fp);
+	}
+	fclose(fp);
+      } else {
+	  esyslog("restfulapi: could not open %s for writing: %s", fileTypesPath.c_str(), strerror(errno));
+      }
+  } else {
+      esyslog("restfulapi: Webapp file types config file %s found.", fileTypesPath.c_str());
+      webapp_file_types.clear();
+  }
+
+  return true;
+};
+
+bool Settings::AddWebappFileType(string ext, string type) {
+
+  webapp_file_types[ext] = type;
+  return true;
+};
+
+map<std::string, std::string> Settings::WebappFileTypes() {
+
+  return webapp_file_types;
+};
 
 Settings* Settings::get() 
 {
@@ -112,6 +181,7 @@ void Settings::initDefault()
   SetChannelLogoDirectory((string)"/usr/share/vdr/channel-logos");
   SetWebappDirectory((string)"/var/lib/vdr/restfulapi/webapp");
   SetHeaders((string)"true");
+  webapp_filetypes_filename = "webapp_file_types.conf";
 }
 
 // --- HtmlHeader --------------------------------------------------------------
@@ -238,26 +308,31 @@ FileNotifier::~FileNotifier()
 void FileNotifier::Initialize(int mode)
 {
   _mode = mode;
-  string dir;
+  string watch;
 
   if ( _mode == FileNotifier::EVENTS) {
-     dir = Settings::get()->EpgImageDirectory().c_str();
-  } else {
-     dir = Settings::get()->ChannelLogoDirectory().c_str();
+      watch = Settings::get()->EpgImageDirectory().c_str();
+  } else if ( _mode == FileNotifier::CHANNELS) {
+      watch = Settings::get()->ChannelLogoDirectory().c_str();
+  } else if ( _mode == FileNotifier::WEBAPPFILETYPES ) {
+      watch = Settings::get()->ConfDirectory().c_str();
   }
+  esyslog("restfulapi: Initializing inotify for %s", watch.c_str());
   
   _filedescriptor = inotify_init();
   _wd = -1;
 
-  if ( dir.length() == 0 ) {
+  if ( watch.length() == 0 ) {
      esyslog("restfulapi: Initializing inotify for epgimages or channellogos failed! (Check restfulapi-settings!)");
-     _wd = -1;
   } else {
-     _wd = inotify_add_watch( _filedescriptor, dir.c_str(), IN_CREATE | IN_DELETE );
-     if ( _wd < 0 )
-        esyslog("restfulapi: Initializing inotify for epgimages failed!");
-     else
-        esyslog("restfulapi: Initializing inotify for %s finished.", dir.c_str());
+
+      if ( watch.length() > 0 ) {
+	_wd = inotify_add_watch( _filedescriptor, watch.c_str(), IN_CREATE | IN_DELETE | IN_MODIFY);
+	if ( _wd < 0 )
+	  esyslog("restfulapi: Initializing inotify for %s failed!", watch.c_str());
+	else
+	  esyslog("restfulapi: Initializing inotify for %s finished.", watch.c_str());
+      }
   }
  
 
@@ -274,33 +349,43 @@ void FileNotifier::Action(void)
   char buffer[BUF_LEN];
 
   while(active) {
-    i = 0;
     struct pollfd pfd[1];
     pfd[0].fd = _filedescriptor;
     pfd[0].events = POLLIN;
     
     if ( poll(pfd, 1, 500) > 0 ) {
+
        length = read( _filedescriptor, buffer, BUF_LEN );
+       i = 0;
     
        if ( length > 0 ) {
           while ( i < length ) {
              struct inotify_event *event = ( struct inotify_event * ) &buffer[ i ];
+
              if ( event->len > 0 && !(event->mask & IN_ISDIR) ) {
  
                 if (event->mask & IN_CREATE) {
                    //esyslog("restfulapi: inotify: found new image: %s", event->name);
                    if ( _mode == FileNotifier::EVENTS )
                       FileCaches::get()->addEventImage((std::string)event->name);
-                   else
+                   else if ( _mode == FileNotifier::CHANNELS )
                       FileCaches::get()->addChannelLogo((std::string)event->name);
+                   else if ( _mode == FileNotifier::WEBAPPFILETYPES && event->name == Settings::get()->WebAppFileTypesFilename())
+                     FileCaches::get()->cacheWebappFileTypes();
                 }
              
                 if (event->mask & IN_DELETE)  {
                    //esyslog("restfulapi: inotify: image %s has been removed", event->name);
                    if ( _mode == FileNotifier::EVENTS )
                       FileCaches::get()->removeEventImage((std::string)event->name);
-                   else
+                   else if ( _mode == FileNotifier::CHANNELS )
                       FileCaches::get()->removeChannelLogo((std::string)event->name);
+                }
+
+                if (event->mask & IN_MODIFY)  {
+                   //esyslog("restfulapi: inotify: file %s has been modified", event->name);
+                   if ( _mode == FileNotifier::WEBAPPFILETYPES  && event->name == Settings::get()->WebAppFileTypesFilename() )
+                     FileCaches::get()->cacheWebappFileTypes();
                 }
              }
              i += EVENT_SIZE + event->len;
@@ -341,6 +426,45 @@ void FileCaches::cacheChannelLogos()
   string imageFolder = Settings::get()->ChannelLogoDirectory();
   string folderWildcard = imageFolder + (string)"/*";
   VdrExtension::scanForFiles(folderWildcard, channelLogos);
+}
+
+void FileCaches::cacheWebappFileTypes() {
+
+  FILE * typesFile;
+  string typesFileName = Settings::get()->ConfDirectory() + "/" + Settings::get()->WebAppFileTypesFilename();
+  char filetype[100];
+  string line;
+  Settings* settings = Settings::get();
+
+  settings->InitWebappFileTypes();
+
+  if (FileExtension::get()->exists(typesFileName)) {
+
+      typesFile = fopen(typesFileName.c_str(), "r");
+
+      if (typesFile != NULL) {
+	while (fgets(filetype, 100, typesFile)) {
+
+	    if ( ((string)filetype).find("#") != string::npos ) {
+
+		line = ((string)filetype).substr(0, ((string)filetype).find_first_of("#"));
+	    } else {
+
+		line = (string)filetype;
+	    }
+
+	    if (line.find("=") != string::npos) {
+
+		    settings->AddWebappFileType(
+			StringExtension::trim(line.substr(0, line.find_first_of("="))),
+			StringExtension::trim(line.substr(line.find_first_of("=") + 1))
+		    );
+	    }
+	}
+	fclose(typesFile);
+      }
+  }
+
 }
 
 void FileCaches::searchEventImages(int eventid, std::vector< std::string >& files)
@@ -1235,8 +1359,8 @@ string StringExtension::toLowerCase(string str)
 
 string StringExtension::trim(string str)
 {
-  int a = str.find_first_not_of(" \t");
-  int b = str.find_last_not_of(" \t");
+  int a = str.find_first_not_of(" \n\t\r");
+  int b = str.find_last_not_of(" \n\t\r");
   if ( a == -1 ) a = 0;
   if ( b == -1 ) b = str.length() - 1;
   return str.substr(a, (b-a)+1);
