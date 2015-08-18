@@ -50,6 +50,7 @@ struct SerRecording
   cxxtools::String FileName;
   cxxtools::String RelativeFileName;
   cxxtools::String ChannelID;
+  cxxtools::String Stream;
   bool IsNew;
   bool IsEdited;
   bool IsPesRecording;
