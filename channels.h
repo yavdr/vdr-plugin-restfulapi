@@ -17,7 +17,7 @@ class ChannelsResponder : public cxxtools::http::Responder
       { }
     virtual void reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     virtual void replyChannels(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
-    virtual void replyImage(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& replay);
+    virtual void replyImage(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     virtual void replyGroups(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
 };
 
