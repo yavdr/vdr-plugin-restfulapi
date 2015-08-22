@@ -1,3 +1,9 @@
+vdr-plugin-restfulapi (0.2.3.8-1yavdr0~trusty) trusty; urgency=medium
+
+  * add ability to define multiple webapps
+
+ -- Henning Künne <hannemann666@gmx.net>  Sat, 22 Aug 2015 15:26:00 +0200
+
 vdr-plugin-restfulapi (0.2.3.7-1yavdr0~trusty) trusty; urgency=medium
 
   * add config file for webapp file types

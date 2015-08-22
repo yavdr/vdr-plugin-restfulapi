@@ -292,7 +292,7 @@
             <a name="Configuration"></a>
             <section data-header="Configuration">
 
-                Create a new file called plugin.restfulapi.conf in /etc/vdr/plugins/ .
+                Create a new file called plugin.restfulapi.conf in /etc/vdr/plugins/ respectively /etc/vdr/conf.avail (don't forget to create a symlink in /etc/vdr/conf.d/).
 
                 <div class="code">
                     #
@@ -303,7 +303,7 @@
                     --ip=0.0.0.0
                     --epgimages=/var/cache/vdr/epgimages
                     --channellogos=/usr/share/vdr/channel-logos
-                    --webapp=/var/lib/vdr/plugins/restfulapi/webapp
+                    --webapp=/var/lib/vdr/plugins/restfulapi/webapp,/var/lib/vdr/plugins/restfulapi/a-second-webapp
                 </div>
             </section>
 
@@ -2084,16 +2084,16 @@
 
             <a name="Webapp"></a>
             <section data-header="Webapp">
-                <p class="description">This service can deliver files from configured folder.</p>
+                <p class="description">This service can deliver files from configured folders. Multiple webapps can be defined within config file. Seperate paths with a comma. Specified paths must exist for the service to be initialized.</p>
                 <p>
                   Known file types are defined in <plugin_conf_dir>/webapp_file_types.conf<br>
                 </p>
                 <p class="method">GET</p>
 
                 <div class="code">
-                    GET http://&lt;ip&gt;:&lt;port&gt;/webapp/&lt;path&gt;/&lt;to&gt;/&lt;file&gt;
+                    GET http://&lt;ip&gt;:&lt;port&gt;/&lt;webapp&gt;/&lt;path&gt;/&lt;to&gt;/&lt;file&gt;
                 </div>
-                <p>Specify folder in plugin settings file (--webapp=/var/lib/vdr/plugins/restfulapi/webapp)</p>
+                <p>Specify folder in plugin settings file (--webapp=/var/lib/vdr/plugins/restfulapi/webapp,/var/lib/vdr/plugins/restfulapi/a-second-webapp)</p>
             </section>
 
 

@@ -16,6 +16,8 @@ void cServerThread::Initialize()
 
   isyslog("create server");
   server = new cxxtools::http::Server(loop, listenIp, listenPort);
+
+  services = RestfulServices::get();
 }
 
 void cServerThread::Stop() {
@@ -47,8 +49,6 @@ void cServerThread::Action(void)
   ScraperService scraperService;
   WirbelscanService wirbelscanService;
   FemonService femonService;
-  
-  RestfulServices* services = RestfulServices::get();
   
   RestfulService* info = new RestfulService("/info", true, 1);
   RestfulService* channels = new RestfulService("/channels", true, 1);
@@ -100,24 +100,11 @@ void cServerThread::Action(void)
   server->addService(*wirbelscan->Regex(), wirbelscanService);
   server->addService(*femon->Regex(), femonService);
 
-
-
-  WebappService webappService;
   map<string, string> webapps = Settings::get()->Webapps();
   map<string, string>::iterator it;
-  RestfulService* service;
-  int i = 0;
-
 
   for (it = webapps.begin(); it != webapps.end(); it++) {
-
-      service = new RestfulService("/" + it->first, true, 1);
-      services->appendService(service);
-      server->addService(*service->Regex(), webappService);
-      esyslog("restfulapi: webapp service %s added", it->first.c_str());
-      i++;
-
-      //addWebappService(it->first);
+      addWebappService(it->first);
   }
 
   try {
@@ -133,11 +120,27 @@ void cServerThread::Action(void)
 
 void cServerThread::addWebappService(string name) {
 
-  WebappService webappService;
-  RestfulServices* services = RestfulServices::get();
-  RestfulService* service = new RestfulService("/" + name, true, 1);
+  string path = "/" + name;
+  vector< RestfulService* > restfulservices = services->Services(true, true);
+  vector< RestfulService* >::iterator it = restfulservices.begin();
+  vector< RestfulService* >::iterator end = restfulservices.end();
+  bool occupied = false;
+  int i=0;
 
-  services->appendService(service);
-  server->addService(*service->Regex(), webappService);
-  esyslog("restfulapi: webapp service %s added", name.c_str());
+  for (; it != end; it++) {
+
+      if (restfulservices[i]->Path() == path) {
+	  occupied = true;
+      }
+      i++;
+  }
+
+  if (false == occupied) {
+      RestfulService* service = new RestfulService(path, true, 1);
+      services->appendService(service);
+      server->addService(*service->Regex(), webappService);
+      esyslog("restfulapi: webapp service '%s' added", name.c_str());
+  } else {
+      esyslog("restfulapi: could not add service '%s' because it already exists", name.c_str());
+  }
 };

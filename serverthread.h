@@ -43,6 +43,8 @@ private:
     cxxtools::EventLoop loop;
     cxxtools::http::Server *server;
     void Action(void);
+    WebappService webappService;
+    RestfulServices* services;
 
 public:
     cServerThread() { };

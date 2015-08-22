@@ -90,12 +90,15 @@ void Settings::addWebapp(string path) {
   struct stat stat_info;
   string app_name;
 
+  if (path[path.length()-1] == '/')
+    path = path.substr(0, path.length()-1);
+  app_name = path.substr(path.find_last_of("/") + 1, path.length());
+
   if ( stat(path.c_str(), &stat_info) == 0) {
-     if (path[path.length()-1] == '/')
-	path = path.substr(0, path.length()-1);
-     app_name = path.substr(path.find_last_of("/") + 1, path.length());
      webapps[app_name] = path;
-     esyslog("restfulapi: Webapp %s configured for path %s!", app_name.c_str(), path.c_str());
+     esyslog("restfulapi: Webapp '%s' configured for path '%s'!", app_name.c_str(), path.c_str());
+  } else {
+     esyslog("restfulapi: can not add webapp '%s'! Path '%s' does not exist!", app_name.c_str(), path.c_str());
   }
 };
 
