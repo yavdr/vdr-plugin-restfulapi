@@ -1,4 +1,0 @@
-#libvdr-restfulapi.so.*			usr/lib/vdr/plugins/
-API.html                		var/lib/vdr/plugins/restfulapi/
-web/osd.css             		var/lib/vdr/plugins/restfulapi/
-web/osd.js              		var/lib/vdr/plugins/restfulapi/
