@@ -16,10 +16,14 @@ void WebappResponder::reply(ostream& out, cxxtools::http::Request& request, cxxt
 
   double timediff = -1;
   string url = request.url();
-  string base = "/webapp";
+  string base = getBase(request);
+
+  getBase(request);
+
+  esyslog("restfulapi: requested url: %s", url.c_str());
 
   if ( base == request.url() ) {
-      reply.addHeader("Location", "/webapp/");
+      reply.addHeader("Location", (base + "/").c_str());
       reply.httpReturn(301, "Moved Permanently");
       return;
   }
@@ -29,7 +33,7 @@ void WebappResponder::reply(ostream& out, cxxtools::http::Request& request, cxxt
       esyslog("restfulapi Webapp: file request url %s", request.url().c_str());
 
       string fileName = getFileName(base, url);
-      string file = getFile(fileName);
+      string file = getFile(base, fileName);
 
       if (!FileExtension::get()->exists(file)) {
 	  esyslog("restfulapi Webapp: file does not exist");
@@ -49,13 +53,41 @@ void WebappResponder::reply(ostream& out, cxxtools::http::Request& request, cxxt
   }
 }
 
+string WebappResponder::getBase(cxxtools::http::Request& request) {
+
+  string url = request.url();
+
+  esyslog("restfulapi: url: %s", url.c_str());
+
+  if (url.find_first_of("/") == 0) {
+      url = url.substr(1, url.length());
+  }
+
+  url = url.substr(0, url.find_first_of("/"));
+
+  esyslog("restfulapi: webapp: %s", url.c_str());
+
+  return "/" + url;
+};
+
 /**
  * retrieve filename width path
  * @param string fileName
  */
-string WebappResponder::getFile(std::string fileName) {
+string WebappResponder::getFile(string base, std::string fileName) {
 
-  string webappPath = Settings::get()->WebappDirectory();
+
+  map<string, string> webapps = Settings::get()->Webapps();
+  map<string, string>::iterator it;
+  string webappPath;
+
+
+
+  it = webapps.find(base.substr(1));
+  webappPath = it->second;
+
+  esyslog("restfulapi: base: %s, webappPath: %s", base.substr(1).c_str(), webappPath.c_str());
+
 
   if ( webappPath.find_last_of("/") == (webappPath.length() - 1) ) {
       webappPath = webappPath.substr(0, webappPath.length() - 1);
@@ -64,6 +96,8 @@ string WebappResponder::getFile(std::string fileName) {
   if ( fileName.find_first_of("/") == 0 ) {
       fileName = fileName.substr(1, fileName.length() - 1);
   }
+
+  esyslog("restfulapi: expanded to path: %s", (webappPath + (string)"/" + fileName).c_str());
 
   return webappPath + (string)"/" + fileName;
 };
@@ -78,11 +112,20 @@ string WebappResponder::getFileName(string base, string url) {
   if ( url.find_last_of("/") == (url.length() - 1) ) {
       url = url.substr(0, url.length() - 1);
   }
+
   string file = url.replace(0, base.length(), "");
 
-  if ( file == "" ) {
+  if ( file != "" && file.find(".") == string::npos ) {
+
+      file = file + "/index.html";
+
+  } else if ( file == "" ) {
+
       file = "index.html";
   }
+
+  esyslog("restfulapi: requested file %s", file.c_str());
+
   return file;
 };
 

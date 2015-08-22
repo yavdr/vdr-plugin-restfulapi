@@ -51,6 +51,7 @@ public:
     void StartUpdate();
     bool isActive() { return active; };
     void Stop();
+    void addWebappService(std::string name);
 };
 
 #endif //__SERVERTHREAD_H

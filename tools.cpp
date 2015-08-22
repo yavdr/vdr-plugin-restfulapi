@@ -63,17 +63,41 @@ bool Settings::SetChannelLogoDirectory(std::string v)
 
 bool Settings::SetWebappDirectory(std::string v)
 {
-  struct stat stat_info;
-  if ( stat(v.c_str(), &stat_info) == 0) {
-     if (v[v.length()-1] == '/')
-        webapp_dir = v.substr(0, v.length()-1);
-     else
-        webapp_dir = v;
-     esyslog("restfulapi: The Webapp will be loaded from %s!", webapp_dir.c_str());
-     return true;
+  string app_name;
+  string path;
+
+  if (v.find(",")) {
+
+    vector<string> paths = StringExtension::split(v, ",");
+    vector<string>::iterator it = paths.begin();
+    vector<string> path_parts;
+
+    int index = 0;
+    for(; it != paths.end(); ++it) {
+
+	path = paths[index];
+	addWebapp(path);
+	index++;
+    }
+  } else {
+	addWebapp(v);
   }
-  return false;
+  return true;
 }
+
+void Settings::addWebapp(string path) {
+
+  struct stat stat_info;
+  string app_name;
+
+  if ( stat(path.c_str(), &stat_info) == 0) {
+     if (path[path.length()-1] == '/')
+	path = path.substr(0, path.length()-1);
+     app_name = path.substr(path.find_last_of("/") + 1, path.length());
+     webapps[app_name] = path;
+     esyslog("restfulapi: Webapp %s configured for path %s!", app_name.c_str(), path.c_str());
+  }
+};
 
 bool Settings::SetCacheDir(std::string v) {
   struct stat stat_info;

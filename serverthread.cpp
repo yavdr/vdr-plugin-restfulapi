@@ -46,7 +46,6 @@ void cServerThread::Action(void)
   SearchTimersService searchTimersService;
   ScraperService scraperService;
   WirbelscanService wirbelscanService;
-  WebappService webappService;
   FemonService femonService;
   
   RestfulServices* services = RestfulServices::get();
@@ -68,7 +67,6 @@ void cServerThread::Action(void)
   RestfulService* scraper = new RestfulService("/scraper", true, 1);
   RestfulService* wirbelscan = new RestfulService("/wirbelscan", true, 1);
   RestfulService* wirbelscanCountries = new RestfulService("/wirbelscan/countries", true, 1, wirbelscan);
-  RestfulService* webapp = new RestfulService("/webapp", true, 1);
   RestfulService* femon = new RestfulService("/femon", true, 1);
   
   services->appendService(info);
@@ -88,7 +86,6 @@ void cServerThread::Action(void)
   services->appendService(scraper);
   services->appendService(wirbelscan);
   services->appendService(wirbelscanCountries);
-  services->appendService(webapp);
   services->appendService(femon);
 
   server->addService(*info->Regex(), infoService);
@@ -101,8 +98,27 @@ void cServerThread::Action(void)
   server->addService(*searchtimers->Regex(), searchTimersService);
   server->addService(*scraper->Regex(), scraperService);
   server->addService(*wirbelscan->Regex(), wirbelscanService);
-  server->addService(*webapp->Regex(), webappService);
   server->addService(*femon->Regex(), femonService);
+
+
+
+  WebappService webappService;
+  map<string, string> webapps = Settings::get()->Webapps();
+  map<string, string>::iterator it;
+  RestfulService* service;
+  int i = 0;
+
+
+  for (it = webapps.begin(); it != webapps.end(); it++) {
+
+      service = new RestfulService("/" + it->first, true, 1);
+      services->appendService(service);
+      server->addService(*service->Regex(), webappService);
+      esyslog("restfulapi: webapp service %s added", it->first.c_str());
+      i++;
+
+      //addWebappService(it->first);
+  }
 
   try {
     loop.run();
@@ -114,3 +130,14 @@ void cServerThread::Action(void)
 
   dsyslog("restfulapi: server thread ended (pid=%d)", getpid());
 }
+
+void cServerThread::addWebappService(string name) {
+
+  WebappService webappService;
+  RestfulServices* services = RestfulServices::get();
+  RestfulService* service = new RestfulService("/" + name, true, 1);
+
+  services->appendService(service);
+  server->addService(*service->Regex(), webappService);
+  esyslog("restfulapi: webapp service %s added", name.c_str());
+};

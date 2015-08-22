@@ -50,11 +50,13 @@ class Settings
     std::string epgimage_dir;
     std::string channellogo_dir;
     std::string webapp_dir;
+    std::map<std::string, std::string> webapps;
     std::string cache_dir;
     std::string conf_dir;
     std::string webapp_filetypes_filename;
     std::map<std::string, std::string> webapp_file_types;
     bool activateHeaders;
+    void addWebapp(std::string path);
   public:
     Settings() { initDefault(); }
     ~Settings() { };
@@ -65,6 +67,7 @@ class Settings
     std::string EpgImageDirectory() { return epgimage_dir; }
     std::string ChannelLogoDirectory() { return channellogo_dir; }
     std::string WebappDirectory() { return webapp_dir; }
+    std::map<std::string, std::string> Webapps() { return webapps; }
     std::string CacheDirectory() { return cache_dir; }
     std::string ConfDirectory() { return conf_dir; }
     std::string WebAppFileTypesFilename() { return webapp_filetypes_filename; }
