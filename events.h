@@ -9,6 +9,7 @@
 #include <vdr/plugin.h>
 
 #include "tools.h"
+#include "epgsearch.h"
 #include "epgsearch/services.h"
 #include "scraper2vdr.h"
 

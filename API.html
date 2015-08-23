@@ -625,12 +625,186 @@
                 <h3><a name="EventSearch">Search</a></h3>
 
                 <p class="description">This service allows you to search for events.</p>
+                <p>
+                  Since Version 0.2.4.0 it is possible to perform a search similar to Searchtimers.
+                </p>
                 <p class="method">POST</p>
-                <div class="code" data-header="Example URL:">
+                <div class="code" data-header="Example URL (searchtimer search):">
                     POST http://&lt;ip&gt;:&lt;port&gt;/events/search.&lt;format&gt;?limit=5&amp;start=0;
                 </div>
 
-                <ul class="param-desc" data-header="HTTP-Body-Parameters:">
+                <ul class="param-desc" data-header="Description of the Parameters (searchtimer search):">
+                    <li>&lt;limit&gt; - (optional) number of searchresults
+                    <li>&lt;start&gt; - (required if limit is set) start at result
+                </ul>
+
+                <table class="param-desc" data-header="HTTP-Body-Parameters (searchtimer search):">
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Required</th>
+                        <th>Value Range / Example</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>search</td>
+                        <td>string</td>
+                        <td>yes</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>mode</td>
+                        <td>int</td>
+                        <td>yes</td>
+                        <td>0=phrase, 1=all words, 2=at least one word, 3=match exactly, 4=regex, 5=fuzzy</td>
+                    </tr>
+                    <tr>
+                        <td>tolerance</td>
+                        <td>int</td>
+                        <td>if mode == 5</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>match_case</td>
+                        <td>boolean</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>use_title</td>
+                        <td>boolean</td>
+                        <td>at least one of use_title, use_subtitle, use_description</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>use_subtitle</td>
+                        <td>boolean</td>
+                        <td>at least one of use_title, use_subtitle, use_description</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>use_description</td>
+                        <td>boolean</td>
+                        <td>at least one of use_title, use_subtitle, use_description</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>content_descriptors</td>
+                        <td>string</td>
+                        <td>no</td>
+                        <td>concatted string of content descriptor ids</td>
+                    </tr>
+                    <tr>
+                        <td>use_ext_epg_info</td>
+                        <td>boolean</td>
+                        <td>no</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>ext_epg_info</td>
+                        <td>array</td>
+                        <td></td>
+                        <td>[1#2,2#test]</td>
+                    </tr>
+                    <tr>
+                        <td>use_time</td>
+                        <td>boolean</td>
+                        <td>no</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>start_time</td>
+                        <td>int</td>
+                        <td>no</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>stop_time</td>
+                        <td>int</td>
+                        <td>no</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>use_channel</td>
+                        <td>boolean</td>
+                        <td>no</td>
+                        <td>0=no, 1=interval, 2=channel group, 3=only FTA</td>
+                    </tr>
+                    <tr>
+                        <td>channel_min</td>
+                        <td>string</td>
+                        <td>no</td>
+                        <td>channel id</td>
+                    </tr>
+                    <tr>
+                        <td>channel_max</td>
+                        <td>string</td>
+                        <td>no</td>
+                        <td>channel id</td>
+                    </tr>
+                    <tr>
+                        <td>channels</td>
+                        <td>string</td>
+                        <td>if use_channel > 0</td>
+                        <td>channel group name</td>
+                    </tr>
+                    <tr>
+                        <td>use_duration</td>
+                        <td>boolean</td>
+                        <td>no</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>duration_min</td>
+                        <td>int</td>
+                        <td>if use_duration == true</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>duration_max</td>
+                        <td>int</td>
+                        <td>if use_duration == true</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>use_dayofweek</td>
+                        <td>boolean</td>
+                        <td>no</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>dayofweek</td>
+                        <td>int</td>
+                        <td>if use_dayofweek == true</td>
+                        <td>-127 - 6</td>
+                    </tr>
+                    <tr>
+                        <td>blacklist_mode</td>
+                        <td>int</td>
+                        <td>no</td>
+                        <td>0=global, 1=Selection, 2=all, 3=none</td>
+                    </tr>
+                    <tr>
+                        <td>blacklist_ids</td>
+                        <td>array</td>
+                        <td>if blacklist_mode == 1</td>
+                        <td>array of blacklist ids</td>
+                    </tr>
+                    </tbody>
+                </table>
+
+                <div class="code" data-header="Example URL (simple search):">
+                    POST http://&lt;ip&gt;:&lt;port&gt;/events/search.&lt;format&gt;?limit=5&amp;start=0;
+                </div>
+
+                <ul class="param-desc" data-header="Description of the Parameters (simple search):">
+                    <li>&lt;limit&gt; - (optional) number of searchresults
+                    <li>&lt;start&gt; - (required if limit is set) start at result
+                </ul>
+
+                <ul class="param-desc" data-header="HTTP-Body-Parameters (simple search):">
                     <li>query - (required)
                     <li>mode - (required) 0=phrase, 1=and, 2=or, 3=exact, 4=regex, 5=fuzzy
                     <li>channelid - (optional) if id invalid, the plugin will search on every channel

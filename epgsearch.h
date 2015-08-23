@@ -83,6 +83,7 @@ public:
 	SearchTimer( std::string const& data );
 	void Init();
         std::string LoadFromQuery(QueryHandler& q);
+        std::string LoadCommonFromQuery(QueryHandler& q);
 	std::string ToText();
         std::string ToXml();
         std::string ToHtml();
