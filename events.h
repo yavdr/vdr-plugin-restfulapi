@@ -81,6 +81,7 @@ class EventList : public BaseList
   protected:
     StreamExtension *s;
     int total;
+    int dateLimit;
     Scraper2VdrService sc;
   public:
     explicit EventList(std::ostream* _out);
@@ -89,6 +90,9 @@ class EventList : public BaseList
     virtual void addEvent(cEvent* event) { };
     virtual void finish() { };
     virtual void setTotal(int _total) { total = _total; }
+    virtual void activateDateLimit(int _limit);
+    bool filtered(int start_time);
+    using BaseList::filtered;
 };
 
 class HtmlEventList : EventList
