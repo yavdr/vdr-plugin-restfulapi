@@ -223,8 +223,12 @@ void EventsResponder::replySearchResult(ostream& out, cxxtools::http::Request& r
   eventList->init();
   int start_filter = q.getOptionAsInt("start");
   int limit_filter = q.getOptionAsInt("limit");
+  int date_filter = q.getOptionAsInt("date_limit");
   if ( start_filter >= 0 && limit_filter >= 1 ) {
      eventList->activateLimit(start_filter, limit_filter);
+  }
+  if ( date_filter >= 0  ) {
+     eventList->activateDateLimit(date_filter);
   }
   
   int total = 0;
@@ -399,7 +403,23 @@ void operator<<= (cxxtools::SerializationInfo& si, const struct tEpgDetail& e)
 EventList::EventList(ostream *_out) {
   s = new StreamExtension(_out);
   total = 0;
+  dateLimit = 0;
   Scraper2VdrService sc;
+}
+
+void EventList::activateDateLimit(int _limit) {
+
+  if (_limit > 0) {
+      dateLimit = _limit;
+  }
+}
+
+bool EventList::filtered(int start_time) {
+
+  if (dateLimit > 0 && start_time > dateLimit) {
+      return true;
+  }
+  return BaseList::filtered();
 }
 
 EventList::~EventList()
@@ -415,7 +435,7 @@ void HtmlEventList::init()
 
 void HtmlEventList::addEvent(cEvent* event)
 {
-  if ( filtered() ) return;
+  if ( filtered(event->StartTime()) ) return;
   s->write("<li>");
   s->write((char*)event->Title()); //TODO: add more infos
   s->write("\n");
@@ -429,7 +449,7 @@ void HtmlEventList::finish()
 
 void JsonEventList::addEvent(cEvent* event)
 {
-  if ( filtered() ) return;
+  if ( filtered(event->StartTime()) ) return;
 
   cxxtools::String eventTitle;
   cxxtools::String eventShortText;
@@ -488,9 +508,9 @@ void JsonEventList::finish()
 {
   cxxtools::JsonSerializer serializer(*s->getBasicStream());
   serializer.beautify();
-  serializer.serialize(serEvents, "events");
   serializer.serialize(serEvents.size(), "count");
   serializer.serialize(total, "total");
+  serializer.serialize(serEvents, "events");
   serializer.finish();
 }
 
@@ -502,7 +522,7 @@ void XmlEventList::init()
 
 void XmlEventList::addEvent(cEvent* event)
 {
-  if ( filtered() ) return;
+  if ( filtered(event->StartTime()) ) return;
 
   string eventTitle;
   string eventShortText;
