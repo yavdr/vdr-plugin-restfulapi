@@ -15,12 +15,35 @@
 #include <vdr/recording.h>
 #include <vdr/videodir.h>
 
+class RecordingList : public BaseList
+{
+  protected:
+    bool read_marks;
+    int total;
+    StreamExtension *s;
+    Scraper2VdrService sc;
+  public:
+    RecordingList(std::ostream* _out, bool _read_marks);
+    virtual ~RecordingList();
+    virtual void init() { };
+    virtual void addRecording(cRecording* recording, int nr) { };
+    virtual void finish() { };
+    virtual void setTotal(int _total) { total = _total; }
+};
+
 class RecordingsResponder : public cxxtools::http::Responder
 {
+private:
+  const char* CT_JSON;
+  const char* CT_HTML;
+  const char* CT_XML;
   public:
     explicit RecordingsResponder(cxxtools::http::Service& service)
-      : cxxtools::http::Responder(service)
-      { }
+      : cxxtools::http::Responder(service) {
+	CT_JSON = "application/json; charset=utf-8";
+	CT_HTML = "text/html; charset=utf-8";
+	CT_XML = "text/xml; charset=utf-8";
+      }
 
     virtual void reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void deleteRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
@@ -34,6 +57,9 @@ class RecordingsResponder : public cxxtools::http::Responder
     void rewindRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void moveRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void replyRecordingMoved(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply, cRecording* recording);
+    void replyEditedFileName(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+    cRecording* getRecordingByRequest(QueryHandler q);
+    RecordingList* getRecordingList(std::ostream& out, QueryHandler q, cxxtools::http::Reply& reply, bool _read_marks);
 };
 
 typedef cxxtools::http::CachedService<RecordingsResponder> RecordingsService;
@@ -69,22 +95,6 @@ struct SerRecording
 };
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerRecording& p);
-
-class RecordingList : public BaseList
-{
-  protected:
-    bool read_marks;
-    int total;
-    StreamExtension *s;
-    Scraper2VdrService sc;
-  public:
-    RecordingList(std::ostream* _out, bool _read_marks);
-    virtual ~RecordingList();
-    virtual void init() { };
-    virtual void addRecording(cRecording* recording, int nr) { };
-    virtual void finish() { };
-    virtual void setTotal(int _total) { total = _total; }
-};
 
 class HtmlRecordingList : RecordingList
 {

@@ -36,6 +36,15 @@ void RecordingsResponder::reply(ostream& out, cxxtools::http::Request& request, 
      found = true;
   }
 
+  else if ((int)request.url().find("/recordings/editedfile") == 0 ) {
+     if (request.method() == "GET") {
+	 replyEditedFileName(out, request, reply);
+     } else {
+        reply.httpReturn(501, "Only GET method are supported by the /recordings/lastedited service.");
+     }
+     found = true;
+  }
+
   else if ((int)request.url().find("/recordings/marks") == 0 ) {
      if (request.method() == "DELETE") {
         deleteMarks(out, request, reply);
@@ -86,40 +95,91 @@ void RecordingsResponder::reply(ostream& out, cxxtools::http::Request& request, 
   }
 }
 
+cRecording* RecordingsResponder::getRecordingByRequest(QueryHandler q) {
+
+  int recording_number = -1;
+  int level = 0;
+  string pathParam;
+  string fullPath;
+
+  while ( (pathParam = q.getParamAsString(level)) != "" ) {
+      level++;
+      fullPath = fullPath + "/" + pathParam;
+      if ( !FileExtension::get()->exists(fullPath) ) {
+	  fullPath = "";
+	  break;
+      }
+  }
+
+  cThreadLock RecordingsLock(&Recordings);
+  if ( fullPath == "" ) {
+
+      recording_number = q.getParamAsInt(0);
+      if ( recording_number >= 0 && recording_number < Recordings.Count() ) {
+	  return Recordings.Get(recording_number);
+      }
+
+  } else {
+
+      return Recordings.GetByName(fullPath.c_str());
+  }
+
+  return NULL;
+};
+
+RecordingList* RecordingsResponder::getRecordingList(ostream& out, QueryHandler q, cxxtools::http::Reply& reply, bool read_marks = false) {
+
+  RecordingList* recordingList;
+
+  if ( q.isFormat(".json") ) {
+
+    reply.addHeader("Content-Type", CT_JSON);
+    recordingList = (RecordingList*)new JsonRecordingList(&out, read_marks);
+
+  } else if ( q.isFormat(".html") ) {
+
+    reply.addHeader("Content-Type", CT_HTML);
+    recordingList = (RecordingList*)new HtmlRecordingList(&out, read_marks);
+
+  } else if ( q.isFormat(".xml") )  {
+
+    reply.addHeader("Content-Type", CT_XML);
+    recordingList = (RecordingList*)new XmlRecordingList(&out, read_marks);
+
+  } else {
+
+    reply.httpReturn(502, "Resources are not available for the selected format. (Use: .json, .xml or .html)");
+    return NULL;
+  }
+
+  return recordingList;
+};
+
 void RecordingsResponder::playRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/recordings/play", request);
-  int recording_number = q.getParamAsInt(0);
   cThreadLock RecordingsLock(&Recordings);
-  if ( recording_number < 0 || recording_number >= Recordings.Count() ) {
-     reply.httpReturn(404, "Wrong recording number!");
+  cRecording* recording = getRecordingByRequest(q);
+  if ( recording != NULL ) {
+    TaskScheduler::get()->SwitchableRecording(recording);
   } else {
-     cRecording* recording = Recordings.Get(recording_number);
-     if ( recording != NULL ) {
-        TaskScheduler::get()->SwitchableRecording(recording);
-     } else {
-        reply.httpReturn(404, "Wrong recording number!");
-     }
+    reply.httpReturn(404, "Wrong recording number or filename!");
   }
 }
 
 void RecordingsResponder::rewindRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/recordings/play", request);
-  int recording_number = q.getParamAsInt(0);
+  cRecording* recording = getRecordingByRequest(q);
   cThreadLock RecordingsLock(&Recordings);
-  if ( recording_number < 0 || recording_number >= Recordings.Count() ) {
-     reply.httpReturn(404, "Wrong recording number!");
+
+  if ( recording != NULL ) {
+    cDevice::PrimaryDevice()->StopReplay(); // must do this first to be able to rewind the currently replayed recording
+    cResumeFile ResumeFile(recording->FileName(), recording->IsPesRecording());
+    ResumeFile.Delete();
+    TaskScheduler::get()->SwitchableRecording(recording);
   } else {
-     cRecording* recording = Recordings.Get(recording_number);
-     if ( recording != NULL ) {
-        cDevice::PrimaryDevice()->StopReplay(); // must do this first to be able to rewind the currently replayed recording
-        cResumeFile ResumeFile(recording->FileName(), recording->IsPesRecording());
-        ResumeFile.Delete();
-        TaskScheduler::get()->SwitchableRecording(recording);
-     } else {
-        reply.httpReturn(404, "Wrong recording number!");
-     }
+    reply.httpReturn(404, "Wrong recording number!");
   }
 }
 
@@ -170,24 +230,7 @@ void RecordingsResponder::moveRecording(ostream& out, cxxtools::http::Request& r
 void RecordingsResponder::replyRecordingMoved(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply, cRecording* recording) {
   QueryHandler q("/recordings/move", request);
   StreamExtension s(&out);
-  RecordingList* recordingList;
-  bool read_marks = false;
-
-  if ( q.isFormat(".json") ) {
-    reply.addHeader("Content-Type", "application/json; charset=utf-8");
-    recordingList = (RecordingList*)new JsonRecordingList(&out, read_marks);
-  } else if ( q.isFormat(".html") ) {
-    reply.addHeader("Content-Type", "text/html; charset=utf-8");
-    recordingList = (RecordingList*)new HtmlRecordingList(&out, read_marks);
-    recordingList->init();
-  } else if ( q.isFormat(".xml") )  {
-    reply.addHeader("Content-Type", "text/xml; charset=utf-8");
-    recordingList = (RecordingList*)new XmlRecordingList(&out, read_marks);
-    recordingList->init();
-  } else {
-    reply.httpReturn(502, "Resources are not available for the selected format. (Use: .json, .xml or .html)");
-    return;
-  }
+  RecordingList* recordingList = getRecordingList(out, q, reply);
 
   cThreadLock RecordingsLock(&Recordings);
   for (int i = 0; i < Recordings.Count(); i++) {
@@ -200,6 +243,39 @@ void RecordingsResponder::replyRecordingMoved(ostream& out, cxxtools::http::Requ
   recordingList->finish();
   delete recordingList;
 }
+
+void RecordingsResponder::replyEditedFileName(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply) {
+
+  QueryHandler q("/recordings/editedfile", request);
+  cRecording* recording		= getRecordingByRequest(q);
+  RecordingList* recordingList	= getRecordingList(out, q, reply);
+  cRecording* editedFile	= NULL;
+
+  if ( recordingList == NULL ) {
+
+      return;
+  };
+  if ( recording == NULL ) {
+
+      reply.httpReturn(404, "Requested recording not found!");
+      return;
+  }
+
+  cThreadLock RecordingsLock(&Recordings);
+  editedFile = Recordings.GetByName(cCutter::EditedFileName(recording->FileName()));
+  if ( editedFile == NULL ) {
+
+      reply.httpReturn(404, "Requested edited file not found!");
+      return;
+  };
+
+  recordingList->init();
+  recordingList->addRecording(editedFile, editedFile->Index());
+  recordingList->setTotal(Recordings.Count());
+  recordingList->finish();
+  delete recordingList;
+
+};
 
 /* delete recording by file name */
 void RecordingsResponder::deleteRecordingByName(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
@@ -220,42 +296,28 @@ void RecordingsResponder::deleteRecordingByName(ostream& out, cxxtools::http::Re
 void RecordingsResponder::deleteRecording(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/recordings", request);
-  int recording_number = q.getParamAsInt(0);
   cThreadLock RecordingsLock(&Recordings);
-  if ( recording_number < 0 || recording_number >= Recordings.Count() ) { 
-     reply.httpReturn(404, "Wrong recording number!");
-  } else {
-     cRecording* delRecording = Recordings.Get(recording_number);
-     if ( delRecording->Delete() ) {
-        Recordings.DelByName(delRecording->FileName());
-     }
+  cRecording* delRecording = getRecordingByRequest(q);
+
+  if ( delRecording == NULL ) {
+      reply.httpReturn(404, "Recording not found!");
+  }
+
+  if ( delRecording->Delete() ) {
+    Recordings.DelByName(delRecording->FileName());
   }
 }
 
 void RecordingsResponder::showRecordings(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/recordings", request);
-  RecordingList* recordingList;
   bool read_marks = q.getOptionAsString("marks") == "true";
-
-  if ( q.isFormat(".json") ) {
-     reply.addHeader("Content-Type", "application/json; charset=utf-8");
-     recordingList = (RecordingList*)new JsonRecordingList(&out, read_marks);
-  } else if ( q.isFormat(".html") ) {
-     reply.addHeader("Content-Type", "text/html; charset=utf-8");
-     recordingList = (RecordingList*)new HtmlRecordingList(&out, read_marks);
-  } else if ( q.isFormat(".xml") )  {
-     reply.addHeader("Content-Type", "text/xml; charset=utf-8");
-     recordingList = (RecordingList*)new XmlRecordingList(&out, read_marks);
-  } else {
-     reply.httpReturn(404, "Resources are not available for the selected format. (Use: .json or .html)");
-     return;
-  }
+  RecordingList* recordingList = getRecordingList(out, q, reply, read_marks);
 
   int start_filter = q.getOptionAsInt("start");
   int limit_filter = q.getOptionAsInt("limit");
   
-  int requested_item = q.getParamAsInt(0);
+  cRecording* recording = getRecordingByRequest(q);
 
   if ( start_filter >= 0 && limit_filter >= 1 ) {
      recordingList->activateLimit(start_filter, limit_filter);
@@ -264,11 +326,11 @@ void RecordingsResponder::showRecordings(ostream& out, cxxtools::http::Request& 
   recordingList->init();
 
   cThreadLock RecordingsLock(&Recordings);
-  if ( requested_item < 0 ) {
+  if ( recording == NULL ) {
      for (int i = 0; i < Recordings.Count(); i++)
         recordingList->addRecording(Recordings.Get(i), i);
-  } else if ( requested_item < Recordings.Count() )
-     recordingList->addRecording(Recordings.Get(requested_item), requested_item);
+  } else
+     recordingList->addRecording(recording, recording->Index());
   recordingList->setTotal(Recordings.Count());
 
   recordingList->finish();
@@ -278,7 +340,7 @@ void RecordingsResponder::showRecordings(ostream& out, cxxtools::http::Request& 
 void RecordingsResponder::saveMarks(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/recordings/marks", request);
-  int recording = q.getParamAsInt(0);
+  cRecording* recording = getRecordingByRequest(q);
   JsonArray* jsonArray = q.getBodyAsArray("marks");
 
   if (jsonArray == NULL) {
@@ -286,8 +348,8 @@ void RecordingsResponder::saveMarks(ostream& out, cxxtools::http::Request& reque
   } else {
 
     cThreadLock RecordingsLock(&Recordings);
-    if (recording < 0 || recording >= Recordings.Count()) {
-       reply.httpReturn(504, "Recording number missing or invalid.");
+    if ( recording  == NULL ) {
+       reply.httpReturn(504, "Recording number/name missing or invalid.");
     } else {
        vector< string > marks;
 
@@ -301,7 +363,7 @@ void RecordingsResponder::saveMarks(ostream& out, cxxtools::http::Request& reque
 	  }
        }
 
-       VdrMarks::get()->saveMarks(Recordings.Get(recording), marks);
+       VdrMarks::get()->saveMarks(recording, marks);
     }
   }
 }
@@ -309,10 +371,9 @@ void RecordingsResponder::saveMarks(ostream& out, cxxtools::http::Request& reque
 void RecordingsResponder::deleteMarks(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/recordings/marks", request);
-  int rec_number = q.getParamAsInt(0);
+  cRecording* recording = getRecordingByRequest(q);
   cThreadLock RecordingsLock(&Recordings);
-  if (rec_number >= 0 && rec_number < Recordings.Count()) {
-     cRecording* recording = Recordings.Get(rec_number);
+  if ( recording != NULL ) {
      if (VdrMarks::get()->deleteMarks(recording)) {
         return;
      }
@@ -323,10 +384,9 @@ void RecordingsResponder::deleteMarks(ostream& out, cxxtools::http::Request& req
 void RecordingsResponder::cutRecording(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/recordings/cut", request);
-  int rec_number = q.getParamAsInt(0);
+  cRecording* recording = getRecordingByRequest(q);
   cThreadLock RecordingsLock(&Recordings);
-  if (rec_number >= 0 && rec_number < Recordings.Count()) {
-     cRecording* recording = Recordings.Get(rec_number);
+  if ( recording != NULL ) {
 #if APIVERSNUM > 20101
      if (RecordingsHandler.GetUsage(recording->FileName()) != ruNone) {
 #else
