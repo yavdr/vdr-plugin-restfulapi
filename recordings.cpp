@@ -12,6 +12,7 @@ void RecordingsResponder::reply(ostream& out, cxxtools::http::Request& request, 
       return;
   }
 
+
   if ((int)request.url().find("/recordings/play") == 0 ) {
      if ( request.method() == "GET" ) {
         playRecording(out, request, reply);
@@ -562,6 +563,13 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr)
   }
   serRecording.Marks = serMarks;
 
+  string md5 = cxxtools::md5(cxxtools::JsonSerializer::toString(serRecording, "recording"));
+  /*
+  string json = cxxtools::JsonSerializer::toString(serRecording, "recording");
+  esyslog("restfulapi: serialized: %s", json.c_str());
+  esyslog("restfulapi: md5: %s", cxxtools::md5(json).c_str());
+  */
+
   serRecordings.push_back(serRecording);
 }
 
@@ -590,6 +598,8 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr)
   int eventStartTime = -1;
   int eventDuration = -1;
 
+  string out;
+
   cEvent* event = (cEvent*)recording->Info()->GetEvent();
 
   if (event != NULL)
@@ -601,65 +611,60 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr)
      if (event->Duration() > 0)  { eventDuration = event->Duration(); }
   }
 
-  s->write(" <recording>\n");
-  s->write(cString::sprintf("  <param name=\"number\">%i</param>\n", nr));
-  s->write(cString::sprintf("  <param name=\"name\">%s</param>\n", StringExtension::encodeToXml(recording->Name()).c_str() ));
-  s->write(cString::sprintf("  <param name=\"filename\">%s</param>\n", StringExtension::encodeToXml(recording->FileName()).c_str()) );
-  s->write(cString::sprintf("  <param name=\"relative_filename\">%s</param>\n", StringExtension::encodeToXml(VdrExtension::getRelativeVideoPath(recording).c_str()).c_str()));
-
-
+  out = " <recording>\n";
+  out += cString::sprintf("  <param name=\"number\">%i</param>\n", nr);
+  out += cString::sprintf("  <param name=\"name\">%s</param>\n", StringExtension::encodeToXml(recording->Name()).c_str() );
+  out += cString::sprintf("  <param name=\"filename\">%s</param>\n", StringExtension::encodeToXml(recording->FileName()).c_str());
+  out += cString::sprintf("  <param name=\"relative_filename\">%s</param>\n", StringExtension::encodeToXml(VdrExtension::getRelativeVideoPath(recording).c_str()).c_str());
 
   const char* filename = recording->FileName();
   struct stat st;
   if (stat(filename, &st) == 0) {
 
-      s->write(
-	  cString::sprintf(
+      out += cString::sprintf(
 	    "  <param name=\"inode\">%s</param>\n",
 	    StringExtension::encodeToXml(
 		(const char*)cString::sprintf("%lu:%llu", (unsigned long) st.st_dev, (unsigned long long) st.st_ino)
 	    ).c_str()
-	  )
-      );
+	  );
 
   }
 
-
-  s->write(cString::sprintf("  <param name=\"is_new\">%s</param>\n", recording->IsNew() ? "true" : "false" ));
-  s->write(cString::sprintf("  <param name=\"is_edited\">%s</param>\n", recording->IsEdited() ? "true" : "false" ));
+  out += cString::sprintf("  <param name=\"is_new\">%s</param>\n", recording->IsNew() ? "true" : "false" );
+  out += cString::sprintf("  <param name=\"is_edited\">%s</param>\n", recording->IsEdited() ? "true" : "false" );
 
   #if APIVERSNUM >= 10703
-  s->write(cString::sprintf("  <param name=\"is_pes_recording\">%s</param>\n", recording->IsPesRecording() ? "true" : "false" ));
-  s->write(cString::sprintf("  <param name=\"frames_per_second\">%.2f</param>\n", recording->FramesPerSecond()));
+  out += cString::sprintf("  <param name=\"is_pes_recording\">%s</param>\n", recording->IsPesRecording() ? "true" : "false" );
+  out += cString::sprintf("  <param name=\"frames_per_second\">%.2f</param>\n", recording->FramesPerSecond());
   #else
-  s->write(cString::sprintf("  <param name=\"is_pes_recording\">%s</param>\n", true ? "true" : "false" ));
-  s->write(cString::sprintf("  <param name=\"frames_per_second\">%i</param>\n", FRAMESPERSEC));
+  out += cString::sprintf("  <param name=\"is_pes_recording\">%s</param>\n", true ? "true" : "false" );
+  out += cString::sprintf("  <param name=\"frames_per_second\">%i</param>\n", FRAMESPERSEC);
   #endif
-  s->write(cString::sprintf("  <param name=\"duration\">%i</param>\n", VdrExtension::RecordingLengthInSeconds(recording)));
-  s->write(cString::sprintf("  <param name=\"filesize_mb\">%i</param>\n", recording->FileSizeMB()));
-  s->write(cString::sprintf("  <param name=\"channel_id\">%s</param>\n", StringExtension::encodeToXml((string) recording->Info()->ChannelID().ToString()).c_str()));
+  out += cString::sprintf("  <param name=\"duration\">%i</param>\n", VdrExtension::RecordingLengthInSeconds(recording));
+  out += cString::sprintf("  <param name=\"filesize_mb\">%i</param>\n", recording->FileSizeMB());
+  out += cString::sprintf("  <param name=\"channel_id\">%s</param>\n", StringExtension::encodeToXml((string) recording->Info()->ChannelID().ToString()).c_str());
 
   if (read_marks) {
-     s->write("  <param name=\"marks\">\n");
+     out += "  <param name=\"marks\">\n";
      vector< string > marks = VdrMarks::get()->readMarks(recording);
      for(int i=0;i<(int)marks.size();i++) {
-        s->write(cString::sprintf("   <mark>%s</mark>\n", marks[i].c_str()));
+	 out += cString::sprintf("   <mark>%s</mark>\n", marks[i].c_str());
      }
-     s->write("  </param>\n");
+     out += "  </param>\n";
   }
 
-  s->write(cString::sprintf("  <param name=\"event_title\">%s</param>\n", StringExtension::encodeToXml(eventTitle).c_str()));
-  s->write(cString::sprintf("  <param name=\"event_short_text\">%s</param>\n", StringExtension::encodeToXml(eventShortText).c_str()));
-  s->write(cString::sprintf("  <param name=\"event_description\">%s</param>\n", StringExtension::encodeToXml(eventDescription).c_str()));
-  s->write(cString::sprintf("  <param name=\"event_start_time\">%i</param>\n", eventStartTime));
-  s->write(cString::sprintf("  <param name=\"event_duration\">%i</param>\n", eventDuration));
-  s->write(cString::sprintf("  <param name=\"aux\">%s</param>\n", StringExtension::encodeToXml(recording->Info()->Aux()).c_str()));
+  out += cString::sprintf("  <param name=\"event_title\">%s</param>\n", StringExtension::encodeToXml(eventTitle).c_str());
+  out += cString::sprintf("  <param name=\"event_short_text\">%s</param>\n", StringExtension::encodeToXml(eventShortText).c_str());
+  out += cString::sprintf("  <param name=\"event_description\">%s</param>\n", StringExtension::encodeToXml(eventDescription).c_str());
+  out += cString::sprintf("  <param name=\"event_start_time\">%i</param>\n", eventStartTime);
+  out += cString::sprintf("  <param name=\"event_duration\">%i</param>\n", eventDuration);
+  out += cString::sprintf("  <param name=\"aux\">%s</param>\n", StringExtension::encodeToXml(recording->Info()->Aux()).c_str());
+  out += sc.getMedia(recording);
+  out += " </recording>\n";
 
+  string md5 = cxxtools::md5(out);
 
-  sc.getMedia(recording, s);
-
-
-  s->write(" </recording>\n");
+  s->write(out.c_str());
 }
 
 void XmlRecordingList::finish()

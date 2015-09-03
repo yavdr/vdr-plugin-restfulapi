@@ -22,6 +22,7 @@
 #include <cxxtools/http/reply.h>
 #include <cxxtools/query_params.h>
 #include <cxxtools/serializationinfo.h> // only AdditionalMedia
+#include <cxxtools/md5.h>
 #include <vdr/channels.h>
 #include <vdr/timers.h>
 #include <vdr/recording.h>
