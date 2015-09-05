@@ -326,7 +326,10 @@ void RecordingsResponder::deleteRecording(ostream& out, cxxtools::http::Request&
     }
 
     Recordings.DelByName(delRecording->FileName());
+    reply.httpReturn(200, "Recording deleted!");
+    return;
   }
+  reply.httpReturn(500, "Recording could not be deleted!");
 }
 
 void RecordingsResponder::showRecordings(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
