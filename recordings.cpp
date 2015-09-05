@@ -108,31 +108,27 @@ void RecordingsResponder::reply(ostream& out, cxxtools::http::Request& request, 
 cRecording* RecordingsResponder::getRecordingByRequest(QueryHandler q) {
 
   int recording_number = -1;
-  int level = 0;
   string pathParam;
   string fullPath;
 
-  while ( (pathParam = q.getParamAsString(level)) != "" ) {
-      level++;
-      fullPath = fullPath + "/" + pathParam;
-      if ( !FileExtension::get()->exists(fullPath) ) {
-	  fullPath = "";
-	  break;
-      }
-  }
+  esyslog("restfulapi: retrieve recording '%s'", q.getParamAsRecordingPath().c_str());
 
-  cThreadLock RecordingsLock(&Recordings);
-  if ( fullPath == "" ) {
+  cRecording* recording = Recordings.GetByName(q.getParamAsRecordingPath().c_str());
+
+  if ( recording == NULL ) {
 
       recording_number = q.getParamAsInt(0);
+
       if ( recording_number >= 0 && recording_number < Recordings.Count() ) {
 	  return Recordings.Get(recording_number);
       }
 
   } else {
 
-      return Recordings.GetByName(fullPath.c_str());
+      return recording;
   }
+
+  esyslog("restfulapi: requested recording not found");
 
   return NULL;
 };
@@ -292,10 +288,16 @@ void RecordingsResponder::deleteRecordingByName(ostream& out, cxxtools::http::Re
 {
   QueryHandler q("/recordings/delete", request);
   string recording_file = q.getBodyAsString("file");
+  string syncId = q.getOptionAsString("syncId");
   cThreadLock RecordingsLock(&Recordings);
   if (recording_file.length() > 0) {
      cRecording* delRecording = Recordings.GetByName(recording_file.c_str());
      if (delRecording->Delete()) {
+
+	if (syncId != "") {
+	  SyncMap* syncMap = new SyncMap(q, true);
+	  syncMap->erase(StringExtension::toString(delRecording->FileName()));
+	}
         Recordings.DelByName(delRecording->FileName());
      }
   } else {
@@ -312,13 +314,17 @@ void RecordingsResponder::deleteRecording(ostream& out, cxxtools::http::Request&
 
   if ( delRecording == NULL ) {
       reply.httpReturn(404, "Recording not found!");
+      return;
   }
 
-  if (syncId != "") {
-    SyncMap* syncMap = new SyncMap(q, true);
-    syncMap->erase(StringExtension::toString(delRecording->FileName()));
-  }
+  esyslog("restfulapi: delete recording %s", delRecording->FileName());
   if ( delRecording->Delete() ) {
+
+    if (syncId != "") {
+      SyncMap* syncMap = new SyncMap(q, true);
+      syncMap->erase(StringExtension::toString(delRecording->FileName()));
+    }
+
     Recordings.DelByName(delRecording->FileName());
   }
 }
@@ -470,7 +476,6 @@ void RecordingsResponder::replyUpdates(std::ostream& out, cxxtools::http::Reques
   map<string, string>::iterator itUpdates;
   SyncMap* sync_map = new SyncMap(q);
 
-
   cThreadLock RecordingsLock(&Recordings);
   for (int i = 0; i < Recordings.Count(); i++) {
     recordingList->addRecording(Recordings.Get(i), i, sync_map, "");
@@ -480,7 +485,7 @@ void RecordingsResponder::replyUpdates(std::ostream& out, cxxtools::http::Reques
   updatesList = sync_map->getUpdates();
   updates->init();
 
-  esyslog("restfulapi: updates: %d", updatesList.size());
+  esyslog("restfulapi: recording updates: %d", updatesList.size());
 
   for (itUpdates = updatesList.begin(); itUpdates != updatesList.end(); itUpdates++) {
 
