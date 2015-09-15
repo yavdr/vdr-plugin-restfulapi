@@ -27,6 +27,7 @@ public:
   SyncMap(QueryHandler q, bool overrideFormat = false);
   ~SyncMap() {};
   void load();
+  void setClientMap(std::map<std::string, std::string> clientMap);
   void write(bool server = true);
   std::map<std::string, std::string> getUpdates();
   void add(std::string filename, std::string hash);
@@ -114,6 +115,7 @@ struct SerRecording
   cxxtools::String Aux;
   struct SerAdditionalMedia AdditionalMedia;
   cxxtools::String SyncAction;
+  cxxtools::String hash;
 };
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerRecording& p);

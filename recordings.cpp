@@ -441,33 +441,33 @@ void RecordingsResponder::cutRecording(ostream& out, cxxtools::http::Request& re
 
 void RecordingsResponder::showCutterStatus(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  QueryHandler q("/recordings/cut", request);
-  StreamExtension s(&out);
+	QueryHandler q("/recordings/cut", request);
+	StreamExtension s(&out);
 
-#if APIVERSNUM > 20101
-  bool active = RecordingsHandler.Active();
-#else
-  bool active = cCutter::Active();
-#endif
+	#if APIVERSNUM > 20101
+	bool active = RecordingsHandler.Active();
+	#else
+	bool active = cCutter::Active();
+	#endif
 
-  if (q.isFormat(".html")) {
-     reply.addHeader("Content-Type", "text/html; charset=utf-8");
-     s.writeHtmlHeader("HtmlCutterStatus");
-     s.write((active ? "True" : "False"));
-     s.write("</body></html>");
-  } else if (q.isFormat(".json")) {
-     reply.addHeader("Content-Type", "application/json; charset=utf-8");
-     cxxtools::JsonSerializer serializer(out);
-     serializer.serialize(active, "active");
-     serializer.finish();     
-  } else if (q.isFormat(".xml")) {
-     reply.addHeader("Content-Type", "text/xml; charset=utf-8");
-     s.write("<cutter xmlns=\"http://www.domain.org/restfulapi/2011/cutter-xml\">\n");
-     s.write(cString::sprintf(" <param name=\"active\">%s</param>\n", (active ? "true" : "false")));
-     s.write("</cutter>");
-  } else {
-     reply.httpReturn(502, "Only the following formats are supported: .xml, .json and .html");
-  } 
+	if (q.isFormat(".html")) {
+		reply.addHeader("Content-Type", "text/html; charset=utf-8");
+		s.writeHtmlHeader("HtmlCutterStatus");
+		s.write((active ? "True" : "False"));
+		s.write("</body></html>");
+	} else if (q.isFormat(".json")) {
+		reply.addHeader("Content-Type", "application/json; charset=utf-8");
+		cxxtools::JsonSerializer serializer(out);
+		serializer.serialize(active, "active");
+		serializer.finish();
+	} else if (q.isFormat(".xml")) {
+		reply.addHeader("Content-Type", "text/xml; charset=utf-8");
+		s.write("<cutter xmlns=\"http://www.domain.org/restfulapi/2011/cutter-xml\">\n");
+		s.write(cString::sprintf(" <param name=\"active\">%s</param>\n", (active ? "true" : "false")));
+		s.write("</cutter>");
+	} else {
+		reply.httpReturn(502, "Only the following formats are supported: .xml, .json and .html");
+	}
 }
 
 void RecordingsResponder::replyUpdates(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply) {
@@ -493,12 +493,12 @@ void RecordingsResponder::replyUpdates(std::ostream& out, cxxtools::http::Reques
   for (itUpdates = updatesList.begin(); itUpdates != updatesList.end(); itUpdates++) {
 
       if ( "delete" != itUpdates->second) {
-	  cRecording* recording = Recordings.GetByName(itUpdates->first.c_str());
-	  updates->addRecording(recording, recording->Index(), NULL, itUpdates->second);
+    	  cRecording* recording = Recordings.GetByName(itUpdates->first.c_str());
+    	  updates->addRecording(recording, recording->Index(), NULL, itUpdates->second);
       } else {
-	  cRecording* recording = new cRecording(itUpdates->first.c_str());
-	  updates->addRecording(recording, -1, NULL, itUpdates->second);
-	  delete recording;
+    	  cRecording* recording = new cRecording(itUpdates->first.c_str());
+    	  updates->addRecording(recording, -1, NULL, itUpdates->second);
+    	  delete recording;
       }
   }
   updates->setTotal(updatesList.size());
@@ -571,6 +571,7 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr, SyncMap* syn
   cxxtools::String eventTitle = empty;
   cxxtools::String eventShortText = empty;
   cxxtools::String eventDescription = empty;
+  cxxtools::String hash = empty;
   int eventStartTime = -1;
   int eventDuration = -1;
     
@@ -591,7 +592,6 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr, SyncMap* syn
   if (sc.getMedia(recording, am)) {
       serRecording.AdditionalMedia = am;
   }
-
 
   serRecording.Number = nr;
   serRecording.Name = StringExtension::encodeToJson(recording->Name());
@@ -632,12 +632,13 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr, SyncMap* syn
      serMarks.marks = VdrMarks::get()->readMarks(recording);
   }
   serRecording.Marks = serMarks;
+  serRecording.SyncAction = (cxxtools::String)sync_action;
 
   if (sync_map != NULL && sync_map->active()) {
-      sync_map->add((string)filename, (string)cxxtools::md5(cxxtools::JsonSerializer::toString(serRecording, "recording")));
+	  hash = cxxtools::md5(cxxtools::JsonSerializer::toString(serRecording, "recording"));
+	  sync_map->add((string)filename, StringExtension::toString(hash));
   }
-
-  serRecording.SyncAction = (cxxtools::String)sync_action;
+  serRecording.hash = hash;
 
   serRecordings.push_back(serRecording);
 }
@@ -664,6 +665,7 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr, SyncMap* sync
   string eventTitle = "";
   string eventShortText = "";
   string eventDescription = "";
+  string hash = "";
   int eventStartTime = -1;
   int eventDuration = -1;
 
@@ -673,11 +675,11 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr, SyncMap* sync
 
   if (event != NULL)
   {
-     if (event->Title())         { eventTitle = event->Title(); }
-     if (event->ShortText())     { eventShortText = event->ShortText(); }
-     if (event->Description())   { eventDescription = event->Description(); }
-     if (event->StartTime() > 0) { eventStartTime = event->StartTime(); }
-     if (event->Duration() > 0)  { eventDuration = event->Duration(); }
+     if (event->Title())			{ eventTitle		= event->Title();		}
+     if (event->ShortText())		{ eventShortText	= event->ShortText();	}
+     if (event->Description())		{ eventDescription	= event->Description();	}
+     if (event->StartTime() > 0)	{ eventStartTime	= event->StartTime();	}
+     if (event->Duration() > 0)		{ eventDuration		= event->Duration();	}
   }
 
   out = " <recording>\n";
@@ -691,12 +693,11 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr, SyncMap* sync
   if (stat(filename, &st) == 0) {
 
       out += cString::sprintf(
-	    "  <param name=\"inode\">%s</param>\n",
-	    StringExtension::encodeToXml(
-		(const char*)cString::sprintf("%lu:%llu", (unsigned long) st.st_dev, (unsigned long long) st.st_ino)
-	    ).c_str()
-	  );
-
+    		  "  <param name=\"inode\">%s</param>\n",
+			  StringExtension::encodeToXml(
+					  (const char*)cString::sprintf("%lu:%llu", (unsigned long) st.st_dev, (unsigned long long) st.st_ino)
+			  ).c_str()
+      );
   }
 
   out += cString::sprintf("  <param name=\"is_new\">%s</param>\n", recording->IsNew() ? "true" : "false" );
@@ -730,11 +731,13 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr, SyncMap* sync
   out += cString::sprintf("  <param name=\"aux\">%s</param>\n", StringExtension::encodeToXml(recording->Info()->Aux()).c_str());
   out += sc.getMedia(recording);
   out += cString::sprintf("  <param name=\"sync_action\">%s</param>\n", StringExtension::encodeToXml(sync_action).c_str());
-  out += " </recording>\n";
 
   if (sync_map != NULL && sync_map->active()) {
-      sync_map->add((string)filename, (string)cxxtools::md5(out));
+	  hash = (string)cxxtools::md5(out);
+      sync_map->add((string)filename, hash);
   }
+  out += cString::sprintf("  <param name=\"hash\">%s</param>\n", StringExtension::encodeToXml(hash).c_str());
+  out += " </recording>\n";
 
   s->write(out.c_str());
 }
@@ -843,25 +846,32 @@ void SyncMap::clear(bool server) {
  */
 void SyncMap::load() {
 
-  this->clear(false);
-  char line[1024];
-  string recording;
-  string filename;
-  string hash;
-  FILE* fp = this->getSyncFile();
+	this->clear(false);
+	char line[1024];
+	string recording;
+	string filename;
+	string hash;
+	FILE* fp = this->getSyncFile();
 
-  if ( fp != NULL ) {
-    while (fgets(line, 1024, fp)) {
+	if ( fp != NULL ) {
+		while (fgets(line, 1024, fp)) {
 
-	recording = (string)line;
-	filename = recording.substr(0, recording.find_last_of(","));
-	hash = recording.substr(recording.find_last_of(",") + 1, recording.length() - 1);
+			recording = (string)line;
+			filename = recording.substr(0, recording.find_last_of(","));
+			hash = recording.substr(recording.find_last_of(",") + 1, recording.length() - 1);
 
-	this->clientMap[filename] = hash;
-    }
+			this->clientMap[filename] = hash;
+		}
 
-    fclose(fp);
-  }
+		fclose(fp);
+	}
+};
+
+void SyncMap::setClientMap(std::map<std::string, std::string> clientMap) {
+
+	this->clear(false);
+	this->clientMap = clientMap;
+	//TODO: add reset method and setter for single items
 };
 
 /**
@@ -885,9 +895,9 @@ map<string, string> SyncMap::getUpdates() {
 
       result = this->clientMap.find(fileName);
       if ( result == this->clientMap.end() ) {
-	  action = "add";
+    	  action = "add";
       } else if ( StringExtension::trim(result->second) != hash ) {
-	  action = "update";
+    	  action = "update";
       }
 
       if ( action != "" ) updatesList[fileName] = action;
@@ -900,7 +910,7 @@ map<string, string> SyncMap::getUpdates() {
 
       result = this->serverMap.find(fileName);
       if ( result == this->serverMap.end() ) {
-	  action = "delete";
+    	  action = "delete";
       }
 
       if ( action != "" ) updatesList[fileName] = action;
