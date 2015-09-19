@@ -3,21 +3,22 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-PLG_PACKAGE = $(filter-out %-dbg, $(shell dh_listpackages))
-DBG_PACKAGE = $(filter %-dbg, $(shell dh_listpackages))
-
-UPSTREAM_VERSION=0.1.3
+UPSTREAM_VERSION=0.2.5.0
 
 .PHONY: override_dh_strip override_dh_auto_install
 
 override_dh_strip:
-	dh_strip --dbg-package=$(DBG_PACKAGE)
+	dh_strip --dbg-package=vdr-plugin-restfulapi-dbg
 
 override_dh_auto_install:
-	dh_auto_install --destdir=debian/$(PLG_PACKAGE)
+	LIBDIR=. dh_auto_install --destdir=debian/vdr-plugin-restfulapi
+
+override_dh_gencontrol:
+	sh /usr/share/vdr-dev/dependencies.sh
+	dh_gencontrol
 
 %:
-	dh $@ --with vdrplugin
+	dh $@
 
 archive:
 	git archive --format=tar.gz --prefix=vdr-plugin-restfulapi-${UPSTREAM_VERSION}/ --output=../vdr-plugin-restfulapi_${UPSTREAM_VERSION}.orig.tar.gz master
