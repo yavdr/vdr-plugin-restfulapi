@@ -121,8 +121,6 @@ cRecording* RecordingsResponder::getRecordingByRequest(QueryHandler q) {
   string pathParam;
   string fullPath;
 
-  esyslog("restfulapi: retrieve recording '%s'", q.getParamAsRecordingPath().c_str());
-
   cRecording* recording = Recordings.GetByName(q.getParamAsRecordingPath().c_str());
 
   if ( recording == NULL ) {
@@ -130,7 +128,7 @@ cRecording* RecordingsResponder::getRecordingByRequest(QueryHandler q) {
       recording_number = q.getParamAsInt(0);
 
       if ( recording_number >= 0 && recording_number < Recordings.Count() ) {
-	  return Recordings.Get(recording_number);
+    	  return Recordings.Get(recording_number);
       }
 
   } else {
@@ -163,7 +161,6 @@ RecordingList* RecordingsResponder::getRecordingList(ostream& out, QueryHandler 
 
   } else {
 
-		esyslog("restfulapi: grompf bannig!");
     reply.httpReturn(502, "Resources are not available for the selected format. (Use: .json, .xml or .html)");
     return NULL;
   }
