@@ -36,7 +36,6 @@ void FemonResponder::reply (std::ostream& out, cxxtools::http::Request& request,
 
 void FemonResponder::replyJson(StreamExtension se, FemonService_v1_0& fe) {
 
-  esyslog("restfulapi: Reply JSON");
   cxxtools::JsonSerializer serializer(*se.getBasicStream());
   serializer.serialize(fe, "femonData");
   serializer.finish();

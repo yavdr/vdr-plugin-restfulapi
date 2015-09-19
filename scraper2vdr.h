@@ -85,13 +85,16 @@ private:
   cPlugin *getScraperPlugin(void);
   cPlugin *scraper;
   std::string epgImagesDir;
-  bool getEventType	(ScraperGetEventType &eventType);
-  void getSeriesMedia	(SerAdditionalMedia &am, ScraperGetEventType &eventType);
-  void getMovieMedia	(SerAdditionalMedia &am, ScraperGetEventType &eventType);
-  void getSeriesMedia	(StreamExtension* s, ScraperGetEventType &eventType);
-  void getMovieMedia	(StreamExtension* s, ScraperGetEventType &eventType);
-  bool getMedia		(ScraperGetEventType &eventType, SerAdditionalMedia &am);
-  bool getMedia		(ScraperGetEventType &eventType, StreamExtension* s);
+  bool getEventType		(ScraperGetEventType &eventType);
+  void getSeriesMedia		(SerAdditionalMedia &am, ScraperGetEventType &eventType);
+  void getMovieMedia		(SerAdditionalMedia &am, ScraperGetEventType &eventType);
+  void getSeriesMedia		(StreamExtension* s, ScraperGetEventType &eventType);
+  void getMovieMedia		(StreamExtension* s, ScraperGetEventType &eventType);
+  std::string getSeriesMedia	(ScraperGetEventType &eventType);
+  std::string getMovieMedia	(ScraperGetEventType &eventType);
+  bool getMedia			(ScraperGetEventType &eventType, SerAdditionalMedia &am);
+  bool getMedia			(ScraperGetEventType &eventType, StreamExtension* s);
+  std::string getMedia		(ScraperGetEventType &eventType);
   std::string cleanImagePath(std::string path);
 public:
   explicit Scraper2VdrService();
@@ -99,7 +102,7 @@ public:
   bool getMedia(cEvent *event, SerAdditionalMedia &am);
   bool getMedia(cRecording *recording, SerAdditionalMedia &am);
   bool getMedia(cEvent *event, StreamExtension *s);
-  bool getMedia(cRecording *recording, StreamExtension* s);
+  std::string getMedia(cRecording *recording);
 };
 
 class ScraperImageResponder : public cxxtools::http::Responder {

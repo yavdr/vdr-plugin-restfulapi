@@ -1600,6 +1600,17 @@ string QueryHandler::getParamAsString(int level)
   return param;
 }
 
+string QueryHandler::getParamAsRecordingPath()
+{
+  int level = 0;
+  string path = "";
+  while ( level < (int)_params.size() ) {
+      path = path + "/" + getParamAsString(level);
+      level++;
+  }
+  return path;
+}
+
 string QueryHandler::getOptionAsString(string name)
 {
   return _options.param(name);
