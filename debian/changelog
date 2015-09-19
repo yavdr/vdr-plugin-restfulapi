@@ -1,0 +1,201 @@
+vdr-plugin-restfulapi (0.2.5.0-1yavdr0~trusty) trusty; urgency=medium
+
+  * add recordings sync feature
+
+ -- Henning Künne <hannemann666@gmx.net>  Sat, 19 Sep 2015 11:03:51 +0200
+
+vdr-plugin-restfulapi (0.2.4.1-1yavdr0~trusty) trusty; urgency=medium
+
+  * add date_lmit GET parameter to event search
+
+ -- Henning Künne <hannemann666@gmx.net>  Sat, 29 Aug 2015 15:22:51 +0200
+
+vdr-plugin-restfulapi (0.2.4.0-1yavdr0~trusty) trusty; urgency=medium
+
+  * add advanced epg search
+
+ -- Henning Künne <hannemann666@gmx.net>  Tue, 25 Aug 2015 21:34:51 +0200
+
+vdr-plugin-restfulapi (0.2.3.8-1yavdr0~trusty) trusty; urgency=medium
+
+  * add ability to define multiple webapps
+
+ -- Henning Künne <hannemann666@gmx.net>  Sat, 22 Aug 2015 15:26:00 +0200
+
+vdr-plugin-restfulapi (0.2.3.7-1yavdr0~trusty) trusty; urgency=medium
+
+  * add config file for webapp file types
+
+ -- Henning Künne <hannemann666@gmx.net>  Sun, 16 Aug 2015 15:30:00 +0200
+
+vdr-plugin-restfulapi (0.2.3.6-1yavdr0~trusty) trusty; urgency=medium
+
+  * convert to conf.d
+
+ -- Lars Hanisch <dvb@flensrocker.de>  Thu, 28 May 2015 00:46:37 +0200
+
+vdr-plugin-restfulapi (0.2.3.6-0yavdr0~precise) precise; urgency=medium
+
+  * add documentation for bulk delete timers
+
+ -- Henning Künne <hannemann666@gmx.net>  Sun, 24 May 2015 17:32:30 +0200
+ 
+vdr-plugin-restfulapi (0.2.3.5-0yavdr0~precise) precise; urgency=medium
+
+  * implement missing searchtimer data
+  * add responder for searchtimer blacklists
+  * add responder for searchtimer channelgroups
+  * add responder for searchtimer contentdescriptors
+  * add responder for searchtimer ext epg info
+  * add responder for searchtimer recordingdirs
+  * add responder for conflict search
+  * add channel info to devices in info module
+  * add vdr and api version to info
+  * modernize API.html
+
+ -- Henning Künne <hannemann666@gmx.net>  Sun, 24 May 2015 17:28:30 +0200
+
+vdr-plugin-restfulapi (0.2.3.1-0yavdr0~precise) precise; urgency=medium
+
+  * add searchtimer ext EPG info responder
+
+ -- Henning Künne <hannemann666@gmx.net>  Sun, 19 Apr 2015 21:28:20 +0200
+ 
+vdr-plugin-restfulapi (0.2.3.0-0yavdr0~precise) precise; urgency=medium
+
+  * add searchtimer channelgroups responder
+  * add searchtimer blacklists responder
+  * add searchtimer timer conflicts responder
+  * add searchtimer recording dirs responder
+
+ -- Henning Künne <hannemann666@gmx.net>  Sun, 19 Apr 2015 20:09:20 +0200
+ 
+vdr-plugin-restfulapi (0.2.2.1-0yavdr0~precise) precise; urgency=medium
+
+  * add devices to info service
+  * add inode to recordings
+
+ -- Henning Künne <hannemann666@gmx.net>  Sun, 22 Mar 2015 21:09:20 +0200
+ 
+vdr-plugin-restfulapi (0.2.2.1-0yavdr0~precise) precise; urgency=medium
+
+  * make dependency to libmagick++ optional
+
+ -- Henning Künne <hannemann666@gmx.net>  Sun, 22 Mar 2015 21:09:20 +0200
+ 
+vdr-plugin-restfulapi (0.2.2.0-0yavdr0~precise) precise; urgency=medium
+
+  * add ability to resize images
+
+ -- Henning Künne <hannemann666@gmx.net>  Sat, 21 Mar 2015 10:14:20 +0200
+ 
+vdr-plugin-restfulapi (0.2.1.4-0yavdr0~precise) precise; urgency=medium
+
+  * fix events search
+
+ -- Henning Künne <hannemann666@gmx.net>  Sun, 03 Mar 2015 10:58:20 +0200
+ 
+vdr-plugin-restfulapi (0.2.1.3-0yavdr0~precise) precise; urgency=medium
+
+  * add svg support for channel logos
+
+ -- Henning Künne <hannemann666@gmx.net>  Sun, 22 Feb 2015 15:26:20 +0200
+ 
+vdr-plugin-restfulapi (0.2.1.1-0yavdr0~precise) precise; urgency=medium
+
+  * add femon service
+  * make use of PUT and POST in wirbelscan service
+
+ -- Henning Künne <hannemann666@gmx.net>  Sat, 10 Jan 2015 17:44:20 +0200
+ 
+vdr-plugin-restfulapi (0.2.1.0-0yavdr0~precise) precise; urgency=medium
+
+  * add webapp service
+
+ -- Henning Künne <hannemann666@gmx.net>  Sat, 10 Jan 2015 17:44:20 +0200
+
+vdr-plugin-restfulapi (0.2.0.0-0yavdr0~precise) precise; urgency=medium
+
+  * add scraper2vdr service
+
+ -- Henning Künne <hannemann666@gmx.net>  Sun, 21 Dec 2014 09:23:20 +0200
+ 
+vdr-plugin-restfulapi (0.1.3.1-0yavdr0~precise) precise; urgency=medium
+
+  * remote: add ability to send a sequence of keys
+
+ -- Henning Künne <hannemann666@gmx.net>  Sat, 01 Nov 2014 09:23:20 +0200
+
+vdr-plugin-restfulapi (0.1.3.1-0yavdr0~precise) precise; urgency=medium
+
+  * remote: add ability to send strings as keyboard input
+  * remove outdated fix for cxxtools
+
+ -- Henning Künne <hannemann666@gmx.net>  Thu, 23 Oct 2014 19:23:20 +0200
+
+vdr-plugin-restfulapi (0.1.3-0yavdr0~precise) precise; urgency=medium
+
+  * channellogos: look for files with channel-id
+
+ -- Lars Hanisch <dvb@flensrocker.de>  Mon, 07 Apr 2014 19:23:20 +0200
+
+vdr-plugin-restfulapi (0.1.2-1yavdr0~precise) precise; urgency=medium
+
+  * add vdr-abi dependency
+
+ -- Lars Hanisch <dvb@flensrocker.de>  Sun, 02 Feb 2014 17:09:18 +0100
+
+vdr-plugin-restfulapi (0.1.2-0yavdr0~precise) precise; urgency=medium
+
+  * new upstream release
+
+ -- Lars Hanisch <dvb@flensrocker.de>  Sun, 10 Mar 2013 13:36:48 +0100
+
+vdr-plugin-restfulapi (0.1.1-6-gf7e266a-2yavdr0~precise) precise; urgency=medium
+
+  * libvdr-*so doesn't need to be manually installed
+
+ -- Lars Hanisch <dvb@flensrocker.de>  Thu, 07 Mar 2013 10:44:24 +0100
+
+vdr-plugin-restfulapi (0.1.1-6-gf7e266a-1yavdr0~precise) precise; urgency=medium
+
+  * depend on pkg-config
+
+ -- Lars Hanisch <dvb@flensrocker.de>  Thu, 07 Mar 2013 03:10:31 +0100
+
+vdr-plugin-restfulapi (0.1.1-6-gf7e266a-0yavdr0~precise) precise; urgency=medium
+
+  * new upstream snapshot
+
+ -- Lars Hanisch <dvb@flensrocker.de>  Thu, 07 Mar 2013 02:47:52 +0100
+
+vdr-plugin-restfulapi (0.1.1-4yavdr0~precise) precise; urgency=medium
+
+  * refactored to-json-encoder
+
+ -- Lars Hanisch <dvb@flensrocker.de>  Thu, 28 Feb 2013 03:23:29 +0100
+
+vdr-plugin-restfulapi (0.1.1-3yavdr0~precise) precise; urgency=medium
+
+  * add some bugfixes and set version to 0.1.1 in the source...
+
+ -- Lars Hanisch <dvb@flensrocker.de>  Wed, 27 Feb 2013 21:14:05 +0100
+
+vdr-plugin-restfulapi (0.1.1-2yavdr0~precise) precise; urgency=medium
+
+  * add new Makefile for vdr 1.7.36
+  * add german translation file
+
+ -- Lars Hanisch <dvb@flensrocker.de>  Sat, 09 Feb 2013 11:16:57 +0100
+
+vdr-plugin-restfulapi (0.1.1-1yavdr0~precise) precise; urgency=medium
+
+  * new upstream snapshot
+
+ -- Lars Hanisch <dvb@flensrocker.de>  Wed, 21 Nov 2012 21:34:34 +0100
+
+vdr-plugin-restfulapi (0.1.1-0yavdr0~natty) natty; urgency=medium
+
+  * Initial Release
+  
+ -- Michael Eiler <eiler.mike@gmail.com>  Thu, 26 July 2011 22:41:00 +0200
