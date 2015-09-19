@@ -545,10 +545,10 @@ void RecordingsResponder::sendSyncList(ostream& out, cxxtools::http::Request& re
 
 		if ( "delete" != itUpdates->second) {
 			cRecording* recording = Recordings.GetByName(itUpdates->first.c_str());
-			updates->addRecording(recording, recording->Index(), NULL, itUpdates->second);
+			updates->addRecording(recording, recording->Index(), NULL, itUpdates->second, true);
 		} else {
 			cRecording* recording = new cRecording(itUpdates->first.c_str());
-			updates->addRecording(recording, -1, NULL, itUpdates->second);
+			updates->addRecording(recording, -1, NULL, itUpdates->second, true);
 			delete recording;
 		}
 	}
@@ -602,7 +602,7 @@ void HtmlRecordingList::init()
   s->write("<ul>");
 }
 
-void HtmlRecordingList::addRecording(cRecording* recording, int nr, SyncMap* sync_map, string sync_action)
+void HtmlRecordingList::addRecording(cRecording* recording, int nr, SyncMap* sync_map, string sync_action, bool add_hash)
 {
   if ( filtered() ) return;
   s->write("<li>");
@@ -615,7 +615,7 @@ void HtmlRecordingList::finish()
   s->write("</body></html>");
 }
 
-void JsonRecordingList::addRecording(cRecording* recording, int nr, SyncMap* sync_map, string sync_action)
+void JsonRecordingList::addRecording(cRecording* recording, int nr, SyncMap* sync_map, string sync_action, bool add_hash)
 {
   if ( filtered() ) return;
 
@@ -686,10 +686,13 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr, SyncMap* syn
   serRecording.Marks = serMarks;
   serRecording.SyncAction = (cxxtools::String)sync_action;
 
-  if (sync_map != NULL && sync_map->active()) {
+  if ( add_hash == true || ( sync_map != NULL && sync_map->active() ) ) {
 	  hash = cxxtools::md5(cxxtools::JsonSerializer::toString(serRecording, "recording"));
+  }
+  if ( sync_map != NULL && sync_map->active() ) {
 	  sync_map->add((string)filename, StringExtension::toString(hash));
   }
+
   serRecording.hash = hash;
 
   serRecordings.push_back(serRecording);
@@ -710,7 +713,7 @@ void XmlRecordingList::init()
   s->write("<recordings xmlns=\"http://www.domain.org/restfulapi/2011/recordings-xml\">\n");
 }
 
-void XmlRecordingList::addRecording(cRecording* recording, int nr, SyncMap* sync_map, string sync_action)
+void XmlRecordingList::addRecording(cRecording* recording, int nr, SyncMap* sync_map, string sync_action, bool add_hash)
 {
   if ( filtered() ) return;
 
@@ -784,10 +787,13 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr, SyncMap* sync
   out += sc.getMedia(recording);
   out += cString::sprintf("  <param name=\"sync_action\">%s</param>\n", StringExtension::encodeToXml(sync_action).c_str());
 
-  if (sync_map != NULL && sync_map->active()) {
+  if ( add_hash == true || ( sync_map != NULL && sync_map->active() ) ) {
 	  hash = (string)cxxtools::md5(out);
+  }
+  if ( sync_map != NULL && sync_map->active() ) {
       sync_map->add((string)filename, hash);
   }
+
   out += cString::sprintf("  <param name=\"hash\">%s</param>\n", StringExtension::encodeToXml(hash).c_str());
   out += " </recording>\n";
 

@@ -47,7 +47,7 @@ class RecordingList : public BaseList
     RecordingList(std::ostream* _out, bool _read_marks);
     virtual ~RecordingList();
     virtual void init() { };
-    virtual void addRecording(cRecording* recording, int nr, SyncMap*, std::string sync_action) { };
+    virtual void addRecording(cRecording* recording, int nr, SyncMap*, std::string sync_action, bool add_hash = false) { };
     virtual void finish() { };
     virtual void setTotal(int _total) { total = _total; }
 };
@@ -129,7 +129,7 @@ class HtmlRecordingList : RecordingList
     HtmlRecordingList(std::ostream* _out, bool _read_marks) : RecordingList(_out, _read_marks) { };
     ~HtmlRecordingList() { };
     virtual void init();
-    virtual void addRecording(cRecording* recording, int nr, SyncMap* sync_map, std::string sync_action);
+    virtual void addRecording(cRecording* recording, int nr, SyncMap* sync_map, std::string sync_action, bool add_hash = false);
     virtual void finish();
 };
 
@@ -140,7 +140,7 @@ class JsonRecordingList : RecordingList
   public:
     JsonRecordingList(std::ostream* _out, bool _read_marks) : RecordingList(_out, _read_marks) { };
     ~JsonRecordingList() { };
-    virtual void addRecording(cRecording* recording, int nr, SyncMap* sync_map, std::string sync_action);
+    virtual void addRecording(cRecording* recording, int nr, SyncMap* sync_map, std::string sync_action, bool add_hash = false);
     virtual void finish();
 };
 
@@ -150,7 +150,7 @@ class XmlRecordingList : RecordingList
     XmlRecordingList(std::ostream* _out, bool _read_marks) : RecordingList(_out, _read_marks) { };
     ~XmlRecordingList() { };
     virtual void init();
-    virtual void addRecording(cRecording* recording, int nr, SyncMap* sync_map, std::string sync_action);
+    virtual void addRecording(cRecording* recording, int nr, SyncMap* sync_map, std::string sync_action, bool add_hash = false);
     virtual void finish();
 };
 
