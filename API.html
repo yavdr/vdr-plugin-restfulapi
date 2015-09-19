@@ -1285,18 +1285,29 @@
                 	It is not safe to use the recording number for e.g. deleting recordings because it is not guaranteed that the numbers don't change during runtime.
                 	Hence it is recommended to use the &lt;file_name&gt; as parameter. Due to backwards compatibility reasons the recording number is still supported
                 	but may be removed in future versions.<br>
-                	To use the file name as parameter it is necessary to url encode the path parts.<br>
+                	To use the file name as parameter it could be necessary to url encode the path parts.<br>
                 </p>
                 <div class="code" data-header="Example request by file name:">
                 	http://&lt;ip&gt;:&lt;port&gt;/recordings/path/to/videodir/my_recording/YYYY-MM-DD.hh.mm.ss-0.rec.&lt;format&gt;
                 </div>
                 <p>
                 	Since Version 0.2.5 it is also possible to request restfulapi to write a sync file in its cache directory.
-                	Simply add the <em>syncId</em> parameter with a value of of your choice to the url whithin a request to the full recording list. Future requests to the updates service
-                	with the same id can fetch a list of new, deleted or updated recordings since the last full or updates request. Don't forget to add the syncId parameter
-                	to delete requests aswell.<br>
+                	Simply add the <em>&lt;syncId&gt;</em> parameter with a value of of your choice to the url whithin a request to the full recording list.
+                	This sync file can be checked against the current recordings or a list of recordings sent by the client.
+                </p>
+                	
+                <p>	
+                	Future requests to the /recordings/updates service with the same id can fetch a list of new, deleted or updated recordings since the last full or updates request.
+                	Don't forget to add the syncId parameter to delete requests aswell. Restfulapi can than delete it from your clients sync list.
+                </p>
+                <p>
+                	Additionally the /recordings/sync service has been added. You can send an array named recordings with each member containing a comma seperated
+                	file_name, hash pair. The hash is a new property of each recording that will be added if the full recording list was requested.
+                	Restfulapi will then respond with a list of recordings that have been added, deleted or changed
+                </p>
+                <p>
                 	The updates response contains a list of recordings with a &lt;sync_action&gt; property that contains either add, delete or update.<br>
-                	One can use this feature to store the recordings in a client side database and keep it in sync without requesting the full list every time.   
+                	One can use this feature to store the recordings in a client side database and keep it in sync without requesting the full list every time.
                 </p>
                 <p class="method">GET, DELETE, POST</p>
 
@@ -1304,6 +1315,7 @@
                     GET http://&lt;ip&gt;:&lt;port&gt;/recordings/.&lt;format&gt;?syncId=my-client-id
                     GET http://&lt;ip&gt;:&lt;port&gt;/recordings/&lt;file_name|<del>recordingnumber</del>&gt;.&lt;format&gt;?marks=true
                     GET http://&lt;ip&gt;:&lt;port&gt;/recordings/updates.&lt;format&gt;?syncId=my-client-id
+                    POST http://&lt;ip&gt;:&lt;port&gt;/recordings/sync.&lt;format&gt;?syncId=my-client-id
                     DELETE http://&lt;ip&gt;:&lt;port&gt;/recordings/&lt;file_name|<del>recordingnumber</del>&gt;?syncId=my-client-id
                     POST http://&lt;ip&gt;:&lt;port&gt;/recordings/move.&lt;format&gt;
                 </div>
@@ -1316,6 +1328,7 @@
                     <li>&lt;source&gt; - The full (url encoded) source path of the recording.
                     <li>&lt;target&gt; - The relative (url encoded) target path of the recording.
                     <li>&lt;syncId&gt; - (optional) client id for sync map file name
+                    <li>&lt;recordings[]&gt; - &lt;file_name&gt;,&lt;hash&gt; (Form Data)
                     <li>marks=true - add the cutting marks by reading the marks file from the recording directory
                     <li>start, limit - These values are used to control the whole list. Start ist the first element you want to
                         retrieve. Limit...
@@ -1341,13 +1354,15 @@
                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;param name="event_description"&gt;(Zeichentrickfilm, DEU 1994)&lt;/param&gt;
                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;param name="event_start_time"&gt;1308480705&lt;/param&gt;
                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;param name="event_duration"&gt;4611&lt;/param&gt;
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;param name="sync_action"&gt;&lt;/param&gt;
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;param name="hash"&gt;&lt;/param&gt;
                     &nbsp;&nbsp;&nbsp;&nbsp;&lt;/recording&gt;
                     &nbsp;&nbsp;&nbsp;&nbsp;&lt;count&gt;2&lt;/count&gt;&lt;total&gt;2&lt;/total&gt;
                     &lt;/recordings&gt;
                 </div>
 
                 <div class="code" data-header="Example Result (JSON):">
-                    GET http://127.0.0.1:8002/recordings.json?start=0&amp;limit=1i&amp;marks=true
+                    GET http://127.0.0.1:8002/recordings.json?start=0&amp;limit=1&amp;marks=true
 
                     {
                         &nbsp;&nbsp;&nbsp;&nbsp;"recordings": [
@@ -1369,6 +1384,8 @@
                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"event_description":"(Zeichentrickfilm, DEU 1994)",
                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"event_start_time":1308480705,
                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"event_duration":4611
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"sync_action":""
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"hash":""
                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
                         &nbsp;&nbsp;&nbsp;&nbsp;],
                         &nbsp;&nbsp;&nbsp;&nbsp;"count":1,
@@ -1384,6 +1401,86 @@
                     <li>source=/path/to/videodir/my_recording/YYYY-MM-DD.hh.mm.ss-0.rec
                     <li>target=relative/path/to/renamed%20recording
                 </ul>
+
+                <div class="code" data-header="Fetch Updates:">
+                    GET "http://127.0.0.1:8002/recordings/updates.json"
+                </div>
+
+                <div class="code" data-header="Example Result (JSON):">
+                    GET http://127.0.0.1:8002/recordings/updates.json?syncId=a-string-identifying-my-client
+
+                    {
+                        &nbsp;&nbsp;&nbsp;&nbsp;"recordings": [
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"number":0,
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name":"Asterix in Amerika",
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"file_name":"\/var\/lib\/video.00\/Asterix_in_Amerika\/2011-06-19.12.40.1-0.rec",
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"is_new":false,
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"is_edited":false,
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"is_pes_recording":false,
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"duration":-1,
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"frames_per_second":50,
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"marks":[
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"0:03:17.10",
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"1:43:07.24"
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;],
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"event_title":"Asterix in Amerika",
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"event_short_text":"",
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"event_description":"(Zeichentrickfilm, DEU 1994)",
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"event_start_time":1308480705,
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"event_duration":4611
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"sync_action":"add"
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"hash":"8324fe9b80873947c9d0963d83378232"
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+                        &nbsp;&nbsp;&nbsp;&nbsp;],
+                        &nbsp;&nbsp;&nbsp;&nbsp;"count":1,
+                        &nbsp;&nbsp;&nbsp;&nbsp;"total":2
+                    }
+                </div>
+
+                <div class="code" data-header="Synchronize:">
+                    POST "http://127.0.0.1:8002/recordings/sync.json?syncId=a-string-identifying-my-client"
+                </div>
+
+                <ul class="param-desc" data-header="Required Body Parameters:">
+                    <li>recordings[]=/path/to/videodir/my_recording/YYYY-MM-DD.hh.mm.ss-0.rec,8324fe9b80873947c9d0963d83378232
+                    <li>recordings[]=/path/to/videodir/my_recording/YYYY-MM-DD.hh.mm.ss-0.rec,d4da05b1e99df60d3cd0ef72b6093db3
+                    <li>recordings[]=/path/to/videodir/my_recording/YYYY-MM-DD.hh.mm.ss-0.rec,e3f29839c38c74bab63ab02d0dffd6a6
+                    <li>&vellip;
+                    <li>recordings[]=/path/to/videodir/my_recording/YYYY-MM-DD.hh.mm.ss-0.rec,46a26b76f5c8c7361d33367dcc86ced0
+                </ul>
+
+                <div class="code" data-header="Example Result (JSON):">
+                    POST http://127.0.0.1:8002/recordings/updates.json?syncId=a-string-identifying-my-client
+
+                    {
+                        &nbsp;&nbsp;&nbsp;&nbsp;"recordings": [
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"number":0,
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name":"Asterix in Amerika",
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"file_name":"\/var\/lib\/video.00\/Asterix_in_Amerika\/2011-06-19.12.40.1-0.rec",
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"is_new":false,
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"is_edited":false,
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"is_pes_recording":false,
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"duration":-1,
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"frames_per_second":50,
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"marks":[
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"0:03:17.10",
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"1:43:07.24"
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;],
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"event_title":"Asterix in Amerika",
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"event_short_text":"",
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"event_description":"(Zeichentrickfilm, DEU 1994)",
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"event_start_time":1308480705,
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"event_duration":4611
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"sync_action":"add"
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"hash":"8324fe9b80873947c9d0963d83378232"
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+                        &nbsp;&nbsp;&nbsp;&nbsp;],
+                        &nbsp;&nbsp;&nbsp;&nbsp;"count":1,
+                        &nbsp;&nbsp;&nbsp;&nbsp;"total":2
+                    }
+                </div>
             </section>
 
 
