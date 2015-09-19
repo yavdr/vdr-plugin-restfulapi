@@ -80,6 +80,9 @@ private:
     void replyRecordingMoved(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply, cRecording* recording);
     void replyEditedFileName(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void replyUpdates(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+    void replySyncList(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+    void sendSyncList(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply, SyncMap* sync_map);
+    void initServerList(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply, SyncMap* sync_map);
     cRecording* getRecordingByRequest(QueryHandler q);
     RecordingList* getRecordingList(std::ostream& out, QueryHandler q, cxxtools::http::Reply& reply, bool _read_marks);
 };

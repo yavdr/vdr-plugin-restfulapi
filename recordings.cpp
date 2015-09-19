@@ -4,6 +4,7 @@ using namespace std;
 void RecordingsResponder::reply(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler::addHeader(reply);
+
   bool found = false;
 
   if ( request.method() == "OPTIONS" ) {
@@ -86,6 +87,15 @@ void RecordingsResponder::reply(ostream& out, cxxtools::http::Request& request, 
      found = true;
   }
 
+  else if ((int) request.url().find("/recordings/sync") == 0 ) {
+     if (request.method() == "POST") {
+    	 replySyncList(out, request, reply);
+     } else {
+        reply.httpReturn(501, "Only POST method is supported by the /recordings/sync service.");
+     }
+     found = true;
+  }
+
   // original /recordings service
   else if ((int) request.url().find("/recordings") == 0 ) {
      if (request.method() == "GET") {
@@ -136,7 +146,6 @@ cRecording* RecordingsResponder::getRecordingByRequest(QueryHandler q) {
 RecordingList* RecordingsResponder::getRecordingList(ostream& out, QueryHandler q, cxxtools::http::Reply& reply, bool read_marks = false) {
 
   RecordingList* recordingList;
-
   if ( q.isFormat(".json") ) {
 
     reply.addHeader("Content-Type", CT_JSON);
@@ -154,6 +163,7 @@ RecordingList* RecordingsResponder::getRecordingList(ostream& out, QueryHandler 
 
   } else {
 
+		esyslog("restfulapi: grompf bannig!");
     reply.httpReturn(502, "Resources are not available for the selected format. (Use: .json, .xml or .html)");
     return NULL;
   }
@@ -472,38 +482,79 @@ void RecordingsResponder::showCutterStatus(ostream& out, cxxtools::http::Request
 
 void RecordingsResponder::replyUpdates(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply) {
 
-  QueryHandler q("/recordings/updates", request);
-  RecordingList* recordingList = getRecordingList(out, q, reply, false);
-  RecordingList* updates = getRecordingList(out, q, reply, false);
-  map<string, string> updatesList;
-  map<string, string>::iterator itUpdates;
-  SyncMap* sync_map = new SyncMap(q);
+	QueryHandler q("/recordings/updates", request);
+	SyncMap* sync_map = new SyncMap(q);
 
-  cThreadLock RecordingsLock(&Recordings);
-  for (int i = 0; i < Recordings.Count(); i++) {
-    recordingList->addRecording(Recordings.Get(i), i, sync_map, "");
-  }
-  delete recordingList;
+	if (sync_map->active()) {
+		this->initServerList(out, request, reply, sync_map);
+		this->sendSyncList(out, request, reply, sync_map);
+	}
+};
 
-  updatesList = sync_map->getUpdates();
-  updates->init();
+void RecordingsResponder::replySyncList(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply) {
 
-  esyslog("restfulapi: recording updates: %d", updatesList.size());
+	QueryHandler q("/recordings/sync", request);
+	map<string, string> clientMap;
+	map<string, string>::iterator it;
+	vector<string> clientList = q.getBodyAsStringArray("recordings");
+	SyncMap* sync_map = new SyncMap(q);
 
-  for (itUpdates = updatesList.begin(); itUpdates != updatesList.end(); itUpdates++) {
+	if (sync_map->active()) {
 
-      if ( "delete" != itUpdates->second) {
-    	  cRecording* recording = Recordings.GetByName(itUpdates->first.c_str());
-    	  updates->addRecording(recording, recording->Index(), NULL, itUpdates->second);
-      } else {
-    	  cRecording* recording = new cRecording(itUpdates->first.c_str());
-    	  updates->addRecording(recording, -1, NULL, itUpdates->second);
-    	  delete recording;
-      }
-  }
-  updates->setTotal(updatesList.size());
-  updates->finish();
-  delete updates;
+		this->initServerList(out, request, reply, sync_map);
+
+		for (unsigned i=0; i < clientList.size(); i++) {
+
+			string s = clientList[i];
+			string key = s.substr(0, s.find_last_of(","));
+			string value = s.substr(s.find_last_of(",") + 1);
+			clientMap[key] = value;
+			//esyslog("restfulapi: %s : %s", key.c_str(), value.c_str());
+		}
+		sync_map->setClientMap(clientMap);
+		this->sendSyncList(out, request, reply, sync_map);
+	}
+};
+
+void RecordingsResponder::initServerList(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply, SyncMap* sync_map) {
+
+	QueryHandler q("/recordings/sync", request);
+	RecordingList* recordingList = getRecordingList(out, q, reply, false);
+
+	cThreadLock RecordingsLock(&Recordings);
+	for (int i = 0; i < Recordings.Count(); i++) {
+		recordingList->addRecording(Recordings.Get(i), i, sync_map, "");
+	}
+	delete recordingList;
+};
+
+void RecordingsResponder::sendSyncList(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply, SyncMap* sync_map) {
+
+	QueryHandler q("/recordings/sync", request);
+	RecordingList* updates = getRecordingList(out, q, reply, false);
+	map<string, string> updatesList;
+	map<string, string>::iterator itUpdates;
+
+	updatesList = sync_map->getUpdates();
+	updates->init();
+
+	esyslog("restfulapi: recording updates: %d", updatesList.size());
+
+	cThreadLock RecordingsLock(&Recordings);
+	for (itUpdates = updatesList.begin(); itUpdates != updatesList.end(); itUpdates++) {
+
+		if ( "delete" != itUpdates->second) {
+			cRecording* recording = Recordings.GetByName(itUpdates->first.c_str());
+			updates->addRecording(recording, recording->Index(), NULL, itUpdates->second);
+		} else {
+			cRecording* recording = new cRecording(itUpdates->first.c_str());
+			updates->addRecording(recording, -1, NULL, itUpdates->second);
+			delete recording;
+		}
+	}
+	updates->setTotal(updatesList.size());
+	updates->finish();
+	delete updates;
 };
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerRecording& p)
@@ -529,6 +580,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerRecording& p)
   si.addMember("additional_media") <<= p.AdditionalMedia;
   si.addMember("aux") <<= p.Aux;
   si.addMember("sync_action") <<= p.SyncAction;
+  si.addMember("hash") <<= p.hash;
 }
 
 RecordingList::RecordingList(ostream *out, bool _read_marks)
@@ -867,11 +919,15 @@ void SyncMap::load() {
 	}
 };
 
-void SyncMap::setClientMap(std::map<std::string, std::string> clientMap) {
+void SyncMap::setClientMap(map<string, string> clientMap) {
 
 	this->clear(false);
-	this->clientMap = clientMap;
-	//TODO: add reset method and setter for single items
+	map<string, string>::iterator it;
+
+	for (it = clientMap.begin(); it != clientMap.end(); it++) {
+
+		this->clientMap[it->first] = it->second;
+	}
 };
 
 /**
