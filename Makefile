@@ -63,7 +63,7 @@ endif
 
 ### The object files (add further files here):
 
-OBJS = $(PLUGIN).o serverthread.o tools.o info.o channels.o events.o recordings.o remote.o timers.o scraper2vdr.o statusmonitor.o osd.o jsonparser.o epgsearch.o searchtimers.o wirbelscan.o webapp.o femon.o
+OBJS = $(PLUGIN).o serverthread.o tools.o info.o searchtimers.o channels.o events.o recordings.o remote.o timers.o scraper2vdr.o statusmonitor.o osd.o jsonparser.o epgsearch.o wirbelscan.o webapp.o femon.o
 CFGS = API.html
 
 ### The main target:

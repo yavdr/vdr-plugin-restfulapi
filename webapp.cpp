@@ -16,10 +16,12 @@ void WebappResponder::reply(ostream& out, cxxtools::http::Request& request, cxxt
 
   double timediff = -1;
   string url = request.url();
-  string base = "/webapp";
+  string base = getBase(request);
+
+  getBase(request);
 
   if ( base == request.url() ) {
-      reply.addHeader("Location", "/webapp/");
+      reply.addHeader("Location", (base + "/").c_str());
       reply.httpReturn(301, "Moved Permanently");
       return;
   }
@@ -29,7 +31,7 @@ void WebappResponder::reply(ostream& out, cxxtools::http::Request& request, cxxt
       esyslog("restfulapi Webapp: file request url %s", request.url().c_str());
 
       string fileName = getFileName(base, url);
-      string file = getFile(fileName);
+      string file = getFile(base, fileName);
 
       if (!FileExtension::get()->exists(file)) {
 	  esyslog("restfulapi Webapp: file does not exist");
@@ -50,12 +52,32 @@ void WebappResponder::reply(ostream& out, cxxtools::http::Request& request, cxxt
 }
 
 /**
+ * retrieve base of webapp
+ */
+string WebappResponder::getBase(cxxtools::http::Request& request) {
+
+  string url = request.url();
+
+  if (url.find_first_of("/") == 0) {
+      url = url.substr(1, url.length());
+  }
+
+  return "/" + url.substr(0, url.find_first_of("/"));
+};
+
+/**
  * retrieve filename width path
  * @param string fileName
  */
-string WebappResponder::getFile(std::string fileName) {
+string WebappResponder::getFile(string base, std::string fileName) {
 
-  string webappPath = Settings::get()->WebappDirectory();
+
+  map<string, string> webapps = Settings::get()->Webapps();
+  map<string, string>::iterator it;
+  string webappPath;
+
+  it = webapps.find(base.substr(1));
+  webappPath = it->second;
 
   if ( webappPath.find_last_of("/") == (webappPath.length() - 1) ) {
       webappPath = webappPath.substr(0, webappPath.length() - 1);
@@ -75,16 +97,23 @@ string WebappResponder::getFile(std::string fileName) {
  */
 string WebappResponder::getFileName(string base, string url) {
 
-  const char *empty = "";
-
   if ( url.find_last_of("/") == (url.length() - 1) ) {
       url = url.substr(0, url.length() - 1);
   }
+
   string file = url.replace(0, base.length(), "");
 
-  if (strcmp(file.c_str(), empty) == 0) {
+  if ( file != "" && file.find(".") == string::npos ) {
+
+      file = file + "/index.html";
+
+  } else if ( file == "" ) {
+
       file = "index.html";
   }
+
+  esyslog("restfulapi: requested file %s", file.c_str());
+
   return file;
 };
 
@@ -92,49 +121,37 @@ string WebappResponder::getFileName(string base, string url) {
  * determine contenttype
  * @param string fileName
  */
-const char *WebappResponder::getContentType(string fileName) {
+string WebappResponder::getContentType(string fileName) {
 
-  const char *type = fileName.substr(fileName.find_last_of(".")+1).c_str();
-  const char *contentType = "";
-  const char *extHtml = "html";
-  const char *extJs = "js";
-  const char *extCss = "css";
-  const char *extJpg = "jpg";
-  const char *extJpeg = "jpeg";
-  const char *extGif = "gif";
-  const char *extPng = "png";
-  const char *extIco = "ico";
-  const char *extAppCacheManifest = "appcache";
-  esyslog("restfulapi Webapp: file extension of %s is %s", fileName.c_str(), type);
+  map<string, string> types = Settings::get()->WebappFileTypes();
+  map<string, string>::iterator it;
 
-  if ( strcmp(type, extHtml) == 0 ) {
-      contentType = "text/html";
-  } else if ( strcmp(type, extJs) == 0 ) {
-      contentType = "application/javascript";
-  } else if ( strcmp(type, extCss) == 0 ) {
-      contentType = "text/css";
-  } else if ( strcmp(type, extJpg) == 0 || strcmp(type, extJpeg) == 0 || strcmp(type, extGif) == 0 || strcmp(type, extPng) == 0 ) {
-      contentType = ("image/" + (string)type).c_str();
-  } else if ( strcmp(type, extIco) == 0 ) {
-      contentType = "image/x-icon";
-  } else if ( strcmp(type, extAppCacheManifest) == 0 ) {
-      contentType = "text/cache-manifest";
+  string type = fileName.substr(fileName.find_last_of(".")+1);
+  string contentType = "application/octet-stream";
+  esyslog("restfulapi Webapp: file extension of %s is '%s'", fileName.c_str(), type.c_str());
+
+  it = types.find(type);
+  if (it != types.end()) {
+      contentType = it->second;
   }
-  esyslog("restfulapi Webapp: file type of %s is %s", fileName.c_str(), contentType);
+
+  esyslog("restfulapi Webapp: file type of %s is '%s'", fileName.c_str(), contentType.c_str());
 
   return contentType;
 };
 
+/**
+ * stream file
+ */
 void WebappResponder::streamResponse(string fileName, ostream& out, string file, cxxtools::http::Reply& reply) {
 
-  const char *empty = "";
-  const char * contentType = getContentType(fileName);
+  string contentType = getContentType(fileName);
 
   StreamExtension se(&out);
-  if ( strcmp(contentType, empty) != 0 && se.writeBinary(file) ) {
+  if ( contentType  != "" && se.writeBinary(file) ) {
       esyslog("restfulapi Webapp: successfully piped file %s", fileName.c_str());
       FileExtension::get()->addModifiedHeader(file, reply);
-      reply.addHeader("Content-Type", contentType);
+      reply.addHeader("Content-Type", contentType.c_str());
   } else {
       esyslog("restfulapi Webapp: error piping file %s", fileName.c_str());
       reply.httpReturn(404, "File not found");

@@ -43,6 +43,8 @@ private:
     cxxtools::EventLoop loop;
     cxxtools::http::Server *server;
     void Action(void);
+    WebappService webappService;
+    RestfulServices* services;
 
 public:
     cServerThread() { };
@@ -51,6 +53,7 @@ public:
     void StartUpdate();
     bool isActive() { return active; };
     void Stop();
+    void addWebappService(std::string name);
 };
 
 #endif //__SERVERTHREAD_H

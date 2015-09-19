@@ -11,7 +11,7 @@
 #include "serverthread.h"
 #include "statusmonitor.h"
 
-static const char *VERSION        = "0.2.3.6";
+static const char *VERSION        = "0.2.5.0";
 static const char *DESCRIPTION    = "Offers a RESTful-API to retrieve data from VDR";
 static const char *MAINMENUENTRY  = NULL;//"Restfulapi";
 
@@ -129,8 +129,10 @@ bool cPluginRestfulapi::Start(void)
           settings->WebappDirectory().c_str(),
           headers.c_str());
 
-  FileCaches::get(); //cache files
   settings->SetCacheDir((string) cPlugin::CacheDirectory(PLUGIN_NAME_I18N));
+  settings->SetConfDir((string) cPlugin::ConfigDirectory(PLUGIN_NAME_I18N));
+
+  FileCaches::get(); //cache files
 
   serverThread.Initialize();
   serverThread.Start();
@@ -148,6 +150,14 @@ void cPluginRestfulapi::Stop(void)
 void cPluginRestfulapi::Housekeeping(void)
 {
   // Perform any cleanup or other regular tasks.
+  string cacheDir = Settings::get()->CacheDirectory();
+  string syncDir = cacheDir + "/sync";
+  string cmd = "find " + syncDir + " -mtime +5 -delete";
+  int result = system(cmd.c_str());
+  if (result > 0) {
+      esyslog("restfulapi: error cleaning up outdated syncfiles: %s", cmd.c_str());
+  }
+  dsyslog("restfulapi: cleaning up outdated syncfiles: %s", cmd.c_str());
 }
 
 void cPluginRestfulapi::MainThreadHook(void)

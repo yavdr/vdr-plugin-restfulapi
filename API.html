@@ -176,7 +176,7 @@
 
     <header>
         <h1>RESTFULAPI-Plugin for VDR</h1><br/>
-        <b>Version 0.2.3.5</b><br/>
+        <b>Version 0.2.3.7</b><br/>
         Copyright &copy; 2015 yavdr-Team, Michael Eiler<br/><br/>
         Organization/Community: <a href="mailto:team@yavdr.org">team@yavdr.org</a><br/>
         Developer: <a href="mailto:eiler.mike@gmail.com">eiler.mike@gmail.com</a> or <a href="mailto:aelo@yavdr.org">aelo@yavdr.org</a><br/>
@@ -241,11 +241,12 @@
                     </ul>
                 <li><a href="#Webapp">Webapp</a></li>
                 <li><a href="#Femon">Femon</a></li>
+                <li><a href="#JSDoc">JSDoc</a></li>
             </ul>
         </nav>
 
         <article>
-            <a name="Preface"></a>
+            <a id="Preface"></a>
             <section data-header="Preface">
                 <p>This plugin has been developed to offer a modern API for other developers to communicate with the VDR.<br>
                 <p>The plugin supports the following outputs formats: xml, json and html.<br>
@@ -271,7 +272,7 @@
                     services but there is still a lot more to discover if you simply try to make a few simple requests.</b>
             </section>
 
-            <a name="Requirements"></a>
+            <a id="Requirements"></a>
             <section data-header="Requirements">
 
                 <p>Someone who wants to install the plugin on his/her VDR needs following applications and libraries:</p>
@@ -289,10 +290,10 @@
                 </ul>
             </section>
 
-            <a name="Configuration"></a>
+            <a id="Configuration"></a>
             <section data-header="Configuration">
 
-                Create a new file called plugin.restfulapi.conf in /etc/vdr/plugins/ .
+                Create a new file called plugin.restfulapi.conf in /etc/vdr/plugins/ respectively /etc/vdr/conf.avail (don't forget to create a symlink in /etc/vdr/conf.d/).
 
                 <div class="code">
                     #
@@ -303,11 +304,11 @@
                     --ip=0.0.0.0
                     --epgimages=/var/cache/vdr/epgimages
                     --channellogos=/usr/share/vdr/channel-logos
-                    --webapp=/var/lib/vdr/plugins/restfulapi/webapp
+                    --webapp=/var/lib/vdr/plugins/restfulapi/webapp,/var/lib/vdr/plugins/restfulapi/a-second-webapp
                 </div>
             </section>
 
-            <a name="Channels"></a>
+            <a id="Channels"></a>
             <section data-header="Channels">
                 <p class="description">This service returns a list of channels.</p>
                 <p class="method">GET</p>
@@ -373,7 +374,7 @@
                     }
                 </div>
 
-                <h3><a name="ChannelGroups">Groups</a></h3>
+                <h3><a id="ChannelGroups">Groups</a></h3>
 
                 <p class="description">This service will return a list containing all channel groups.</p>
                 <p class="method">GET</p>
@@ -413,7 +414,7 @@
                     }
                 </div>
 
-                <h3><a name="ChannelImages">Images / Channel-Logos</a></h3>
+                <h3><a id="ChannelImages">Images / Channel-Logos</a></h3>
                 <p class="description">This service returns the requested channel-logo.</p>
                 <p class="method">GET</p>
                 <div class="code" data-header="Examples:">
@@ -425,7 +426,7 @@
 
             </section>
 
-            <a name="Events"></a>
+            <a id="Events"></a>
             <section data-header="Events / EPG">
 
                 <p class="description">This service returns the epg information.</p>
@@ -609,7 +610,7 @@
                     }
                 </div>
 
-                <h3><a name="EventImages">Images</a></h3>
+                <h3><a id="EventImages">Images</a></h3>
                 <p class="description">This service returns the requested epg image.</p>
                 <p class="method">GET</p>
 
@@ -622,15 +623,190 @@
                     <li>&lt;imagenumber&gt; - the number of the image, in the above mentioned examples it would be 0,1 or 2
                 </ul>
 
-                <h3><a name="EventSearch">Search</a></h3>
+                <h3><a id="EventSearch">Search</a></h3>
 
                 <p class="description">This service allows you to search for events.</p>
+                <p>
+                  Since Version 0.2.4.0 it is possible to perform a search similar to Searchtimers.
+                </p>
                 <p class="method">POST</p>
-                <div class="code" data-header="Example URL:">
+                <div class="code" data-header="Example URL (searchtimer search):">
                     POST http://&lt;ip&gt;:&lt;port&gt;/events/search.&lt;format&gt;?limit=5&amp;start=0;
                 </div>
 
-                <ul class="param-desc" data-header="HTTP-Body-Parameters:">
+                <ul class="param-desc" data-header="Description of the Parameters (searchtimer search):">
+                    <li>&lt;limit&gt; - (optional) number of searchresults
+                    <li>&lt;start&gt; - (required if limit is set) start at result
+                    <li>&lt;date_limit&gt; - (optional) UNIX timestamp until events are returned (since 0.2.4.1)
+                </ul>
+
+                <table class="param-desc" data-header="HTTP-Body-Parameters (searchtimer search):">
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Required</th>
+                        <th>Value Range / Example</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>search</td>
+                        <td>string</td>
+                        <td>yes</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>mode</td>
+                        <td>int</td>
+                        <td>yes</td>
+                        <td>0=phrase, 1=all words, 2=at least one word, 3=match exactly, 4=regex, 5=fuzzy</td>
+                    </tr>
+                    <tr>
+                        <td>tolerance</td>
+                        <td>int</td>
+                        <td>if mode == 5</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>match_case</td>
+                        <td>boolean</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>use_title</td>
+                        <td>boolean</td>
+                        <td>at least one of use_title, use_subtitle, use_description</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>use_subtitle</td>
+                        <td>boolean</td>
+                        <td>at least one of use_title, use_subtitle, use_description</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>use_description</td>
+                        <td>boolean</td>
+                        <td>at least one of use_title, use_subtitle, use_description</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>content_descriptors</td>
+                        <td>string</td>
+                        <td>no</td>
+                        <td>concatted string of content descriptor ids</td>
+                    </tr>
+                    <tr>
+                        <td>use_ext_epg_info</td>
+                        <td>boolean</td>
+                        <td>no</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>ext_epg_info</td>
+                        <td>array</td>
+                        <td></td>
+                        <td>[1#2,2#test]</td>
+                    </tr>
+                    <tr>
+                        <td>use_time</td>
+                        <td>boolean</td>
+                        <td>no</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>start_time</td>
+                        <td>int</td>
+                        <td>no</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>stop_time</td>
+                        <td>int</td>
+                        <td>no</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>use_channel</td>
+                        <td>boolean</td>
+                        <td>no</td>
+                        <td>0=no, 1=interval, 2=channel group, 3=only FTA</td>
+                    </tr>
+                    <tr>
+                        <td>channel_min</td>
+                        <td>string</td>
+                        <td>no</td>
+                        <td>channel id</td>
+                    </tr>
+                    <tr>
+                        <td>channel_max</td>
+                        <td>string</td>
+                        <td>no</td>
+                        <td>channel id</td>
+                    </tr>
+                    <tr>
+                        <td>channels</td>
+                        <td>string</td>
+                        <td>if use_channel > 0</td>
+                        <td>channel group name</td>
+                    </tr>
+                    <tr>
+                        <td>use_duration</td>
+                        <td>boolean</td>
+                        <td>no</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>duration_min</td>
+                        <td>int</td>
+                        <td>if use_duration == true</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>duration_max</td>
+                        <td>int</td>
+                        <td>if use_duration == true</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>use_dayofweek</td>
+                        <td>boolean</td>
+                        <td>no</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>dayofweek</td>
+                        <td>int</td>
+                        <td>if use_dayofweek == true</td>
+                        <td>-127 - 6</td>
+                    </tr>
+                    <tr>
+                        <td>blacklist_mode</td>
+                        <td>int</td>
+                        <td>no</td>
+                        <td>0=global, 1=Selection, 2=all, 3=none</td>
+                    </tr>
+                    <tr>
+                        <td>blacklist_ids</td>
+                        <td>array</td>
+                        <td>if blacklist_mode == 1</td>
+                        <td>array of blacklist ids</td>
+                    </tr>
+                    </tbody>
+                </table>
+
+                <div class="code" data-header="Example URL (simple search):">
+                    POST http://&lt;ip&gt;:&lt;port&gt;/events/search.&lt;format&gt;?limit=5&amp;start=0;
+                </div>
+
+                <ul class="param-desc" data-header="Description of the Parameters (simple search):">
+                    <li>&lt;limit&gt; - (optional) number of searchresults
+                    <li>&lt;start&gt; - (required if limit is set) start at result
+                </ul>
+
+                <ul class="param-desc" data-header="HTTP-Body-Parameters (simple search):">
                     <li>query - (required)
                     <li>mode - (required) 0=phrase, 1=and, 2=or, 3=exact, 4=regex, 5=fuzzy
                     <li>channelid - (optional) if id invalid, the plugin will search on every channel
@@ -643,7 +819,7 @@
                 </div>
             </section>
 
-            <a name="Info"></a>
+            <a id="Info"></a>
             <section data-header="Info">
 
                 <p class="description">General Information about the plugin and vdr.</p>
@@ -1006,7 +1182,7 @@
                 </p>
             </section>
 
-            <a name="Osd"></a>
+            <a id="Osd"></a>
             <section data-header="Osd">
                 <p class="description">This Service delivers current OSD contents</p>
 
@@ -1094,31 +1270,65 @@
             </section>
 
 
-            <a name="Recordings"></a>
+            <a id="Recordings"></a>
             <section data-header="Recordings">
 
                 <p class="description">This service can move/delete recordings and can also return all the recordings as a list.</p>
                 <p>
                     Since Verions 0.2.0 the API returns additional media if a scraper plugin is available.
                     The data is available within leaf additional_media and contains additional information about the event such as actors etc.<br>
-                    Please have a look at the data to get an idea about the additional structure.
+                    Please have a look at the data or the <a href="#JSDoc">JSDoc Examples</a> to get an idea about the additional structure.
                     Images can be retrieved using <a href="#ScraperImages">ScraperImages</a> service.
+                </p>
+                <p>
+                	Since Version 0.2.5 one can fetch Recordings either by its full file name or by number.
+                	It is not safe to use the recording number for e.g. deleting recordings because it is not guaranteed that the numbers don't change during runtime.
+                	Hence it is recommended to use the &lt;file_name&gt; as parameter. Due to backwards compatibility reasons the recording number is still supported
+                	but may be removed in future versions.<br>
+                	To use the file name as parameter it could be necessary to url encode the path parts.<br>
+                </p>
+                <div class="code" data-header="Example request by file name:">
+                	http://&lt;ip&gt;:&lt;port&gt;/recordings/path/to/videodir/my_recording/YYYY-MM-DD.hh.mm.ss-0.rec.&lt;format&gt;
+                </div>
+                <p>
+                	Since Version 0.2.5 it is also possible to request restfulapi to write a sync file in its cache directory.
+                	Simply add the <em>&lt;syncId&gt;</em> parameter with a value of of your choice to the url whithin a request to the full recording list.
+                	This sync file can be checked against the current recordings or a list of recordings sent by the client.
+                </p>
+                	
+                <p>	
+                	Future requests to the /recordings/updates service with the same id can fetch a list of new, deleted or updated recordings since the last full or updates request.
+                	Don't forget to add the syncId parameter to delete requests aswell. Restfulapi can than delete it from your clients sync list.
+                </p>
+                <p>
+                	Additionally the /recordings/sync service has been added. You can send an array named recordings with each member containing a comma seperated
+                	file_name, hash pair. The hash is a new property of each recording that will be added if the full recording list was requested.
+                	Restfulapi will then respond with a list of recordings that have been added, deleted or changed
+                </p>
+                <p>
+                	The updates response contains a list of recordings with a &lt;sync_action&gt; property that contains either add, delete or update.<br>
+                	One can use this feature to store the recordings in a client side database and keep it in sync without requesting the full list every time.
                 </p>
                 <p class="method">GET, DELETE, POST</p>
 
                 <div class="code" data-header="Examples:">
-                    GET http://&lt;ip&gt;:&lt;port&gt;/recordings/.&lt;format&gt;
-                    GET http://&lt;ip&gt;:&lt;port&gt;/recordings/&lt;recordingnumber&gt;.&lt;format&gt;?marks=true
-                    DELETE http://&lt;ip&gt;:&lt;port&gt;/recordings/&lt;number&gt;
-                    POST http://&lt;ip&gt;:&lt;port&gt;/recordings/move?&lt;source&gt;&amp;&lt;target&gt;
+                    GET http://&lt;ip&gt;:&lt;port&gt;/recordings/.&lt;format&gt;?syncId=my-client-id
+                    GET http://&lt;ip&gt;:&lt;port&gt;/recordings/&lt;file_name|<del>recordingnumber</del>&gt;.&lt;format&gt;?marks=true
+                    GET http://&lt;ip&gt;:&lt;port&gt;/recordings/updates.&lt;format&gt;?syncId=my-client-id
+                    POST http://&lt;ip&gt;:&lt;port&gt;/recordings/sync.&lt;format&gt;?syncId=my-client-id
+                    DELETE http://&lt;ip&gt;:&lt;port&gt;/recordings/&lt;file_name|<del>recordingnumber</del>&gt;?syncId=my-client-id
+                    POST http://&lt;ip&gt;:&lt;port&gt;/recordings/move.&lt;format&gt;
                 </div>
 
                 <ul class="param-desc" data-header="Description of the Parameters:">
                     <li>&lt;format&gt; - The requested format: json, xml or html.
                     <li>&lt;number&gt; - The number of the recording which you want to delete. (The first recordings has the number 0.)
+                    <li>&lt;file_name&gt; - The full file system path of the recording. Everything url encoded except slashes (directory seperator)
                     <li>&lt;recordingnumber&gt; - The number of the recording you want to retrieve.
                     <li>&lt;source&gt; - The full (url encoded) source path of the recording.
                     <li>&lt;target&gt; - The relative (url encoded) target path of the recording.
+                    <li>&lt;syncId&gt; - (optional) client id for sync map file name
+                    <li>&lt;recordings[]&gt; - &lt;file_name&gt;,&lt;hash&gt; (Form Data)
                     <li>marks=true - add the cutting marks by reading the marks file from the recording directory
                     <li>start, limit - These values are used to control the whole list. Start ist the first element you want to
                         retrieve. Limit...
@@ -1144,13 +1354,15 @@
                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;param name="event_description"&gt;(Zeichentrickfilm, DEU 1994)&lt;/param&gt;
                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;param name="event_start_time"&gt;1308480705&lt;/param&gt;
                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;param name="event_duration"&gt;4611&lt;/param&gt;
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;param name="sync_action"&gt;&lt;/param&gt;
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;param name="hash"&gt;&lt;/param&gt;
                     &nbsp;&nbsp;&nbsp;&nbsp;&lt;/recording&gt;
                     &nbsp;&nbsp;&nbsp;&nbsp;&lt;count&gt;2&lt;/count&gt;&lt;total&gt;2&lt;/total&gt;
                     &lt;/recordings&gt;
                 </div>
 
                 <div class="code" data-header="Example Result (JSON):">
-                    GET http://127.0.0.1:8002/recordings.json?start=0&amp;limit=1i&amp;marks=true
+                    GET http://127.0.0.1:8002/recordings.json?start=0&amp;limit=1&amp;marks=true
 
                     {
                         &nbsp;&nbsp;&nbsp;&nbsp;"recordings": [
@@ -1172,6 +1384,8 @@
                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"event_description":"(Zeichentrickfilm, DEU 1994)",
                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"event_start_time":1308480705,
                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"event_duration":4611
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"sync_action":""
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"hash":""
                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
                         &nbsp;&nbsp;&nbsp;&nbsp;],
                         &nbsp;&nbsp;&nbsp;&nbsp;"count":1,
@@ -1180,24 +1394,109 @@
                 </div>
 
                 <div class="code" data-header="Move Recording:">
-                    POST "http://127.0.0.1:8002/recordings/move?source=/path/to/videodir/my_recording/YYYY-MM-DD.hh.mm.ss-0.rec&amp;target=relative/path/to/renamed recording"
+                    POST "http://127.0.0.1:8002/recordings/move.json"
+                </div>
+
+                <ul class="param-desc" data-header="Required Body Parameters:">
+                    <li>source=/path/to/videodir/my_recording/YYYY-MM-DD.hh.mm.ss-0.rec
+                    <li>target=relative/path/to/renamed%20recording
+                </ul>
+
+                <div class="code" data-header="Fetch Updates:">
+                    GET "http://127.0.0.1:8002/recordings/updates.json"
+                </div>
+
+                <div class="code" data-header="Example Result (JSON):">
+                    GET http://127.0.0.1:8002/recordings/updates.json?syncId=a-string-identifying-my-client
+
+                    {
+                        &nbsp;&nbsp;&nbsp;&nbsp;"recordings": [
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"number":0,
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name":"Asterix in Amerika",
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"file_name":"\/var\/lib\/video.00\/Asterix_in_Amerika\/2011-06-19.12.40.1-0.rec",
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"is_new":false,
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"is_edited":false,
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"is_pes_recording":false,
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"duration":-1,
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"frames_per_second":50,
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"marks":[
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"0:03:17.10",
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"1:43:07.24"
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;],
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"event_title":"Asterix in Amerika",
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"event_short_text":"",
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"event_description":"(Zeichentrickfilm, DEU 1994)",
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"event_start_time":1308480705,
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"event_duration":4611
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"sync_action":"add"
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"hash":"8324fe9b80873947c9d0963d83378232"
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+                        &nbsp;&nbsp;&nbsp;&nbsp;],
+                        &nbsp;&nbsp;&nbsp;&nbsp;"count":1,
+                        &nbsp;&nbsp;&nbsp;&nbsp;"total":2
+                    }
+                </div>
+
+                <div class="code" data-header="Synchronize:">
+                    POST "http://127.0.0.1:8002/recordings/sync.json?syncId=a-string-identifying-my-client"
+                </div>
+
+                <ul class="param-desc" data-header="Required Body Parameters:">
+                    <li>recordings[]=/path/to/videodir/my_recording/YYYY-MM-DD.hh.mm.ss-0.rec,8324fe9b80873947c9d0963d83378232
+                    <li>recordings[]=/path/to/videodir/my_recording/YYYY-MM-DD.hh.mm.ss-0.rec,d4da05b1e99df60d3cd0ef72b6093db3
+                    <li>recordings[]=/path/to/videodir/my_recording/YYYY-MM-DD.hh.mm.ss-0.rec,e3f29839c38c74bab63ab02d0dffd6a6
+                    <li>&vellip;
+                    <li>recordings[]=/path/to/videodir/my_recording/YYYY-MM-DD.hh.mm.ss-0.rec,46a26b76f5c8c7361d33367dcc86ced0
+                </ul>
+
+                <div class="code" data-header="Example Result (JSON):">
+                    POST http://127.0.0.1:8002/recordings/updates.json?syncId=a-string-identifying-my-client
+
+                    {
+                        &nbsp;&nbsp;&nbsp;&nbsp;"recordings": [
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"number":0,
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name":"Asterix in Amerika",
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"file_name":"\/var\/lib\/video.00\/Asterix_in_Amerika\/2011-06-19.12.40.1-0.rec",
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"is_new":false,
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"is_edited":false,
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"is_pes_recording":false,
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"duration":-1,
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"frames_per_second":50,
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"marks":[
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"0:03:17.10",
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"1:43:07.24"
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;],
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"event_title":"Asterix in Amerika",
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"event_short_text":"",
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"event_description":"(Zeichentrickfilm, DEU 1994)",
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"event_start_time":1308480705,
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"event_duration":4611
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"sync_action":"add"
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"hash":"8324fe9b80873947c9d0963d83378232"
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+                        &nbsp;&nbsp;&nbsp;&nbsp;],
+                        &nbsp;&nbsp;&nbsp;&nbsp;"count":1,
+                        &nbsp;&nbsp;&nbsp;&nbsp;"total":2
+                    }
                 </div>
             </section>
 
 
-            <a name="RecordingCut"></a>
+            <a id="RecordingCut"></a>
             <section data-header="Cut">
                 <p class="description">
                     This service tells your VDR to cut a recording or can tell the client if the vdr cutter is currently cutting a recording:
                 </p>
                 <p class="method">GET, POST</p>
                 <div class="code" data-header="Examples:">
-                    POST http://&lt;ip&gt;:&lt;port&gt;/recordings/cut/&lt;recordingnumber&gt; # do it! (cut the recording)
+                    POST http://&lt;ip&gt;:&lt;port&gt;/recordings/cut/&lt;file_name|<del>recordingnumber</del>&gt; # do it! (cut the recording)
                     GET http://&lt;ip&gt;:&lt;port&gt;/recordings/cut.&lt;format&gt; # this will return the status of the VDR Cutter
                 </div>
             </section>
 
-            <a name="RecordingsMarks"></a>
+            <a id="RecordingsMarks"></a>
             <section data-header="Marks">
 
                 <p class="description">
@@ -1206,12 +1505,12 @@
                 <h3>Delete Cutting Marks: </h3>
                 <p class="method">DELETE</p>
                 <div class="code" data-header="Examples:">
-                    DELETE http://&lt;ip&gt;:&lt;port&gt;/recordings/marks/&lt;recordingnumber&gt;
+                    DELETE http://&lt;ip&gt;:&lt;port&gt;/recordings/marks/&lt;file_name|<del>recordingnumber</del>&gt;
                 </div>
                 <h3>Create new Cutting Marks: </h3>
                 <p class="method">POST</p>
                 <div class="code" data-header="Examples:">
-                    POST http://&lt;ip&gt;:&lt;port&gt;/recordings/marks/&lt;recordingnumber&gt;
+                    POST http://&lt;ip&gt;:&lt;port&gt;/recordings/marks/&lt;file_name|<del>recordingnumber</del>&gt;
                 </div>
 
                 <div class="code" data-header="Example Body-Content (required, Only JSON supported):">
@@ -1225,22 +1524,22 @@
             </section>
 
 
-            <a name="RecordingPlay"></a>
+            <a id="RecordingPlay"></a>
             <section data-header="Play">
 
                 <p class="description">This service tells your VDR to play or rewind a recording:</p>
                 <p class="method">GET, POST</p>
                 <div class="code" data-header="Examples:">
-                    GET http://&lt;ip&gt;:&lt;port&gt;/recordings/play/&lt;number&gt;
-                    POST http://&lt;ip&gt;:&lt;port&gt;/recordings/play/&lt;number&gt;
+                    GET http://&lt;ip&gt;:&lt;port&gt;/recordings/play/&lt;file_name|<del>recordingnumber</del>&gt;
+                    POST http://&lt;ip&gt;:&lt;port&gt;/recordings/play/&lt;file_name|<del>recordingnumber</del>&gt;
                 </div>
                 <ul class="param-desc" data-header="Description of the Parameters:">
-                    <li>&lt;number&gt; - The number of the recording you want to play (GET).
-                    <li>&lt;number&gt; - The number of the recording you want to rewind (POST).
+                    <li>&lt;file_name&gt; - (recommended) The full file name of the recording.
+                    <li>&lt;number&gt; - (deprecated) The number of the recording.
                 </ul>
             </section>
 
-            <a name="Remote"></a>
+            <a id="Remote"></a>
             <section data-header="Remote">
                 <p class="description">This service retrieves remote commands and sends them to VDR:</p>
                 <p class="method">POST</p>
@@ -1292,9 +1591,9 @@
             </section>
 
 
-            <a name="Timers"></a>
+            <a id="Timers"></a>
             <section data-header="Timers">
-                <h3><a name="ReadingTimers">Reading/Deleting Timers</a></h3>
+                <h3><a id="ReadingTimers">Reading/Deleting Timers</a></h3>
                 <p class="description">This service returns a list of timers.</p>
                 <p class="method">GET, DELETE</p>
                 <div class="code" data-header="Examples:">
@@ -1368,7 +1667,7 @@
                     }
                 </div>
 
-                <h3><a name="BulkDeleteTimers"></a>Bulk delete Timers</h3>
+                <h3><a id="BulkDeleteTimers"></a>Bulk delete Timers</h3>
                 <p class="description">Deletes multiple Timers at once</p>
                 <p class="method">DELETE</p>
 
@@ -1405,7 +1704,7 @@
                     }
                 </div>
 
-                <h3><a name="CreatingTimers">Creating Timers</a></h3>
+                <h3><a id="CreatingTimers">Creating Timers</a></h3>
                 <p class="description">This service can create new timers.</p>
                 <p class="method">POST</p>
 
@@ -1442,7 +1741,7 @@
                     Date: Sun, 26 Jun 2011 19:03:48 GMT
                 </div>
 
-                <h3><a name="UpdatingTimers">Updating Timers</a></h3>
+                <h3><a id="UpdatingTimers">Updating Timers</a></h3>
                 <p class="description">This service can update the previously created timers.</p>
                 <p class="method">PUT</p>
                 <div class="code" data-header="Example:">
@@ -1471,10 +1770,10 @@
                 </div>
             </section>
 
-            <a name="SearchTimers"></a>
+            <a id="SearchTimers"></a>
             <section data-header="SearchTimers">
                 <p class="description">This Service returns SearchTimers and can create, delete or update them. It's also possible to perform a search.</p>
-                <h3><a name="SearchTimersCreate">Create a SearchTimer</a></h3>
+                <h3><a id="SearchTimersCreate">Create a SearchTimer</a></h3>
                 <p class="method">POST</p>
                 <div class="code">
                     POST http://&lt;ip&gt;:&lt;port&gt;/searchtimers
@@ -1823,43 +2122,43 @@
                     </tbody>
                 </table>
 
-                <h3><a name="SearchTimersDelete">Delete a SearchTimer</a></h3>
+                <h3><a id="SearchTimersDelete">Delete a SearchTimer</a></h3>
                 <p class="method">DELETE</p>
                 <div class="code">
                     DELETE http://&lt;ip&gt;:&lt;port&gt;/searchtimers/&lt;id&gt;
                 </div>
 
-                <h3><a name="SearchTimersSearch">Search Events of a SearchTimer</a></h3>
+                <h3><a id="SearchTimersSearch">Search Events of a SearchTimer</a></h3>
                 <p class="method">GET</p>
                 <div class="code">
                     GET http://&lt;ip&gt;:&lt;port&gt;/searchtimers/search/&lt;id&gt;.&lt;format&gt;
                 </div>
 
-                <h3><a name="SearchTimersBlacklists">Fetch searchtimer blacklists</a></h3>
+                <h3><a id="SearchTimersBlacklists">Fetch searchtimer blacklists</a></h3>
                 <p class="method">GET</p>
                 <div class="code">
                     GET http://&lt;ip&gt;:&lt;port&gt;/searchtimers/blacklists.&lt;format&gt;
                 </div>
 
-                <h3><a name="SearchTimersRecordingdirs">Fetch searchtimer recording dirs</a></h3>
+                <h3><a id="SearchTimersRecordingdirs">Fetch searchtimer recording dirs</a></h3>
                 <p class="method">GET</p>
                 <div class="code">
                     GET http://&lt;ip&gt;:&lt;port&gt;/searchtimers/recordingdirs.&lt;format&gt;
                 </div>
 
-                <h3><a name="SearchTimersChannelgroups">Fetch searchtimer channel groups</a></h3>
+                <h3><a id="SearchTimersChannelgroups">Fetch searchtimer channel groups</a></h3>
                 <p class="method">GET</p>
                 <div class="code">
                     GET http://&lt;ip&gt;:&lt;port&gt;/searchtimers/channelgroups.&lt;format&gt;
                 </div>
 
-                <h3><a name="SearchTimersExtEPGInfo">Fetch searchtimer ext EPG info defined in epgsearchcats.conf</a></h3>
+                <h3><a id="SearchTimersExtEPGInfo">Fetch searchtimer ext EPG info defined in epgsearchcats.conf</a></h3>
                 <p class="method">GET</p>
                 <div class="code">
                     GET http://&lt;ip&gt;:&lt;port&gt;/searchtimers/extepginfo.&lt;format&gt;
                 </div>
 
-                <h3><a name="SearchTimersContentDescriptors">Fetch content descriptors</a></h3>
+                <h3><a id="SearchTimersContentDescriptors">Fetch content descriptors</a></h3>
                 <p class="method">GET</p>
                 <div class="code">
                     GET http://&lt;ip&gt;:&lt;port&gt;/searchtimers/contentdescriptors.&lt;format&gt;
@@ -1891,7 +2190,7 @@
                     }
                 </div>
 
-                <h3><a name="SearchTimersConflicts">Check timer conflicts</a></h3>
+                <h3><a id="SearchTimersConflicts">Check timer conflicts</a></h3>
                 <p class="method">GET</p>
                 <div class="code">
                     GET http://&lt;ip&gt;:&lt;port&gt;/searchtimers/conflicts.&lt;(json|xml|html)&gt;
@@ -1899,7 +2198,7 @@
             </section>
 
 
-            <a name="ScraperImages"></a>
+            <a id="ScraperImages"></a>
             <section data-header="ScraperImage">
                 <p class="description">Retrieve Images from additional media.</p>
                 <p class="method">GET</p>
@@ -1914,9 +2213,9 @@
             </section>
 
 
-            <a name="Wirbelscan"></a>
+            <a id="Wirbelscan"></a>
             <section data-header="Control the Wirbelscan plugin">
-                <h3><a name="WirbelscanGetState">Get the state of the Wirbelscan plugin</a></h3>
+                <h3><a id="WirbelscanGetState">Get the state of the Wirbelscan plugin</a></h3>
                 <p class="description">This service gets the state of the Wirbelscan plugin.</p>
                 <p class="method">GET</p>
 
@@ -1946,7 +2245,7 @@
                     <li>3 = plugin is busy, try again later.
                 </ul>
 
-                <h3><a name="WirbelscanGetCountries">Retrieve the list of countries from the Wirbelscan plugin</a></h3>
+                <h3><a id="WirbelscanGetCountries">Retrieve the list of countries from the Wirbelscan plugin</a></h3>
                 <p class="description">This service retrieves the list of countries from the Wirbelscan plugin.</p>
                 <p class="method">GET</p>
 
@@ -1970,7 +2269,7 @@
                     }
                 </div>
 
-                <h3><a name="WirbelscanGetSatellites">Retrieve the list of satellites from the Wirbelscan plugin</a></h3>
+                <h3><a id="WirbelscanGetSatellites">Retrieve the list of satellites from the Wirbelscan plugin</a></h3>
                 <p class="description">This service retrieves the list of satellites from the Wirbelscan plugin.</p>
                 <p class="method">GET</p>
 
@@ -1994,7 +2293,7 @@
                     }
                 </div>
 
-                <h3><a name="WirbelscanGetSetup">Retrieve the current setup of the Wirbelscan plugin</a></h3>
+                <h3><a id="WirbelscanGetSetup">Retrieve the current setup of the Wirbelscan plugin</a></h3>
                 <p class="description">This service retrieves the current setup of the Wirbelscan plugin.</p>
                 <p class="method">GET</p>
 
@@ -2033,7 +2332,7 @@
                     <li>ATSC_type - VSB = 0, QAM = 1, both VSB+QAM = 2
                 </ul>
 
-                <h3><a name="WirbelscanSetSetup">Changes the current setup of the Wirbelscan plugin</a></h3>
+                <h3><a id="WirbelscanSetSetup">Changes the current setup of the Wirbelscan plugin</a></h3>
                 <p class="description">This service changes the current setup of the Wirbelscan plugin and returns the updated setup.</p>
                 <p class="method">PUT</p>
 
@@ -2058,7 +2357,7 @@
                     }
                 </div>
 
-                <h3><a name="WirbelscanDoCommand">Launch a command with the Wirbelscan plugin</a></h3>
+                <h3><a id="WirbelscanDoCommand">Launch a command with the Wirbelscan plugin</a></h3>
                 <p class="description">This service launches a command with the Wirbelscan plugin.</p>
                 <p class="method">POST</p>
                 <div class="code" data-header="Example:">
@@ -2082,19 +2381,22 @@
                 </div>
             </section>
 
-            <a name="Webapp"></a>
+            <a id="Webapp"></a>
             <section data-header="Webapp">
-                <p class="description">This service can deliver files from configured folder.</p>
+                <p class="description">This service can deliver files from configured folders. Multiple webapps can be defined within config file. Seperate paths with a comma. Specified paths must exist for the service to be initialized.</p>
+                <p>
+                  Known file types are defined in &lt;plugin_conf_dir&gt;/webapp_file_types.conf<br>
+                </p>
                 <p class="method">GET</p>
 
                 <div class="code">
-                    GET http://&lt;ip&gt;:&lt;port&gt;/webapp/&lt;path&gt;/&lt;to&gt;/&lt;file&gt;
+                    GET http://&lt;ip&gt;:&lt;port&gt;/&lt;webapp&gt;/&lt;path&gt;/&lt;to&gt;/&lt;file&gt;
                 </div>
-                <p>Specify folder in plugin settings file (--webapp=/var/lib/vdr/plugins/restfulapi/webapp)</p>
+                <p>Specify folder in plugin settings file (--webapp=/var/lib/vdr/plugins/restfulapi/webapp,/var/lib/vdr/plugins/restfulapi/a-second-webapp)</p>
             </section>
 
 
-            <a name="Femon"></a>
+            <a id="Femon"></a>
             <section data-header="Femon">
 
                 <p class="description">Retrieve Femon data</p>
@@ -2104,8 +2406,156 @@
                     GET http://&lt;ip&gt;:&lt;port&gt;/femon.json
                 </div>
             </section>
+            
+            <a id="JSDoc"></a>
+            <section data-header="JSDoc typedef">
+            	<div class="code" data-header="Recording Data">
+            	/**
+				 &nbsp;* @typedef {{}} recordingData
+				 &nbsp;* @property {number} number
+				 &nbsp;* @property {string} name
+				 &nbsp;* @property {string} file_name
+				 &nbsp;* @property {string} relative_file_name
+				 &nbsp;* @property {string} inode
+				 &nbsp;* @property {boolean} is_new
+				 &nbsp;* @property {boolean} is_edited
+				 &nbsp;* @property {boolean} is_pes_recording
+				 &nbsp;* @property {number} duration
+				 &nbsp;* @property {number} filesize_mb
+				 &nbsp;* @property {string} channel_id
+				 &nbsp;* @property {number} frames_per_second
+				 &nbsp;* @property {Array.&lt;string&gt;} marks
+				 &nbsp;* @property {string} event_title
+				 &nbsp;* @property {string} event_short_text
+				 &nbsp;* @property {string} event_description
+				 &nbsp;* @property {number} event_start_time
+				 &nbsp;* @property {number} event_duration
+				 &nbsp;* @property {additionalMediaMovie|additionalMediaEpisode} additional_media
+				 &nbsp;* @property {string} sync_action
+				 &nbsp;*/
+            	</div>
+            	<div class="code" data-header="Event Data">
+            	/**
+				 &nbsp;* @typedef {{}} broadcastData
+				 &nbsp;* @property {string} channel
+				 &nbsp;* @property {string} channel_name
+				 &nbsp;* @property {Array.&lt;component&gt;} components
+				 &nbsp;* @property {Array} contents
+				 &nbsp;* @property {string} description
+				 &nbsp;* @property {Array} details
+				 &nbsp;* @property {Number} duration
+				 &nbsp;* @property {Number} id
+				 &nbsp;* @property {Number} images
+				 &nbsp;* @property {Number} parental_rating
+				 &nbsp;* @property {Array} raw_contents
+				 &nbsp;* @property {string} short_text
+				 &nbsp;* @property {Number} table_id
+				 &nbsp;* @property {boolean} timer_active
+				 &nbsp;* @property {boolean} timer_exists
+				 &nbsp;* @property {Number} timer_id
+				 &nbsp;* @property {string} title
+				 &nbsp;* @property {Number} version
+				 &nbsp;* @property {Number} vps
+				 &nbsp;* @property {Number} start_time
+				 &nbsp;* @property {Number} end_time
+				 &nbsp;* @property {Date} start_date
+				 &nbsp;* @property {Date} end_date
+				 &nbsp;*/
+            	</div>
+            	<div class="code" data-header="Component">
+            	/**
+				 &nbsp;* @typedef {{}} component
+				 &nbsp;* @property {String} description
+				 &nbsp;* @property {String} language
+				 &nbsp;* @property {Number} stream
+				 &nbsp;* @property {Number} type
+				 &nbsp;*/
+            	</div>
+            	<div class="code" data-header="Actor">
+            	/**
+				 &nbsp;* @typedef {{}} actor
+				 &nbsp;* @property {String} name
+				 &nbsp;* @property {String} role
+				 &nbsp;* @property {String} thumb
+				 &nbsp;*/
+            	</div>
+            	<div class="code" data-header="Banners">
+            	/**
+				 &nbsp;* @typedef {{}} banners
+				 &nbsp;* @property {Number} width
+				 &nbsp;* @property {Number} height
+				 &nbsp;* @property {String} path
+				 &nbsp;*/
+            	</div>
+            	<div class="code" data-header="Fanarts">
+            	/**
+				 &nbsp;* @typedef {{}} fanarts
+				 &nbsp;* @property {Number} width
+				 &nbsp;* @property {Number} height
+				 &nbsp;* @property {String} path
+				 &nbsp;*/
+            	</div>
+            	<div class="code" data-header="Posters">
+            	/**
+				 &nbsp;* @typedef {{}} posters
+				 &nbsp;* @property {Number} width
+				 &nbsp;* @property {Number} height
+				 &nbsp;* @property {String} path
+				 &nbsp;*/
+            	</div>
+            	<div class="code" data-header="Additional media movie">
+            	/**
+				 &nbsp;* @typedef {{}} additionalMediaMovie
+				 &nbsp;* @property {Array.&lt;actor&gt;} actors
+				 &nbsp;* @property {Boolean} adult
+				 &nbsp;* @property {String} collection_fanart
+				 &nbsp;* @property {String} collection_name
+				 &nbsp;* @property {String} collection_poster
+				 &nbsp;* @property {String} fanart
+				 &nbsp;* @property {String} genres
+				 &nbsp;* @property {String} homepage
+				 &nbsp;* @property {Number} movie_id
+				 &nbsp;* @property {String} original_title
+				 &nbsp;* @property {String} overview
+				 &nbsp;* @property {Number} popularity
+				 &nbsp;* @property {String} poster
+				 &nbsp;* @property {String} release_date
+				 &nbsp;* @property {Number} revenue
+				 &nbsp;* @property {Number} runtime
+				 &nbsp;* @property {String} tagline
+				 &nbsp;* @property {String} title
+				 &nbsp;* @property {String} type
+				 &nbsp;* @property {Number} vote_average
+				 &nbsp;*/
+            	</div>
+            	<div class="code" data-header="Additional media episode">
+            	/**
+				 &nbsp;* @typedef {{}} additionalMediaEpisode
+				 &nbsp;* @property {Array.&lt;banners&gt;} banners
+				 &nbsp;* @property {String} episode_first_aired
+				 &nbsp;* @property {String} episode_guest_stars
+				 &nbsp;* @property {Number} episode_id
+				 &nbsp;* @property {String} episode_image
+				 &nbsp;* @property {String} episode_name
+				 &nbsp;* @property {Number} episode_number
+				 &nbsp;* @property {String} episode_overview
+				 &nbsp;* @property {Number} episode_rating
+				 &nbsp;* @property {Number} episode_season
+				 &nbsp;* @property {Array.&lt;fanarts&gt;} fanarts
+				 &nbsp;* @property {String} first_aired
+				 &nbsp;* @property {String} genre
+				 &nbsp;* @property {String} name
+				 &nbsp;* @property {String} network
+				 &nbsp;* @property {String} overview
+				 &nbsp;* @property {Array.&lt;posters&gt;} posters
+				 &nbsp;* @property {Number} rating
+				 &nbsp;* @property {Number} series_id
+				 &nbsp;* @property {String} status
+				 &nbsp;* @property {String} type
+				 &nbsp;*/
+            	</div>
+            </section>
         </article>
     </div>
 </body>
 </html>
-

@@ -22,6 +22,7 @@
 #include <cxxtools/http/reply.h>
 #include <cxxtools/query_params.h>
 #include <cxxtools/serializationinfo.h> // only AdditionalMedia
+#include <cxxtools/md5.h>
 #include <vdr/channels.h>
 #include <vdr/timers.h>
 #include <vdr/recording.h>
@@ -50,8 +51,13 @@ class Settings
     std::string epgimage_dir;
     std::string channellogo_dir;
     std::string webapp_dir;
+    std::map<std::string, std::string> webapps;
     std::string cache_dir;
+    std::string conf_dir;
+    std::string webapp_filetypes_filename;
+    std::map<std::string, std::string> webapp_file_types;
     bool activateHeaders;
+    void addWebapp(std::string path);
   public:
     Settings() { initDefault(); }
     ~Settings() { };
@@ -62,7 +68,13 @@ class Settings
     std::string EpgImageDirectory() { return epgimage_dir; }
     std::string ChannelLogoDirectory() { return channellogo_dir; }
     std::string WebappDirectory() { return webapp_dir; }
+    std::map<std::string, std::string> Webapps() { return webapps; }
     std::string CacheDirectory() { return cache_dir; }
+    std::string ConfDirectory() { return conf_dir; }
+    std::string WebAppFileTypesFilename() { return webapp_filetypes_filename; }
+    bool InitWebappFileTypes();
+    bool AddWebappFileType(std::string ext, std::string type);
+    std::map<std::string, std::string> WebappFileTypes();
     bool Headers() { return activateHeaders; }
     bool SetPort(std::string v);
     bool SetIp(std::string v);
@@ -70,6 +82,7 @@ class Settings
     bool SetChannelLogoDirectory(std::string v);
     bool SetWebappDirectory(std::string v);
     bool SetCacheDir(std::string v);
+    bool SetConfDir(std::string v);
     bool SetHeaders(std::string v);
 };
 
@@ -128,6 +141,7 @@ class FileNotifier : public cThread
   public:
     static const int EVENTS = 0x01;
     static const int CHANNELS = 0x02;
+    static const int WEBAPPFILETYPES = 0x03;
     FileNotifier() { active = false; };
     ~FileNotifier();
     void Initialize(int mode);
@@ -142,17 +156,21 @@ class FileCaches
     std::vector< std::string > channelLogos;
     FileNotifier notifierEvents;
     FileNotifier notifierChannels;
+    FileNotifier notifierWebappFileTypes;
   public:
     FileCaches() {
          cacheEventImages();
          cacheChannelLogos();
+         cacheWebappFileTypes();
          notifierEvents.Initialize(FileNotifier::EVENTS);
          notifierChannels.Initialize(FileNotifier::CHANNELS);
+         notifierWebappFileTypes.Initialize(FileNotifier::WEBAPPFILETYPES);
       };
     ~FileCaches() { };
     static FileCaches* get();
     void cacheEventImages();
     void cacheChannelLogos();
+    void cacheWebappFileTypes();
     void searchEventImages(int eventid, std::vector< std::string >& files);
     std::string searchChannelLogo(cChannel *channel);
     void addEventImage(std::string file);
@@ -162,6 +180,7 @@ class FileCaches
     void stopNotifier() {
       notifierEvents.Stop();
       notifierChannels.Stop();
+      notifierWebappFileTypes.Stop();
     };
 };
 
@@ -260,6 +279,7 @@ class QueryHandler
     bool hasOption(std::string name);
     bool hasBody(std::string name);
     std::string getParamAsString(int level);              //Parameters are part of the url (the rest after you cut away the service path)
+    std::string getParamAsRecordingPath();
     std::string getOptionAsString(std::string name);      //Options are the normal url query parameters after the question mark
     std::string getBodyAsString(std::string name);        //Are variables in the body of the http-request -> for now only html/json are supported, xml is not implemented (!)
     int getParamAsInt(int level);

@@ -187,6 +187,7 @@ void EventsResponder::replyImage(ostream& out, cxxtools::http::Request& request,
 
 void EventsResponder::replySearchResult(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
+
   QueryHandler q("/events/search", request);
 
   if ( request.method() != "POST") {
@@ -197,22 +198,11 @@ void EventsResponder::replySearchResult(ostream& out, cxxtools::http::Request& r
   StreamExtension se(&out);
 
   string query = q.getBodyAsString("query");
+  string search = q.getBodyAsString("search");
 
-  int mode = q.getBodyAsInt("mode");// search mode (0=phrase, 1=and, 2=or, 3=exact, 4=regular expression, 5=fuzzy)
-  string channelid = q.getBodyAsString("channelid"); //id !!
-  bool use_title = q.getBodyAsString("use_title") == "true";
-  bool use_subtitle = q.getBodyAsString("use_subtitle") == "true";
-  bool use_description = q.getBodyAsString("use_description") == "true";
-
-  if ( query.length() == 0 ) {
+  if ( query.length() == 0 && search.length() == 0 ) {
      reply.httpReturn(402, "Query required");
      return;
-  }
-
-  int channel = 0;
-  cChannel* channelInstance = VdrExtension::getChannel(channelid);
-  if (channelInstance != NULL) {
-     channel = channelInstance->Number();
   }
 
   EventList* eventList;
@@ -231,58 +221,99 @@ void EventsResponder::replySearchResult(ostream& out, cxxtools::http::Request& r
      return;
   }
   eventList->init();
-  
-  if (!use_title && !use_subtitle && !use_description)
-     use_title = true;
-  if (mode < 0 || mode > 5)
-     mode = 0;
-  if (channel < 0 || channel > Channels.Count())
-     channel = 0;
-  if (query.length() > 100)
-     query = query.substr(0,100); //don't allow more than 100 characters, NOTE: maybe I should add a limitation to the Responderclass?
-
-  struct Epgsearch_searchresults_v1_0* epgquery = new struct Epgsearch_searchresults_v1_0;
-  epgquery->query = (char*)query.c_str();
-  epgquery->mode = mode;
-  epgquery->channelNr = channel;
-  epgquery->useTitle = use_title;
-  epgquery->useSubTitle = use_subtitle;
-  epgquery->useDescription = use_description;
- 
   int start_filter = q.getOptionAsInt("start");
   int limit_filter = q.getOptionAsInt("limit");
+  int date_filter = q.getOptionAsInt("date_limit");
   if ( start_filter >= 0 && limit_filter >= 1 ) {
      eventList->activateLimit(start_filter, limit_filter);
   }
+  if ( date_filter >= 0  ) {
+     eventList->activateDateLimit(date_filter);
+  }
+  
+  int total = 0;
+  if ( search.length() > 0 ) {
 
-  int total = 0; 
+      vdrlive::SearchTimer* searchtimer = new vdrlive::SearchTimer;
+      searchtimer->SetId(0);
+      string result = searchtimer->LoadCommonFromQuery(q);
 
-  cPlugin *Plugin = cPluginManager::GetPlugin("epgsearch");
-  if (Plugin) {
-     if (Plugin->Service("Epgsearch-searchresults-v1.0", NULL)) {
-        if (Plugin->Service("Epgsearch-searchresults-v1.0", epgquery)) {
-           cList< Epgsearch_searchresults_v1_0::cServiceSearchResult>* result = epgquery->pResultList;
-           Epgsearch_searchresults_v1_0::cServiceSearchResult* item = NULL;
-           if (result != NULL) {
-              for(int i=0;i<result->Count();i++) {
-                 item = result->Get(i);
-                 eventList->addEvent(((cEvent*)item->event));
-                 total++;
-              }
-           }
-        } else {
-           reply.httpReturn(406, "Internal (epgsearch) error, check parameters.");
-        }
-     } else {
-        reply.httpReturn(405, "Plugin-service not available.");
-     }
+      if (result.length() > 0) {
+           reply.httpReturn(406, result.c_str());
+           return;
+      }
+
+      string query = searchtimer->ToText();
+      vdrlive::SearchResults* results = new vdrlive::SearchResults;
+      results->GetByQuery(query);
+
+      for (vdrlive::SearchResults::iterator result = results->begin(); result != results->end(); ++result) {
+
+          eventList->addEvent(((cEvent*)result->GetEvent()));
+          total++;
+      }
+      delete searchtimer;
+      delete results;
+
   } else {
-     reply.httpReturn(404, "Plugin not installed!");
+
+      int mode = q.getBodyAsInt("mode");// search mode (0=phrase, 1=and, 2=or, 3=exact, 4=regular expression, 5=fuzzy)
+      string channelid = q.getBodyAsString("channelid"); //id !!
+      bool use_title = q.getBodyAsString("use_title") == "true";
+      bool use_subtitle = q.getBodyAsString("use_subtitle") == "true";
+      bool use_description = q.getBodyAsString("use_description") == "true";
+
+      int channel = 0;
+      cChannel* channelInstance = VdrExtension::getChannel(channelid);
+      if (channelInstance != NULL) {
+         channel = channelInstance->Number();
+      }
+
+      if (!use_title && !use_subtitle && !use_description)
+         use_title = true;
+      if (mode < 0 || mode > 5)
+         mode = 0;
+      if (channel < 0 || channel > Channels.Count())
+         channel = 0;
+      if (query.length() > 100)
+         query = query.substr(0,100); //don't allow more than 100 characters, NOTE: maybe I should add a limitation to the Responderclass?
+
+      struct Epgsearch_searchresults_v1_0* epgquery = new struct Epgsearch_searchresults_v1_0;
+      epgquery->query = (char*)query.c_str();
+      epgquery->mode = mode;
+      epgquery->channelNr = channel;
+      epgquery->useTitle = use_title;
+      epgquery->useSubTitle = use_subtitle;
+      epgquery->useDescription = use_description;
+
+      cPlugin *Plugin = cPluginManager::GetPlugin("epgsearch");
+      if (Plugin) {
+         if (Plugin->Service("Epgsearch-searchresults-v1.0", NULL)) {
+            if (Plugin->Service("Epgsearch-searchresults-v1.0", epgquery)) {
+               cList< Epgsearch_searchresults_v1_0::cServiceSearchResult>* result = epgquery->pResultList;
+               Epgsearch_searchresults_v1_0::cServiceSearchResult* item = NULL;
+               if (result != NULL) {
+                  for(int i=0;i<result->Count();i++) {
+                     item = result->Get(i);
+                     eventList->addEvent(((cEvent*)item->event));
+                     total++;
+                  }
+               }
+            } else {
+               reply.httpReturn(406, "Internal (epgsearch) error, check parameters.");
+            }
+         } else {
+            reply.httpReturn(405, "Plugin-service not available.");
+         }
+      } else {
+         reply.httpReturn(404, "Plugin not installed!");
+      }
+      delete epgquery;
+
   }
   eventList->setTotal(total);
   eventList->finish();
   delete eventList;
-  delete epgquery;
 }
 
 void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)
@@ -372,7 +403,23 @@ void operator<<= (cxxtools::SerializationInfo& si, const struct tEpgDetail& e)
 EventList::EventList(ostream *_out) {
   s = new StreamExtension(_out);
   total = 0;
+  dateLimit = 0;
   Scraper2VdrService sc;
+}
+
+void EventList::activateDateLimit(int _limit) {
+
+  if (_limit > 0) {
+      dateLimit = _limit;
+  }
+}
+
+bool EventList::filtered(int start_time) {
+
+  if (dateLimit > 0 && start_time > dateLimit) {
+      return true;
+  }
+  return BaseList::filtered();
 }
 
 EventList::~EventList()
@@ -388,7 +435,7 @@ void HtmlEventList::init()
 
 void HtmlEventList::addEvent(cEvent* event)
 {
-  if ( filtered() ) return;
+  if ( filtered(event->StartTime()) ) return;
   s->write("<li>");
   s->write((char*)event->Title()); //TODO: add more infos
   s->write("\n");
@@ -402,7 +449,7 @@ void HtmlEventList::finish()
 
 void JsonEventList::addEvent(cEvent* event)
 {
-  if ( filtered() ) return;
+  if ( filtered(event->StartTime()) ) return;
 
   cxxtools::String eventTitle;
   cxxtools::String eventShortText;
@@ -461,9 +508,9 @@ void JsonEventList::finish()
 {
   cxxtools::JsonSerializer serializer(*s->getBasicStream());
   serializer.beautify();
-  serializer.serialize(serEvents, "events");
   serializer.serialize(serEvents.size(), "count");
   serializer.serialize(total, "total");
+  serializer.serialize(serEvents, "events");
   serializer.finish();
 }
 
@@ -475,7 +522,7 @@ void XmlEventList::init()
 
 void XmlEventList::addEvent(cEvent* event)
 {
-  if ( filtered() ) return;
+  if ( filtered(event->StartTime()) ) return;
 
   string eventTitle;
   string eventShortText;

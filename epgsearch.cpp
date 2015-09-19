@@ -151,8 +151,7 @@ string SearchTimer::ToHtml()
   return Search();
 }
 
-string SearchTimer::LoadFromQuery(QueryHandler& q)
-{
+string SearchTimer::LoadCommonFromQuery(QueryHandler& q) {
   int searchtimer_id = q.getBodyAsInt("id");
   if ( searchtimer_id >= 0 ) m_id = searchtimer_id;
 
@@ -160,7 +159,9 @@ string SearchTimer::LoadFromQuery(QueryHandler& q)
   if ( search.length() > 0 ) { m_search = search; } else { return "Search required."; }
 
   m_mode = q.getBodyAsInt("mode");
-  if ( m_mode < 0 | m_mode > 5 ) return "mode invalid, (0=phrase, 1=all words, 2=at least one word, 3=match exactly, 4=regex, 5=fuzzy";
+  if ( m_mode < 0 | m_mode > 5 )  { //0=phrase, 1=all words, 2=at least one word, 3=match exactly, 4=regex, 5=fuzzy
+      m_mode = 0;
+  }
 
   //only required in fuzzy mode
   int tolerance = q.getBodyAsInt("tolerance");
@@ -229,6 +230,36 @@ string SearchTimer::LoadFromQuery(QueryHandler& q)
   if ( m_useDayOfWeek ) {
      m_dayOfWeek = q.getBodyAsInt("dayofweek");
      if (m_dayOfWeek < -127 || m_dayOfWeek > 6 ) return "day_of_week invalid (uses 7 bits for the seven days!)";
+  }
+
+  //m_blacklistmode: 0=global, 1=Selection, 2=all, 3=none
+  m_blacklistmode = q.getBodyAsInt("blacklist_mode");
+
+  if (m_blacklistmode == 1) {
+    JsonArray *blacklistIds = q.getBodyAsArray("blacklist_ids");
+    if (blacklistIds != NULL) {
+      for (int i=0; i < blacklistIds->CountItem(); i++) {
+	JsonBase* jsonBase = blacklistIds->GetItem(i);
+	if (jsonBase->IsBasicValue()) {
+	  JsonBasicValue* jsonBasicValue = (JsonBasicValue*)jsonBase;
+	  if (jsonBasicValue->IsString()) {
+	    int id = atoi(jsonBasicValue->ValueAsString().c_str());
+	    m_blacklistIDs.push_back(id);
+	  }
+	}
+      }
+    }
+  }
+
+  return "";
+};
+
+string SearchTimer::LoadFromQuery(QueryHandler& q)
+{
+
+  string result = LoadCommonFromQuery(q);
+  if (result.length() > 0) {
+      return result;
   }
 
   m_useEpisode = q.getBodyAsBool("use_series_recording");
@@ -301,25 +332,6 @@ string SearchTimer::LoadFromQuery(QueryHandler& q)
   int repeatsWithinDays = q.getBodyAsInt("repeats_within_days");
   if (repeatsWithinDays > 0) m_repeatsWithinDays = repeatsWithinDays;
 
-  //m_blacklistmode: 0=global, 1=Selection, 2=all, 3=none
-  m_blacklistmode = q.getBodyAsInt("blacklist_mode");
-
-  if (m_blacklistmode == 1) {
-    JsonArray *blacklistIds = q.getBodyAsArray("blacklist_ids");
-    if (blacklistIds != NULL) {
-      for (int i=0; i < blacklistIds->CountItem(); i++) {
-	JsonBase* jsonBase = blacklistIds->GetItem(i);
-	if (jsonBase->IsBasicValue()) {
-	  JsonBasicValue* jsonBasicValue = (JsonBasicValue*)jsonBase;
-	  if (jsonBasicValue->IsString()) {
-	    int id = atoi(jsonBasicValue->ValueAsString().c_str());
-	    m_blacklistIDs.push_back(id);
-	  }
-	}
-      }
-    }
-  }
-
   int compareCategories = q.getBodyAsInt("compare_categories");
   if (compareCategories >= 0) { m_catvaluesAvoidRepeat = compareCategories; }
 
@@ -355,7 +367,6 @@ string SearchTimer::LoadFromQuery(QueryHandler& q)
   if (m_catvaluesAvoidRepeat < 0 || m_catvaluesAvoidRepeat > max) {
       m_catvaluesAvoidRepeat = 0;
   }
-
 
   return ""; 
 } 

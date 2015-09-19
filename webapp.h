@@ -12,9 +12,10 @@ using namespace std;
 
 class WebappResponder : public cxxtools::http::Responder {
 private:
-  string getFile(string fileName);
+  string getFile(string base, string fileName);
   string getFileName(string base, string url);
-  const char *getContentType(string fileName);
+  string getContentType(string fileName);
+  string getBase(cxxtools::http::Request& request);
   void streamResponse(string fileName, ostream& out, string file, cxxtools::http::Reply& reply);
 public:
   explicit WebappResponder(cxxtools::http::Service& service) : cxxtools::http::Responder(service) {};
