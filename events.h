@@ -28,9 +28,7 @@ class EventsResponder : public cxxtools::http::Responder
     void replyEvents(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void replyImage(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void replySearchResult(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
-#if APIVERSNUM > 10710
     void replyContentDescriptors(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
-#endif
 };
 
 typedef cxxtools::http::CachedService<EventsResponder> EventsService;
@@ -58,9 +56,7 @@ struct SerEvent
   int Images;
   bool TimerExists;
   bool TimerActive;
-#if APIVERSNUM > 10710 || EPGHANDLER
   int ParentalRating;
-#endif
   int Vps;
   cxxtools::String TimerId;
   cEvent* Instance;
@@ -126,7 +122,6 @@ class XmlEventList : EventList
     virtual void finish();
 };
 
-#if APIVERSNUM > 10710
 
 struct SerContentDescriptor {
   cxxtools::String id;
@@ -179,8 +174,6 @@ class XmlContentDescriptorList : ContentDescriptorList
     virtual void addDescr(SerContentDescriptor &descr);
     virtual void finish();
 };
-
-#endif
 
 
 #endif //__RESTFUL_EVENTS_H

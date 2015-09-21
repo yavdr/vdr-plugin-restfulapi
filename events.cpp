@@ -16,11 +16,9 @@ void EventsResponder::reply(ostream& out, cxxtools::http::Request& request, cxxt
      replySearchResult(out, request, reply);
   }
 
-#if APIVERSNUM > 10710
   else if ( (int)request.url().find("/events/contentdescriptors") == 0 ){
       replyContentDescriptors(out, request, reply);
   }
-#endif
 
   else {
      replyEvents(out, request, reply);
@@ -332,9 +330,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)
   si.addMember("timer_exists") <<= e.TimerExists;
   si.addMember("timer_active") <<= e.TimerActive;
   si.addMember("timer_id") <<= e.TimerId;
-#if APIVERSNUM > 10710 || EPGHANDLER
   si.addMember("parental_rating") <<= e.ParentalRating;
-#endif
   si.addMember("vps") <<= e.Vps;
 
   vector< SerComponent > components;
@@ -354,7 +350,6 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)
 
   si.addMember("components") <<= components;
 
-#if APIVERSNUM > 10710 || EPGHANDLER
   vector< cxxtools::String > contents;
   int counter = 0;
   uchar content = e.Instance->Contents(counter);
@@ -374,7 +369,6 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)
      raw_content = e.Instance->Contents(counter);
   }
   si.addMember("raw_contents") <<= raw_contents;
-#endif
 
 #ifdef EPG_DETAILS_PATCH
   si.addMember("details") <<= *e.Details;
@@ -479,9 +473,7 @@ void JsonEventList::addEvent(cEvent* event)
   serEvent.Duration = event->Duration();
   serEvent.TableID = (int)event->TableID();
   serEvent.Version = (int)event->Version();
-#if APIVERSNUM > 10710 || EPGHANDLER
   serEvent.ParentalRating = event->ParentalRating();
-#endif
   serEvent.Vps = event->Vps();
   serEvent.Instance = event;
 
@@ -545,9 +537,7 @@ void XmlEventList::addEvent(cEvent* event)
   s->write(cString::sprintf("  <param name=\"duration\">%i</param>\n", event->Duration()));
   s->write(cString::sprintf("  <param name=\"table_id\">%i</param>\n", (int)event->TableID()));
   s->write(cString::sprintf("  <param name=\"version\">%i</param>\n", (int)event->Version()));
-#if APIVERSNUM > 10710 || EPGHANDLER
   s->write(cString::sprintf("  <param name=\"parental_rating\">%i</param>\n", event->ParentalRating()));
-#endif
   s->write(cString::sprintf("  <param name=\"vps\">%i</param>\n", (int)event->Vps()));
   
 #ifdef EPG_DETAILS_PATCH
@@ -591,7 +581,6 @@ void XmlEventList::addEvent(cEvent* event)
   }
   s->write("  </param>\n");
 
-#if APIVERSNUM > 10710 || EPGHANDLER
   s->write("  <param name=\"contents\">\n");
   int counter = 0;
   uchar content = event->Contents(counter);
@@ -611,7 +600,6 @@ void XmlEventList::addEvent(cEvent* event)
     content = event->Contents(counter);
   }
   s->write("  </param>\n");
-#endif
 
   s->write(cString::sprintf("  <param name=\"timer_exists\">%s</param>\n", (timer_exists ? "true" : "false")));
   s->write(cString::sprintf("  <param name=\"timer_active\">%s</param>\n", (timer_active ? "true" : "false")));
@@ -630,7 +618,6 @@ void XmlEventList::finish()
 
 // content strings
 
-#if APIVERSNUM > 10710
 void EventsResponder::replyContentDescriptors(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply) {
 
   QueryHandler q("/events/contentdescriptors", request);
@@ -779,8 +766,4 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerContentDescriptor& t
   si.addMember("name") <<= t.name;
   si.addMember("is_group") <<= t.isGroup;
 }
-
-
-
-#endif
 
