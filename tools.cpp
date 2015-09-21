@@ -703,12 +703,20 @@ const cChannel* VdrExtension::getChannel(string id) {
 	return NULL;
 }
 
-cTimer* VdrExtension::getTimer(string id)
+const cTimer* VdrExtension::getTimer(string id)
 {
-  cTimer* timer;
-  int tc = Timers.Count();
+
+#if APIVERSNUM > 20300
+    LOCK_TIMERS_READ;
+    const cTimers& timers = *Timers;
+#else
+    cTimers& timers = Timers;
+#endif
+
+  const cTimer* timer;
+  int tc = timers.Count();
   for (int i=0;i<tc;i++) {
-      timer = Timers.Get(i);
+      timer = timers.Get(i);
       if ( VdrExtension::getTimerID(timer) == id ) {
          return timer;
       }  
@@ -716,7 +724,28 @@ cTimer* VdrExtension::getTimer(string id)
   return NULL;
 }
 
-string VdrExtension::getTimerID(cTimer* timer)
+cTimer* VdrExtension::getTimerWrite(string id)
+{
+
+#if APIVERSNUM > 20300
+    LOCK_TIMERS_WRITE;
+    cTimers& timers = *Timers;
+#else
+    cTimers& timers = Timers;
+#endif
+
+  cTimer* timer;
+  int tc = timers.Count();
+  for (int i=0;i<tc;i++) {
+      timer = timers.Get(i);
+      if ( VdrExtension::getTimerID(timer) == id ) {
+         return timer;
+      }
+  }
+  return NULL;
+}
+
+string VdrExtension::getTimerID(const cTimer* timer)
 {
   ostringstream str;
   str << (const char*)timer->Channel()->GetChannelID().ToString() << ":" << timer->WeekDays() << ":"
@@ -771,10 +800,18 @@ bool VdrExtension::IsRadio(const cChannel* channel)
 
 bool VdrExtension::IsRecording(cRecording* recording)
 {
-  cTimer* timer = NULL;
-  for (int i=0;i<Timers.Count();i++)
+
+#if APIVERSNUM > 20300
+    LOCK_TIMERS_READ;
+    const cTimers& timers = *Timers;
+#else
+    cTimers& timers = Timers;
+#endif
+
+  const cTimer* timer = NULL;
+  for (int i=0;i<timers.Count();i++)
   {
-     timer = Timers.Get(i);
+     timer = timers.Get(i);
      if (string(timer->File()).compare(recording->Name())) {
         return true;
      }
@@ -782,10 +819,18 @@ bool VdrExtension::IsRecording(cRecording* recording)
   return false;
 }
 
-cTimer* VdrExtension::TimerExists(cEvent* event)
+const cTimer* VdrExtension::TimerExists(cEvent* event)
 {
-  for(int i=0;i<Timers.Count();i++) {
-     cTimer* timer = Timers.Get(i);
+
+#if APIVERSNUM > 20300
+    LOCK_TIMERS_READ;
+    const cTimers& timers = *Timers;
+#else
+    cTimers& timers = Timers;
+#endif
+
+  for(int i=0;i<timers.Count();i++) {
+     const cTimer* timer = timers.Get(i);
 
      if ( timer->Event() != NULL &&  timer->Event()->EventID() == event->EventID() && strcmp(timer->Event()->ChannelID().ToString(), event->ChannelID().ToString()) == 0 ) {
         return timer;
@@ -809,34 +854,42 @@ cTimer* VdrExtension::TimerExists(cEvent* event)
   return NULL;
 }
 
-vector< cTimer* > VdrExtension::SortedTimers()
+vector< const cTimer* > VdrExtension::SortedTimers()
 {
-  vector< cTimer* > timers;
-  for(int i=0;i<Timers.Count();i++)
+
+#if APIVERSNUM > 20300
+    LOCK_TIMERS_READ;
+    const cTimers& timers = *Timers;
+#else
+    cTimers& timers = Timers;
+#endif
+
+  vector< const cTimer* > returnTimers;
+  for(int i=0;i<timers.Count();i++)
   {
-     timers.push_back(Timers.Get(i));
+	  returnTimers.push_back(timers.Get(i));
   }
 
-  for(int i=0;i<(int)timers.size() - 1;i++)
+  for(int i=0;i<(int)returnTimers.size() - 1;i++)
   {
      bool changed = false;
-     for(int k=0;k<(int)timers.size() - i - 1;k++)
+     for(int k=0;k<(int)returnTimers.size() - i - 1;k++)
      {
-         if (VdrExtension::CompareTimers(timers[k], timers[k+1])) 
+         if (VdrExtension::CompareTimers(returnTimers[k], returnTimers[k+1]))
          {
-            cTimer* swap = timers[k];
-            timers[k] = timers[k+1];
-            timers[k+1] = swap;
+            const cTimer* swap = returnTimers[k];
+            returnTimers[k] = returnTimers[k+1];
+            returnTimers[k+1] = swap;
             changed = true;
          }
      }
      if(!changed) break;
   }
 
-  return timers;
+  return returnTimers;
 }
 
-bool VdrExtension::CompareTimers(cTimer* timer1, cTimer* timer2)
+bool VdrExtension::CompareTimers(const cTimer* timer1, const cTimer* timer2)
 {
   int day1 = (int)timer1->Day() - ((int)timer1->Day() % 3600);
   int day2 = (int)timer2->Day() - ((int)timer2->Day() % 3600);

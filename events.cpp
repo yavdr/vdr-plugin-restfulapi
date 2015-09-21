@@ -477,7 +477,7 @@ void JsonEventList::addEvent(cEvent* event)
   serEvent.Vps = event->Vps();
   serEvent.Instance = event;
 
-  cTimer* timer = VdrExtension::TimerExists(event);
+  const cTimer* timer = VdrExtension::TimerExists(event);
   serEvent.TimerExists = timer != NULL ? true : false;
   serEvent.TimerActive = false;
   if ( timer != NULL ) {
@@ -554,7 +554,7 @@ void XmlEventList::addEvent(cEvent* event)
   FileCaches::get()->searchEventImages((int)event->EventID(), images);
   s->write(cString::sprintf("  <param name=\"images\">%i</param>\n", (int)images.size()));
 
-  cTimer* timer = VdrExtension::TimerExists(event);
+  const cTimer* timer = VdrExtension::TimerExists(event);
   bool timer_exists = timer != NULL ? true : false;
   bool timer_active = false;
   string timer_id = "";

@@ -202,15 +202,16 @@ class VdrExtension
   public:
     static const cChannel* getChannel(int number);
     static const cChannel* getChannel(std::string id);
-    static cTimer* getTimer(std::string id);
-    static std::string getTimerID(cTimer* timer);
+    static const cTimer* getTimer(std::string id);
+    static cTimer* getTimerWrite(std::string id);
+    static std::string getTimerID(const cTimer* timer);
     static int scanForFiles(const std::string wildcardpath, std::vector< std::string >& files);
     static bool doesFileExistInFolder(std::string wildcardpath, std::string filename);
     static bool IsRadio(const cChannel* channel);
     static bool IsRecording(cRecording* recording);
-    static cTimer* TimerExists(cEvent* event);
-    static std::vector< cTimer* > SortedTimers();
-    static bool CompareTimers(cTimer* timer1, cTimer* timer2);
+    static const cTimer* TimerExists(cEvent* event);
+    static std::vector< const cTimer* > SortedTimers();
+    static bool CompareTimers(const cTimer* timer1, const cTimer* timer2);
     static int RecordingLengthInSeconds(cRecording* recording);
     static const cEvent* GetEventById(tEventID eventID, const cChannel* channel);
     static std::string getRelativeVideoPath(cRecording* recording);
