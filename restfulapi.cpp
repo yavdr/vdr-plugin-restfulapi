@@ -181,11 +181,7 @@ void cPluginRestfulapi::MainThreadHook(void)
   cRecording* recording = scheduler->SwitchableRecording();
 
   if (recording != NULL) {
-     #if APIVERSNUM > 10727
      cReplayControl::SetRecording(recording->FileName());
-     #else
-     cReplayControl::SetRecording(recording->FileName(), recording->Title());
-     #endif
      scheduler->SwitchableRecording(NULL);
      cControl::Shutdown();
      cControl::Launch(new cReplayControl);
