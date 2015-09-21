@@ -261,12 +261,7 @@ void JsonChannelList::addChannel(cChannel* channel, string group, bool image, in
   serChannel.Group = StringExtension::UTF8Decode(group);
   serChannel.Transponder = channel->Transponder();
   serChannel.Stream = StringExtension::UTF8Decode(((string)channel->GetChannelID().ToString() + (string)suffix).c_str());
-  // TODO: There is an atsc Patch
-  #if APIVERSNUM >= 10714
   serChannel.IsAtsc = channel->IsAtsc();
-  #else
-  serChannel.IsAtsc = false;
-  #endif
   serChannel.IsCable = channel->IsCable();
   serChannel.IsSat = channel->IsSat();
   serChannel.IsTerr = channel->IsTerr();
@@ -304,12 +299,7 @@ void XmlChannelList::addChannel(cChannel* channel, string group, bool image, int
   s->write(cString::sprintf("  <param name=\"group\">%s</param>\n", StringExtension::encodeToXml( group ).c_str()));
   s->write(cString::sprintf("  <param name=\"transponder\">%i</param>\n", channel->Transponder()));
   s->write(cString::sprintf("  <param name=\"stream\">%s</param>\n", StringExtension::encodeToXml( ((string)channel->GetChannelID().ToString() + (string)suffix).c_str()).c_str()));
-  // TODO: There is an atsc Patch
-  #if APIVERSNUM >= 10714
   s->write(cString::sprintf("  <param name=\"is_atsc\">%s</param>\n", channel->IsAtsc() ? "true" : "false"));
-  #else
-  s->write(cString::sprintf("  <param name=\"is_atsc\">%s</param>\n", false ? "true" : "false"));
-  #endif
   s->write(cString::sprintf("  <param name=\"is_cable\">%s</param>\n", channel->IsCable() ? "true" : "false"));
   s->write(cString::sprintf("  <param name=\"is_sat\">%s</param>\n", channel->IsSat() ? "true" : "false"));
   s->write(cString::sprintf("  <param name=\"is_terr\">%s</param>\n", channel->IsTerr() ? "true" : "false"));
