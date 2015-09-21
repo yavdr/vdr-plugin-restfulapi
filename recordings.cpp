@@ -655,13 +655,8 @@ void JsonRecordingList::addRecording(cRecording* recording, int nr, SyncMap* syn
       serRecording.Inode = StringExtension::encodeToJson((const char*)cString::sprintf("%lu:%llu", (unsigned long) st.st_dev, (unsigned long long) st.st_ino));
   }
 
-  #if APIVERSNUM >= 10703
   serRecording.IsPesRecording = recording->IsPesRecording();
   serRecording.FramesPerSecond = recording->FramesPerSecond();
-  #else
-  serRecording.IsPesRecording = true;
-  serRecording.FramesPerSecond = FRAMESPERSEC;
-  #endif
 
   serRecording.Duration = VdrExtension::RecordingLengthInSeconds(recording);
   serRecording.FileSizeMB = recording->FileSizeMB();
@@ -754,14 +749,8 @@ void XmlRecordingList::addRecording(cRecording* recording, int nr, SyncMap* sync
 
   out += cString::sprintf("  <param name=\"is_new\">%s</param>\n", recording->IsNew() ? "true" : "false" );
   out += cString::sprintf("  <param name=\"is_edited\">%s</param>\n", recording->IsEdited() ? "true" : "false" );
-
-  #if APIVERSNUM >= 10703
   out += cString::sprintf("  <param name=\"is_pes_recording\">%s</param>\n", recording->IsPesRecording() ? "true" : "false" );
   out += cString::sprintf("  <param name=\"frames_per_second\">%.2f</param>\n", recording->FramesPerSecond());
-  #else
-  out += cString::sprintf("  <param name=\"is_pes_recording\">%s</param>\n", true ? "true" : "false" );
-  out += cString::sprintf("  <param name=\"frames_per_second\">%i</param>\n", FRAMESPERSEC);
-  #endif
   out += cString::sprintf("  <param name=\"duration\">%i</param>\n", VdrExtension::RecordingLengthInSeconds(recording));
   out += cString::sprintf("  <param name=\"filesize_mb\">%i</param>\n", recording->FileSizeMB());
   out += cString::sprintf("  <param name=\"channel_id\">%s</param>\n", StringExtension::encodeToXml((string) recording->Info()->ChannelID().ToString()).c_str());
