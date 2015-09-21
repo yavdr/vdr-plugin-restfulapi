@@ -54,7 +54,7 @@ void ChannelsResponder::replyChannels(ostream& out, cxxtools::http::Request& req
 
   int index = 0;
   if (channel_details.length() > 0) {
-     cChannel* channel = VdrExtension::getChannel(channel_details);
+     const cChannel* channel = VdrExtension::getChannel(channel_details);
      if (channel == NULL || channel->GroupSep()) {
         reply.httpReturn(403, "The requested channel is not available.");
         delete channelList;
@@ -115,7 +115,7 @@ void ChannelsResponder::replyImage(ostream& out, cxxtools::http::Request& reques
   QueryHandler q("/channels/image/", request);
   
   string channelid = q.getParamAsString(0);
-  cChannel* channel = VdrExtension::getChannel(channelid);
+  const cChannel* channel = VdrExtension::getChannel(channelid);
   string imageFolder = Settings::get()->ChannelLogoDirectory() + (string)"/";
   double timediff = -1;
   
@@ -232,7 +232,7 @@ void HtmlChannelList::init()
   s->write("<ul>");
 }
 
-void HtmlChannelList::addChannel(cChannel* channel, string group, bool image, int index)
+void HtmlChannelList::addChannel(const cChannel* channel, string group, bool image, int index)
 {
   if ( filtered() ) return;
 
@@ -247,7 +247,7 @@ void HtmlChannelList::finish()
   s->write("</body></html>");
 }
 
-void JsonChannelList::addChannel(cChannel* channel, string group, bool image, int index)
+void JsonChannelList::addChannel(const cChannel* channel, string group, bool image, int index)
 {  
   if ( filtered() ) return;
 
@@ -285,7 +285,7 @@ void XmlChannelList::init()
   s->write("<channels xmlns=\"http://www.domain.org/restfulapi/2011/channels-xml\">\n");
 }
 
-void XmlChannelList::addChannel(cChannel* channel, string group, bool image, int index)
+void XmlChannelList::addChannel(const cChannel* channel, string group, bool image, int index)
 {
   if ( filtered() ) return;
 

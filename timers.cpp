@@ -48,7 +48,7 @@ void TimersResponder::createOrUpdateTimer(ostream& out, cxxtools::http::Request&
   int start = v.ConvertStart(q.getBodyAsString("start"));
   string weekdays = q.getBodyAsString("weekdays");
   string day = v.ConvertDay(q.getBodyAsString("day"));
-  cChannel* chan = v.ConvertChannel(q.getBodyAsString("channel"));
+  const cChannel* chan = v.ConvertChannel(q.getBodyAsString("channel"));
   cTimer* timer_orig = v.ConvertTimer(q.getBodyAsString("timer_id"));
   
   if ( update == false ) { //create
@@ -695,7 +695,7 @@ string TimerValues::ConvertDay(string v)
   return res.str();
 }
 
-cChannel* TimerValues::ConvertChannel(string v)
+const cChannel* TimerValues::ConvertChannel(string v)
 {
   return VdrExtension::getChannel(v);
 }

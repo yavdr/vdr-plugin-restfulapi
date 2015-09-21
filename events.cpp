@@ -63,7 +63,7 @@ void EventsResponder::replyEvents(ostream& out, cxxtools::http::Request& request
 
   string onlyCount = q.getOptionAsString("only_count");
 
-  cChannel* channel = VdrExtension::getChannel(channel_id);
+  const cChannel* channel = VdrExtension::getChannel(channel_id);
   if ( channel == NULL ) { 
      /*reply.addHeader("Content-Type", "application/octet-stream");
      string error_message = (string)"Could not find channel with id: " + channel_id + (string)"!";
@@ -262,7 +262,7 @@ void EventsResponder::replySearchResult(ostream& out, cxxtools::http::Request& r
       bool use_description = q.getBodyAsString("use_description") == "true";
 
       int channel = 0;
-      cChannel* channelInstance = VdrExtension::getChannel(channelid);
+      const cChannel* channelInstance = VdrExtension::getChannel(channelid);
       if (channelInstance != NULL) {
          channel = channelInstance->Number();
       }

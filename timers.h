@@ -184,6 +184,6 @@ class TimerValues
     std::string ConvertDay(time_t v);
     std::string ConvertWeekdays(int v);
     int		ConvertWeekdays(std::string v);
-    cChannel*	ConvertChannel(std::string v);
+    const cChannel*	ConvertChannel(std::string v);
     cTimer*	ConvertTimer(std::string v);
 };

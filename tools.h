@@ -172,7 +172,7 @@ class FileCaches
     void cacheChannelLogos();
     void cacheWebappFileTypes();
     void searchEventImages(int eventid, std::vector< std::string >& files);
-    std::string searchChannelLogo(cChannel *channel);
+    std::string searchChannelLogo(const cChannel *channel);
     void addEventImage(std::string file);
     void addChannelLogo(std::string file);
     void removeEventImage(std::string file);
@@ -200,21 +200,21 @@ class VdrExtension
   private:
     static bool MoveDirectory(std::string const & sourceDir, std::string const & targetDir, bool copy = false);
   public:
-    static cChannel* getChannel(int number);
-    static cChannel* getChannel(std::string id);
+    static const cChannel* getChannel(int number);
+    static const cChannel* getChannel(std::string id);
     static cTimer* getTimer(std::string id);
     static std::string getTimerID(cTimer* timer);
     static int scanForFiles(const std::string wildcardpath, std::vector< std::string >& files);
     static bool doesFileExistInFolder(std::string wildcardpath, std::string filename);
-    static bool IsRadio(cChannel* channel);
+    static bool IsRadio(const cChannel* channel);
     static bool IsRecording(cRecording* recording);
     static cTimer* TimerExists(cEvent* event);
     static std::vector< cTimer* > SortedTimers();
     static bool CompareTimers(cTimer* timer1, cTimer* timer2);
     static int RecordingLengthInSeconds(cRecording* recording);
-    static const cEvent* GetEventById(tEventID eventID, cChannel* channel);
+    static const cEvent* GetEventById(tEventID eventID, const cChannel* channel);
     static std::string getRelativeVideoPath(cRecording* recording);
-    static cEvent* getCurrentEventOnChannel(cChannel* channel);
+    static cEvent* getCurrentEventOnChannel(const cChannel* channel);
     static std::string getVideoDiskSpace();
     static std::string FileSystemExchangeChars(std::string const & s, bool ToFileSystem);
     static std::string MoveRecording(cRecording const * recording, std::string const & name, bool copy = false);

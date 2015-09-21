@@ -504,7 +504,7 @@ void FileCaches::searchEventImages(int eventid, std::vector< std::string >& file
   }
 }
 
-std::string FileCaches::searchChannelLogo(cChannel *channel)
+std::string FileCaches::searchChannelLogo(const cChannel *channel)
 {
   std::string cid = (std::string)(*channel->GetChannelID().ToString());
   std::string cname = (std::string)channel->Name();
@@ -657,37 +657,50 @@ bool FileExtension::exists(string path) {
 
 // --- VdrExtension -----------------------------------------------------------
 
-cChannel* VdrExtension::getChannel(int number)
+const cChannel* VdrExtension::getChannel(int number)
 {
-  if( number == -1 || number >= Channels.Count() ) { return NULL; }
 
-  cChannel* result = NULL;
-  int counter = 1;
-  for (cChannel *channel = Channels.First(); channel; channel = Channels.Next(channel))
-  {
-      if (!channel->GroupSep()) {
-         if (counter == number)
-         {
-            result = channel;
-            break;
-         }
-         counter++;
-      }
-  }
-  return result;
+#if APIVERSNUM > 20300
+    LOCK_CHANNELS_READ;
+    const cChannels& channels = *Channels;
+#else
+    cChannels& channels = Channels;
+#endif
+
+	if( number == -1 || number >= channels.Count() ) { return NULL; }
+
+	const cChannel* result = NULL;
+	int counter = 1;
+	for (const cChannel *channel = channels.First(); channel; channel = channels.Next(channel)) {
+
+		if (!channel->GroupSep()) {
+			if (counter == number) {
+				result = channel;
+				break;
+			}
+			counter++;
+		}
+	}
+	return result;
 }
 
-cChannel* VdrExtension::getChannel(string id)
-{
-  if ( id.length() == 0 ) return NULL;
- 
-  for (cChannel* channel = Channels.First(); channel; channel= Channels.Next(channel))
-  {
-      if ( id == (string)channel->GetChannelID().ToString() ) {
-         return channel;
-      }
-  }
-  return NULL;
+const cChannel* VdrExtension::getChannel(string id) {
+
+#if APIVERSNUM > 20300
+    LOCK_CHANNELS_READ;
+    const cChannels& channels = *Channels;
+#else
+    cChannels& channels = Channels;
+#endif
+
+	if ( id.length() == 0 ) return NULL;
+
+	for (const cChannel* channel = channels.First(); channel; channel= channels.Next(channel)) {
+		if ( id == (string)channel->GetChannelID().ToString() ) {
+			return channel;
+		}
+	}
+	return NULL;
 }
 
 cTimer* VdrExtension::getTimer(string id)
@@ -748,7 +761,7 @@ bool VdrExtension::doesFileExistInFolder(string wildcardpath, string filename)
   return false;
 }
 
-bool VdrExtension::IsRadio(cChannel* channel)
+bool VdrExtension::IsRadio(const cChannel* channel)
 {
   if ((channel->Vpid() == 0 && channel->Apid(0) != 0) || channel->Vpid() == 1 ) {
      return true;
@@ -855,7 +868,7 @@ int VdrExtension::RecordingLengthInSeconds(cRecording* recording)
   return -1;
 }
 
-const cEvent* VdrExtension::GetEventById(tEventID eventID, cChannel* channel)
+const cEvent* VdrExtension::GetEventById(tEventID eventID, const cChannel* channel)
 {
   cSchedulesLock MutexLock;
   const cSchedules *Schedules = cSchedules::Schedules(MutexLock);
@@ -881,7 +894,7 @@ string VdrExtension::getRelativeVideoPath(cRecording* recording)
   return path.substr(VIDEODIR.length());
 }
 
-cEvent* VdrExtension::getCurrentEventOnChannel(cChannel* channel)
+cEvent* VdrExtension::getCurrentEventOnChannel(const cChannel* channel)
 {
   if ( channel == NULL ) return NULL; 
 
