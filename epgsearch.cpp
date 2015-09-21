@@ -930,6 +930,18 @@ const cEvent* SearchResult::GetEvent()
 	return Schedule->GetEvent(m_eventId);	
 }
 
+const cChannel* SearchResult::GetChannel() {
+
+#if APIVERSNUM > 20300
+    LOCK_CHANNELS_READ;
+    const cChannels& channels = *Channels;
+#else
+    cChannels& channels = Channels;
+#endif
+
+    return channels.GetByChannelID(m_channel);
+}
+
 set<string> SearchResults::querySet;
 
 void SearchResults::GetByID(int id)
