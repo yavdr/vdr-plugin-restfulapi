@@ -137,4 +137,4 @@ clean:
 	@-rm -f $(OBJS) $(DEPFILE) *.so *.tgz core* *~
 	
 archive:
-	git archive --format=tar.gz --prefix=vdr-plugin-restfulapi-${VERSION}/ --output=../vdr-plugin-restfulapi_${VERSION}.tar.gz master
+	git archive --format=tar.gz --prefix=vdr-plugin-restfulapi-${VERSION}/ --output=../vdr-plugin-restfulapi-${VERSION}.tar.gz master
