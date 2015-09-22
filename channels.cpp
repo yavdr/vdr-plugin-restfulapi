@@ -53,6 +53,14 @@ void ChannelsResponder::replyChannels(ostream& out, cxxtools::http::Request& req
   string group_filter = q.getOptionAsString("group");
 
   int index = 0;
+
+#if APIVERSNUM > 20300
+    LOCK_CHANNELS_READ;
+    const cChannels& channels = *Channels;
+#else
+    cChannels& channels = Channels;
+#endif
+
   if (channel_details.length() > 0) {
      const cChannel* channel = VdrExtension::getChannel(channel_details);
      if (channel == NULL || channel->GroupSep()) {
@@ -65,7 +73,7 @@ void ChannelsResponder::replyChannels(ostream& out, cxxtools::http::Request& req
         string group = "";
         int total = 0;
         int c = 0;
-        for (cChannel *channelIt = Channels.First(); channelIt; channelIt = Channels.Next(channelIt))
+        for (const cChannel *channelIt = channels.First(); channelIt; channelIt = channels.Next(channelIt))
         { 
            if (!channelIt->GroupSep()) {
               total++;
@@ -89,7 +97,7 @@ void ChannelsResponder::replyChannels(ostream& out, cxxtools::http::Request& req
      channelList->init();
      int total = 0;
      string group = "";
-     for (cChannel *channel = Channels.First(); channel; channel = Channels.Next(channel))
+     for (const cChannel *channel = channels.First(); channel; channel = channels.Next(channel))
      {
        if (!channel->GroupSep()) {
           if ( group_filter.length() == 0 || group == group_filter ) {
@@ -183,8 +191,15 @@ void ChannelsResponder::replyGroups(ostream& out, cxxtools::http::Request& reque
 
   channelGroupList->init();
   int total = 0;
-  
-  for (cChannel *channel = Channels.First(); channel; channel = Channels.Next(channel))
+
+
+#if APIVERSNUM > 20300
+    LOCK_CHANNELS_READ;
+    const cChannels& channels = *Channels;
+#else
+    cChannels& channels = Channels;
+#endif
+  for (const cChannel *channel = channels.First(); channel; channel = channels.Next(channel))
   {
       if (channel->GroupSep()) {
          channelGroupList->addGroup((std::string)channel->Name());
