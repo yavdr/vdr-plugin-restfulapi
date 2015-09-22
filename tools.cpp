@@ -1190,9 +1190,15 @@ string VdrExtension::MoveRecording(cRecording const * recording, string const & 
      return "";
   }
 
+#if APIVERSNUM > 20300
+	  LOCK_RECORDINGS_WRITE;
+	  cRecordings& recordings = *Recordings;
+#else
+	  cRecordings& recordings = Recordings;
+#endif
   if (!copy)
-     Recordings.DelByName(oldname.c_str());
-  Recordings.AddByName(newname.c_str());
+	  recordings.DelByName(oldname.c_str());
+  recordings.AddByName(newname.c_str());
   cRecordingUserCommand::InvokeCommand(*cString::sprintf("rename \"%s\"", *strescape(oldname.c_str(), "\\\"$'")), newname.c_str());
   return newname;
 }
