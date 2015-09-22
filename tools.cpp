@@ -923,17 +923,41 @@ int VdrExtension::RecordingLengthInSeconds(cRecording* recording)
 
 const cEvent* VdrExtension::GetEventById(tEventID eventID, const cChannel* channel)
 {
+
+#if APIVERSNUM > 20300
+	LOCK_SCHEDULES_READ;
+#else
+	cSchedulesLock MutexLock;
+	const cSchedules *Schedules = cSchedules::Schedules(MutexLock);
+#endif
+
+	if (!Schedules)
+		return NULL;
+
+	const cSchedule *Schedule = Schedules->GetSchedule(channel->GetChannelID());
+	if (Schedule)
+		return Schedule->GetEvent(eventID);
+
+	return NULL;
+}
+
+cEvent* VdrExtension::getCurrentEventOnChannel(const cChannel* channel)
+{
+  if ( channel == NULL ) return NULL; 
+
+#if APIVERSNUM > 20300
+	LOCK_SCHEDULES_READ;
+#else
   cSchedulesLock MutexLock;
   const cSchedules *Schedules = cSchedules::Schedules(MutexLock);
+#endif
 
-  if (!Schedules)
-     return NULL;
-
+  if ( ! Schedules ) { return NULL; }
   const cSchedule *Schedule = Schedules->GetSchedule(channel->GetChannelID());
-  if (Schedule)
-     return Schedule->GetEvent(eventID);
+  if ( !Schedule ) { return NULL; }
 
-  return NULL;
+  time_t now = time(NULL);
+  return (cEvent*)Schedule->GetEventAround(now);
 }
 
 string VdrExtension::getRelativeVideoPath(cRecording* recording)
@@ -945,21 +969,6 @@ string VdrExtension::getRelativeVideoPath(cRecording* recording)
   string VIDEODIR(VideoDirectory);
 #endif
   return path.substr(VIDEODIR.length());
-}
-
-cEvent* VdrExtension::getCurrentEventOnChannel(const cChannel* channel)
-{
-  if ( channel == NULL ) return NULL; 
-
-  cSchedulesLock MutexLock;
-  const cSchedules *Schedules = cSchedules::Schedules(MutexLock);
-
-  if ( ! Schedules ) { return NULL; }
-  const cSchedule *Schedule = Schedules->GetSchedule(channel->GetChannelID());
-  if ( !Schedule ) { return NULL; }
-
-  time_t now = time(NULL);
-  return (cEvent*)Schedule->GetEventAround(now);
 }
 
 string VdrExtension::getVideoDiskSpace()
