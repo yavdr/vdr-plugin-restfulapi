@@ -209,7 +209,7 @@ class VdrExtension
     static bool doesFileExistInFolder(std::string wildcardpath, std::string filename);
     static bool IsRadio(const cChannel* channel);
     static bool IsRecording(cRecording* recording);
-    static const cTimer* TimerExists(cEvent* event);
+    static const cTimer* TimerExists(const cEvent* event);
     static std::vector< const cTimer* > SortedTimers();
     static bool CompareTimers(const cTimer* timer1, const cTimer* timer2);
     static int RecordingLengthInSeconds(cRecording* recording);

@@ -819,7 +819,7 @@ bool VdrExtension::IsRecording(cRecording* recording)
   return false;
 }
 
-const cTimer* VdrExtension::TimerExists(cEvent* event)
+const cTimer* VdrExtension::TimerExists(const cEvent* event)
 {
 
 #if APIVERSNUM > 20300

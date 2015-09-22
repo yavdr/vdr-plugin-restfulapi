@@ -63,6 +63,13 @@ void EventsResponder::replyEvents(ostream& out, cxxtools::http::Request& request
 
   string onlyCount = q.getOptionAsString("only_count");
 
+#if APIVERSNUM > 20300
+    LOCK_CHANNELS_READ;
+    const cChannels& channels = *Channels;
+#else
+    cChannels& channels = Channels;
+#endif
+
   const cChannel* channel = VdrExtension::getChannel(channel_id);
   if ( channel == NULL ) { 
      /*reply.addHeader("Content-Type", "application/octet-stream");
@@ -78,14 +85,18 @@ void EventsResponder::replyEvents(ostream& out, cxxtools::http::Request& request
   if ( channel_from <= -1 || channel != NULL ) channel_from = 0; // default channel number is 0
   
   int channel_to = q.getOptionAsInt("chto");
-  if ( channel_to <= 0 || channel != NULL ) channel_to = Channels.Count();
+  if ( channel_to <= 0 || channel != NULL ) channel_to = channels.Count();
  
   if ( from <= -1 ) from = time(NULL); // default time is now
   if ( timespan <= -1 ) timespan = 0; // default timespan is 0, which means all entries will be returned
   int to = from + timespan;
 
-  cSchedulesLock MutexLock;
-  const cSchedules *Schedules = cSchedules::Schedules(MutexLock);
+#if APIVERSNUM > 20300
+	LOCK_SCHEDULES_READ;
+#else
+	cSchedulesLock MutexLock;
+	const cSchedules *Schedules = cSchedules::Schedules(MutexLock);
+#endif
 
   if( !Schedules ) {
      reply.httpReturn(404, "Could not find schedules!");
@@ -99,10 +110,10 @@ void EventsResponder::replyEvents(ostream& out, cxxtools::http::Request& request
 
   bool initialized = false;
   int total = 0;
-  for(int i=0; i<Channels.Count(); i++) {
-     const cSchedule *Schedule = Schedules->GetSchedule(Channels.Get(i)->GetChannelID());
+  for(int i=0; i<channels.Count(); i++) {
+     const cSchedule *Schedule = Schedules->GetSchedule(channels.Get(i)->GetChannelID());
      
-     if ((channel == NULL || strcmp(channel->GetChannelID().ToString(), Channels.Get(i)->GetChannelID().ToString()) == 0) && (i >= channel_from && i <= channel_to)) {
+     if ((channel == NULL || strcmp(channel->GetChannelID().ToString(), channels.Get(i)->GetChannelID().ToString()) == 0) && (i >= channel_from && i <= channel_to)) {
         if (!Schedule) {
            if (channel != NULL) {
               reply.httpReturn(404, "Could not find schedule!");
@@ -116,7 +127,7 @@ void EventsResponder::replyEvents(ostream& out, cxxtools::http::Request& request
 
            int old = 0;
            int channel_events = 0;
-           for(cEvent* event = Schedule->Events()->First(); event; event = Schedule->Events()->Next(event)) {
+           for(const cEvent* event = Schedule->Events()->First(); event; event = Schedule->Events()->Next(event)) {
               int ts = event->StartTime();
               int te = ts + event->Duration();
               if ((ts <= to && te > from) || (te > from && timespan == 0)) {
@@ -267,11 +278,18 @@ void EventsResponder::replySearchResult(ostream& out, cxxtools::http::Request& r
          channel = channelInstance->Number();
       }
 
+#if APIVERSNUM > 20300
+    LOCK_CHANNELS_READ;
+    const cChannels& channels = *Channels;
+#else
+    cChannels& channels = Channels;
+#endif
+
       if (!use_title && !use_subtitle && !use_description)
          use_title = true;
       if (mode < 0 || mode > 5)
          mode = 0;
-      if (channel < 0 || channel > Channels.Count())
+      if (channel < 0 || channel > channels.Count())
          channel = 0;
       if (query.length() > 100)
          query = query.substr(0,100); //don't allow more than 100 characters, NOTE: maybe I should add a limitation to the Responderclass?
@@ -427,7 +445,7 @@ void HtmlEventList::init()
   s->write("<ul>");
 }
 
-void HtmlEventList::addEvent(cEvent* event)
+void HtmlEventList::addEvent(const cEvent* event)
 {
   if ( filtered(event->StartTime()) ) return;
   s->write("<li>");
@@ -441,16 +459,17 @@ void HtmlEventList::finish()
   s->write("</body></html>");
 }
 
-void JsonEventList::addEvent(cEvent* event)
+void JsonEventList::addEvent(const cEvent* event)
 {
   if ( filtered(event->StartTime()) ) return;
 
+  string channelId = StringExtension::toString(event->ChannelID().ToString());
   cxxtools::String eventTitle;
   cxxtools::String eventShortText;
   cxxtools::String eventDescription;
   cxxtools::String empty = StringExtension::UTF8Decode("");
-  cxxtools::String channelStr = StringExtension::UTF8Decode((const char*)event->ChannelID().ToString());
-  cxxtools::String channelName = StringExtension::UTF8Decode((const char*)Channels.GetByChannelID(event->ChannelID(), true)->Name());
+  cxxtools::String channelStr = StringExtension::UTF8Decode(channelId);
+  cxxtools::String channelName = StringExtension::UTF8Decode((string)VdrExtension::getChannel(channelId)->Name());
 
   SerEvent serEvent;
 
@@ -512,10 +531,11 @@ void XmlEventList::init()
   s->write("<events xmlns=\"http://www.domain.org/restfulapi/2011/events-xml\">\n");
 }
 
-void XmlEventList::addEvent(cEvent* event)
+void XmlEventList::addEvent(const cEvent* event)
 {
   if ( filtered(event->StartTime()) ) return;
 
+  string channelId = StringExtension::toString(event->ChannelID().ToString());
   string eventTitle;
   string eventShortText;
   string eventDescription;
@@ -530,8 +550,8 @@ void XmlEventList::addEvent(cEvent* event)
   s->write(cString::sprintf("  <param name=\"short_text\">%s</param>\n", StringExtension::encodeToXml(eventShortText).c_str()));
   s->write(cString::sprintf("  <param name=\"description\">%s</param>\n", StringExtension::encodeToXml(eventDescription).c_str()));
 
-  s->write(cString::sprintf("  <param name=\"channel\">%s</param>\n", StringExtension::encodeToXml((const char*)event->ChannelID().ToString()).c_str()));
-  s->write(cString::sprintf("  <param name=\"channel_name\">%s</param>\n", StringExtension::encodeToXml((const char*)Channels.GetByChannelID(event->ChannelID(), true)->Name()).c_str()));
+  s->write(cString::sprintf("  <param name=\"channel\">%s</param>\n", StringExtension::encodeToXml(channelId).c_str()));
+  s->write(cString::sprintf("  <param name=\"channel_name\">%s</param>\n", StringExtension::encodeToXml((string)VdrExtension::getChannel(channelId)->Name()).c_str()));
 
   s->write(cString::sprintf("  <param name=\"start_time\">%i</param>\n", (int)event->StartTime()));
   s->write(cString::sprintf("  <param name=\"duration\">%i</param>\n", event->Duration()));

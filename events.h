@@ -59,7 +59,7 @@ struct SerEvent
   int ParentalRating;
   int Vps;
   cxxtools::String TimerId;
-  cEvent* Instance;
+  const cEvent* Instance;
 #ifdef EPG_DETAILS_PATCH
   std::vector< tEpgDetail >* Details;
 #endif
@@ -83,7 +83,7 @@ class EventList : public BaseList
     explicit EventList(std::ostream* _out);
     virtual ~EventList();
     virtual void init() { };
-    virtual void addEvent(cEvent* event) { };
+    virtual void addEvent(const cEvent* event) { };
     virtual void finish() { };
     virtual void setTotal(int _total) { total = _total; }
     virtual void activateDateLimit(int _limit);
@@ -97,7 +97,7 @@ class HtmlEventList : EventList
     explicit HtmlEventList(std::ostream* _out) : EventList(_out) { };
     ~HtmlEventList() { };
     virtual void init();
-    virtual void addEvent(cEvent* event);
+    virtual void addEvent(const cEvent* event);
     virtual void finish();
 };
 
@@ -108,7 +108,7 @@ class JsonEventList : EventList
   public:
     explicit JsonEventList(std::ostream* _out) : EventList(_out) { };
     ~JsonEventList() { };
-    virtual void addEvent(cEvent* event);
+    virtual void addEvent(const cEvent* event);
     virtual void finish();
 };
 
@@ -118,7 +118,7 @@ class XmlEventList : EventList
     explicit XmlEventList(std::ostream* _out) : EventList(_out) { };
     ~XmlEventList() { };
     virtual void init();
-    virtual void addEvent(cEvent* event);
+    virtual void addEvent(const cEvent* event);
     virtual void finish();
 };
 
