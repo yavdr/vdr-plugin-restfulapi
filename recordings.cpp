@@ -66,17 +66,6 @@ void RecordingsResponder::reply(ostream& out, cxxtools::http::Request& request, 
      }
      found = true;
   }
-  
-  else if ((int) request.url().find("/recordings/delete") == 0 ) {
-     if (request.method() == "POST") {
-        deleteRecordingByName(out, request, reply);
-     } else if (request.method() == "DELETE") {
-        deleteRecordingByName(out, request, reply);
-     } else {
-        reply.httpReturn(501, "Only POST and DELETE methods are supported by the /recordings/delete service.");
-     }
-     found = true;
-  }
 
   else if ((int) request.url().find("/recordings/updates") == 0 ) {
      if (request.method() == "GET") {
@@ -102,8 +91,6 @@ void RecordingsResponder::reply(ostream& out, cxxtools::http::Request& request, 
         showRecordings(out, request, reply);
      } else if (request.method() == "DELETE") {
         deleteRecording(out, request, reply);
-     } else if (request.method() == "POST") {
-        deleteRecordingByName(out, request, reply);
      } else {
         reply.httpReturn(501, "Only GET, POST and DELETE methods are supported by the /recordings service.");
      }
@@ -115,20 +102,28 @@ void RecordingsResponder::reply(ostream& out, cxxtools::http::Request& request, 
   }
 }
 
-cRecording* RecordingsResponder::getRecordingByRequest(QueryHandler q) {
+const cRecording* RecordingsResponder::getRecordingByRequest(QueryHandler q) {
 
   int recording_number = -1;
   string pathParam;
   string fullPath;
 
-  cRecording* recording = Recordings.GetByName(q.getParamAsRecordingPath().c_str());
+#if APIVERSNUM > 20300
+    LOCK_RECORDINGS_READ;
+    const cRecordings& recordings = *Recordings;
+#else
+    cThreadLock RecordingsLock(&Recordings);
+    cRecordings& recordings = Recordings;
+#endif
+
+  const cRecording* recording = recordings.GetByName(q.getParamAsRecordingPath().c_str());
 
   if ( recording == NULL ) {
 
       recording_number = q.getParamAsInt(0);
 
-      if ( recording_number >= 0 && recording_number < Recordings.Count() ) {
-    	  return Recordings.Get(recording_number);
+      if ( recording_number >= 0 && recording_number < recordings.Count() ) {
+    	  return recordings.Get(recording_number);
       }
 
   } else {
@@ -136,7 +131,45 @@ cRecording* RecordingsResponder::getRecordingByRequest(QueryHandler q) {
       return recording;
   }
 
-  esyslog("restfulapi: requested recording not found");
+  esyslog("restfulapi: requested recording not found (read)");
+
+  return NULL;
+};
+
+cRecording* RecordingsResponder::getRecordingByRequestWrite(QueryHandler q) {
+
+  int recording_number = -1;
+  string pathParam;
+  string fullPath;
+
+#if APIVERSNUM > 20300
+    LOCK_RECORDINGS_WRITE;
+    cRecordings& recordings = *Recordings;
+#else
+    cThreadLock RecordingsLock(&Recordings);
+    cRecordings& recordings = Recordings;
+#endif
+
+    string path = q.getParamAsRecordingPath();
+
+    esyslog("restfulapi: path: %s", path.c_str());
+
+  cRecording* recording = recordings.GetByName(path.c_str());
+
+  if ( recording == NULL ) {
+
+      recording_number = q.getParamAsInt(0);
+
+      if ( recording_number >= 0 && recording_number < recordings.Count() ) {
+    	  return recordings.Get(recording_number);
+      }
+
+  } else {
+
+      return recording;
+  }
+
+  esyslog("restfulapi: requested recording not found (write)");
 
   return NULL;
 };
@@ -171,8 +204,7 @@ RecordingList* RecordingsResponder::getRecordingList(ostream& out, QueryHandler 
 void RecordingsResponder::playRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/recordings/play", request);
-  cThreadLock RecordingsLock(&Recordings);
-  cRecording* recording = getRecordingByRequest(q);
+  const cRecording* recording = getRecordingByRequest(q);
   if ( recording != NULL ) {
     TaskScheduler::get()->SwitchableRecording(recording);
   } else {
@@ -183,8 +215,7 @@ void RecordingsResponder::playRecording(std::ostream& out, cxxtools::http::Reque
 void RecordingsResponder::rewindRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/recordings/play", request);
-  cRecording* recording = getRecordingByRequest(q);
-  cThreadLock RecordingsLock(&Recordings);
+  const cRecording* recording = getRecordingByRequest(q);
 
   if ( recording != NULL ) {
     cDevice::PrimaryDevice()->StopReplay(); // must do this first to be able to rewind the currently replayed recording
@@ -204,9 +235,14 @@ void RecordingsResponder::moveRecording(ostream& out, cxxtools::http::Request& r
    string target = q.getBodyAsString("target");
    bool copy_only = q.getBodyAsBool("copy_only");
 
-   if (!copy_only) {
-      cThreadLock RecordingsLock(&Recordings);
-   }
+
+#if APIVERSNUM > 20300
+    LOCK_RECORDINGS_READ;
+    const cRecordings& recordings = *Recordings;
+#else
+    cThreadLock RecordingsLock(&Recordings);
+    cRecordings& recordings = Recordings;
+#endif
 
    if (source.length() <= 0 || target.length() <= 0) {
       reply.httpReturn(404, "Missing file name!");
@@ -216,7 +252,7 @@ void RecordingsResponder::moveRecording(ostream& out, cxxtools::http::Request& r
       return;
    }
 
-   cRecording* recording = Recordings.GetByName(source.c_str());
+   const cRecording* recording = recordings.GetByName(source.c_str());
    if (!recording) {
       reply.httpReturn(504, "Recording not found!");
       return;
@@ -230,39 +266,29 @@ void RecordingsResponder::moveRecording(ostream& out, cxxtools::http::Request& r
       return;
    }
 
-   cRecording* new_recording = Recordings.GetByName(newname.c_str());
+   const cRecording* new_recording = recordings.GetByName(newname.c_str());
    if (!new_recording) {
       LOG_ERROR_STR(newname.c_str());
       reply.httpReturn(504, "Recording not found, after moving!");
       return;
    }
 
-   replyRecordingMoved(out, request, reply, new_recording);
-}
 
-void RecordingsResponder::replyRecordingMoved(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply, cRecording* recording) {
-  QueryHandler q("/recordings/move", request);
-  StreamExtension s(&out);
-  RecordingList* recordingList = getRecordingList(out, q, reply);
+   esyslog("restfulapi: %s, %d", new_recording->FileName(), new_recording->Index());
 
-  cThreadLock RecordingsLock(&Recordings);
-  for (int i = 0; i < Recordings.Count(); i++) {
-     cRecording* tmp_recording = Recordings.Get(i);
-     if (strcmp(recording->FileName(), tmp_recording->FileName()) == 0) {
-        recordingList->addRecording(tmp_recording, i, NULL, "");
-     }
-  }
-  recordingList->setTotal(Recordings.Count());
-  recordingList->finish();
-  delete recordingList;
+   RecordingList* recordingList = getRecordingList(out, q, reply);
+   recordingList->addRecording(new_recording, new_recording->Index(), NULL, "");
+   recordingList->setTotal(recordings.Count());
+   recordingList->finish();
+   delete recordingList;
 }
 
 void RecordingsResponder::replyEditedFileName(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply) {
 
   QueryHandler q("/recordings/editedfile", request);
-  cRecording* recording		= getRecordingByRequest(q);
+  const cRecording* recording		= getRecordingByRequest(q);
   RecordingList* recordingList	= getRecordingList(out, q, reply);
-  cRecording* editedFile	= NULL;
+  const cRecording* editedFile	= NULL;
 
   if ( recordingList == NULL ) {
 
@@ -274,8 +300,13 @@ void RecordingsResponder::replyEditedFileName(ostream& out, cxxtools::http::Requ
       return;
   }
 
-  cThreadLock RecordingsLock(&Recordings);
-  editedFile = Recordings.GetByName(cCutter::EditedFileName(recording->FileName()));
+#if APIVERSNUM > 20300
+    LOCK_RECORDINGS_READ;
+    const cRecordings& recordings = *Recordings;
+#else
+    cRecordings& recordings = Recordings;
+#endif
+  editedFile = recordings.GetByName(cCutter::EditedFileName(recording->FileName()));
   if ( editedFile == NULL ) {
 
       reply.httpReturn(404, "Requested edited file not found!");
@@ -284,39 +315,16 @@ void RecordingsResponder::replyEditedFileName(ostream& out, cxxtools::http::Requ
 
   recordingList->init();
   recordingList->addRecording(editedFile, editedFile->Index(), NULL, "");
-  recordingList->setTotal(Recordings.Count());
+  recordingList->setTotal(recordings.Count());
   recordingList->finish();
   delete recordingList;
 
 };
 
-/* delete recording by file name */
-void RecordingsResponder::deleteRecordingByName(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
-{
-  QueryHandler q("/recordings/delete", request);
-  string recording_file = q.getBodyAsString("file");
-  string syncId = q.getOptionAsString("syncId");
-  cThreadLock RecordingsLock(&Recordings);
-  if (recording_file.length() > 0) {
-     cRecording* delRecording = Recordings.GetByName(recording_file.c_str());
-     if (delRecording->Delete()) {
-
-	if (syncId != "") {
-	  SyncMap* syncMap = new SyncMap(q, true);
-	  syncMap->erase(StringExtension::toString(delRecording->FileName()));
-	}
-        Recordings.DelByName(delRecording->FileName());
-     }
-  } else {
-     reply.httpReturn(404, "No recording file!");
-  }
-}
-
 void RecordingsResponder::deleteRecording(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/recordings", request);
-  cThreadLock RecordingsLock(&Recordings);
-  cRecording* delRecording = getRecordingByRequest(q);
+  cRecording* delRecording = getRecordingByRequestWrite(q);
   string syncId = q.getOptionAsString("syncId");
 
   if ( delRecording == NULL ) {
@@ -332,7 +340,13 @@ void RecordingsResponder::deleteRecording(ostream& out, cxxtools::http::Request&
       syncMap->erase(StringExtension::toString(delRecording->FileName()));
     }
 
-    Recordings.DelByName(delRecording->FileName());
+#if APIVERSNUM > 20300
+    LOCK_RECORDINGS_WRITE;
+    cRecordings& recordings = *Recordings;
+#else
+    cRecordings& recordings = Recordings;
+#endif
+    recordings.DelByName(delRecording->FileName());
     reply.httpReturn(200, "Recording deleted!");
     return;
   }
@@ -351,7 +365,7 @@ void RecordingsResponder::showRecordings(ostream& out, cxxtools::http::Request& 
   int start_filter = q.getOptionAsInt("start");
   int limit_filter = q.getOptionAsInt("limit");
   
-  cRecording* recording = getRecordingByRequest(q);
+  const cRecording* recording = getRecordingByRequest(q);
 
   if ( start_filter >= 0 && limit_filter >= 1 ) {
      recordingList->activateLimit(start_filter, limit_filter);
@@ -359,15 +373,21 @@ void RecordingsResponder::showRecordings(ostream& out, cxxtools::http::Request& 
 
   recordingList->init();
 
-  cThreadLock RecordingsLock(&Recordings);
+#if APIVERSNUM > 20300
+    LOCK_RECORDINGS_READ;
+    const cRecordings& recordings = *Recordings;
+#else
+    cRecordings& recordings = Recordings;
+#endif
+
   if ( recording == NULL ) {
-     for (int i = 0; i < Recordings.Count(); i++) {
-        recordingList->addRecording(Recordings.Get(i), i, sync_map, "");
+     for (int i = 0; i < recordings.Count(); i++) {
+        recordingList->addRecording(recordings.Get(i), i, sync_map, "");
      }
   } else {
      recordingList->addRecording(recording, recording->Index(), sync_map, "");
   }
-  recordingList->setTotal(Recordings.Count());
+  recordingList->setTotal(recordings.Count());
 
   recordingList->finish();
   delete recordingList;
@@ -381,14 +401,13 @@ void RecordingsResponder::showRecordings(ostream& out, cxxtools::http::Request& 
 void RecordingsResponder::saveMarks(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/recordings/marks", request);
-  cRecording* recording = getRecordingByRequest(q);
+  const cRecording* recording = getRecordingByRequest(q);
   JsonArray* jsonArray = q.getBodyAsArray("marks");
 
   if (jsonArray == NULL) {
      reply.httpReturn(503, "Marks in HTTP-Body are missing.");
   } else {
 
-    cThreadLock RecordingsLock(&Recordings);
     if ( recording  == NULL ) {
        reply.httpReturn(504, "Recording number/name missing or invalid.");
     } else {
@@ -412,8 +431,7 @@ void RecordingsResponder::saveMarks(ostream& out, cxxtools::http::Request& reque
 void RecordingsResponder::deleteMarks(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/recordings/marks", request);
-  cRecording* recording = getRecordingByRequest(q);
-  cThreadLock RecordingsLock(&Recordings);
+  const cRecording* recording = getRecordingByRequest(q);
   if ( recording != NULL ) {
      if (VdrMarks::get()->deleteMarks(recording)) {
         return;
@@ -425,8 +443,8 @@ void RecordingsResponder::deleteMarks(ostream& out, cxxtools::http::Request& req
 void RecordingsResponder::cutRecording(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/recordings/cut", request);
-  cRecording* recording = getRecordingByRequest(q);
-  cThreadLock RecordingsLock(&Recordings);
+  const cRecording* recording = getRecordingByRequest(q);
+
   if ( recording != NULL ) {
 #if APIVERSNUM > 20101
      if (RecordingsHandler.GetUsage(recording->FileName()) != ruNone) {
@@ -518,9 +536,14 @@ void RecordingsResponder::initServerList(ostream& out, cxxtools::http::Request& 
 	QueryHandler q("/recordings/sync", request);
 	RecordingList* recordingList = getRecordingList(out, q, reply, false);
 
-	cThreadLock RecordingsLock(&Recordings);
-	for (int i = 0; i < Recordings.Count(); i++) {
-		recordingList->addRecording(Recordings.Get(i), i, sync_map, "");
+#if APIVERSNUM > 20300
+    LOCK_RECORDINGS_READ;
+    const cRecordings& recordings = *Recordings;
+#else
+    cRecordings& recordings = Recordings;
+#endif
+	for (int i = 0; i < recordings.Count(); i++) {
+		recordingList->addRecording(recordings.Get(i), i, sync_map, "");
 	}
 	delete recordingList;
 };
@@ -535,16 +558,22 @@ void RecordingsResponder::sendSyncList(ostream& out, cxxtools::http::Request& re
 	updatesList = sync_map->getUpdates();
 	updates->init();
 
-	esyslog("restfulapi: recording updates: %d", updatesList.size());
+	esyslog("restfulapi: recording updates: %d", (int)updatesList.size());
 
-	cThreadLock RecordingsLock(&Recordings);
+#if APIVERSNUM > 20300
+    LOCK_RECORDINGS_READ;
+    const cRecordings& recordings = *Recordings;
+#else
+    cRecordings& recordings = Recordings;
+#endif
+
 	for (itUpdates = updatesList.begin(); itUpdates != updatesList.end(); itUpdates++) {
 
 		if ( "delete" != itUpdates->second) {
-			cRecording* recording = Recordings.GetByName(itUpdates->first.c_str());
+			const cRecording* recording = recordings.GetByName(itUpdates->first.c_str());
 			updates->addRecording(recording, recording->Index(), NULL, itUpdates->second, true);
 		} else {
-			cRecording* recording = new cRecording(itUpdates->first.c_str());
+			const cRecording* recording = new cRecording(itUpdates->first.c_str());
 			updates->addRecording(recording, -1, NULL, itUpdates->second, true);
 			delete recording;
 		}
@@ -599,7 +628,7 @@ void HtmlRecordingList::init()
   s->write("<ul>");
 }
 
-void HtmlRecordingList::addRecording(cRecording* recording, int nr, SyncMap* sync_map, string sync_action, bool add_hash)
+void HtmlRecordingList::addRecording(const cRecording* recording, int nr, SyncMap* sync_map, string sync_action, bool add_hash)
 {
   if ( filtered() ) return;
   s->write("<li>");
@@ -612,7 +641,7 @@ void HtmlRecordingList::finish()
   s->write("</body></html>");
 }
 
-void JsonRecordingList::addRecording(cRecording* recording, int nr, SyncMap* sync_map, string sync_action, bool add_hash)
+void JsonRecordingList::addRecording(const cRecording* recording, int nr, SyncMap* sync_map, string sync_action, bool add_hash)
 {
   if ( filtered() ) return;
 
@@ -705,7 +734,7 @@ void XmlRecordingList::init()
   s->write("<recordings xmlns=\"http://www.domain.org/restfulapi/2011/recordings-xml\">\n");
 }
 
-void XmlRecordingList::addRecording(cRecording* recording, int nr, SyncMap* sync_map, string sync_action, bool add_hash)
+void XmlRecordingList::addRecording(const cRecording* recording, int nr, SyncMap* sync_map, string sync_action, bool add_hash)
 {
   if ( filtered() ) return;
 
@@ -871,7 +900,7 @@ void SyncMap::write(bool server) {
     esyslog(
 	"restfulapi: sync map file '%s' written with %d entries",
         ((string)Settings::get()->CacheDirectory() + "/sync/" + this->id).c_str(),
-        writeMap.size()
+        (int)writeMap.size()
     );
   }
 };
@@ -971,7 +1000,7 @@ map<string, string> SyncMap::getUpdates() {
 void SyncMap::log(bool server) {
 
   map<string, string> logMap = server ? this->serverMap : this->clientMap;
-  esyslog("restfulapi: ==== sync items: %d", logMap.size());
+  esyslog("restfulapi: ==== sync items: %d", (int)logMap.size());
   map<string, string>::iterator it;
   for (it = logMap.begin(); it != logMap.end(); it++) {
 

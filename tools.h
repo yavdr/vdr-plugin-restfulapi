@@ -208,13 +208,13 @@ class VdrExtension
     static int scanForFiles(const std::string wildcardpath, std::vector< std::string >& files);
     static bool doesFileExistInFolder(std::string wildcardpath, std::string filename);
     static bool IsRadio(const cChannel* channel);
-    static bool IsRecording(cRecording* recording);
+    static bool IsRecording(const cRecording* recording);
     static const cTimer* TimerExists(const cEvent* event);
     static std::vector< const cTimer* > SortedTimers();
     static bool CompareTimers(const cTimer* timer1, const cTimer* timer2);
-    static int RecordingLengthInSeconds(cRecording* recording);
+    static int RecordingLengthInSeconds(const cRecording* recording);
     static const cEvent* GetEventById(tEventID eventID, const cChannel* channel);
-    static std::string getRelativeVideoPath(cRecording* recording);
+    static std::string getRelativeVideoPath(const cRecording* recording);
     static cEvent* getCurrentEventOnChannel(const cChannel* channel);
     static std::string getVideoDiskSpace();
     static std::string FileSystemExchangeChars(std::string const & s, bool ToFileSystem);
@@ -227,13 +227,13 @@ class VdrMarks
   private:
     std::string cutComment(std::string str);
     bool validateMark(std::string mark);
-    std::string getPath(cRecording* recording);
+    std::string getPath(const cRecording* recording);
     bool parseLine(std::vector< std::string >& marks, std::string line);
   public:
     static VdrMarks* get();
-    std::vector< std::string > readMarks(cRecording* recording);
-    bool saveMarks(cRecording* recording, std::vector< std::string > marks);
-    bool deleteMarks(cRecording* recording);
+    std::vector< std::string > readMarks(const cRecording* recording);
+    bool saveMarks(const cRecording* recording, std::vector< std::string > marks);
+    bool deleteMarks(const cRecording* recording);
 };
 
 class StringExtension
@@ -375,7 +375,7 @@ class TaskScheduler
   protected:
     std::list<BaseTask*> tasks;
     tChannelID _channel;
-    cRecording* _recording;
+    const cRecording* _recording;
     cMutex     _channelMutex;
   public:
     TaskScheduler() { _channel = tChannelID::InvalidID; _recording = NULL; };
@@ -385,8 +385,8 @@ class TaskScheduler
     void DoTasks();
     void SwitchableChannel(tChannelID channel);
     tChannelID SwitchableChannel();
-    void SwitchableRecording(cRecording* recording) { _recording = recording; }
-    cRecording* SwitchableRecording() { return _recording; }
+    void SwitchableRecording(const cRecording* recording) { _recording = recording; }
+    const cRecording* SwitchableRecording() { return _recording; }
 };
 
 #endif

@@ -185,7 +185,7 @@ void cPluginRestfulapi::MainThreadHook(void)
      }
   }
 
-  cRecording* recording = scheduler->SwitchableRecording();
+  const cRecording* recording = scheduler->SwitchableRecording();
 
   if (recording != NULL) {
      cReplayControl::SetRecording(recording->FileName());

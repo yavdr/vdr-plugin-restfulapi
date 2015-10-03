@@ -147,7 +147,7 @@ bool Scraper2VdrService::getMedia(const cEvent *event, StreamExtension* s) {
  * @param SerAdditionalMedia &am
  * @return bool
  */
-bool Scraper2VdrService::getMedia(cRecording* recording, SerAdditionalMedia &am) {
+bool Scraper2VdrService::getMedia(const cRecording* recording, SerAdditionalMedia &am) {
 
   if (!scraper || !recording) return false;
 
@@ -162,7 +162,7 @@ bool Scraper2VdrService::getMedia(cRecording* recording, SerAdditionalMedia &am)
  * @param cRecording* recording
  * @return s
  */
-string Scraper2VdrService::getMedia(cRecording* recording) {
+string Scraper2VdrService::getMedia(const cRecording* recording) {
 
   if (!scraper || !recording) return "";
 

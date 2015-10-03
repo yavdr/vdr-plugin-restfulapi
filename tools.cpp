@@ -798,7 +798,7 @@ bool VdrExtension::IsRadio(const cChannel* channel)
   return false;
 }
 
-bool VdrExtension::IsRecording(cRecording* recording)
+bool VdrExtension::IsRecording(const cRecording* recording)
 {
 
 #if APIVERSNUM > 20300
@@ -913,7 +913,7 @@ bool VdrExtension::CompareTimers(const cTimer* timer1, const cTimer* timer2)
   return false;
 }
 
-int VdrExtension::RecordingLengthInSeconds(cRecording* recording)
+int VdrExtension::RecordingLengthInSeconds(const cRecording* recording)
 {
   int nf = recording->NumFrames();
   if (nf >= 0)
@@ -960,7 +960,7 @@ cEvent* VdrExtension::getCurrentEventOnChannel(const cChannel* channel)
   return (cEvent*)Schedule->GetEventAround(now);
 }
 
-string VdrExtension::getRelativeVideoPath(cRecording* recording)
+string VdrExtension::getRelativeVideoPath(const cRecording* recording)
 {
   string path = (string)recording->FileName();
 #if APIVERSNUM > 20101
@@ -1245,7 +1245,7 @@ bool VdrMarks::validateMark(string mark)
   return regex.match(mark);
 }
 
-string VdrMarks::getPath(cRecording* recording)
+string VdrMarks::getPath(const cRecording* recording)
 {
   string filename = recording->FileName();
   return filename + "/marks";
@@ -1261,7 +1261,7 @@ bool VdrMarks::parseLine(std::vector<string >& marks, string line)
   return false;
 }
 
-vector<string > VdrMarks::readMarks(cRecording* recording)
+vector<string > VdrMarks::readMarks(const cRecording* recording)
 {
   vector<string > marks;
   string path = getPath(recording);
@@ -1291,7 +1291,7 @@ vector<string > VdrMarks::readMarks(cRecording* recording)
   return marks;
 }
 
-bool VdrMarks::saveMarks(cRecording* recording, std::vector< std::string > marks)
+bool VdrMarks::saveMarks(const cRecording* recording, std::vector< std::string > marks)
 {
   if (recording == NULL) {
      return false;
@@ -1328,7 +1328,7 @@ bool VdrMarks::saveMarks(cRecording* recording, std::vector< std::string > marks
   return false;
 }
 
-bool VdrMarks::deleteMarks(cRecording* recording)
+bool VdrMarks::deleteMarks(const cRecording* recording)
 {
   string marksfile = getPath(recording);
 
