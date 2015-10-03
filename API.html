@@ -200,6 +200,7 @@
                     <ul>
                         <li><a href="#EventImages">Images</a>
                         <li><a href="#EventSearch">Search (EPGSEARCH)</a>
+                        <li><a href="#ContentDescriptors">Get Contentdescriptors</a>
                     </ul>
                 <li><a href="#Info">Info</a>
                 <li><a href="#Osd">Osd</a>
@@ -226,7 +227,6 @@
                         <li><a href="#SearchTimersRecordingdirs">Get recording dirs</a>
                         <li><a href="#SearchTimersChannelgroups">Get channel groups</a>
                         <li><a href="#SearchTimersExtEPGInfo">Fetch ext EPG info (epgsearchcats.conf)</a>
-                        <li><a href="#SearchTimersContentDescriptors">Get Contentdescriptors</a>
                         <li><a href="#SearchTimersConflicts">Check timer conflicts</a>
                     </ul>
                 <li><a href="#ScraperImages">ScraperImages</a></li>
@@ -816,6 +816,38 @@
                 </ul>
                 <div class="code" data-header="Example:">
                     {"query":"Asterix", "mode":0, "channelid":0,"use_title":true}
+                </div>
+
+                <h3><a id="ContentDescriptors">Fetch content descriptors</a></h3>
+                <p class="method">GET</p>
+                <div class="code">
+                    GET http://&lt;ip&gt;:&lt;port&gt;/events/contentdescriptors.&lt;format&gt;
+                </div>
+                <div class="code" data-header="Example Result (JSON):">
+                    {
+                    &nbsp;&nbsp;&nbsp;&nbsp;"content_descriptors": [
+                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{
+                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"id": "10",
+                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Film/Drama",
+                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"is_group": true
+                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},
+                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{
+                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"id": "11",
+                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Detektiv/Thriller",
+                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"is_group": false
+                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},
+                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{
+                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"id": "12",
+                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Abenteuer/Western/Krieg",
+                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"is_group": false
+                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},
+                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.
+                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.
+                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.
+                     &nbsp;&nbsp;&nbsp;&nbsp;],
+                     &nbsp;&nbsp;&nbsp;&nbsp;"count": 79,
+                     &nbsp;&nbsp;&nbsp;&nbsp;"total": 79
+                    }
                 </div>
             </section>
 
@@ -2156,38 +2188,6 @@
                 <p class="method">GET</p>
                 <div class="code">
                     GET http://&lt;ip&gt;:&lt;port&gt;/searchtimers/extepginfo.&lt;format&gt;
-                </div>
-
-                <h3><a id="SearchTimersContentDescriptors">Fetch content descriptors</a></h3>
-                <p class="method">GET</p>
-                <div class="code">
-                    GET http://&lt;ip&gt;:&lt;port&gt;/searchtimers/contentdescriptors.&lt;format&gt;
-                </div>
-                <div class="code" data-header="Example Result (JSON):">
-                    {
-                    &nbsp;&nbsp;&nbsp;&nbsp;"content_descriptors": [
-                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{
-                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"id": "10",
-                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Film/Drama",
-                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"is_group": true
-                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},
-                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{
-                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"id": "11",
-                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Detektiv/Thriller",
-                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"is_group": false
-                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},
-                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{
-                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"id": "12",
-                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Abenteuer/Western/Krieg",
-                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"is_group": false
-                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},
-                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.
-                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.
-                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.
-                     &nbsp;&nbsp;&nbsp;&nbsp;],
-                     &nbsp;&nbsp;&nbsp;&nbsp;"count": 79,
-                     &nbsp;&nbsp;&nbsp;&nbsp;"total": 79
-                    }
                 </div>
 
                 <h3><a id="SearchTimersConflicts">Check timer conflicts</a></h3>

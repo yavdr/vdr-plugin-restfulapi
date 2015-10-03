@@ -48,7 +48,7 @@ void TimersResponder::createOrUpdateTimer(ostream& out, cxxtools::http::Request&
   int start = v.ConvertStart(q.getBodyAsString("start"));
   string weekdays = q.getBodyAsString("weekdays");
   string day = v.ConvertDay(q.getBodyAsString("day"));
-  cChannel* chan = v.ConvertChannel(q.getBodyAsString("channel"));
+  const cChannel* chan = v.ConvertChannel(q.getBodyAsString("channel"));
   cTimer* timer_orig = v.ConvertTimer(q.getBodyAsString("timer_id"));
   
   if ( update == false ) { //create
@@ -304,7 +304,7 @@ void TimersResponder::showTimers(ostream& out, cxxtools::http::Request& request,
 
   timerList->init();
 
-  vector< cTimer* > timers = VdrExtension::SortedTimers();
+  vector< const cTimer* > timers = VdrExtension::SortedTimers();
   for (int i=0;i<(int)timers.size();i++)
   {
      if ( VdrExtension::getTimerID(timers[i]) == timer_id || timer_id.length() == 0 ) {
@@ -320,6 +320,7 @@ void TimersResponder::showTimers(ostream& out, cxxtools::http::Request& request,
 void operator<<= (cxxtools::SerializationInfo& si, const SerTimer& t)
 {
   si.addMember("id") <<= t.Id;
+  si.addMember("index") <<= t.Index;
   si.addMember("flags") <<= t.Flags;
   si.addMember("start") <<= t.Start;
   si.addMember("start_timestamp") <<= t.StartTimeStamp;
@@ -355,7 +356,7 @@ void HtmlTimerList::init()
   s->write("<ul>");
 }
 
-void HtmlTimerList::addTimer(cTimer* timer)
+void HtmlTimerList::addTimer(const cTimer* timer)
 {
   if ( filtered() ) return;
   s->write("<li>");
@@ -369,13 +370,14 @@ void HtmlTimerList::finish()
   s->write("</body></html>");
 }
 
-void JsonTimerList::addTimer(cTimer* timer)
+void JsonTimerList::addTimer(const cTimer* timer)
 {
   if ( filtered() ) return;
   static TimerValues v;
 
   SerTimer serTimer;
   serTimer.Id = StringExtension::UTF8Decode(VdrExtension::getTimerID(timer));
+  serTimer.Index = timer->Index() + 1;
   serTimer.Flags = timer->Flags();
   serTimer.Start = timer->Start();
   serTimer.Stop = timer->Stop();
@@ -421,13 +423,14 @@ void XmlTimerList::init()
   s->write("<timers xmlns=\"http://www.domain.org/restfulapi/2011/timers-xml\">\n");
 }
 
-void XmlTimerList::addTimer(cTimer* timer)
+void XmlTimerList::addTimer(const cTimer* timer)
 {
   if ( filtered() ) return;
   static TimerValues v;
 
   s->write(" <timer>\n");
   s->write(cString::sprintf("  <param name=\"id\">%s</param>\n", StringExtension::encodeToXml(VdrExtension::getTimerID(timer)).c_str()));
+  s->write(cString::sprintf("  <param name=\"index\">%i</param>\n", timer->Index() + 1));
   s->write(cString::sprintf("  <param name=\"flags\">%i</param>\n", timer->Flags()));
   s->write(cString::sprintf("  <param name=\"start\">%i</param>\n", timer->Start()) );
   s->write(cString::sprintf("  <param name=\"stop\">%i</param>\n", timer->Stop()) );
@@ -695,14 +698,14 @@ string TimerValues::ConvertDay(string v)
   return res.str();
 }
 
-cChannel* TimerValues::ConvertChannel(string v)
+const cChannel* TimerValues::ConvertChannel(string v)
 {
   return VdrExtension::getChannel(v);
 }
 
 cTimer* TimerValues::ConvertTimer(string v)
 {
-  return VdrExtension::getTimer(v);
+  return VdrExtension::getTimerWrite(v);
 }
 
 string TimerValues::ConvertWeekdays(int v)

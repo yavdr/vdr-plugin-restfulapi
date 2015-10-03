@@ -170,22 +170,25 @@ void cPluginRestfulapi::MainThreadHook(void)
  
   tChannelID channelID = scheduler->SwitchableChannel();
   
+#if APIVERSNUM > 20300
+    LOCK_CHANNELS_READ;
+    const cChannels& channels = *Channels;
+#else
+    cChannels& channels = Channels;
+#endif
+
   if (!( channelID == tChannelID::InvalidID )) {
-     cChannel* channel = Channels.GetByChannelID(channelID);
+     const cChannel* channel = channels.GetByChannelID(channelID);
      if (channel != NULL) {
-        Channels.SwitchTo( channel->Number() );
+    	channels.SwitchTo( channel->Number() );
         scheduler->SwitchableChannel(tChannelID::InvalidID);
      }
   }
 
-  cRecording* recording = scheduler->SwitchableRecording();
+  const cRecording* recording = scheduler->SwitchableRecording();
 
   if (recording != NULL) {
-     #if APIVERSNUM > 10727
      cReplayControl::SetRecording(recording->FileName());
-     #else
-     cReplayControl::SetRecording(recording->FileName(), recording->Title());
-     #endif
      scheduler->SwitchableRecording(NULL);
      cControl::Shutdown();
      cControl::Launch(new cReplayControl);

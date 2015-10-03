@@ -18,7 +18,7 @@ void RemoteResponder::reply(ostream& out, cxxtools::http::Request& request, cxxt
 
   if ( (int)request.url().find("/remote/switch") != -1 ) {
      QueryHandler q("/remote/switch", request);
-     cChannel* channel = VdrExtension::getChannel(q.getParamAsString(0));
+     const cChannel* channel = VdrExtension::getChannel(q.getParamAsString(0));
      if ( channel == NULL ) {
         reply.httpReturn(404, "Channel-Id is not valid.");
      } else {
@@ -80,9 +80,7 @@ KeyPairList::KeyPairList()
   append( "recordings",  kRecordings   );
   append( "setup" ,      kSetup        );
   append( "commands" ,   kCommands     );
-  #if APIVERSNUM >= 10715
   append( "user0" ,      kUser0        );
-  #endif
   append( "user1" ,      kUser1        );
   append( "user2" ,      kUser2        );
   append( "user3" ,      kUser3        );

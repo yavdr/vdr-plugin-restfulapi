@@ -99,10 +99,10 @@ private:
 public:
   explicit Scraper2VdrService();
   virtual ~Scraper2VdrService();
-  bool getMedia(cEvent *event, SerAdditionalMedia &am);
-  bool getMedia(cRecording *recording, SerAdditionalMedia &am);
-  bool getMedia(cEvent *event, StreamExtension *s);
-  std::string getMedia(cRecording *recording);
+  bool getMedia(const cEvent *event, SerAdditionalMedia &am);
+  bool getMedia(const cRecording *recording, SerAdditionalMedia &am);
+  bool getMedia(const cEvent *event, StreamExtension *s);
+  std::string getMedia(const cRecording *recording);
 };
 
 class ScraperImageResponder : public cxxtools::http::Responder {

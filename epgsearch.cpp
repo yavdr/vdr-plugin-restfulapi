@@ -206,8 +206,8 @@ string SearchTimer::LoadCommonFromQuery(QueryHandler& q) {
   int use_channel = q.getBodyAsInt("use_channel");
   if ( use_channel >= 0 && use_channel <= 3 ) m_useChannel = use_channel; else return "use_channel invalid (0=no, 1=interval, 2=channel group, 3=only FTA";
   if ( m_useChannel == Interval ) {
-     cChannel* minChannel = VdrExtension::getChannel(q.getBodyAsString("channel_min"));
-     cChannel* maxChannel = VdrExtension::getChannel(q.getBodyAsString("channel_max"));
+	 const cChannel* minChannel = VdrExtension::getChannel(q.getBodyAsString("channel_min"));
+	 const cChannel* maxChannel = VdrExtension::getChannel(q.getBodyAsString("channel_max"));
      if (minChannel == NULL || maxChannel == NULL) {
         return "channel_min or channel_max invalid";
      }
@@ -928,6 +928,18 @@ const cEvent* SearchResult::GetEvent()
 	const cSchedule *Schedule = Schedules->GetSchedule(Channel);
 	if (!Schedule) return NULL;
 	return Schedule->GetEvent(m_eventId);	
+}
+
+const cChannel* SearchResult::GetChannel() {
+
+#if APIVERSNUM > 20300
+    LOCK_CHANNELS_READ;
+    const cChannels& channels = *Channels;
+#else
+    cChannels& channels = Channels;
+#endif
+
+    return channels.GetByChannelID(m_channel);
 }
 
 set<string> SearchResults::querySet;
