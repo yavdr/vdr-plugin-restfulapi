@@ -206,8 +206,8 @@ string SearchTimer::LoadCommonFromQuery(QueryHandler& q) {
   int use_channel = q.getBodyAsInt("use_channel");
   if ( use_channel >= 0 && use_channel <= 3 ) m_useChannel = use_channel; else return "use_channel invalid (0=no, 1=interval, 2=channel group, 3=only FTA";
   if ( m_useChannel == Interval ) {
-     cChannel* minChannel = VdrExtension::getChannel(q.getBodyAsString("channel_min"));
-     cChannel* maxChannel = VdrExtension::getChannel(q.getBodyAsString("channel_max"));
+	 const cChannel* minChannel = VdrExtension::getChannel(q.getBodyAsString("channel_min"));
+	 const cChannel* maxChannel = VdrExtension::getChannel(q.getBodyAsString("channel_max"));
      if (minChannel == NULL || maxChannel == NULL) {
         return "channel_min or channel_max invalid";
      }
@@ -576,8 +576,15 @@ string SearchTimer::ToText()
 
    if (m_useChannel==1) {
 
-      cChannel const* channelMin = Channels.GetByChannelID( m_channelMin );
-      cChannel const* channelMax = Channels.GetByChannelID( m_channelMax );
+#if APIVERSNUM > 20300
+    LOCK_CHANNELS_READ;
+    const cChannels& channels = *Channels;
+#else
+    cChannels& channels = Channels;
+#endif
+
+      cChannel const* channelMin = channels.GetByChannelID( m_channelMin );
+      cChannel const* channelMax = channels.GetByChannelID( m_channelMax );
 
       if (channelMax && channelMin->Number() < channelMax->Number())
          tmp_chanSel = *m_channelMin.ToString() + string("|") + *m_channelMax.ToString();
@@ -677,7 +684,13 @@ void SearchTimer::ParseChannelIDs( string const& data )
 	vector< string > parts = StringExtension::split( data, "|" );
 	m_channelMin = lexical_cast< tChannelID >( parts[ 0 ] );
 
-	cChannel const* channel = Channels.GetByChannelID( m_channelMin );
+#if APIVERSNUM > 20300
+    LOCK_CHANNELS_READ;
+    const cChannels& channels = *Channels;
+#else
+    cChannels& channels = Channels;
+#endif
+	cChannel const* channel = channels.GetByChannelID( m_channelMin );
 	if ( channel != 0 )
 		m_channels = channel->Name();
 
@@ -686,7 +699,7 @@ void SearchTimer::ParseChannelIDs( string const& data )
 
 	m_channelMax = lexical_cast< tChannelID >( parts[ 1 ] );
 
-	channel = Channels.GetByChannelID( m_channelMax );
+	channel = channels.GetByChannelID( m_channelMax );
 	if ( channel != 0 )
 		m_channels += string( " - " ) + channel->Name();
 }
@@ -716,7 +729,11 @@ bool SearchTimers::Reload()
 {
 	Epgsearch_services_v1_0 service;
         cPluginManager::CallFirstService(ServiceInterface, &service);
+#if APIVERSNUM > 20300
+    LOCK_CHANNELS_READ;
+#else
 	ReadLock channelsLock( Channels, 0 );
+#endif
 	list< string > timers = service.handler->SearchTimerList();
 	m_timers.assign( timers.begin(), timers.end() );
 	m_timers.sort();
@@ -729,7 +746,11 @@ bool SearchTimers::Save(SearchTimer* searchtimer)
 	cPluginManager::CallFirstService(ServiceInterface, &service);
 
 	if (!searchtimer) return false;
+#if APIVERSNUM > 20300
+    LOCK_CHANNELS_READ;
+#else
 	ReadLock channelsLock( Channels, 0 );
+#endif
 	if (searchtimer->Id() >= 0)
 		return service.handler->ModSearchTimer(searchtimer->ToText());
 	else
@@ -920,14 +941,30 @@ SearchResult::SearchResult( string const& data )
 
 const cEvent* SearchResult::GetEvent()
 {
-	cSchedulesLock schedulesLock;
-	const cSchedules* Schedules = cSchedules::Schedules(schedulesLock);
+#if APIVERSNUM > 20300
+	LOCK_SCHEDULES_READ;
+#else
+	cSchedulesLock MutexLock;
+	const cSchedules *Schedules = cSchedules::Schedules(MutexLock);
+#endif
 	if (!Schedules) return NULL;
 	const cChannel *Channel = GetChannel();
 	if (!Channel) return NULL;
 	const cSchedule *Schedule = Schedules->GetSchedule(Channel);
 	if (!Schedule) return NULL;
 	return Schedule->GetEvent(m_eventId);	
+}
+
+const cChannel* SearchResult::GetChannel() {
+
+#if APIVERSNUM > 20300
+    LOCK_CHANNELS_READ;
+    const cChannels& channels = *Channels;
+#else
+    cChannels& channels = Channels;
+#endif
+
+    return channels.GetByChannelID(m_channel);
 }
 
 set<string> SearchResults::querySet;

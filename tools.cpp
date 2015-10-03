@@ -504,7 +504,7 @@ void FileCaches::searchEventImages(int eventid, std::vector< std::string >& file
   }
 }
 
-std::string FileCaches::searchChannelLogo(cChannel *channel)
+std::string FileCaches::searchChannelLogo(const cChannel *channel)
 {
   std::string cid = (std::string)(*channel->GetChannelID().ToString());
   std::string cname = (std::string)channel->Name();
@@ -657,45 +657,66 @@ bool FileExtension::exists(string path) {
 
 // --- VdrExtension -----------------------------------------------------------
 
-cChannel* VdrExtension::getChannel(int number)
+const cChannel* VdrExtension::getChannel(int number)
 {
-  if( number == -1 || number >= Channels.Count() ) { return NULL; }
 
-  cChannel* result = NULL;
-  int counter = 1;
-  for (cChannel *channel = Channels.First(); channel; channel = Channels.Next(channel))
-  {
-      if (!channel->GroupSep()) {
-         if (counter == number)
-         {
-            result = channel;
-            break;
-         }
-         counter++;
-      }
-  }
-  return result;
+#if APIVERSNUM > 20300
+    LOCK_CHANNELS_READ;
+    const cChannels& channels = *Channels;
+#else
+    cChannels& channels = Channels;
+#endif
+
+	if( number == -1 || number >= channels.Count() ) { return NULL; }
+
+	const cChannel* result = NULL;
+	int counter = 1;
+	for (const cChannel *channel = channels.First(); channel; channel = channels.Next(channel)) {
+
+		if (!channel->GroupSep()) {
+			if (counter == number) {
+				result = channel;
+				break;
+			}
+			counter++;
+		}
+	}
+	return result;
 }
 
-cChannel* VdrExtension::getChannel(string id)
-{
-  if ( id.length() == 0 ) return NULL;
- 
-  for (cChannel* channel = Channels.First(); channel; channel= Channels.Next(channel))
-  {
-      if ( id == (string)channel->GetChannelID().ToString() ) {
-         return channel;
-      }
-  }
-  return NULL;
+const cChannel* VdrExtension::getChannel(string id) {
+
+#if APIVERSNUM > 20300
+    LOCK_CHANNELS_READ;
+    const cChannels& channels = *Channels;
+#else
+    cChannels& channels = Channels;
+#endif
+
+	if ( id.length() == 0 ) return NULL;
+
+	for (const cChannel* channel = channels.First(); channel; channel= channels.Next(channel)) {
+		if ( id == (string)channel->GetChannelID().ToString() ) {
+			return channel;
+		}
+	}
+	return NULL;
 }
 
-cTimer* VdrExtension::getTimer(string id)
+const cTimer* VdrExtension::getTimer(string id)
 {
-  cTimer* timer;
-  int tc = Timers.Count();
+
+#if APIVERSNUM > 20300
+    LOCK_TIMERS_READ;
+    const cTimers& timers = *Timers;
+#else
+    cTimers& timers = Timers;
+#endif
+
+  const cTimer* timer;
+  int tc = timers.Count();
   for (int i=0;i<tc;i++) {
-      timer = Timers.Get(i);
+      timer = timers.Get(i);
       if ( VdrExtension::getTimerID(timer) == id ) {
          return timer;
       }  
@@ -703,7 +724,28 @@ cTimer* VdrExtension::getTimer(string id)
   return NULL;
 }
 
-string VdrExtension::getTimerID(cTimer* timer)
+cTimer* VdrExtension::getTimerWrite(string id)
+{
+
+#if APIVERSNUM > 20300
+    LOCK_TIMERS_WRITE;
+    cTimers& timers = *Timers;
+#else
+    cTimers& timers = Timers;
+#endif
+
+  cTimer* timer;
+  int tc = timers.Count();
+  for (int i=0;i<tc;i++) {
+      timer = timers.Get(i);
+      if ( VdrExtension::getTimerID(timer) == id ) {
+         return timer;
+      }
+  }
+  return NULL;
+}
+
+string VdrExtension::getTimerID(const cTimer* timer)
 {
   ostringstream str;
   str << (const char*)timer->Channel()->GetChannelID().ToString() << ":" << timer->WeekDays() << ":"
@@ -748,7 +790,7 @@ bool VdrExtension::doesFileExistInFolder(string wildcardpath, string filename)
   return false;
 }
 
-bool VdrExtension::IsRadio(cChannel* channel)
+bool VdrExtension::IsRadio(const cChannel* channel)
 {
   if ((channel->Vpid() == 0 && channel->Apid(0) != 0) || channel->Vpid() == 1 ) {
      return true;
@@ -756,12 +798,20 @@ bool VdrExtension::IsRadio(cChannel* channel)
   return false;
 }
 
-bool VdrExtension::IsRecording(cRecording* recording)
+bool VdrExtension::IsRecording(const cRecording* recording)
 {
-  cTimer* timer = NULL;
-  for (int i=0;i<Timers.Count();i++)
+
+#if APIVERSNUM > 20300
+    LOCK_TIMERS_READ;
+    const cTimers& timers = *Timers;
+#else
+    cTimers& timers = Timers;
+#endif
+
+  const cTimer* timer = NULL;
+  for (int i=0;i<timers.Count();i++)
   {
-     timer = Timers.Get(i);
+     timer = timers.Get(i);
      if (string(timer->File()).compare(recording->Name())) {
         return true;
      }
@@ -769,10 +819,18 @@ bool VdrExtension::IsRecording(cRecording* recording)
   return false;
 }
 
-cTimer* VdrExtension::TimerExists(cEvent* event)
+const cTimer* VdrExtension::TimerExists(const cEvent* event)
 {
-  for(int i=0;i<Timers.Count();i++) {
-     cTimer* timer = Timers.Get(i);
+
+#if APIVERSNUM > 20300
+    LOCK_TIMERS_READ;
+    const cTimers& timers = *Timers;
+#else
+    cTimers& timers = Timers;
+#endif
+
+  for(int i=0;i<timers.Count();i++) {
+     const cTimer* timer = timers.Get(i);
 
      if ( timer->Event() != NULL &&  timer->Event()->EventID() == event->EventID() && strcmp(timer->Event()->ChannelID().ToString(), event->ChannelID().ToString()) == 0 ) {
         return timer;
@@ -796,34 +854,42 @@ cTimer* VdrExtension::TimerExists(cEvent* event)
   return NULL;
 }
 
-vector< cTimer* > VdrExtension::SortedTimers()
+vector< const cTimer* > VdrExtension::SortedTimers()
 {
-  vector< cTimer* > timers;
-  for(int i=0;i<Timers.Count();i++)
+
+#if APIVERSNUM > 20300
+    LOCK_TIMERS_READ;
+    const cTimers& timers = *Timers;
+#else
+    cTimers& timers = Timers;
+#endif
+
+  vector< const cTimer* > returnTimers;
+  for(int i=0;i<timers.Count();i++)
   {
-     timers.push_back(Timers.Get(i));
+	  returnTimers.push_back(timers.Get(i));
   }
 
-  for(int i=0;i<(int)timers.size() - 1;i++)
+  for(int i=0;i<(int)returnTimers.size() - 1;i++)
   {
      bool changed = false;
-     for(int k=0;k<(int)timers.size() - i - 1;k++)
+     for(int k=0;k<(int)returnTimers.size() - i - 1;k++)
      {
-         if (VdrExtension::CompareTimers(timers[k], timers[k+1])) 
+         if (VdrExtension::CompareTimers(returnTimers[k], returnTimers[k+1]))
          {
-            cTimer* swap = timers[k];
-            timers[k] = timers[k+1];
-            timers[k+1] = swap;
+            const cTimer* swap = returnTimers[k];
+            returnTimers[k] = returnTimers[k+1];
+            returnTimers[k+1] = swap;
             changed = true;
          }
      }
      if(!changed) break;
   }
 
-  return timers;
+  return returnTimers;
 }
 
-bool VdrExtension::CompareTimers(cTimer* timer1, cTimer* timer2)
+bool VdrExtension::CompareTimers(const cTimer* timer1, const cTimer* timer2)
 {
   int day1 = (int)timer1->Day() - ((int)timer1->Day() % 3600);
   int day2 = (int)timer2->Day() - ((int)timer2->Day() % 3600);
@@ -847,34 +913,54 @@ bool VdrExtension::CompareTimers(cTimer* timer1, cTimer* timer2)
   return false;
 }
 
-int VdrExtension::RecordingLengthInSeconds(cRecording* recording)
+int VdrExtension::RecordingLengthInSeconds(const cRecording* recording)
 {
   int nf = recording->NumFrames();
   if (nf >= 0)
-#if APIVERSNUM >= 10703
      return int(((double)nf / recording->FramesPerSecond()));
-#else
-     return int((double)nf / FRAMESPERSEC);
-#endif
   return -1;
 }
 
-const cEvent* VdrExtension::GetEventById(tEventID eventID, cChannel* channel)
+const cEvent* VdrExtension::GetEventById(tEventID eventID, const cChannel* channel)
 {
-  cSchedulesLock MutexLock;
-  const cSchedules *Schedules = cSchedules::Schedules(MutexLock);
 
-  if (!Schedules)
-     return NULL;
+#if APIVERSNUM > 20300
+	LOCK_SCHEDULES_READ;
+#else
+	cSchedulesLock MutexLock;
+	const cSchedules *Schedules = cSchedules::Schedules(MutexLock);
+#endif
 
-  const cSchedule *Schedule = Schedules->GetSchedule(channel->GetChannelID());
-  if (Schedule)
-     return Schedule->GetEvent(eventID);
+	if (!Schedules)
+		return NULL;
 
-  return NULL;
+	const cSchedule *Schedule = Schedules->GetSchedule(channel->GetChannelID());
+	if (Schedule)
+		return Schedule->GetEvent(eventID);
+
+	return NULL;
 }
 
-string VdrExtension::getRelativeVideoPath(cRecording* recording)
+cEvent* VdrExtension::getCurrentEventOnChannel(const cChannel* channel)
+{
+  if ( channel == NULL ) return NULL; 
+
+#if APIVERSNUM > 20300
+	LOCK_SCHEDULES_READ;
+#else
+  cSchedulesLock MutexLock;
+  const cSchedules *Schedules = cSchedules::Schedules(MutexLock);
+#endif
+
+  if ( ! Schedules ) { return NULL; }
+  const cSchedule *Schedule = Schedules->GetSchedule(channel->GetChannelID());
+  if ( !Schedule ) { return NULL; }
+
+  time_t now = time(NULL);
+  return (cEvent*)Schedule->GetEventAround(now);
+}
+
+string VdrExtension::getRelativeVideoPath(const cRecording* recording)
 {
   string path = (string)recording->FileName();
 #if APIVERSNUM > 20101
@@ -883,21 +969,6 @@ string VdrExtension::getRelativeVideoPath(cRecording* recording)
   string VIDEODIR(VideoDirectory);
 #endif
   return path.substr(VIDEODIR.length());
-}
-
-cEvent* VdrExtension::getCurrentEventOnChannel(cChannel* channel)
-{
-  if ( channel == NULL ) return NULL; 
-
-  cSchedulesLock MutexLock;
-  const cSchedules *Schedules = cSchedules::Schedules(MutexLock);
-
-  if ( ! Schedules ) { return NULL; }
-  const cSchedule *Schedule = Schedules->GetSchedule(channel->GetChannelID());
-  if ( !Schedule ) { return NULL; }
-
-  time_t now = time(NULL);
-  return (cEvent*)Schedule->GetEventAround(now);
 }
 
 string VdrExtension::getVideoDiskSpace()
@@ -1119,9 +1190,15 @@ string VdrExtension::MoveRecording(cRecording const * recording, string const & 
      return "";
   }
 
+#if APIVERSNUM > 20300
+	  LOCK_RECORDINGS_WRITE;
+	  cRecordings& recordings = *Recordings;
+#else
+	  cRecordings& recordings = Recordings;
+#endif
   if (!copy)
-     Recordings.DelByName(oldname.c_str());
-  Recordings.AddByName(newname.c_str());
+	  recordings.DelByName(oldname.c_str());
+  recordings.AddByName(newname.c_str());
   cRecordingUserCommand::InvokeCommand(*cString::sprintf("rename \"%s\"", *strescape(oldname.c_str(), "\\\"$'")), newname.c_str());
   return newname;
 }
@@ -1168,7 +1245,7 @@ bool VdrMarks::validateMark(string mark)
   return regex.match(mark);
 }
 
-string VdrMarks::getPath(cRecording* recording)
+string VdrMarks::getPath(const cRecording* recording)
 {
   string filename = recording->FileName();
   return filename + "/marks";
@@ -1184,7 +1261,7 @@ bool VdrMarks::parseLine(std::vector<string >& marks, string line)
   return false;
 }
 
-vector<string > VdrMarks::readMarks(cRecording* recording)
+vector<string > VdrMarks::readMarks(const cRecording* recording)
 {
   vector<string > marks;
   string path = getPath(recording);
@@ -1214,7 +1291,7 @@ vector<string > VdrMarks::readMarks(cRecording* recording)
   return marks;
 }
 
-bool VdrMarks::saveMarks(cRecording* recording, std::vector< std::string > marks)
+bool VdrMarks::saveMarks(const cRecording* recording, std::vector< std::string > marks)
 {
   if (recording == NULL) {
      return false;
@@ -1251,7 +1328,7 @@ bool VdrMarks::saveMarks(cRecording* recording, std::vector< std::string > marks
   return false;
 }
 
-bool VdrMarks::deleteMarks(cRecording* recording)
+bool VdrMarks::deleteMarks(const cRecording* recording)
 {
   string marksfile = getPath(recording);
 
