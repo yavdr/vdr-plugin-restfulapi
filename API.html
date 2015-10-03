@@ -1692,6 +1692,7 @@
                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"is_recording": false,
                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"is_active": true,
                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"aux": "&lt;epgsearch&gt;&lt;channel&gt;17 - n-tv HD&lt;/channel&gt;&lt;searchtimer&gt;das universum&lt;/searchtimer&gt;&lt;start&gt;1432544880&lt;/start&gt;&lt;stop&gt;1432548600&lt;/stop&gt;&lt;s-id&gt;79&lt;/s-id&gt;&lt;eventid&gt;5938&lt;/eventid&gt;&lt;/epgsearch&gt;"
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"index": 1
                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
                     &nbsp;&nbsp;&nbsp;&nbsp;],
                     &nbsp;&nbsp;&nbsp;&nbsp;"count": 1,
@@ -2409,151 +2410,308 @@
             
             <a id="JSDoc"></a>
             <section data-header="JSDoc typedef">
-            	<div class="code" data-header="Recording Data">
-            	/**
-				 &nbsp;* @typedef {{}} recordingData
-				 &nbsp;* @property {number} number
-				 &nbsp;* @property {string} name
-				 &nbsp;* @property {string} file_name
-				 &nbsp;* @property {string} relative_file_name
-				 &nbsp;* @property {string} inode
-				 &nbsp;* @property {boolean} is_new
-				 &nbsp;* @property {boolean} is_edited
-				 &nbsp;* @property {boolean} is_pes_recording
-				 &nbsp;* @property {number} duration
-				 &nbsp;* @property {number} filesize_mb
-				 &nbsp;* @property {string} channel_id
-				 &nbsp;* @property {number} frames_per_second
-				 &nbsp;* @property {Array.&lt;string&gt;} marks
-				 &nbsp;* @property {string} event_title
-				 &nbsp;* @property {string} event_short_text
-				 &nbsp;* @property {string} event_description
-				 &nbsp;* @property {number} event_start_time
-				 &nbsp;* @property {number} event_duration
-				 &nbsp;* @property {additionalMediaMovie|additionalMediaEpisode} additional_media
-				 &nbsp;* @property {string} sync_action
-				 &nbsp;*/
-            	</div>
-            	<div class="code" data-header="Event Data">
-            	/**
-				 &nbsp;* @typedef {{}} broadcastData
-				 &nbsp;* @property {string} channel
-				 &nbsp;* @property {string} channel_name
-				 &nbsp;* @property {Array.&lt;component&gt;} components
-				 &nbsp;* @property {Array} contents
-				 &nbsp;* @property {string} description
-				 &nbsp;* @property {Array} details
-				 &nbsp;* @property {Number} duration
-				 &nbsp;* @property {Number} id
-				 &nbsp;* @property {Number} images
-				 &nbsp;* @property {Number} parental_rating
-				 &nbsp;* @property {Array} raw_contents
-				 &nbsp;* @property {string} short_text
-				 &nbsp;* @property {Number} table_id
-				 &nbsp;* @property {boolean} timer_active
-				 &nbsp;* @property {boolean} timer_exists
-				 &nbsp;* @property {Number} timer_id
-				 &nbsp;* @property {string} title
-				 &nbsp;* @property {Number} version
-				 &nbsp;* @property {Number} vps
-				 &nbsp;* @property {Number} start_time
-				 &nbsp;* @property {Number} end_time
-				 &nbsp;* @property {Date} start_date
-				 &nbsp;* @property {Date} end_date
-				 &nbsp;*/
-            	</div>
-            	<div class="code" data-header="Component">
-            	/**
-				 &nbsp;* @typedef {{}} component
-				 &nbsp;* @property {String} description
-				 &nbsp;* @property {String} language
-				 &nbsp;* @property {Number} stream
-				 &nbsp;* @property {Number} type
-				 &nbsp;*/
-            	</div>
-            	<div class="code" data-header="Actor">
-            	/**
-				 &nbsp;* @typedef {{}} actor
-				 &nbsp;* @property {String} name
-				 &nbsp;* @property {String} role
-				 &nbsp;* @property {String} thumb
-				 &nbsp;*/
-            	</div>
-            	<div class="code" data-header="Banners">
-            	/**
-				 &nbsp;* @typedef {{}} banners
-				 &nbsp;* @property {Number} width
-				 &nbsp;* @property {Number} height
-				 &nbsp;* @property {String} path
-				 &nbsp;*/
-            	</div>
-            	<div class="code" data-header="Fanarts">
-            	/**
-				 &nbsp;* @typedef {{}} fanarts
-				 &nbsp;* @property {Number} width
-				 &nbsp;* @property {Number} height
-				 &nbsp;* @property {String} path
-				 &nbsp;*/
-            	</div>
-            	<div class="code" data-header="Posters">
-            	/**
-				 &nbsp;* @typedef {{}} posters
-				 &nbsp;* @property {Number} width
-				 &nbsp;* @property {Number} height
-				 &nbsp;* @property {String} path
-				 &nbsp;*/
-            	</div>
-            	<div class="code" data-header="Additional media movie">
-            	/**
-				 &nbsp;* @typedef {{}} additionalMediaMovie
-				 &nbsp;* @property {Array.&lt;actor&gt;} actors
-				 &nbsp;* @property {Boolean} adult
-				 &nbsp;* @property {String} collection_fanart
-				 &nbsp;* @property {String} collection_name
-				 &nbsp;* @property {String} collection_poster
-				 &nbsp;* @property {String} fanart
-				 &nbsp;* @property {String} genres
-				 &nbsp;* @property {String} homepage
-				 &nbsp;* @property {Number} movie_id
-				 &nbsp;* @property {String} original_title
-				 &nbsp;* @property {String} overview
-				 &nbsp;* @property {Number} popularity
-				 &nbsp;* @property {String} poster
-				 &nbsp;* @property {String} release_date
-				 &nbsp;* @property {Number} revenue
-				 &nbsp;* @property {Number} runtime
-				 &nbsp;* @property {String} tagline
-				 &nbsp;* @property {String} title
-				 &nbsp;* @property {String} type
-				 &nbsp;* @property {Number} vote_average
-				 &nbsp;*/
-            	</div>
-            	<div class="code" data-header="Additional media episode">
-            	/**
-				 &nbsp;* @typedef {{}} additionalMediaEpisode
-				 &nbsp;* @property {Array.&lt;banners&gt;} banners
-				 &nbsp;* @property {String} episode_first_aired
-				 &nbsp;* @property {String} episode_guest_stars
-				 &nbsp;* @property {Number} episode_id
-				 &nbsp;* @property {String} episode_image
-				 &nbsp;* @property {String} episode_name
-				 &nbsp;* @property {Number} episode_number
-				 &nbsp;* @property {String} episode_overview
-				 &nbsp;* @property {Number} episode_rating
-				 &nbsp;* @property {Number} episode_season
-				 &nbsp;* @property {Array.&lt;fanarts&gt;} fanarts
-				 &nbsp;* @property {String} first_aired
-				 &nbsp;* @property {String} genre
-				 &nbsp;* @property {String} name
-				 &nbsp;* @property {String} network
-				 &nbsp;* @property {String} overview
-				 &nbsp;* @property {Array.&lt;posters&gt;} posters
-				 &nbsp;* @property {Number} rating
-				 &nbsp;* @property {Number} series_id
-				 &nbsp;* @property {String} status
-				 &nbsp;* @property {String} type
-				 &nbsp;*/
-            	</div>
+				<div class="code" data-header="Recording Data">
+					/**
+					&nbsp;* @typedef {{}} recordingData
+					&nbsp;* @property {number} number
+					&nbsp;* @property {string} name
+					&nbsp;* @property {string} file_name
+					&nbsp;* @property {string} relative_file_name
+					&nbsp;* @property {string} inode
+					&nbsp;* @property {boolean} is_new
+					&nbsp;* @property {boolean} is_edited
+					&nbsp;* @property {boolean} is_pes_recording
+					&nbsp;* @property {number} duration
+					&nbsp;* @property {number} filesize_mb
+					&nbsp;* @property {string} channel_id
+					&nbsp;* @property {number} frames_per_second
+					&nbsp;* @property {Array.&lt;string&gt;} marks
+					&nbsp;* @property {string} event_title
+					&nbsp;* @property {string} event_short_text
+					&nbsp;* @property {string} event_description
+					&nbsp;* @property {number} event_start_time
+					&nbsp;* @property {number} event_duration
+					&nbsp;* @property {additionalMediaMovie|additionalMediaEpisode} additional_media
+					&nbsp;* @property {string} sync_action
+					&nbsp;*/
+				</div>
+				<div class="code" data-header="Event Data">
+					/**
+					&nbsp;* @typedef {{}} broadcastData
+					&nbsp;* @property {string} channel
+					&nbsp;* @property {string} channel_name
+					&nbsp;* @property {Array.&lt;component&gt;} components
+					&nbsp;* @property {Array} contents
+					&nbsp;* @property {string} description
+					&nbsp;* @property {Array} details
+					&nbsp;* @property {Number} duration
+					&nbsp;* @property {Number} id
+					&nbsp;* @property {Number} images
+					&nbsp;* @property {Number} parental_rating
+					&nbsp;* @property {Array} raw_contents
+					&nbsp;* @property {string} short_text
+					&nbsp;* @property {Number} table_id
+					&nbsp;* @property {boolean} timer_active
+					&nbsp;* @property {boolean} timer_exists
+					&nbsp;* @property {Number} timer_id
+					&nbsp;* @property {string} title
+					&nbsp;* @property {Number} version
+					&nbsp;* @property {Number} vps
+					&nbsp;* @property {Number} start_time
+					&nbsp;* @property {Number} end_time
+					&nbsp;* @property {Date} start_date
+					&nbsp;* @property {Date} end_date
+					&nbsp;*/
+				</div>
+				<div class="code" data-header="Component">
+					/**
+					&nbsp;* @typedef {{}} component
+					&nbsp;* @property {String} description
+					&nbsp;* @property {String} language
+					&nbsp;* @property {Number} stream
+					&nbsp;* @property {Number} type
+					&nbsp;*/
+				</div>
+				<div class="code" data-header="Actor">
+					/**
+					&nbsp;* @typedef {{}} actor
+					&nbsp;* @property {String} name
+					&nbsp;* @property {String} role
+					&nbsp;* @property {String} thumb
+					&nbsp;*/
+				</div>
+				<div class="code" data-header="Banners">
+					/**
+					&nbsp;* @typedef {{}} banners
+					&nbsp;* @property {Number} width
+					&nbsp;* @property {Number} height
+					&nbsp;* @property {String} path
+					&nbsp;*/
+				</div>
+				<div class="code" data-header="Fanarts">
+					/**
+					&nbsp;* @typedef {{}} fanarts
+					&nbsp;* @property {Number} width
+					&nbsp;* @property {Number} height
+					&nbsp;* @property {String} path
+					&nbsp;*/
+				</div>
+				<div class="code" data-header="Posters">
+					/**
+					&nbsp;* @typedef {{}} posters
+					&nbsp;* @property {Number} width
+					&nbsp;* @property {Number} height
+					&nbsp;* @property {String} path
+					&nbsp;*/
+				</div>
+				<div class="code" data-header="Additional media movie">
+					/**
+					&nbsp;* @typedef {{}} additionalMediaMovie
+					&nbsp;* @property {Array.&lt;actor&gt;} actors
+					&nbsp;* @property {Boolean} adult
+					&nbsp;* @property {String} collection_fanart
+					&nbsp;* @property {String} collection_name
+					&nbsp;* @property {String} collection_poster
+					&nbsp;* @property {String} fanart
+					&nbsp;* @property {String} genres
+					&nbsp;* @property {String} homepage
+					&nbsp;* @property {Number} movie_id
+					&nbsp;* @property {String} original_title
+					&nbsp;* @property {String} overview
+					&nbsp;* @property {Number} popularity
+					&nbsp;* @property {String} poster
+					&nbsp;* @property {String} release_date
+					&nbsp;* @property {Number} revenue
+					&nbsp;* @property {Number} runtime
+					&nbsp;* @property {String} tagline
+					&nbsp;* @property {String} title
+					&nbsp;* @property {String} type
+					&nbsp;* @property {Number} vote_average
+					&nbsp;*/
+				</div>
+				<div class="code" data-header="Additional media episode">
+					/**
+					&nbsp;* @typedef {{}} additionalMediaEpisode
+					&nbsp;* @property {Array.&lt;banners&gt;} banners
+					&nbsp;* @property {String} episode_first_aired
+					&nbsp;* @property {String} episode_guest_stars
+					&nbsp;* @property {Number} episode_id
+					&nbsp;* @property {String} episode_image
+					&nbsp;* @property {String} episode_name
+					&nbsp;* @property {Number} episode_number
+					&nbsp;* @property {String} episode_overview
+					&nbsp;* @property {Number} episode_rating
+					&nbsp;* @property {Number} episode_season
+					&nbsp;* @property {Array.&lt;fanarts&gt;} fanarts
+					&nbsp;* @property {String} first_aired
+					&nbsp;* @property {String} genre
+					&nbsp;* @property {String} name
+					&nbsp;* @property {String} network
+					&nbsp;* @property {String} overview
+					&nbsp;* @property {Array.&lt;posters&gt;} posters
+					&nbsp;* @property {Number} rating
+					&nbsp;* @property {Number} series_id
+					&nbsp;* @property {String} status
+					&nbsp;* @property {String} type
+					&nbsp;*/
+				</div>
+				<div class="code" data-header="VDR Infodata">
+					/**
+					&nbsp;* @typedef {{}} infoData
+					&nbsp;* @property {infoDiskUsage} diskusage
+					&nbsp;* @property {infoService[]} services
+					&nbsp;* @property {number} time
+					&nbsp;* @property {infoVDR} vdr
+					&nbsp;* @property {string} version
+					&nbsp;*
+					&nbsp;*/
+				</div>
+				<div class="code" data-header="VDR Info">
+					/**
+					&nbsp;* @typedef {{}} infoVDR
+					&nbsp;* @property {infoPlugin[]} plugins
+					&nbsp;* @property {infoDevice[]} devices
+					&nbsp;*/
+				</div>
+				<div class="code" data-header="VDR Info Devices">
+					/**
+					&nbsp;* @typedef {{}} infoDevice
+					&nbsp;* @property {number} adapter
+					&nbsp;* @property {boolean} atsc
+					&nbsp;* @property {string} channel_id
+					&nbsp;* @property {string} channel_name
+					&nbsp;* @property {number} channel_nr
+					&nbsp;* @property {boolean} dvb_c
+					&nbsp;* @property {boolean} dvb_s
+					&nbsp;* @property {boolean} dvb_t
+					&nbsp;* @property {number} frontend
+					&nbsp;* @property {boolean} has_ci
+					&nbsp;* @property {boolean} has_decoder
+					&nbsp;* @property {boolean} live
+					&nbsp;* @property {string} name
+					&nbsp;* @property {number} number
+					&nbsp;* @property {boolean} primary
+					&nbsp;* @property {number} signal_quality
+					&nbsp;* @property {number} signal_strength
+					&nbsp;* @property {string} type
+					&nbsp;*/
+				</div>
+				<div class="code" data-header="VDR Info Plugin">
+					/**
+					&nbsp;* @typedef {{}} infoPlugin
+					&nbsp;* @property {string} name
+					&nbsp;* @property {string} version
+					&nbsp;*/
+				</div>
+				<div class="code" data-header="VDR Info Service">
+					/**
+					&nbsp;* @typedef {{}} infoService
+					&nbsp;* @property {string} name
+					&nbsp;* @property {number} version
+					&nbsp;*/
+				</div>
+				<div class="code" data-header="VDR Info diskusage">
+					/**
+					&nbsp;* @typedef {{}} infoDiskUsage
+					&nbsp;* @property {string} description_localized
+					&nbsp;* @property {number} free_mb
+					&nbsp;* @property {number} free_minutes
+					&nbsp;* @property {number} used_percent
+					&nbsp;*/
+				</div>
+				<div class="code" data-header="Timerconflict check">
+					/**
+					&nbsp;* @typedef {{}} conflictResult
+					&nbsp;* @property {number} count
+					&nbsp;* @property {number} total
+					&nbsp;* @property {Array.&lt;timerConflict|string&gt;} conflicts
+					&nbsp;* @property {boolean} check_advised
+					&nbsp;*/
+				</div>
+				<div class="code" data-header="Searchtimer Data">
+					/**
+					&nbsp;* @typedef {{}} searchTimerData
+					&nbsp;* @property {number} id
+					&nbsp;* @property {string} search
+					&nbsp;* @property {number} mode
+					&nbsp;* @property {number} tolerance
+					&nbsp;* @property {boolean} match_case
+					&nbsp;* @property {boolean} use_title
+					&nbsp;* @property {boolean} use_subtitle
+					&nbsp;* @property {boolean} use_description
+					&nbsp;* @property {string} content_descriptors
+					&nbsp;* @property {boolean} use_ext_epg_info
+					&nbsp;* @property {Array.&lt;string&gt;} ext_epg_info
+					&nbsp;* @property {boolean} use_in_favorites
+					&nbsp;* @property {boolean} use_time
+					&nbsp;* @property {number} start_time
+					&nbsp;* @property {number} stop_time
+					&nbsp;* @property {number} use_channel
+					&nbsp;* @property {string} channel_min
+					&nbsp;* @property {string} channel_max
+					&nbsp;* @property {string} channels
+					&nbsp;* @property {boolean} use_duration
+					&nbsp;* @property {number} duration_min
+					&nbsp;* @property {number} duration_max
+					&nbsp;* @property {boolean} use_dayofweek
+					&nbsp;* @property {number} dayofweek
+					&nbsp;* @property {number} use_as_searchtimer
+					&nbsp;* @property {number} use_as_searchtimer_from
+					&nbsp;* @property {number} use_as_searchtimer_til
+					&nbsp;* @property {number} searchtimer_action
+					&nbsp;* @property {boolean} use_series_recording
+					&nbsp;* @property {string} directory
+					&nbsp;* @property {number} del_recs_after_days
+					&nbsp;* @property {number} keep_recs
+					&nbsp;* @property {number} pause_on_recs
+					&nbsp;* @property {number} blacklist_mode
+					&nbsp;* @property {Array.&lt;number&gt;} blacklist_ids
+					&nbsp;* @property {number} switch_min_before
+					&nbsp;* @property {boolean} avoid_repeats
+					&nbsp;* @property {number} allowed_repeats
+					&nbsp;* @property {number} repeats_within_days
+					&nbsp;* @property {boolean} compare_title
+					&nbsp;* @property {number} compare_subtitle
+					&nbsp;* @property {boolean} compare_summary
+					&nbsp;* @property {number} compare_categories
+					&nbsp;* @property {number} priority
+					&nbsp;* @property {number} lifetime
+					&nbsp;* @property {number} margin_start
+					&nbsp;* @property {number} margin_stop
+					&nbsp;* @property {boolean} use_vps
+					&nbsp;* @property {number} del_mode
+					&nbsp;* @property {number} del_after_count_recs
+					&nbsp;* @property {number} del_after_days_of_first_rec
+					&nbsp;* @property {boolean} ignore_missing_epg_cats
+					&nbsp;* @property {boolean} unmute_sound_on_switch
+					&nbsp;* @property {number} summary_match
+					&nbsp;* @property {number} compare_time
+					&nbsp;*/
+				</div>
+				<div class="code" data-header="Timer">
+					/**
+					&nbsp;* @typedef {{}} timerData
+					&nbsp;* @property {number} event_id
+					&nbsp;* @property {number} flags
+					&nbsp;* @property {number} index
+					&nbsp;* @property {number} lifetime
+					&nbsp;* @property {number} priority
+					&nbsp;* @property {number} start
+					&nbsp;* @property {number} stop
+					&nbsp;* @property {boolean} is_active
+					&nbsp;* @property {boolean} is_pending
+					&nbsp;* @property {boolean} is_recording
+					&nbsp;* @property {string} aux
+					&nbsp;* @property {string} channel
+					&nbsp;* @property {string} day
+					&nbsp;* @property {string} filename
+					&nbsp;* @property {string} id
+					&nbsp;* @property {string} start_timestamp
+					&nbsp;* @property {string} stop_timestamp
+					&nbsp;* @property {string} weekdays
+					&nbsp;* @property {string} channel_name
+					&nbsp;*/
+				</div>
             </section>
         </article>
     </div>
