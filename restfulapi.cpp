@@ -152,7 +152,7 @@ void cPluginRestfulapi::Housekeeping(void)
   // Perform any cleanup or other regular tasks.
   string cacheDir = Settings::get()->CacheDirectory();
   string syncDir = cacheDir + "/sync";
-  string cmd = "find " + syncDir + " -mtime +5 -delete";
+  string cmd = "find " + syncDir + " -type f -mtime +5 -delete";
   int result = system(cmd.c_str());
   if (result > 0) {
       esyslog("restfulapi: error cleaning up outdated syncfiles: %s", cmd.c_str());
