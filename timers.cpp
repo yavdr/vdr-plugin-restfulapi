@@ -30,10 +30,19 @@ void TimersResponder::createOrUpdateTimer(ostream& out, cxxtools::http::Request&
 {
   QueryHandler q("/timers", request);
 
-  if ( Timers.BeingEdited() ) {
-     reply.httpReturn(502, "Timers are being edited - try again later");
-     return;
-  }
+
+
+#if APIVERSNUM > 20300
+    LOCK_TIMERS_WRITE;
+    cTimers& timers = *Timers;
+#else
+    cTimers& timers = Timers;
+
+	if ( timers.BeingEdited() ) {
+		reply.httpReturn(502, "Timers are being edited - try again later");
+		return;
+	}
+#endif
 
   int error = false;
   string error_values = "";
@@ -136,16 +145,24 @@ void TimersResponder::createOrUpdateTimer(ostream& out, cxxtools::http::Request&
   if ( update == false ) { // create timer
      cTimer* timer = new cTimer();
      if ( timer->Parse(builder.str().c_str()) ) { 
-        cTimer* checkTimer = Timers.GetTimer(timer);
+        cTimer* checkTimer = timers.GetTimer(timer);
         if ( checkTimer != NULL ) {
            delete timer;
            reply.httpReturn(403, "Timer already defined!"); 
            esyslog("restfulapi: Timer already defined!");
         } else {
            replyCreatedId(timer, request, reply, out);
+#if APIVERSNUM > 20300
+
+           LOCK_SCHEDULES_READ;
+           timer->SetEventFromSchedule(Schedules);
+#else
            timer->SetEventFromSchedule();
-           Timers.Add(timer);
-           Timers.SetModified();
+#endif
+           timers.Add(timer);
+#if APIVERSNUM <= 20300
+           timers.SetModified();
+#endif
            esyslog("restfulapi: timer created!");
         }
      } else {
@@ -154,8 +171,14 @@ void TimersResponder::createOrUpdateTimer(ostream& out, cxxtools::http::Request&
      }
   } else {
      if ( timer_orig->Parse(builder.str().c_str()) ) {
-        timer_orig->SetEventFromSchedule();
-        Timers.SetModified();
+#if APIVERSNUM > 20300
+
+           LOCK_SCHEDULES_READ;
+           timer_orig->SetEventFromSchedule(Schedules);
+#else
+           timer_orig->SetEventFromSchedule();
+           timers.SetModified();
+#endif
         replyCreatedId(timer_orig, request, reply, out);
         esyslog("restfulapi: updating timer successful!");
      } else { 
@@ -192,10 +215,17 @@ void TimersResponder::deleteTimer(ostream& out, cxxtools::http::Request& request
 {
   QueryHandler q("/timers", request);
 
-  if ( Timers.BeingEdited() ) {
-     reply.httpReturn(502, "Timers are being edited - try again later");
-     return;
-  }
+#if APIVERSNUM > 20300
+    LOCK_TIMERS_WRITE;
+    cTimers& timers = *Timers;
+#else
+    cTimers& timers = Timers;
+
+	if ( timers.BeingEdited() ) {
+		reply.httpReturn(502, "Timers are being edited - try again later");
+		return;
+	}
+#endif
 
   TimerValues v;
 
@@ -206,10 +236,14 @@ void TimersResponder::deleteTimer(ostream& out, cxxtools::http::Request& request
   } else {
      if ( timer->Recording() ) {
         timer->Skip();
+#if APIVERSNUM > 20300
+        cRecordControls::Process(Timers, time(NULL));
+#else
         cRecordControls::Process(time(NULL));
+#endif
      }
-     Timers.Del(timer);
-     Timers.SetModified();
+     timers.Del(timer);
+     timers.SetModified();
      reply.httpReturn(200, "Timer deleted."); 
   }
 }
@@ -218,10 +252,17 @@ void TimersResponder::replyBulkdelete(std::ostream& out, cxxtools::http::Request
 
   QueryHandler q("/timers/bulkdelete", request);
 
-  if ( Timers.BeingEdited() ) {
-     reply.httpReturn(502, "Timers are being edited - try again later");
-     return;
-  }
+#if APIVERSNUM > 20300
+    LOCK_TIMERS_WRITE;
+    cTimers& timers = *Timers;
+#else
+    cTimers& timers = Timers;
+
+	if ( timers.BeingEdited() ) {
+		reply.httpReturn(502, "Timers are being edited - try again later");
+		return;
+	}
+#endif
 
   TimerDeletedList* list;
 
@@ -242,7 +283,7 @@ void TimersResponder::replyBulkdelete(std::ostream& out, cxxtools::http::Request
   TimerValues v;
   cTimer* timer;
 
-  vector< string > timers = q.getBodyAsStringArray("timers");
+  vector< string > deleteTimers = q.getBodyAsStringArray("timers");
   vector< SerBulkDeleted > results;
   SerBulkDeleted result;
 
@@ -250,23 +291,27 @@ void TimersResponder::replyBulkdelete(std::ostream& out, cxxtools::http::Request
 
   list->init();
 
-  for ( i = 0; i < timers.size(); i++ ) {
-    timer = v.ConvertTimer(timers[i]);
-    result.id = timers[i];
+  for ( i = 0; i < deleteTimers.size(); i++ ) {
+    timer = v.ConvertTimer(deleteTimers[i]);
+    result.id = deleteTimers[i];
     if ( timer == NULL ) {
 	result.deleted = false;
     } else {
       if ( timer->Recording() ) {
 	timer->Skip();
-	cRecordControls::Process(time(NULL));
+#if APIVERSNUM > 20300
+        cRecordControls::Process(Timers, time(NULL));
+#else
+        cRecordControls::Process(time(NULL));
+#endif
       }
-      Timers.Del(timer);
-      Timers.SetModified();
+      timers.Del(timer);
+      timers.SetModified();
       result.deleted = true;
     }
     list->addDeleted(result);
   }
-  list->setTotal((int)timers.size());
+  list->setTotal((int)deleteTimers.size());
   list->finish();
   delete list;
 
@@ -276,8 +321,6 @@ void TimersResponder::showTimers(ostream& out, cxxtools::http::Request& request,
 {
   QueryHandler q("/timers", request);
   TimerList* timerList;
- 
-  Timers.SetModified();
 
   if ( q.isFormat(".json") ) {
      reply.addHeader("Content-Type", "application/json; charset=utf-8");
@@ -625,8 +668,13 @@ cEvent* TimerValues::ConvertEvent(string event_id, cChannel* channel)
   int eventid = StringExtension::strtoi(event_id);
   if ( eventid <= -1 ) return NULL;
 
-  cSchedulesLock MutexLock;
-  const cSchedules *Schedules = cSchedules::Schedules(MutexLock);
+#if APIVERSNUM > 20300
+	LOCK_SCHEDULES_READ;
+#else
+	cSchedulesLock MutexLock;
+	const cSchedules *Schedules = cSchedules::Schedules(MutexLock);
+#endif
+
   if ( !Schedules ) return NULL;
 
   const cSchedule *Schedule = Schedules->GetSchedule(channel->GetChannelID());
