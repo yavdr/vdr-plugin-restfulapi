@@ -28,9 +28,7 @@ class EventsResponder : public cxxtools::http::Responder
     void replyEvents(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void replyImage(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void replySearchResult(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
-#if APIVERSNUM > 10710
     void replyContentDescriptors(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
-#endif
 };
 
 typedef cxxtools::http::CachedService<EventsResponder> EventsService;
@@ -58,12 +56,10 @@ struct SerEvent
   int Images;
   bool TimerExists;
   bool TimerActive;
-#if APIVERSNUM > 10710 || EPGHANDLER
   int ParentalRating;
-#endif
   int Vps;
   cxxtools::String TimerId;
-  cEvent* Instance;
+  const cEvent* Instance;
 #ifdef EPG_DETAILS_PATCH
   std::vector< tEpgDetail >* Details;
 #endif
@@ -87,7 +83,7 @@ class EventList : public BaseList
     explicit EventList(std::ostream* _out);
     virtual ~EventList();
     virtual void init() { };
-    virtual void addEvent(cEvent* event) { };
+    virtual void addEvent(const cEvent* event) { };
     virtual void finish() { };
     virtual void setTotal(int _total) { total = _total; }
     virtual void activateDateLimit(int _limit);
@@ -101,7 +97,7 @@ class HtmlEventList : EventList
     explicit HtmlEventList(std::ostream* _out) : EventList(_out) { };
     ~HtmlEventList() { };
     virtual void init();
-    virtual void addEvent(cEvent* event);
+    virtual void addEvent(const cEvent* event);
     virtual void finish();
 };
 
@@ -112,7 +108,7 @@ class JsonEventList : EventList
   public:
     explicit JsonEventList(std::ostream* _out) : EventList(_out) { };
     ~JsonEventList() { };
-    virtual void addEvent(cEvent* event);
+    virtual void addEvent(const cEvent* event);
     virtual void finish();
 };
 
@@ -122,11 +118,10 @@ class XmlEventList : EventList
     explicit XmlEventList(std::ostream* _out) : EventList(_out) { };
     ~XmlEventList() { };
     virtual void init();
-    virtual void addEvent(cEvent* event);
+    virtual void addEvent(const cEvent* event);
     virtual void finish();
 };
 
-#if APIVERSNUM > 10710
 
 struct SerContentDescriptor {
   cxxtools::String id;
@@ -179,8 +174,6 @@ class XmlContentDescriptorList : ContentDescriptorList
     virtual void addDescr(SerContentDescriptor &descr);
     virtual void finish();
 };
-
-#endif
 
 
 #endif //__RESTFUL_EVENTS_H

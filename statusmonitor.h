@@ -122,11 +122,7 @@ class StatusMonitor : public cStatus
     void OsdDestroy(void);
   protected:
     void TimerChange(const cTimer *Timer, eTimerChange Change);
-#if APIVERSNUM >= 10726
     void ChannelSwitch(const cDevice *Device, int ChannelNumber, bool LiveView);
-#else
-    void ChannelSwitch(const cDevice *Device, int ChannelNumber);
-#endif
     void Recording(const cDevice *Device, const char *Name, const char *FileName, bool On);
     void Replaying(const cControl *Control, const char *Name, const char *FileName, bool On);
     void SetVolume(int Volume, bool Absolute);
