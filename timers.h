@@ -38,6 +38,7 @@ typedef cxxtools::http::CachedService<TimersResponder> TimersService;
 struct SerTimer
 {
   cxxtools::String Id;
+  int Index;
   int Flags;
   int Start;
   cxxtools::String StartTimeStamp;
@@ -68,7 +69,7 @@ class TimerList : public BaseList
     explicit TimerList(std::ostream* _out);
     virtual ~TimerList();
     virtual void init() { };
-    virtual void addTimer(cTimer* timer) { };
+    virtual void addTimer(const cTimer* timer) { };
     virtual void finish() { };
     virtual void setTotal(int _total) { total = _total; }
 };
@@ -79,7 +80,7 @@ class HtmlTimerList : TimerList
     explicit HtmlTimerList(std::ostream* _out) : TimerList(_out) { };
     ~HtmlTimerList() { };
     virtual void init();
-    virtual void addTimer(cTimer* timer);
+    virtual void addTimer(const cTimer* timer);
     virtual void finish();
 };
 
@@ -90,7 +91,7 @@ class JsonTimerList : TimerList
   public:
     explicit JsonTimerList(std::ostream* _out) : TimerList(_out) { };
     ~JsonTimerList() { };
-    virtual void addTimer(cTimer* timer);
+    virtual void addTimer(const cTimer* timer);
     virtual void finish();
 };
 
@@ -100,7 +101,7 @@ class XmlTimerList : TimerList
     explicit XmlTimerList(std::ostream* _out) : TimerList(_out) { };
     ~XmlTimerList() { };
     virtual void init();
-    virtual void addTimer(cTimer* timer);
+    virtual void addTimer(const cTimer* timer);
     virtual void finish();
 };
 
@@ -184,6 +185,6 @@ class TimerValues
     std::string ConvertDay(time_t v);
     std::string ConvertWeekdays(int v);
     int		ConvertWeekdays(std::string v);
-    cChannel*	ConvertChannel(std::string v);
+    const cChannel*	ConvertChannel(std::string v);
     cTimer*	ConvertTimer(std::string v);
 };

@@ -54,7 +54,7 @@ class ChannelList : public BaseList
     explicit ChannelList(std::ostream* _out);
     virtual ~ChannelList();
     virtual void init() { };
-    virtual void addChannel(cChannel* channel, std::string group, bool image, int index) { };
+    virtual void addChannel(const cChannel* channel, std::string group, bool image, int index) { };
     virtual void finish() { };
     virtual void setTotal(int _total) { total = _total; }
 };
@@ -65,7 +65,7 @@ class HtmlChannelList : ChannelList
     explicit HtmlChannelList(std::ostream* _out) : ChannelList(_out) { };
     ~HtmlChannelList() { };
     virtual void init();
-    virtual void addChannel(cChannel* channel, std::string group, bool image, int index);
+    virtual void addChannel(const cChannel* channel, std::string group, bool image, int index);
     virtual void finish();
 };
 
@@ -76,7 +76,7 @@ class JsonChannelList : ChannelList
   public:
     explicit JsonChannelList(std::ostream* _out) : ChannelList(_out) { };
     ~JsonChannelList() { };
-    virtual void addChannel(cChannel* channel, std::string group, bool image, int index);
+    virtual void addChannel(const cChannel* channel, std::string group, bool image, int index);
     virtual void finish();
 };
 
@@ -86,7 +86,7 @@ class XmlChannelList : ChannelList
     explicit XmlChannelList(std::ostream* _out) : ChannelList(_out) { };
     ~XmlChannelList() { };
     virtual void init();
-    virtual void addChannel(cChannel* channel, std::string group, bool image, int index);
+    virtual void addChannel(const cChannel* channel, std::string group, bool image, int index);
     virtual void finish();
 };
 

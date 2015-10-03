@@ -47,7 +47,7 @@ class RecordingList : public BaseList
     RecordingList(std::ostream* _out, bool _read_marks);
     virtual ~RecordingList();
     virtual void init() { };
-    virtual void addRecording(cRecording* recording, int nr, SyncMap*, std::string sync_action, bool add_hash = false) { };
+    virtual void addRecording(const cRecording* recording, int nr, SyncMap*, std::string sync_action, bool add_hash = false) { };
     virtual void finish() { };
     virtual void setTotal(int _total) { total = _total; }
 };
@@ -68,7 +68,6 @@ private:
 
     virtual void reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void deleteRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
-    void deleteRecordingByName(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void showRecordings(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void saveMarks(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void deleteMarks(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
@@ -77,13 +76,13 @@ private:
     void playRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void rewindRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void moveRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
-    void replyRecordingMoved(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply, cRecording* recording);
     void replyEditedFileName(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void replyUpdates(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void replySyncList(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     void sendSyncList(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply, SyncMap* sync_map);
     void initServerList(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply, SyncMap* sync_map);
-    cRecording* getRecordingByRequest(QueryHandler q);
+    const cRecording* getRecordingByRequest(QueryHandler q);
+    cRecording* getRecordingByRequestWrite(QueryHandler q);
     RecordingList* getRecordingList(std::ostream& out, QueryHandler q, cxxtools::http::Reply& reply, bool _read_marks);
 };
 
@@ -129,7 +128,7 @@ class HtmlRecordingList : RecordingList
     HtmlRecordingList(std::ostream* _out, bool _read_marks) : RecordingList(_out, _read_marks) { };
     ~HtmlRecordingList() { };
     virtual void init();
-    virtual void addRecording(cRecording* recording, int nr, SyncMap* sync_map, std::string sync_action, bool add_hash = false);
+    virtual void addRecording(const cRecording* recording, int nr, SyncMap* sync_map, std::string sync_action, bool add_hash = false);
     virtual void finish();
 };
 
@@ -140,7 +139,7 @@ class JsonRecordingList : RecordingList
   public:
     JsonRecordingList(std::ostream* _out, bool _read_marks) : RecordingList(_out, _read_marks) { };
     ~JsonRecordingList() { };
-    virtual void addRecording(cRecording* recording, int nr, SyncMap* sync_map, std::string sync_action, bool add_hash = false);
+    virtual void addRecording(const cRecording* recording, int nr, SyncMap* sync_map, std::string sync_action, bool add_hash = false);
     virtual void finish();
 };
 
@@ -150,7 +149,7 @@ class XmlRecordingList : RecordingList
     XmlRecordingList(std::ostream* _out, bool _read_marks) : RecordingList(_out, _read_marks) { };
     ~XmlRecordingList() { };
     virtual void init();
-    virtual void addRecording(cRecording* recording, int nr, SyncMap* sync_map, std::string sync_action, bool add_hash = false);
+    virtual void addRecording(const cRecording* recording, int nr, SyncMap* sync_map, std::string sync_action, bool add_hash = false);
     virtual void finish();
 };
 
