@@ -1,3 +1,11 @@
+vdr-plugin-restfulapi (0.2.5.2-1yavdr0~trusty) trusty; urgency=medium
+
+  * comaptibility to vdr-2.3.1
+  * add property index to timers (reflects index in svdrp lstt)
+  * fix housekeeping
+
+ -- Henning Künne <hannemann666@gmx.net>  Sat, 03 Oct 2015 21:55:51 +0200
+
 vdr-plugin-restfulapi (0.2.5.0-1yavdr0~trusty) trusty; urgency=medium
 
   * add recordings sync feature
