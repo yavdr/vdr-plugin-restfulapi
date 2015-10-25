@@ -11,7 +11,7 @@
 #include "serverthread.h"
 #include "statusmonitor.h"
 
-static const char *VERSION        = "0.2.5.2";
+static const char *VERSION        = "0.2.5.3";
 static const char *DESCRIPTION    = "Offers a RESTful-API to retrieve data from VDR";
 static const char *MAINMENUENTRY  = NULL;//"Restfulapi";
 
@@ -134,6 +134,14 @@ bool cPluginRestfulapi::Start(void)
 
   FileCaches::get(); //cache files
 
+  string syncDir = Settings::get()->CacheDirectory() + "/sync";
+  FileExtension::get()->exists(syncDir) || system(("mkdir -p " + syncDir).c_str());
+  if (!FileExtension::get()->exists(syncDir)) {
+      esyslog("restfulapi: error creating sync directory: %s", syncDir.c_str());
+  } else {
+      isyslog("restfulapi: using sync directory: %s", syncDir.c_str());
+  }
+
   serverThread.Initialize();
   serverThread.Start();
   return true;
@@ -150,6 +158,7 @@ void cPluginRestfulapi::Stop(void)
 void cPluginRestfulapi::Housekeeping(void)
 {
   // Perform any cleanup or other regular tasks.
+
   string cacheDir = Settings::get()->CacheDirectory();
   string syncDir = cacheDir + "/sync";
   string cmd = "find " + syncDir + " -type f -mtime +5 -delete";
@@ -157,7 +166,6 @@ void cPluginRestfulapi::Housekeeping(void)
   if (result > 0) {
       esyslog("restfulapi: error cleaning up outdated syncfiles: %s", cmd.c_str());
   }
-  dsyslog("restfulapi: cleaning up outdated syncfiles: %s", cmd.c_str());
 }
 
 void cPluginRestfulapi::MainThreadHook(void)
