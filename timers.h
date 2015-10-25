@@ -187,4 +187,5 @@ class TimerValues
     int		ConvertWeekdays(std::string v);
     const cChannel*	ConvertChannel(std::string v);
     cTimer*	ConvertTimer(std::string v);
+    std::string GetStartStopTimestamp(const cTimer* timer, bool stopTime = false);
 };

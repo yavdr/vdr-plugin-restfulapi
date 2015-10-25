@@ -150,6 +150,9 @@ void cPluginRestfulapi::Stop(void)
 void cPluginRestfulapi::Housekeeping(void)
 {
   // Perform any cleanup or other regular tasks.
+
+	// TODO: create sync dir if not exists
+
   string cacheDir = Settings::get()->CacheDirectory();
   string syncDir = cacheDir + "/sync";
   string cmd = "find " + syncDir + " -type f -mtime +5 -delete";
