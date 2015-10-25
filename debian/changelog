@@ -1,3 +1,10 @@
+vdr-plugin-restfulapi (0.2.5.3-1yavdr0~trusty) trusty; urgency=medium
+
+  * fix timestamp generation (timer) not respecting dst change
+  * move create syncdir on startup, remove debug message
+
+ -- Henning Künne <hannemann666@gmx.net>  Sat, 03 Oct 2015 21:55:51 +0200
+
 vdr-plugin-restfulapi (0.2.5.2-1yavdr0~trusty) trusty; urgency=medium
 
   * comaptibility to vdr-2.3.1
