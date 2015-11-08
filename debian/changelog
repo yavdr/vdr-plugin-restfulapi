@@ -1,3 +1,9 @@
+vdr-plugin-restfulapi (0.2.5.4-1yavdr0~trusty) trusty; urgency=medium
+
+  * fix timer filename not converted on update if original filename is used
+
+ -- Henning Künne <hannemann666@gmx.net>  Sun, 08 Nov 2015 12:04:51 +0200
+
 vdr-plugin-restfulapi (0.2.5.3-1yavdr0~trusty) trusty; urgency=medium
 
   * fix timestamp generation (timer) not respecting dst change
