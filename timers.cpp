@@ -111,7 +111,7 @@ void TimersResponder::createOrUpdateTimer(ostream& out, cxxtools::http::Request&
      if ( timer_orig == NULL ) { error = true; error_values += "timer_id, "; }
      if ( !error ) {
         if ( !v.IsFlagsValid(flags) ) { flags = timer_orig->Flags(); }
-        if ( !v.IsFileValid(file) ) { file = (string)timer_orig->File(); }
+        if ( !v.IsFileValid(file) ) { file = v.ConvertFile((string)timer_orig->File()); }
         if ( !v.IsLifetimeValid(lifetime) ) { lifetime = timer_orig->Lifetime(); }
         if ( !v.IsPriorityValid(priority) ) { priority = timer_orig->Priority(); }
         if ( !v.IsStopValid(stop) ) { stop = timer_orig->Stop(); }
