@@ -267,6 +267,7 @@ class QueryHandler
     cxxtools::QueryParams _body;
     JsonParser jsonParser;
     JsonObject* jsonObject;
+    std::string fixUrl(std::string url);
     void parseRestParams(std::string params);
     std::string getJsonString(std::string name);
     int         getJsonInt(std::string name);
