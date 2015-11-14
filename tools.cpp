@@ -1542,6 +1542,9 @@ string StringExtension::toString(cString value) {
 QueryHandler::QueryHandler(string service, cxxtools::http::Request& request)
 {
   _url = request.url();
+
+  _url = fixUrl(_url);
+
   _service = service;
   _options.parse_url(request.qparams());
   string body = request.bodyStr();
@@ -1580,6 +1583,64 @@ QueryHandler::~QueryHandler()
      delete jsonObject;
   }
 }
+
+/**
+ * fix wrong decoded urls
+ */
+string QueryHandler::fixUrl(string url) {
+
+
+	/**
+	 * http://192.168.3.2:8002/recordings/path/to/%25%233Fx%233F_-_%233F._file/2015-11-10.04.30.1016-0.rec.json?marks=true
+	 *
+	 * defect: %25%23 is decoded to #0023, should be %#
+	 *
+
+		urlencoded chars	 		chars in url		replace with
+
+		#							#0023				%#
+		$							#0024				%$
+		%							#0025				%%
+		&							#0026				%&
+		+							#002B				%+
+		,							#002C				%,
+		/							#002F				%/
+		:							#003A				%:
+		;							#003B				%;
+		=							#003D				%=
+		?							#003F				%?
+		@							#0040				%@
+		[							#005B				%[
+		]							#005D				%]
+	 */
+
+	map<string, string> badChars;
+	badChars["2"] = "\x02";
+	badChars["3"] = "\x03";
+	badChars["4"] = "\x04";
+	badChars["5"] = "\x05";
+
+	string::size_type pos = 0;
+	string::size_type found;
+	string next;
+	string replace;
+	unsigned int x;
+	char m;
+
+	for (map<string, string>::iterator mt = badChars.begin(); mt != badChars.end(); ++mt) {
+		while ( ( pos = url.find(  mt->second, found ) ) != string::npos) {
+
+			next = url.substr(pos+1, 1);
+			replace = "%";
+			x = (int)strtol((mt->first+next).c_str(), NULL, 16);
+			m = x;
+			replace.push_back(m);
+			url = StringExtension::replace(url, mt->second+next, replace);
+		}
+	}
+	//esyslog("restfulapi: fixed url: %s", url.c_str());
+	return url;
+};
 
 void QueryHandler::parseRestParams(std::string params)
 {
