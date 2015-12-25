@@ -248,10 +248,12 @@ SerDevice InfoResponder::getDeviceSerializeInfo(int index) {
   bool live = false;
 
   if (dev->ProvidesSource(cSource::stCable) || dev->ProvidesSource(cSource::stSat) || dev->ProvidesSource(cSource::stTerr) || dev->ProvidesSource(cSource::stAtsc)) {
-      channelName = (string)chan->Name();
-      channelId = (string)chan->GetChannelID().ToString();
-      channelNr = chan->Number();
-      live = channelNr == StatusMonitor::get()->getChannel();
+	  if (chan) {
+		  channelName = (string)chan->Name();
+		  channelId = (string)chan->GetChannelID().ToString();
+		  channelNr = chan->Number();
+		  live = channelNr == StatusMonitor::get()->getChannel();
+	  }
 
       hasCi = dev->HasCi();
       signalStrength = dev->SignalStrength();
