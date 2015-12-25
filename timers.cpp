@@ -119,6 +119,7 @@ void TimersResponder::createOrUpdateTimer(ostream& out, cxxtools::http::Request&
         if ( !v.IsWeekdaysValid(weekdays) ) { weekdays = v.ConvertWeekdays(timer_orig->WeekDays()); }
         if ( !v.IsDayValid(day) ) { day = v.ConvertDay(timer_orig->Day()); }
         if ( chan == NULL ) { chan = (cChannel*)timer_orig->Channel(); }
+        if ( aux == "" ) { aux = v.ConvertAux(timer_orig->Aux()); }
      }
   }
 
