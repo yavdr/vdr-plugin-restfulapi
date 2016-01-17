@@ -240,6 +240,9 @@ SerDevice InfoResponder::getDeviceSerializeInfo(int index) {
 
   int signalStrength = -1;
   int signalQuality = -1;
+  uint16_t snr = 0;
+  uint32_t ber = 0;
+  uint32_t unc = 0;
   int adapter = -1;
   int frontend = -1;
 
@@ -261,6 +264,14 @@ SerDevice InfoResponder::getDeviceSerializeInfo(int index) {
       adapter = dev->Adapter();
       frontend = dev->Frontend();
       type = (string)dev->DeviceType();
+
+      int fe = open(*cString::sprintf(FRONTEND_DEVICE, dev->Adapter(), dev->Frontend()), O_RDONLY | O_NONBLOCK);
+      if (fe >= 0) {
+    	  ioctl(fe, FE_READ_SNR, &snr);
+    	  ioctl(fe, FE_READ_BER, &ber);
+    	  ioctl(fe, FE_READ_UNCORRECTED_BLOCKS, &unc);
+      }
+      close(fe);
   }
 
   sd.dvbc = dev->ProvidesSource(cSource::stCable);
@@ -278,6 +289,9 @@ SerDevice InfoResponder::getDeviceSerializeInfo(int index) {
   sd.HasCi = hasCi;
   sd.SignalStrength = signalStrength;
   sd.SignalQuality = signalQuality;
+  sd.snr = snr;
+  sd.ber = ber;
+  sd.unc = unc;
   sd.Adapter = adapter;
   sd.Frontend = frontend;
   sd.Type = type;
@@ -335,6 +349,9 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerDevice& d)
   si.addMember("has_ci") <<= d.HasCi;
   si.addMember("signal_strength") <<= d.SignalStrength;
   si.addMember("signal_quality") <<= d.SignalQuality;
+  si.addMember("snr") <<= d.snr;
+  si.addMember("ber") <<= d.ber;
+  si.addMember("unc") <<= d.unc;
   si.addMember("adapter") <<= d.Adapter;
   si.addMember("frontend") <<= d.Frontend;
   si.addMember("type") <<= d.Type;

@@ -7,6 +7,9 @@
 #include <time.h>
 #include <vector>
 #include "statusmonitor.h"
+#include <sys/ioctl.h>
+
+#define FRONTEND_DEVICE "/dev/dvb/adapter%d/frontend%d"
 
 struct SerService
 {
@@ -54,6 +57,9 @@ struct SerDevice {
   bool HasCi;
   int SignalStrength;
   int SignalQuality;
+  uint16_t snr;
+  uint32_t ber;
+  uint32_t unc;
   int Adapter;
   int Frontend;
   cxxtools::String Type;
