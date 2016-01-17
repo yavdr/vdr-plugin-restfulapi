@@ -1,6 +1,6 @@
 vdr-plugin-restfulapi (0.2.6.0-1yavdr0~trusty) trusty; urgency=medium
 
-  * fix possible crash if no channel is available, thanks to zabrimus
+  * add some femon data
 
  -- Henning Künne <hannemann666@gmx.net>  Sun, 17 Jan 2016 15:33:51 +0200
  
