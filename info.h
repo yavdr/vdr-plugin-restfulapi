@@ -57,9 +57,11 @@ struct SerDevice {
   bool HasCi;
   int SignalStrength;
   int SignalQuality;
+  uint16_t str;
   uint16_t snr;
   uint32_t ber;
   uint32_t unc;
+  cxxtools::String status;
   int Adapter;
   int Frontend;
   cxxtools::String Type;
