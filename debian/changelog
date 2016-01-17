@@ -1,4 +1,10 @@
-vdr-plugin-restfulapi (0.2.5.6-1yavdr0~trusty) trusty; urgency=medium
+vdr-plugin-restfulapi (0.2.6.0-1yavdr0~trusty) trusty; urgency=medium
+
+  * fix possible crash if no channel is available, thanks to zabrimus
+
+ -- Henning Künne <hannemann666@gmx.net>  Sun, 17 Jan 2016 15:33:51 +0200
+ 
+ vdr-plugin-restfulapi (0.2.5.6-1yavdr0~trusty) trusty; urgency=medium
 
   * fix possible crash if no channel is available, thanks to zabrimus
   * fix deletion of aux data if timers are updated, thanks to zabrimus
