@@ -1,5 +1,11 @@
 vdr-plugin-restfulapi (0.2.6.0-1yavdr0~trusty) trusty; urgency=medium
 
+  * fix empty xml recording lists
+
+ -- Henning Künne <hannemann666@gmx.net>  Sun, 02 Apr 2016 16:00:51 +0200
+ 
+ vdr-plugin-restfulapi (0.2.6.0-1yavdr0~trusty) trusty; urgency=medium
+
   * add some femon data
 
  -- Henning Künne <hannemann666@gmx.net>  Sun, 17 Jan 2016 15:33:51 +0200
