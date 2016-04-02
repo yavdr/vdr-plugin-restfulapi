@@ -798,7 +798,9 @@ void XmlRecordingList::addRecording(const cRecording* recording, int nr, SyncMap
   out += cString::sprintf("  <param name=\"event_description\">%s</param>\n", StringExtension::encodeToXml(eventDescription).c_str());
   out += cString::sprintf("  <param name=\"event_start_time\">%i</param>\n", eventStartTime);
   out += cString::sprintf("  <param name=\"event_duration\">%i</param>\n", eventDuration);
-  out += cString::sprintf("  <param name=\"aux\">%s</param>\n", StringExtension::encodeToXml(recording->Info()->Aux()).c_str());
+
+  const char* aux = recording->Info()->Aux();
+  out += cString::sprintf("  <param name=\"aux\">%s</param>\n", StringExtension::encodeToXml((aux != NULL ? aux : "")).c_str());
   out += sc.getMedia(recording);
   out += cString::sprintf("  <param name=\"sync_action\">%s</param>\n", StringExtension::encodeToXml(sync_action).c_str());
 
