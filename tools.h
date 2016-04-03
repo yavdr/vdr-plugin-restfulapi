@@ -67,7 +67,7 @@ class Settings
     std::string Ip() { return ip; }
     std::string EpgImageDirectory() { return epgimage_dir; }
     std::string ChannelLogoDirectory() { return channellogo_dir; }
-    std::string WebappDirectory() { return webapp_dir; }
+    std::string WebappDirectory();
     std::map<std::string, std::string> Webapps() { return webapps; }
     std::string CacheDirectory() { return cache_dir; }
     std::string ConfDirectory() { return conf_dir; }
@@ -250,6 +250,8 @@ class StringExtension
     static std::string toLowerCase(std::string str);
     static std::string trim(std::string str);
     static std::vector< std::string > split(std::string str, std::string s);
+    static std::string join(std::vector<std::string> in, std::string glue);
+    static std::string join(std::map<std::string,std::string> in, std::string glue, bool keys = false);
     static std::string timeToString(time_t time);
     static std::string dateToString(time_t time);
     static std::string addZeros(int value, int digits);

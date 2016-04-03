@@ -75,9 +75,9 @@ bool Settings::SetWebappDirectory(std::string v)
     int index = 0;
     for(; it != paths.end(); ++it) {
 
-	path = paths[index];
-	addWebapp(path);
-	index++;
+		path = paths[index];
+		addWebapp(path);
+		index++;
     }
   } else {
 	addWebapp(v);
@@ -96,6 +96,7 @@ void Settings::addWebapp(string path) {
 
   if ( stat(path.c_str(), &stat_info) == 0) {
      webapps[app_name] = path;
+     webapp_dir += webapp_dir == "" ? path : ", " + path;
      esyslog("restfulapi: Webapp '%s' configured for path '%s'!", app_name.c_str(), path.c_str());
   } else {
      esyslog("restfulapi: can not add webapp '%s'! Path '%s' does not exist!", app_name.c_str(), path.c_str());
@@ -194,6 +195,13 @@ map<std::string, std::string> Settings::WebappFileTypes() {
   return webapp_file_types;
 };
 
+std::string Settings::WebappDirectory() {
+
+	string glue = ",";
+
+	return StringExtension::join(webapps, glue);
+}
+
 Settings* Settings::get() 
 {
   static Settings settings;
@@ -206,7 +214,7 @@ void Settings::initDefault()
   SetIp((string)"0.0.0.0");
   SetEpgImageDirectory((string)"/var/cache/vdr/epgimages");
   SetChannelLogoDirectory((string)"/usr/share/vdr/channel-logos");
-  SetWebappDirectory((string)"/var/lib/vdr/restfulapi/webapp");
+  SetWebappDirectory((string)"/var/lib/vdr/plugins/restfulapi/webapp");
   SetHeaders((string)"true");
   webapp_filetypes_filename = "webapp_file_types.conf";
 }
@@ -1485,6 +1493,34 @@ vector<string > StringExtension::split(string str, string s)
   result.push_back(str.substr(previous+1));
 
   return result;
+}
+
+string StringExtension::join(vector<string> in, string glue) {
+
+	string returnString = "";
+	string current;
+
+	for(std::vector<string>::iterator it = in.begin(); it != in.end(); ++it) {
+
+		current = *it;
+		returnString += returnString == "" ? current : glue + current;
+	}
+
+	return returnString;
+}
+
+string StringExtension::join(map<string, string> in, string glue, bool keys) {
+
+	string returnString = "";
+	string current;
+
+	for(map<string, string>::iterator it = in.begin(); it != in.end(); ++it) {
+
+		current = keys ? it->first : it->second;
+		returnString += returnString == "" ? current : glue + current;
+	}
+
+	return returnString;
 }
 
 string StringExtension::timeToString(time_t time)
