@@ -217,6 +217,14 @@ void InfoResponder::replyXml(StreamExtension& se)
       se.write(cString::sprintf("    <has_ci>%s</has_ci>\n", (sd.HasCi ? "true" : "false")));
       se.write(cString::sprintf("    <signal_strength>%i</signal_strength>\n", sd.SignalStrength));
       se.write(cString::sprintf("    <signal_quality>%i</signal_quality>\n", sd.SignalQuality));
+
+      se.write(cString::sprintf("    <signal_str>%i</signal_str>\n", sd.str));
+      se.write(cString::sprintf("    <signal_snr>%i</signal_snr>\n", sd.snr));
+      se.write(cString::sprintf("    <signal_ber>%i</signal_ber>\n", sd.ber));
+      se.write(cString::sprintf("    <signal_unc>%i</signal_unc>\n", sd.unc));
+      se.write(cString::sprintf("    <signal_status>%s</signal_status>\n", StringExtension::encodeToXml(sd.status).c_str()));
+
+
       se.write(cString::sprintf("    <adapter>%i</adapter>\n", sd.Adapter));
       se.write(cString::sprintf("    <frontend>%i</frontend>\n", sd.Frontend));
       se.write(cString::sprintf("    <type>%s</type>\n", StringExtension::encodeToXml(sd.Type).c_str()));
@@ -240,6 +248,12 @@ SerDevice InfoResponder::getDeviceSerializeInfo(int index) {
 
   int signalStrength = -1;
   int signalQuality = -1;
+  uint16_t str = 0;
+  uint16_t snr = 0;
+  uint32_t ber = 0;
+  uint32_t unc = 0;
+  fe_status_t statusValue;
+  char status[50];
   int adapter = -1;
   int frontend = -1;
 
@@ -248,10 +262,12 @@ SerDevice InfoResponder::getDeviceSerializeInfo(int index) {
   bool live = false;
 
   if (dev->ProvidesSource(cSource::stCable) || dev->ProvidesSource(cSource::stSat) || dev->ProvidesSource(cSource::stTerr) || dev->ProvidesSource(cSource::stAtsc)) {
-      channelName = (string)chan->Name();
-      channelId = (string)chan->GetChannelID().ToString();
-      channelNr = chan->Number();
-      live = channelNr == StatusMonitor::get()->getChannel();
+	  if (chan) {
+		  channelName = (string)chan->Name();
+		  channelId = (string)chan->GetChannelID().ToString();
+		  channelNr = chan->Number();
+		  live = channelNr == StatusMonitor::get()->getChannel();
+	  }
 
       hasCi = dev->HasCi();
       signalStrength = dev->SignalStrength();
@@ -259,6 +275,27 @@ SerDevice InfoResponder::getDeviceSerializeInfo(int index) {
       adapter = dev->Adapter();
       frontend = dev->Frontend();
       type = (string)dev->DeviceType();
+
+      int fe = open(*cString::sprintf(FRONTEND_DEVICE, dev->Adapter(), dev->Frontend()), O_RDONLY | O_NONBLOCK);
+      if (fe >= 0) {
+    	  ioctl(fe, FE_READ_SIGNAL_STRENGTH, &str);
+    	  ioctl(fe, FE_READ_SNR, &snr);
+    	  ioctl(fe, FE_READ_BER, &ber);
+    	  ioctl(fe, FE_READ_UNCORRECTED_BLOCKS, &unc);
+
+    	  memset(&statusValue, 0, sizeof(statusValue));
+    	  ioctl(fe, FE_READ_STATUS, &statusValue);
+    	  sprintf(
+			status,
+			"%s:%s:%s:%s:%s",
+			(statusValue & FE_HAS_LOCK) ? "LOCKED" : "-",
+			(statusValue & FE_HAS_SIGNAL) ? "SIGNAL" : "-",
+			(statusValue & FE_HAS_CARRIER) ? "CARRIER" : "-",
+			(statusValue & FE_HAS_VITERBI) ? "VITERBI" : "-",
+			(statusValue & FE_HAS_SYNC) ? "SYNC" : "-"
+    	);
+      }
+      close(fe);
   }
 
   sd.dvbc = dev->ProvidesSource(cSource::stCable);
@@ -276,6 +313,11 @@ SerDevice InfoResponder::getDeviceSerializeInfo(int index) {
   sd.HasCi = hasCi;
   sd.SignalStrength = signalStrength;
   sd.SignalQuality = signalQuality;
+  sd.str = str;
+  sd.snr = snr;
+  sd.ber = ber;
+  sd.unc = unc;
+  sd.status = status;
   sd.Adapter = adapter;
   sd.Frontend = frontend;
   sd.Type = type;
@@ -333,6 +375,11 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerDevice& d)
   si.addMember("has_ci") <<= d.HasCi;
   si.addMember("signal_strength") <<= d.SignalStrength;
   si.addMember("signal_quality") <<= d.SignalQuality;
+  si.addMember("str") <<= d.str;
+  si.addMember("snr") <<= d.snr;
+  si.addMember("ber") <<= d.ber;
+  si.addMember("unc") <<= d.unc;
+  si.addMember("status") <<= d.status;
   si.addMember("adapter") <<= d.Adapter;
   si.addMember("frontend") <<= d.Frontend;
   si.addMember("type") <<= d.Type;
