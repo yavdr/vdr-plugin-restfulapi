@@ -853,11 +853,11 @@ FILE* SyncMap::getSyncFile(bool write = false) {
 
   string cacheDir = (string)Settings::get()->CacheDirectory() + "/sync";
   FileExtension::get()->exists(cacheDir) || system(("mkdir -p " + cacheDir).c_str());
-  const char* fileName = (cacheDir + "/" + this->id).c_str();
-  FILE* fp = fopen(fileName, write ? "w" : "r");
+  std::string fileName = (cacheDir + "/" + this->id);
+  FILE* fp = fopen(fileName.c_str(), write ? "w" : "r");
 
   if ( fp == NULL ) {
-      esyslog("restfulapi: could not open sync map file %s for %s!", fileName, write ? "writing" : "reading");
+      esyslog("restfulapi: could not open sync map file %s for %s!", fileName.c_str(), write ? "writing" : "reading");
   }
 
   return fp;
