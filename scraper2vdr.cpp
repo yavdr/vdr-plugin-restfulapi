@@ -529,6 +529,7 @@ string Scraper2VdrService::getMovieMedia(ScraperGetEventType &eventType) {
 void ScraperImageResponder::reply(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply) {
 
   if ( request.method() == "OPTIONS" ) {
+	  QueryHandler::addHeader(reply);
       reply.addHeader("Allow", "GET");
       reply.httpReturn(200, "OK");
       return;

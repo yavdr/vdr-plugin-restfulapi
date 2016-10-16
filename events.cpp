@@ -3,13 +3,14 @@ using namespace std;
 
 void EventsResponder::reply(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
+	QueryHandler::addHeader(reply);
+
   if ( request.method() == "OPTIONS" ) {
       reply.addHeader("Allow", "GET, POST");
       reply.httpReturn(200, "OK");
       return;
   }
 
-  QueryHandler::addHeader(reply);
   if ( (int)request.url().find("/events/image/") == 0 ) {
      replyImage(out, request, reply);
   } else if ( (int)request.url().find("/events/search") == 0 ){
@@ -606,7 +607,7 @@ void XmlEventList::addEvent(const cEvent* event)
   uchar content = event->Contents(counter);
   while(content != 0) {
     counter++;
-    s->write(cString::sprintf("   <content name=\"%s\" />\n", cEvent::ContentToString(content)));
+    s->write(cString::sprintf("   <content name=\"%s\" />\n", StringExtension::encodeToXml(cEvent::ContentToString(content)).c_str() ));
     content = event->Contents(counter);
   }
   s->write("  </param>\n");
