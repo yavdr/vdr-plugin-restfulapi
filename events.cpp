@@ -607,7 +607,7 @@ void XmlEventList::addEvent(const cEvent* event)
   uchar content = event->Contents(counter);
   while(content != 0) {
     counter++;
-    s->write(cString::sprintf("   <content name=\"%s\" />\n", cEvent::ContentToString(content)));
+    s->write(cString::sprintf("   <content name=\"%s\" />\n", StringExtension::encodeToXml(cEvent::ContentToString(content)).c_str() ));
     content = event->Contents(counter);
   }
   s->write("  </param>\n");
