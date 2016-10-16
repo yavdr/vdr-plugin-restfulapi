@@ -3,13 +3,14 @@ using namespace std;
 
 void EventsResponder::reply(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
+	QueryHandler::addHeader(reply);
+
   if ( request.method() == "OPTIONS" ) {
       reply.addHeader("Allow", "GET, POST");
       reply.httpReturn(200, "OK");
       return;
   }
 
-  QueryHandler::addHeader(reply);
   if ( (int)request.url().find("/events/image/") == 0 ) {
      replyImage(out, request, reply);
   } else if ( (int)request.url().find("/events/search") == 0 ){
