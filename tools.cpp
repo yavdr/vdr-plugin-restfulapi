@@ -1871,6 +1871,7 @@ void QueryHandler::addHeader(cxxtools::http::Reply& reply)
 {
   reply.addHeader("Access-Control-Allow-Origin", "*");
   reply.addHeader("Access-Control-Allow-Methods", "POST, GET, DELETE, PUT");
+  reply.addHeader("Access-Control-Allow-Headers", "accept, authorization");
 }
 
 vector< string > QueryHandler::getBodyAsStringArray(string name) {
