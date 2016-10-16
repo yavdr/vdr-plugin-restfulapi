@@ -486,7 +486,7 @@ void XmlTimerList::addTimer(const cTimer* timer)
   s->write(cString::sprintf("  <param name=\"file_name\">%s</param>\n", StringExtension::encodeToXml(timer->File()).c_str()) );
   s->write(cString::sprintf("  <param name=\"channel_name\">%s</param>\n", StringExtension::encodeToXml(timer->Channel()->Name()).c_str()));
   s->write(cString::sprintf("  <param name=\"is_active\">%s</param>\n", (timer->Flags() & tfActive) == tfActive ? "true" : "false" ));
-  s->write(cString::sprintf("  <param name=\"aux\">%s</param>\n", StringExtension::encodeToXml(timer->Aux() != NULL ? timer->Aux() : "").c_str()));
+  s->write(cString::sprintf("  <param name=\"aux\">%s</param>\n", (timer->Aux() != NULL ? StringExtension::encodeToXml(timer->Aux()).c_str() : "")));
   s->write(" </timer>\n");
 }
 

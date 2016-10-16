@@ -20,6 +20,7 @@ public:
   virtual ~FemonResponder() {};
   virtual void reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
   virtual void replyJson(StreamExtension se, FemonService_v1_0& fe);
+  virtual void replyXml(StreamExtension se, FemonService_v1_0& fe);
 };
 
 typedef cxxtools::http::CachedService<FemonResponder> FemonService;
