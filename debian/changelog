@@ -1,5 +1,15 @@
 vdr-plugin-restfulapi (0.2.6.0-1yavdr0~trusty) trusty; urgency=medium
 
+  * add missing xml (thanks to saman)
+  * add missing xml response to femon service (thanks to saman)
+  * prevent dangling pointer (thanks to zabrimus)
+  * fix cors headers not being sent for OPTIONS requests
+  * add authentication to cors headers
+
+ -- Henning Künne <hannemann666@gmx.net>  Sun, 16 Oct 2016 12:00:00 +0200
+ 
+vdr-plugin-restfulapi (0.2.6.0-1yavdr0~trusty) trusty; urgency=medium
+
   * fix empty xml recording lists
 
  -- Henning Künne <hannemann666@gmx.net>  Sun, 02 Apr 2016 16:00:51 +0200

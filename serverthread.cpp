@@ -9,6 +9,8 @@
 
 void cServerThread::Initialize()
 {
+
+	SetDescription("Restfulapi Serverthread");
   active = false; 
 
   listenIp = Settings::get()->Ip();

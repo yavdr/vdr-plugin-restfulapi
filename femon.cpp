@@ -27,8 +27,11 @@ void FemonResponder::reply (std::ostream& out, cxxtools::http::Request& request,
   femon->Service("FemonService-v1.0", &fe);
 
   if (q.isFormat(".json")) {
-    reply.addHeader("Content-Type", "application/json; charset=utf-8");
-    replyJson(se, fe);
+	reply.addHeader("Content-Type", "application/json; charset=utf-8");
+	replyJson(se, fe);
+  } else if (q.isFormat(".xml")) {
+	reply.addHeader("Content-Type", "text/xml; charset=utf-8");
+	replyXml(se, fe);
   } else {
     reply.httpReturn(403U, "Supported formats: JSON");
   }
@@ -39,6 +42,33 @@ void FemonResponder::replyJson(StreamExtension se, FemonService_v1_0& fe) {
   cxxtools::JsonSerializer serializer(*se.getBasicStream());
   serializer.serialize(fe, "femonData");
   serializer.finish();
+
+};
+
+void FemonResponder::replyXml(StreamExtension se, FemonService_v1_0& fe) {
+
+  const char *name = fe.fe_name;
+  const char *status = fe.fe_status;
+
+  if (!name) {
+      name = "None";
+  }
+  if (!status) {
+      status = "Not available";
+  }
+
+  se.writeXmlHeader();
+  se.write("<femon xmlns=\"http://www.domain.org/restfulapi/2011/femon-xml\">\n");
+  se.write(cString::sprintf(" <name>%s</name>\n", StringExtension::encodeToXml(name).c_str()));
+  se.write(cString::sprintf(" <status>%s</status>\n", StringExtension::encodeToXml(status).c_str()));
+  se.write(cString::sprintf(" <snr>%i</snr>\n", fe.fe_snr));
+  se.write(cString::sprintf(" <signal>%i</signal>\n", fe.fe_signal));
+  se.write(cString::sprintf(" <ber>%u</ber>\n", fe.fe_ber));
+  se.write(cString::sprintf(" <unc>%u</unc>\n", fe.fe_unc));
+  se.write(cString::sprintf(" <audio_bitrate>%.0f</audio_bitrate>\n", fe.audio_bitrate));
+  se.write(cString::sprintf(" <video_bitrate>%.0f</video_bitrate>\n", fe.video_bitrate));
+  se.write(cString::sprintf(" <dolby_bitrate>%.0f</dolby_bitrate>\n", fe.dolby_bitrate));
+  se.write("</femon>\n");
 
 };
 
