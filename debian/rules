@@ -6,7 +6,7 @@
 PLG_PACKAGE = $(filter-out %-dbg, $(shell dh_listpackages))
 DBG_PACKAGE = $(filter %-dbg, $(shell dh_listpackages))
 
-UPSTREAM_VERSION=0.1.3
+UPSTREAM_VERSION=0.2.6.5
 
 .PHONY: override_dh_strip override_dh_auto_install
 
