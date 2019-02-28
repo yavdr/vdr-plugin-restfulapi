@@ -28,7 +28,7 @@ void EventsResponder::reply(ostream& out, cxxtools::http::Request& request, cxxt
 
 void EventsResponder::replyEvents(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  QueryHandler q("/events", request);
+    QueryHandler q("/events", request);
 
   if ( request.method() != "GET") {
 
@@ -38,7 +38,7 @@ void EventsResponder::replyEvents(ostream& out, cxxtools::http::Request& request
 
 
   EventList* eventList;
-
+  
   if ( q.isFormat(".json") ) {
      reply.addHeader("Content-Type", "application/json; charset=utf-8");
      eventList = (EventList*)new JsonEventList(&out);
@@ -65,6 +65,8 @@ void EventsResponder::replyEvents(ostream& out, cxxtools::http::Request& request
   string onlyCount = q.getOptionAsString("only_count");
 
 #if APIVERSNUM > 20300
+    /* create a dummer timer lock to avoid deadlock*/
+    LOCK_TIMERS_READ;
     LOCK_CHANNELS_READ;
     const cChannels& channels = *Channels;
 #else
@@ -113,7 +115,31 @@ void EventsResponder::replyEvents(ostream& out, cxxtools::http::Request& request
   int total = 0;
   for(int i=0; i<channels.Count(); i++) {
      const cSchedule *Schedule = Schedules->GetSchedule(channels.Get(i)->GetChannelID());
-     
+
+#if APIVERSNUM > 20300
+     if (Channels->Get(i)->GroupSep()) {  // we have a group-separator
+         if (channel_from > 0) channel_from += 1;
+         if (channel_to > 0 && channel_to < Channels->Count()) channel_to += 1;
+         continue;
+     }
+
+     if (!Schedule) {
+         channel_from += 1;
+         if (channel_to < Channels->Count()) channel_to += 1;
+     }
+#else
+     if (Channels.Get(i)->GroupSep()) {  // we have a group-separator
+         if (channel_from > 0) channel_from += 1;
+         if (channel_to > 0 && channel_to < Channels.Count()) channel_to += 1;
+         continue;
+     }
+
+     if (!Schedule) {
+         channel_from += 1;
+         if (channel_to < Channels.Count()) channel_to += 1;
+     }
+#endif
+
      if ((channel == NULL || strcmp(channel->GetChannelID().ToString(), channels.Get(i)->GetChannelID().ToString()) == 0) && (i >= channel_from && i <= channel_to)) {
         if (!Schedule) {
            if (channel != NULL) {
