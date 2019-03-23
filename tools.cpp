@@ -830,7 +830,7 @@ bool VdrExtension::IsRecording(const cRecording* recording)
 const cTimer* VdrExtension::TimerExists(const cEvent* event)
 {
 
-#if APIVERSNUM > 20300
+#if APIVERSNUM > 20300  
     LOCK_TIMERS_READ;
     const cTimers& timers = *Timers;
 #else
@@ -859,7 +859,7 @@ const cTimer* VdrExtension::TimerExists(const cEvent* event)
         }
      }
   }
-  return NULL;
+    return NULL;
 }
 
 vector< const cTimer* > VdrExtension::SortedTimers()

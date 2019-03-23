@@ -30,12 +30,7 @@ void TimersResponder::createOrUpdateTimer(ostream& out, cxxtools::http::Request&
 {
   QueryHandler q("/timers", request);
 
-
-
-#if APIVERSNUM > 20300
-    LOCK_TIMERS_WRITE;
-    cTimers& timers = *Timers;
-#else
+#if APIVERSNUM < 20300
     cTimers& timers = Timers;
 
 	if ( timers.BeingEdited() ) {
@@ -59,11 +54,13 @@ void TimersResponder::createOrUpdateTimer(ostream& out, cxxtools::http::Request&
   string day = v.ConvertDay(q.getBodyAsString("day"));
   const cChannel* chan = v.ConvertChannel(q.getBodyAsString("channel"));
   cTimer* timer_orig = v.ConvertTimer(q.getBodyAsString("timer_id"));
-  
-  if ( update == false ) { //create
-     int eventid = q.getBodyAsInt("eventid");
-     int minpre = q.getBodyAsInt("minpre");
-     int minpost = q.getBodyAsInt("minpost");
+  const cTimer* timerOrigRead = VdrExtension::getTimer(q.getBodyAsString("timer_id"));
+  int eventid = q.getBodyAsInt("eventid");
+  int minpre = q.getBodyAsInt("minpre");
+  int minpost = q.getBodyAsInt("minpost");
+  if (minpre < 0) minpre = 0;
+  if (minpost < 0) minpost = 0;
+  if ( update == false ) { //create timer by event ID 
      if (eventid >= 0 && chan != NULL) {
         const cEvent* event = VdrExtension::GetEventById((tEventID)eventid, chan);
 
@@ -71,8 +68,6 @@ void TimersResponder::createOrUpdateTimer(ostream& out, cxxtools::http::Request&
            reply.httpReturn(407, "eventid invalid");
            return;
         } else {
-           if (minpre < 0) minpre = 0;
-           if (minpost < 0) minpost = 0;
            if (!v.IsFlagsValid(flags)) flags = 1;
            if (!v.IsFileValid(file)) file = (string)event->Title();
            if (!v.IsWeekdaysValid(weekdays)) weekdays = "-------";
@@ -89,7 +84,7 @@ void TimersResponder::createOrUpdateTimer(ostream& out, cxxtools::http::Request&
                         << StringExtension::addZeros((starttime->tm_mon + 1), 2) << "-"
                         << StringExtension::addZeros((starttime->tm_mday), 2);
               day = daystream.str();
- 
+              
               start = starttime->tm_hour * 100 + starttime->tm_min;
 
               struct tm *stoptime = localtime(&estop);
@@ -108,8 +103,34 @@ void TimersResponder::createOrUpdateTimer(ostream& out, cxxtools::http::Request&
         if ( chan == NULL ) { error = true; error_values += "channel, "; }
      }
   } else { //update
-     if ( timer_orig == NULL ) { error = true; error_values += "timer_id, "; }
-     if ( !error ) {
+     if ( (timer_orig == NULL) || (timerOrigRead == NULL) ) { error = true; error_values += "timer_id, "; }
+     if ( !error )
+        {
+            if (!v.IsStopValid(stop) || !v.IsStartValid(start)) /* update timer based on premin and postmin */
+            {
+                tEventID eventid_;   
+                eventid_ = timerOrigRead->Event()->EventID();
+                chan = timerOrigRead->Channel();
+                const cEvent* event = VdrExtension::GetEventById((tEventID)eventid_, chan);                
+                if (event == NULL) {
+                    reply.httpReturn(407, "eventid invalid");
+                    return;
+                }
+                time_t estart = event->StartTime() - minpre * 60;
+                time_t estop = event->EndTime() + minpost * 60;
+              struct tm *starttime = localtime(&estart);
+
+              ostringstream daystream;
+              daystream << StringExtension::addZeros((starttime->tm_year + 1900), 4) << "-"
+                        << StringExtension::addZeros((starttime->tm_mon + 1), 2) << "-"
+                        << StringExtension::addZeros((starttime->tm_mday), 2);
+              day = daystream.str();
+              
+              start = starttime->tm_hour * 100 + starttime->tm_min;
+
+              struct tm *stoptime = localtime(&estop);
+              stop = stoptime->tm_hour * 100 + stoptime->tm_min;
+           }         
         if ( !v.IsFlagsValid(flags) ) { flags = timer_orig->Flags(); }
         if ( !v.IsFileValid(file) ) { file = v.ConvertFile((string)timer_orig->File()); }
         if ( !v.IsLifetimeValid(lifetime) ) { lifetime = timer_orig->Lifetime(); }
@@ -118,9 +139,15 @@ void TimersResponder::createOrUpdateTimer(ostream& out, cxxtools::http::Request&
         if ( !v.IsStartValid(start) ) { start = timer_orig->Start(); }
         if ( !v.IsWeekdaysValid(weekdays) ) { weekdays = v.ConvertWeekdays(timer_orig->WeekDays()); }
         if ( !v.IsDayValid(day) ) { day = v.ConvertDay(timer_orig->Day()); }
-        if ( chan == NULL ) { chan = (cChannel*)timer_orig->Channel(); }
-        if ( aux == "" ) { aux = v.ConvertAux(timer_orig->Aux()); }
-     }
+        if ( chan == NULL ) { chan = (cChannel*)timer_orig->Channel();}
+        if (aux == "")
+            {
+                if (timer_orig->Aux() != NULL)
+                {
+                    aux = v.ConvertAux(timer_orig->Aux());
+                }
+            }
+        }
   }
 
   if (error) {
@@ -141,12 +168,18 @@ void TimersResponder::createOrUpdateTimer(ostream& out, cxxtools::http::Request&
           << file << ":" 
           << aux;
 
-  dsyslog("restfulapi: /%s/ ", builder.str().c_str());
+  dsyslog("restfulapi timer info: /%s/ ", builder.str().c_str());
   chan = NULL;
   if ( update == false ) { // create timer
      cTimer* timer = new cTimer();
-     if ( timer->Parse(builder.str().c_str()) ) { 
+     if ( timer->Parse(builder.str().c_str()) ) {
+#if APIVERSNUM > 20300
+        LOCK_TIMERS_WRITE;
+        Timers->SetExplicitModify();
+        cTimer* checkTimer = Timers->GetTimer(timer);
+#else
         cTimer* checkTimer = timers.GetTimer(timer);
+#endif
         if ( checkTimer != NULL ) {
            delete timer;
            reply.httpReturn(403, "Timer already defined!"); 
@@ -154,14 +187,13 @@ void TimersResponder::createOrUpdateTimer(ostream& out, cxxtools::http::Request&
         } else {
            replyCreatedId(timer, request, reply, out);
 #if APIVERSNUM > 20300
-
            LOCK_SCHEDULES_READ;
            timer->SetEventFromSchedule(Schedules);
+           Timers->Add(timer);
+           Timers->SetModified();
 #else
            timer->SetEventFromSchedule();
-#endif
            timers.Add(timer);
-#if APIVERSNUM <= 20300
            timers.SetModified();
 #endif
            esyslog("restfulapi: timer created!");
@@ -173,12 +205,12 @@ void TimersResponder::createOrUpdateTimer(ostream& out, cxxtools::http::Request&
   } else {
      if ( timer_orig->Parse(builder.str().c_str()) ) {
 #if APIVERSNUM > 20300
-
-           LOCK_SCHEDULES_READ;
-           timer_orig->SetEventFromSchedule(Schedules);
+        LOCK_SCHEDULES_READ;
+        timer_orig->SetEventFromSchedule(Schedules);
+        //Timers->SetModified();
 #else
-           timer_orig->SetEventFromSchedule();
-           timers.SetModified();
+        timer_orig->SetEventFromSchedule();
+        timers.SetModified();
 #endif
         replyCreatedId(timer_orig, request, reply, out);
         esyslog("restfulapi: updating timer successful!");
@@ -216,10 +248,7 @@ void TimersResponder::deleteTimer(ostream& out, cxxtools::http::Request& request
 {
   QueryHandler q("/timers", request);
 
-#if APIVERSNUM > 20300
-    LOCK_TIMERS_WRITE;
-    cTimers& timers = *Timers;
-#else
+#if APIVERSNUM < 20300
     cTimers& timers = Timers;
 
 	if ( timers.BeingEdited() ) {
@@ -235,16 +264,24 @@ void TimersResponder::deleteTimer(ostream& out, cxxtools::http::Request& request
   if ( timer == NULL) {
      reply.httpReturn(404, "Timer id invalid!");
   } else {
+#if APIVERSNUM > 20300
+      LOCK_TIMERS_WRITE;
+      Timers->SetExplicitModify();
+#endif
      if ( timer->Recording() ) {
         timer->Skip();
 #if APIVERSNUM > 20300
         cRecordControls::Process(Timers, time(NULL));
+     }
+     Timers->Del(timer);
+     Timers->SetModified();
 #else
         cRecordControls::Process(time(NULL));
-#endif
      }
      timers.Del(timer);
      timers.SetModified();
+#endif
+
      reply.httpReturn(200, "Timer deleted."); 
   }
 }
@@ -253,10 +290,7 @@ void TimersResponder::replyBulkdelete(std::ostream& out, cxxtools::http::Request
 
   QueryHandler q("/timers/bulkdelete", request);
 
-#if APIVERSNUM > 20300
-    LOCK_TIMERS_WRITE;
-    cTimers& timers = *Timers;
-#else
+#if APIVERSNUM < 20300
     cTimers& timers = Timers;
 
 	if ( timers.BeingEdited() ) {
@@ -298,16 +332,23 @@ void TimersResponder::replyBulkdelete(std::ostream& out, cxxtools::http::Request
     if ( timer == NULL ) {
 	result.deleted = false;
     } else {
+#if APIVERSNUM > 20300
+      LOCK_TIMERS_WRITE;
+      Timers->SetExplicitModify();
+#endif
       if ( timer->Recording() ) {
-	timer->Skip();
+      timer->Skip();
 #if APIVERSNUM > 20300
         cRecordControls::Process(Timers, time(NULL));
+      }
+      Timers->Del(timer);
+      Timers->SetModified();
 #else
         cRecordControls::Process(time(NULL));
-#endif
       }
       timers.Del(timer);
       timers.SetModified();
+#endif
       result.deleted = true;
     }
     list->addDeleted(result);

@@ -196,6 +196,12 @@ void cPluginRestfulapi::MainThreadHook(void)
   const cRecording* recording = scheduler->SwitchableRecording();
 
   if (recording != NULL) {
+     if (scheduler->IsRewind()) {
+        cDevice::PrimaryDevice()->StopReplay(); // must do this first to be able to rewind the currently replayed recording
+        cResumeFile ResumeFile(recording->FileName(), recording->IsPesRecording());
+        ResumeFile.Delete();
+        scheduler->SetRewind(false);
+     }
      cReplayControl::SetRecording(recording->FileName());
      scheduler->SwitchableRecording(NULL);
      cControl::Shutdown();

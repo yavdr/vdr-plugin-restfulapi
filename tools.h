@@ -198,7 +198,6 @@ class FileExtension {
 class VdrExtension
 {
   private:
-    static bool MoveDirectory(std::string const & sourceDir, std::string const & targetDir, bool copy = false);
   public:
     static const cChannel* getChannel(int number);
     static const cChannel* getChannel(std::string id);
@@ -219,6 +218,7 @@ class VdrExtension
     static std::string getVideoDiskSpace();
     static std::string FileSystemExchangeChars(std::string const & s, bool ToFileSystem);
     static std::string MoveRecording(cRecording const * recording, std::string const & name, bool copy = false);
+    static bool MoveDirectory(std::string const & sourceDir, std::string const & targetDir, bool copy = false);
     static cDvbDevice* getDevice(int index);
 };
 
@@ -380,6 +380,7 @@ class TaskScheduler
     tChannelID _channel;
     const cRecording* _recording;
     cMutex     _channelMutex;
+    bool _bRewind;
   public:
     TaskScheduler() { _channel = tChannelID::InvalidID; _recording = NULL; };
     ~TaskScheduler();
@@ -390,6 +391,8 @@ class TaskScheduler
     tChannelID SwitchableChannel();
     void SwitchableRecording(const cRecording* recording) { _recording = recording; }
     const cRecording* SwitchableRecording() { return _recording; }
+    void SetRewind(bool bRewind) { _bRewind = bRewind; }
+    bool IsRewind() { return _bRewind; }
 };
 
 #endif

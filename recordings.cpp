@@ -15,14 +15,21 @@ void RecordingsResponder::reply(ostream& out, cxxtools::http::Request& request, 
 
 
   if ((int)request.url().find("/recordings/play") == 0 ) {
-     if ( request.method() == "GET" ) {
+     if (request.method() == "POST") {
         playRecording(out, request, reply);
         reply.addHeader("Content-Type", "text/plain; charset=utf-8");
-     } else if (request.method() == "POST") {
+     } else {
+        reply.httpReturn(501, "Only POST method is supported by the /recordings/play service.");
+     }
+     found = true;
+  }
+    
+  else if ((int)request.url().find("/recordings/rewind") == 0 ) {
+     if (request.method() == "POST") {
         rewindRecording(out, request, reply);
         reply.addHeader("Content-Type", "text/plain; charset=utf-8");
      } else {
-        reply.httpReturn(501, "Only GET and POST method is supported by the /recordings/play service.");
+        reply.httpReturn(501, "Only POST method is supported by the /recordings/rewind service.");
      }
      found = true;
   }
@@ -83,6 +90,17 @@ void RecordingsResponder::reply(ostream& out, cxxtools::http::Request& request, 
         reply.httpReturn(501, "Only POST method is supported by the /recordings/sync service.");
      }
      found = true;
+  }
+    
+  else if ((int) request.url().find("/recordings/delete") == 0 ) {
+      if (request.method() == "POST") {
+          deleteRecordingByName(out, request, reply);
+      } else if (request.method() == "DELETE") {
+          deleteRecordingByName(out, request, reply);
+      } else {
+          reply.httpReturn(501, "Only POST and DELETE methods are supported by the /recordings/delete service.");
+      }
+      found = true;
   }
 
   // original /recordings service
@@ -194,8 +212,10 @@ RecordingList* RecordingsResponder::getRecordingList(ostream& out, QueryHandler 
 
   } else {
 
+    // we can prevent a lot of trouble, if we add a default header and a recordingList
     reply.httpReturn(502, "Resources are not available for the selected format. (Use: .json, .xml or .html)");
     return NULL;
+
   }
 
   return recordingList;
@@ -204,28 +224,64 @@ RecordingList* RecordingsResponder::getRecordingList(ostream& out, QueryHandler 
 void RecordingsResponder::playRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/recordings/play", request);
-  const cRecording* recording = getRecordingByRequest(q);
-  if ( recording != NULL ) {
-    TaskScheduler::get()->SwitchableRecording(recording);
+#if APIVERSNUM > 20300
+  LOCK_RECORDINGS_READ;
+  const cRecordings& recordings = *Recordings;
+#else
+  cThreadLock RecordingsLock(&Recordings);
+  cRecordings& recordings = Recordings;
+#endif
+  const cRecording* recording = NULL;
+    
+  string recording_file = q.getBodyAsString("file");
+  if (recording_file.length() > 0)
+     recording = recordings.GetByName(recording_file.c_str());
+  else {
+     int recording_number = q.getParamAsInt(0);
+     if (recording_number < 0 || recording_number >= recordings.Count())
+        reply.httpReturn(404, "Wrong recording number!");
+     else
+        recording = recordings.Get(recording_number);
+  }
+    
+  if (recording != NULL) {
+     TaskScheduler::get()->SwitchableRecording(recording);
   } else {
-    reply.httpReturn(404, "Wrong recording number or filename!");
+     reply.httpReturn(404, "Wrong recording name or number!");
   }
 }
 
 void RecordingsResponder::rewindRecording(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
-  QueryHandler q("/recordings/play", request);
-  const cRecording* recording = getRecordingByRequest(q);
-
-  if ( recording != NULL ) {
-    cDevice::PrimaryDevice()->StopReplay(); // must do this first to be able to rewind the currently replayed recording
-    cResumeFile ResumeFile(recording->FileName(), recording->IsPesRecording());
-    ResumeFile.Delete();
-    TaskScheduler::get()->SwitchableRecording(recording);
+  QueryHandler q("/recordings/rewind", request);
+#if APIVERSNUM > 20300
+  LOCK_RECORDINGS_READ;
+  const cRecordings& recordings = *Recordings;
+#else
+  cThreadLock RecordingsLock(&Recordings);
+  cRecordings& recordings = Recordings;
+#endif
+  const cRecording* recording = NULL;
+    
+  string recording_file = q.getBodyAsString("file");
+  if (recording_file.length() > 0)
+     recording = recordings.GetByName(recording_file.c_str());
+  else {
+     int recording_number = q.getParamAsInt(0);
+     if (recording_number < 0 || recording_number >= recordings.Count())
+        reply.httpReturn(404, "Wrong recording number!");
+    else
+        recording = recordings.Get(recording_number);
+  }
+    
+  if (recording != NULL) {
+     TaskScheduler::get()->SetRewind(true);
+     TaskScheduler::get()->SwitchableRecording(recording);
   } else {
-    reply.httpReturn(404, "Wrong recording number!");
+     reply.httpReturn(404, "Wrong recording name or number!");
   }
 }
+
 
 /* move or copy recording */
 void RecordingsResponder::moveRecording(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
@@ -237,8 +293,8 @@ void RecordingsResponder::moveRecording(ostream& out, cxxtools::http::Request& r
 
 
 #if APIVERSNUM > 20300
-    LOCK_RECORDINGS_READ;
-    const cRecordings& recordings = *Recordings;
+    LOCK_RECORDINGS_WRITE;
+    cRecordings& recordings = *Recordings;
 #else
     cThreadLock RecordingsLock(&Recordings);
     cRecordings& recordings = Recordings;
@@ -258,13 +314,32 @@ void RecordingsResponder::moveRecording(ostream& out, cxxtools::http::Request& r
       return;
    }
 
-   string newname = VdrExtension::MoveRecording(recording, VdrExtension::FileSystemExchangeChars(target.c_str(), true), copy_only);
-
-   if (newname.length() <= 0) {
+   //string newname = VdrExtension::MoveRecording(recording, VdrExtension::FileSystemExchangeChars(target.c_str(), true), copy_only);
+    
+   string oldname = recording->FileName();
+   size_t found = oldname.find_last_of("/");
+    
+   if (found == string::npos) {
       LOG_ERROR_STR(source.c_str());
       reply.httpReturn(503, "File copy failed!");
       return;
    }
+    
+#if APIVERSNUM > 20101
+   string newname = string(cVideoDirectory::Name()) + "/" + VdrExtension::FileSystemExchangeChars(target.c_str(), true) + oldname.substr(found);
+#else
+   string newname = string(VideoDirectory) + "/" + VdrExtension::FileSystemExchangeChars(target.c_str(), true) + oldname.substr(found);
+#endif
+   if (!VdrExtension::MoveDirectory(oldname.c_str(), newname.c_str(), copy_only)) {
+      esyslog("[Restfulapi]: renaming failed from '%s' to '%s'", oldname.c_str(), newname.c_str());
+      reply.httpReturn(503, "File copy failed!");
+      return;
+   }
+    
+   if (!copy_only)
+      recordings.DelByName(oldname.c_str());
+   recordings.AddByName(newname.c_str());
+   cRecordingUserCommand::InvokeCommand(*cString::sprintf("rename \"%s\"", *strescape(oldname.c_str(), "\\\"$'")), newname.c_str());
 
    const cRecording* new_recording = recordings.GetByName(newname.c_str());
    if (!new_recording) {
@@ -277,6 +352,9 @@ void RecordingsResponder::moveRecording(ostream& out, cxxtools::http::Request& r
    esyslog("restfulapi: %s, %d", new_recording->FileName(), new_recording->Index());
 
    RecordingList* recordingList = getRecordingList(out, q, reply);
+   if (recordingList == NULL) {
+      return;
+   }
    recordingList->addRecording(new_recording, new_recording->Index(), NULL, "");
    recordingList->setTotal(recordings.Count());
    recordingList->finish();
@@ -285,41 +363,76 @@ void RecordingsResponder::moveRecording(ostream& out, cxxtools::http::Request& r
 
 void RecordingsResponder::replyEditedFileName(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply) {
 
-  QueryHandler q("/recordings/editedfile", request);
-  const cRecording* recording		= getRecordingByRequest(q);
-  RecordingList* recordingList	= getRecordingList(out, q, reply);
-  const cRecording* editedFile	= NULL;
-
-  if ( recordingList == NULL ) {
-
-      return;
-  };
-  if ( recording == NULL ) {
-
+   QueryHandler q("/recordings/editedfile", request);
+   
+   const cRecording* recording	= getRecordingByRequest(q);
+   if (recording == NULL) {
       reply.httpReturn(404, "Requested recording not found!");
       return;
-  }
+   }
+   
+   RecordingList* recordingList	= getRecordingList(out, q, reply);
+   if (recordingList == NULL) {
+      return;
+   }
 
 #if APIVERSNUM > 20300
-    LOCK_RECORDINGS_READ;
-    const cRecordings& recordings = *Recordings;
+   LOCK_RECORDINGS_READ;
+   const cRecordings& recordings = *Recordings;
 #else
-    cRecordings& recordings = Recordings;
+   cRecordings& recordings = Recordings;
 #endif
-  editedFile = recordings.GetByName(cCutter::EditedFileName(recording->FileName()));
-  if ( editedFile == NULL ) {
-
+    
+   const cRecording* editedFile = recordings.GetByName(cCutter::EditedFileName(recording->FileName()));
+   if (editedFile == NULL) {
       reply.httpReturn(404, "Requested edited file not found!");
       return;
-  };
+   }
 
-  recordingList->init();
-  recordingList->addRecording(editedFile, editedFile->Index(), NULL, "");
-  recordingList->setTotal(recordings.Count());
-  recordingList->finish();
-  delete recordingList;
-
+   recordingList->init();
+   recordingList->addRecording(editedFile, editedFile->Index(), NULL, "");
+   recordingList->setTotal(recordings.Count());
+   recordingList->finish();
+   delete recordingList;
 };
+
+/* delete recording by file name */
+void RecordingsResponder::deleteRecordingByName(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+{
+    QueryHandler q("/recordings/delete", request);
+    string recording_file = q.getBodyAsString("file");
+    if (recording_file.length() > 0) {
+#if APIVERSNUM > 20300
+        LOCK_RECORDINGS_WRITE;
+        cRecordings& recordings = *Recordings;
+#else
+        cThreadLock RecordingsLock(&Recordings);
+        cRecordings& recordings = Recordings;
+#endif
+        cRecording* delRecording = recordings.GetByName(recording_file.c_str());
+        
+        string syncId = q.getOptionAsString("syncId");
+        
+        if ( delRecording == NULL ) {
+            reply.httpReturn(404, "Recording not found!");
+            return;
+        }
+        
+        esyslog("restfulapi: delete recording %s", delRecording->FileName());
+        if ( delRecording->Delete() ) {
+            
+            if (syncId != "") {
+                SyncMap* syncMap = new SyncMap(q, true);
+                syncMap->erase(StringExtension::toString(delRecording->FileName()));
+            }
+
+            recordings.DelByName(delRecording->FileName());
+            reply.httpReturn(200, "Recording deleted!");
+            return;
+        }
+    }
+    reply.httpReturn(500, "Recording could not be deleted!");
+}
 
 void RecordingsResponder::deleteRecording(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
@@ -358,9 +471,13 @@ void RecordingsResponder::showRecordings(ostream& out, cxxtools::http::Request& 
   QueryHandler q("/recordings", request);
   bool read_marks = q.getOptionAsString("marks") == "true";
   string sync_id = q.getOptionAsString("syncId");
-  SyncMap* sync_map = new SyncMap(q);
 
   RecordingList* recordingList = getRecordingList(out, q, reply, read_marks);
+  if (recordingList == NULL) {
+     return;
+  }
+    
+  SyncMap* sync_map = new SyncMap(q);
 
   int start_filter = q.getOptionAsInt("start");
   int limit_filter = q.getOptionAsInt("limit");
@@ -535,6 +652,9 @@ void RecordingsResponder::initServerList(ostream& out, cxxtools::http::Request& 
 
 	QueryHandler q("/recordings/sync", request);
 	RecordingList* recordingList = getRecordingList(out, q, reply, false);
+	if (recordingList == NULL) {
+	   return;
+	}
 
 #if APIVERSNUM > 20300
     LOCK_RECORDINGS_READ;
@@ -552,6 +672,9 @@ void RecordingsResponder::sendSyncList(ostream& out, cxxtools::http::Request& re
 
 	QueryHandler q("/recordings/sync", request);
 	RecordingList* updates = getRecordingList(out, q, reply, false);
+	if (updates == NULL) {
+	   return;
+	}
 	map<string, string> updatesList;
 	map<string, string>::iterator itUpdates;
 
