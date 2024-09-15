@@ -944,7 +944,11 @@ const cEvent* VdrExtension::GetEventById(tEventID eventID, const cChannel* chann
 
 	const cSchedule *Schedule = Schedules->GetSchedule(channel->GetChannelID());
 	if (Schedule)
+#if APIVERSNUM >= 20502
+		return Schedule->GetEventById(eventID);
+#else
 		return Schedule->GetEvent(eventID);
+#endif
 
 	return NULL;
 }

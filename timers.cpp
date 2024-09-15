@@ -713,7 +713,11 @@ cEvent* TimerValues::ConvertEvent(string event_id, cChannel* channel)
 
   if ( !Schedule ) return NULL;
 
+#if APIVERSNUM >= 20502
+  return (cEvent*)Schedule->GetEventById(eventid);
+#else
   return (cEvent*)Schedule->GetEvent(eventid);
+#endif
 }
 
 string TimerValues::ConvertFile(string v)

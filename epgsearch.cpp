@@ -955,7 +955,11 @@ const cEvent* SearchResult::GetEvent()
 	if (!Channel) return NULL;
 	const cSchedule *Schedule = Schedules->GetSchedule(Channel);
 	if (!Schedule) return NULL;
-	return Schedule->GetEvent(m_eventId);	
+#if APIVERSNUM >= 20502
+	return Schedule->GetEventById(m_eventId);
+#else
+	return Schedule->GetEvent(m_eventId);
+#endif
 }
 
 const cChannel* SearchResult::GetChannel() {
