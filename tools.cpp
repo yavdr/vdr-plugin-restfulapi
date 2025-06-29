@@ -1601,7 +1601,7 @@ QueryHandler::QueryHandler(string service, cxxtools::http::Request& request)
   }  
 
   if ( found_json ) {
-     jsonObject = jsonParser.Parse(body);
+     jsonObject.reset(jsonParser.Parse(body));
      esyslog("restfulapi: JSON parsed successfully: %s", jsonObject == NULL ? "no" : "yes");
   } else {
      _body.parse_url(body);
@@ -1615,13 +1615,6 @@ QueryHandler::QueryHandler(string service, cxxtools::http::Request& request)
   if ( (int)_url.find(".xml") != -1 ) { _format = ".xml"; }
   if ( (int)_url.find(".json") != -1 ) { _format = ".json"; }
   if ( (int)_url.find(".html") != -1 ) { _format = ".html"; }
-}
-
-QueryHandler::~QueryHandler()
-{
-  if (jsonObject != NULL) {
-     delete jsonObject;
-  }
 }
 
 /**

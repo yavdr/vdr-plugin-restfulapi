@@ -7,6 +7,7 @@
 #include <exception>
 #include <iostream>
 #include <fstream>
+#include <memory>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -268,7 +269,7 @@ class QueryHandler
     cxxtools::QueryParams _options;
     cxxtools::QueryParams _body;
     JsonParser jsonParser;
-    JsonObject* jsonObject;
+    std::shared_ptr<JsonObject> jsonObject;
     std::string fixUrl(std::string url);
     void parseRestParams(std::string params);
     std::string getJsonString(std::string name);
@@ -277,7 +278,6 @@ class QueryHandler
     std::string _format;
   public:
     QueryHandler(std::string service, cxxtools::http::Request& request);
-    ~QueryHandler();
     bool has(std::string name);
     bool hasJson(std::string name);
     bool hasOption(std::string name);
