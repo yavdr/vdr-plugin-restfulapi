@@ -270,7 +270,16 @@ namespace utf8
 
     // The iterator class
     template <typename octet_iterator>
-    class iterator : public std::iterator <std::bidirectional_iterator_tag, uint32_t> {
+    class iterator {
+      public:
+        // Iterator traits (replacement for deprecated std::iterator)
+        using iterator_category = std::bidirectional_iterator_tag;
+        using value_type        = uint32_t;
+        using difference_type   = std::ptrdiff_t;
+        using pointer           = void;        // iterator returns by value, no pointer type
+        using reference         = uint32_t;    // dereference returns a uint32_t value
+
+      private:
       octet_iterator it;
       octet_iterator range_start;
       octet_iterator range_end;

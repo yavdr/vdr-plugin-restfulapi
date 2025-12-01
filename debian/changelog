@@ -1,4 +1,4 @@
-vdr-plugin-restfulapi (0.2.6.7-0yavdr0~noble) noble; urgency=medium
+vdr-plugin-restfulapi (1:0.2.6.8-0yavdr0~noble) noble; urgency=medium
 
   * add patch by raslop to use a shared_ptr to fix use-after-free 
 

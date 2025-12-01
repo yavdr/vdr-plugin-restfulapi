@@ -1654,7 +1654,7 @@ string QueryHandler::fixUrl(string url) {
 	badChars["5"] = "\x05";
 
 	string::size_type pos = 0;
-	string::size_type found;
+	string::size_type found = std::string::npos;
 	string next;
 	string replace;
 	unsigned int x;

@@ -386,7 +386,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerEvent& e)
         component.Stream = (int)comp->stream;
         component.Type = (int)comp->type;
         component.Language = StringExtension::UTF8Decode("");
-        if(comp->language != NULL) component.Language = StringExtension::UTF8Decode(string(comp->language));
+        if(comp->language[0] != '\0') component.Language = StringExtension::UTF8Decode(string(comp->language));
         component.Description = StringExtension::UTF8Decode("");
         if(comp->description != NULL) component.Description = StringExtension::UTF8Decode(string(comp->description));
         components.push_back(component); 
@@ -617,7 +617,7 @@ void XmlEventList::addEvent(const cEvent* event)
         tComponent* component = components->Component(i);
 
         string language = ""; 
-        if (component->language != NULL) language = string(component->language);
+        if (component->language[0] != '\0') language = string(component->language);
 
         string description = "";
         if (component->description != NULL) description = string(component->description);
