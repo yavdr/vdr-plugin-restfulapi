@@ -169,13 +169,20 @@ void StatusMonitor::OsdDestroy(void)
 
 void StatusMonitor::TimerChange(const cTimer *Timer, eTimerChange Change)
 {
+  esyslog("RESTFULAPI TEST: TimerChange");
+
   (void)Timer;
   (void)Change;
 
   ChangeStateCounter::IncrementTimers();
 }
 
-void StatusMonitor::ChannelSwitch(const cDevice *Device, int ChannelNumber, bool LiveView) {
+void StatusMonitor::ChannelSwitch(const cDevice *Device, int ChannelNumber, bool LiveView)
+{
+  esyslog("RESTFULAPI TEST: ChannelSwitch channel=%d live=%d",
+          ChannelNumber,
+          LiveView);
+
   (void)Device;
 
   if (ChannelNumber != 0 && LiveView) {
@@ -186,6 +193,8 @@ void StatusMonitor::ChannelSwitch(const cDevice *Device, int ChannelNumber, bool
 
 void StatusMonitor::Recording(const cDevice *Device, const char *Name, const char *FileName, bool On)
 {
+  esyslog("RESTFULAPI TEST: Recording on=%d", On);
+
   (void)Device;
   (void)Name;
   (void)FileName;
