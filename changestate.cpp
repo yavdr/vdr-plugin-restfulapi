@@ -43,7 +43,8 @@ json
     << "\"eventsVersion\":" << ChangeStateCounter::EventsVersion()
     << "}";
 
-se.write(json.str());
+std::string payload = json.str();
+se.write(payload.c_str());
 
 }
 
