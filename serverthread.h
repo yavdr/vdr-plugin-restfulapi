@@ -1,10 +1,3 @@
-/*
- * serverthread.h: JSONAPI plugin for the Video Disk Recorder
- *
- * See the README file for copyright information and how to reach the author.
- *
- */
-
 #ifndef __SERVERTHREAD_H
 #define __SERVERTHREAD_H
 
@@ -25,6 +18,7 @@
 #include "recordings.h"
 #include "remote.h"
 #include "timers.h"
+#include "changestate.h"
 #include "osd.h"
 #include "searchtimers.h"
 #include "epgsearch.h"
@@ -56,4 +50,4 @@ public:
     void addWebappService(std::string name);
 };
 
-#endif //__SERVERTHREAD_H
+#endif
