@@ -1,4 +1,5 @@
 #include "statusmonitor.h"
+#include "changestatecounter.h"
 
 // --- TextOsd ---------------------------------------------------------------------------------------
 
@@ -168,18 +169,29 @@ void StatusMonitor::OsdDestroy(void)
 
 void StatusMonitor::TimerChange(const cTimer *Timer, eTimerChange Change)
 {
-  //not important for restfulapi because of timer_server already being available?
+  (void)Timer;
+  (void)Change;
+
+  ChangeStateCounter::IncrementTimers();
 }
 
 void StatusMonitor::ChannelSwitch(const cDevice *Device, int ChannelNumber, bool LiveView) {
+  (void)Device;
+
   if (ChannelNumber != 0 && LiveView) {
      channel_number = ChannelNumber;
+     ChangeStateCounter::IncrementChannels();
   }
 }
 
 void StatusMonitor::Recording(const cDevice *Device, const char *Name, const char *FileName, bool On)
 {
-  //to be implemented
+  (void)Device;
+  (void)Name;
+  (void)FileName;
+  (void)On;
+
+  ChangeStateCounter::IncrementRecordings();
 }
 
 void StatusMonitor::Replaying(const cControl *Control, const char *Name, const char *FileName, bool On)
