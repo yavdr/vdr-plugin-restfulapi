@@ -1,4 +1,5 @@
 #include "changestate.h"
+#include "changestatecounter.h"
 
 void ChangeStateResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
@@ -31,7 +32,19 @@ void ChangeStateResponder::reply(std::ostream& out, cxxtools::http::Request& req
 
 void ChangeStateResponder::replyJson(StreamExtension& se)
 {
-    se.write("{\"statusVersion\":0,\"channelsVersion\":0,\"recordingsVersion\":0,\"timersVersion\":0,\"eventsVersion\":0}");
+    
+std::ostringstream json;
+json
+    << "{"
+    << "\"statusVersion\":" << ChangeStateCounter::StatusVersion() << ","
+    << "\"channelsVersion\":" << ChangeStateCounter::ChannelsVersion() << ","
+    << "\"recordingsVersion\":" << ChangeStateCounter::RecordingsVersion() << ","
+    << "\"timersVersion\":" << ChangeStateCounter::TimersVersion() << ","
+    << "\"eventsVersion\":" << ChangeStateCounter::EventsVersion()
+    << "}";
+
+se.write(json.str());
+
 }
 
 void ChangeStateResponder::replyXml(StreamExtension& se)
