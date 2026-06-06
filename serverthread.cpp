@@ -1,10 +1,3 @@
-/*
- * serverthread.cpp: JSONAPI plugin for the Video Disk Recorder
- *
- * See the README file for copyright information and how to reach the author.
- *
- */
-
 #include "serverthread.h"
 
 void cServerThread::Initialize()
@@ -46,6 +39,7 @@ void cServerThread::Action(void)
   RecordingsService recordingsService;
   RemoteService remoteService;
   TimersService timersService;
+  ChangeStateService changeStateService;
   OsdService osdService;
   SearchTimersService searchTimersService;
   ScraperService scraperService;
@@ -64,6 +58,7 @@ void cServerThread::Action(void)
   RestfulService* recordingsMarks = new RestfulService("/recordings/marks", true, 1, recordings);
   RestfulService* remote = new RestfulService("/remote", true, 1);
   RestfulService* timers = new RestfulService("/timers", true, 1);
+  RestfulService* changeState = new RestfulService("/change-state", true, 1);
   RestfulService* osd = new RestfulService("/osd", true, 1);
   RestfulService* searchtimers = new RestfulService("/searchtimers", false, 1);
   RestfulService* scraper = new RestfulService("/scraper", true, 1);
@@ -83,6 +78,7 @@ void cServerThread::Action(void)
   services->appendService(recordingsMarks);
   services->appendService(remote);
   services->appendService(timers);
+  services->appendService(changeState);
   services->appendService(osd);
   services->appendService(searchtimers);
   services->appendService(scraper);
@@ -96,6 +92,7 @@ void cServerThread::Action(void)
   server->addService(*recordings->Regex(), recordingsService);
   server->addService(*remote->Regex(), remoteService);
   server->addService(*timers->Regex(), timersService);
+  server->addService(*changeState->Regex(), changeStateService);
   server->addService(*osd->Regex(), osdService);
   server->addService(*searchtimers->Regex(), searchTimersService);
   server->addService(*scraper->Regex(), scraperService);
