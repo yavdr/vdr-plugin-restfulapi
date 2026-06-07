@@ -1,57 +1,84 @@
 #include "changestatecounter.h"
 
-static uint64_t g_statusVersion = 0;
-static uint64_t g_channelsVersion = 0;
-static uint64_t g_recordingsVersion = 0;
-static uint64_t g_timersVersion = 0;
-static uint64_t g_eventsVersion = 0;
+#include <ctime>
+
+namespace {
+uint64_t CurrentUnixTime()
+{
+    return static_cast<uint64_t>(std::time(NULL));
+}
+}
+
+const uint64_t ChangeStateCounter::instanceStarted = CurrentUnixTime();
+std::atomic<uint64_t> ChangeStateCounter::lastChange(ChangeStateCounter::instanceStarted);
+std::atomic<uint64_t> ChangeStateCounter::statusVersion(0);
+std::atomic<uint64_t> ChangeStateCounter::channelsVersion(0);
+std::atomic<uint64_t> ChangeStateCounter::recordingsVersion(0);
+std::atomic<uint64_t> ChangeStateCounter::timersVersion(0);
+std::atomic<uint64_t> ChangeStateCounter::eventsVersion(0);
+
+uint64_t ChangeStateCounter::InstanceStarted()
+{
+    return instanceStarted;
+}
+
+uint64_t ChangeStateCounter::LastChange()
+{
+    return lastChange.load(std::memory_order_relaxed);
+}
 
 uint64_t ChangeStateCounter::StatusVersion()
 {
-    return g_statusVersion;
+    return statusVersion.load(std::memory_order_relaxed);
 }
 
 uint64_t ChangeStateCounter::ChannelsVersion()
 {
-    return g_channelsVersion;
+    return channelsVersion.load(std::memory_order_relaxed);
 }
 
 uint64_t ChangeStateCounter::RecordingsVersion()
 {
-    return g_recordingsVersion;
+    return recordingsVersion.load(std::memory_order_relaxed);
 }
 
 uint64_t ChangeStateCounter::TimersVersion()
 {
-    return g_timersVersion;
+    return timersVersion.load(std::memory_order_relaxed);
 }
 
 uint64_t ChangeStateCounter::EventsVersion()
 {
-    return g_eventsVersion;
+    return eventsVersion.load(std::memory_order_relaxed);
 }
 
 void ChangeStateCounter::IncrementStatus()
 {
-    ++g_statusVersion;
+    MarkChanged(statusVersion);
 }
 
 void ChangeStateCounter::IncrementChannels()
 {
-    ++g_channelsVersion;
+    MarkChanged(channelsVersion);
 }
 
 void ChangeStateCounter::IncrementRecordings()
 {
-    ++g_recordingsVersion;
+    MarkChanged(recordingsVersion);
 }
 
 void ChangeStateCounter::IncrementTimers()
 {
-    ++g_timersVersion;
+    MarkChanged(timersVersion);
 }
 
 void ChangeStateCounter::IncrementEvents()
 {
-    ++g_eventsVersion;
+    MarkChanged(eventsVersion);
+}
+
+void ChangeStateCounter::MarkChanged(std::atomic<uint64_t>& counter)
+{
+    counter.fetch_add(1, std::memory_order_relaxed);
+    lastChange.store(CurrentUnixTime(), std::memory_order_relaxed);
 }
