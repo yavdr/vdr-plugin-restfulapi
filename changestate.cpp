@@ -35,6 +35,8 @@ void ChangeStateResponder::replyJson(StreamExtension& se)
     std::ostringstream json;
     json
         << "{"
+        << "\"instanceStarted\":" << ChangeStateCounter::InstanceStarted() << ","
+        << "\"lastChange\":" << ChangeStateCounter::LastChange() << ","
         << "\"statusVersion\":" << ChangeStateCounter::StatusVersion() << ","
         << "\"channelsVersion\":" << ChangeStateCounter::ChannelsVersion() << ","
         << "\"recordingsVersion\":" << ChangeStateCounter::RecordingsVersion() << ","
@@ -50,6 +52,8 @@ void ChangeStateResponder::replyXml(StreamExtension& se)
 {
     se.writeXmlHeader();
     se.write("<change-state>");
+    se.write(cString::sprintf("<instanceStarted>%llu</instanceStarted>", (unsigned long long)ChangeStateCounter::InstanceStarted()));
+    se.write(cString::sprintf("<lastChange>%llu</lastChange>", (unsigned long long)ChangeStateCounter::LastChange()));
     se.write(cString::sprintf("<statusVersion>%llu</statusVersion>", (unsigned long long)ChangeStateCounter::StatusVersion()));
     se.write(cString::sprintf("<channelsVersion>%llu</channelsVersion>", (unsigned long long)ChangeStateCounter::ChannelsVersion()));
     se.write(cString::sprintf("<recordingsVersion>%llu</recordingsVersion>", (unsigned long long)ChangeStateCounter::RecordingsVersion()));
