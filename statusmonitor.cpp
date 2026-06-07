@@ -39,7 +39,7 @@ TextOsdItem* TextOsd::GetItem(std::string item)
   for(it = _items.begin(); it != _items.end();++it)
   {
      if ((*it)->Text() == item)
-     { 
+     {
         return *it;
      }
   }
@@ -50,7 +50,7 @@ bool TextOsd::ReplaceItem(TextOsdItem* item, int i)
 {
   if ((size_t)i < _items.size() && i >= 0)
   {
-     TextOsdItem* old = NULL; 
+     TextOsdItem* old = NULL;
      int counter = 0;
      std::list<TextOsdItem*>::iterator it;
      for(it = _items.begin();it != _items.end();++it)
@@ -167,6 +167,13 @@ void StatusMonitor::OsdDestroy(void)
   }
 }
 
+void StatusMonitor::ChannelChange(const cChannel *Channel)
+{
+  (void)Channel;
+
+  ChangeStateCounter::IncrementChannels();
+}
+
 void StatusMonitor::TimerChange(const cTimer *Timer, eTimerChange Change)
 {
   (void)Timer;
@@ -237,7 +244,7 @@ void StatusMonitor::OsdClear(void)
 
 void StatusMonitor::OsdTitle(const char *Title)
 {
-  OsdCreate(); 
+  OsdCreate();
   TextOsd* _tOsd = (TextOsd*)_osd;
   if (Title != NULL)
      _tOsd->Title((std::string)Title);
@@ -320,14 +327,14 @@ void StatusMonitor::OsdProgramme(time_t PresentTime, const char *PresentTitle, c
   std::string presentSubtitle = "";
   std::string followingTitle = "";
   std::string followingSubtitle = "";
-  
+
   if ( PresentTitle != NULL ) { presentTitle = (std::string)PresentTitle; }
   if ( PresentSubtitle != NULL ) { presentSubtitle = (std::string)PresentSubtitle; }
   if ( FollowingTitle != NULL ) { followingTitle = (std::string)FollowingTitle; }
   if ( FollowingSubtitle != NULL ) { followingSubtitle = (std::string)FollowingSubtitle; }
 
-  _osd = (BasicOsd*)new ProgrammeOsd(PresentTime, presentTitle, presentSubtitle, 
-				     FollowingTime, (std::string)followingTitle, followingSubtitle);
+  _osd = (BasicOsd*)new ProgrammeOsd(PresentTime, presentTitle, presentSubtitle,
+                                     FollowingTime, (std::string)followingTitle, followingSubtitle);
 }
 
 StatusMonitor* StatusMonitor::get()
