@@ -1,5 +1,5 @@
 #include "statusmonitor.h"
-#include "changestatecounter.h"
+#include "changestatetracker.h"
 
 // --- TextOsd ---------------------------------------------------------------------------------------
 
@@ -171,7 +171,7 @@ void StatusMonitor::ChannelChange(const cChannel *Channel)
 {
   (void)Channel;
 
-  ChangeStateCounter::IncrementChannels();
+  StateChangeTracker::updateChannels();
 }
 
 void StatusMonitor::TimerChange(const cTimer *Timer, eTimerChange Change)
@@ -179,7 +179,7 @@ void StatusMonitor::TimerChange(const cTimer *Timer, eTimerChange Change)
   (void)Timer;
   (void)Change;
 
-  ChangeStateCounter::IncrementTimers();
+  StateChangeTracker::updateTimers();
 }
 
 void StatusMonitor::ChannelSwitch(const cDevice *Device, int ChannelNumber, bool LiveView)
@@ -188,7 +188,7 @@ void StatusMonitor::ChannelSwitch(const cDevice *Device, int ChannelNumber, bool
 
   if (ChannelNumber != 0 && LiveView) {
      channel_number = ChannelNumber;
-     ChangeStateCounter::IncrementChannels();
+     StateChangeTracker::updateChannels();
   }
 }
 
@@ -199,7 +199,7 @@ void StatusMonitor::Recording(const cDevice *Device, const char *Name, const cha
   (void)FileName;
   (void)On;
 
-  ChangeStateCounter::IncrementRecordings();
+  StateChangeTracker::updateRecordings();
 }
 
 void StatusMonitor::Replaying(const cControl *Control, const char *Name, const char *FileName, bool On)
