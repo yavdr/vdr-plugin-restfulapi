@@ -1,6 +1,7 @@
 #include "changestate.h"
-#include "changestatecounter.h"
+#include "changestatetracker.h"
 
+#include <chrono>
 #include <sstream>
 #include <string>
 
@@ -38,13 +39,11 @@ void ChangeStateResponder::replyJson(StreamExtension& se)
     std::ostringstream json;
     json
         << "{"
-        << "\"instanceStarted\":" << ChangeStateCounter::InstanceStarted() << ","
-        << "\"lastChange\":" << ChangeStateCounter::LastChange() << ","
-        << "\"statusVersion\":" << ChangeStateCounter::StatusVersion() << ","
-        << "\"channelsVersion\":" << ChangeStateCounter::ChannelsVersion() << ","
-        << "\"recordingsVersion\":" << ChangeStateCounter::RecordingsVersion() << ","
-        << "\"timersVersion\":" << ChangeStateCounter::TimersVersion() << ","
-        << "\"eventsVersion\":" << ChangeStateCounter::EventsVersion()
+        << "\"bootID\":\"" << StateChangeTracker::bootID << "\","
+        << "\"channelsUpdate\":" << StateChangeTracker::lastChannelsUpdate() << ","
+        << "\"recordingsUpdate\":" << StateChangeTracker::lastRecordingsUpdate() << ","
+        << "\"timersUpdate\":" << StateChangeTracker::lastTimersUpdate() << ","
+        << "\"eventsUpdate\":" << StateChangeTracker::lastEventsUpdate()
         << "}";
 
     std::string payload = json.str();
@@ -55,12 +54,10 @@ void ChangeStateResponder::replyXml(StreamExtension& se)
 {
     se.writeXmlHeader();
     se.write("<change-state>");
-    se.write(cString::sprintf("<instanceStarted>%llu</instanceStarted>", (unsigned long long)ChangeStateCounter::InstanceStarted()));
-    se.write(cString::sprintf("<lastChange>%llu</lastChange>", (unsigned long long)ChangeStateCounter::LastChange()));
-    se.write(cString::sprintf("<statusVersion>%llu</statusVersion>", (unsigned long long)ChangeStateCounter::StatusVersion()));
-    se.write(cString::sprintf("<channelsVersion>%llu</channelsVersion>", (unsigned long long)ChangeStateCounter::ChannelsVersion()));
-    se.write(cString::sprintf("<recordingsVersion>%llu</recordingsVersion>", (unsigned long long)ChangeStateCounter::RecordingsVersion()));
-    se.write(cString::sprintf("<timersVersion>%llu</timersVersion>", (unsigned long long)ChangeStateCounter::TimersVersion()));
-    se.write(cString::sprintf("<eventsVersion>%llu</eventsVersion>", (unsigned long long)ChangeStateCounter::EventsVersion()));
+    se.write(cString::sprintf("<bootID>%s</bootID>", StateChangeTracker::bootID.c_str()));
+    se.write(cString::sprintf("<channelsUpdate>%llu</channelsUpdate>", (unsigned long long)StateChangeTracker::lastChannelsUpdate()));
+    se.write(cString::sprintf("<recordingsUpdate>%llu</recordingsUpdate>", (unsigned long long)StateChangeTracker::lastRecordingsUpdate()));
+    se.write(cString::sprintf("<timersUpdate>%llu</timersUpdate>", (unsigned long long)StateChangeTracker::lastTimersUpdate()));
+    se.write(cString::sprintf("<eventsUpdate>%llu</eventsUpdate>", (unsigned long long)StateChangeTracker::lastEventsUpdate()));
     se.write("</change-state>");
 }
