@@ -1,6 +1,9 @@
 #include "changestate.h"
 #include "changestatecounter.h"
 
+#include <sstream>
+#include <string>
+
 void ChangeStateResponder::reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
     QueryHandler::addHeader(reply);
