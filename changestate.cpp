@@ -40,10 +40,10 @@ void ChangeStateResponder::replyJson(StreamExtension& se)
     json
         << "{"
         << "\"bootID\":\"" << StateChangeTracker::bootID << "\","
-        << "\"channelsUpdate\":" << StateChangeTracker::lastChannelsUpdate() << ","
-        << "\"recordingsUpdate\":" << StateChangeTracker::lastRecordingsUpdate() << ","
-        << "\"timersUpdate\":" << StateChangeTracker::lastTimersUpdate() << ","
-        << "\"eventsUpdate\":" << StateChangeTracker::lastEventsUpdate()
+        << "\"channelsUpdate\":" << StateChangeTracker::LastChannelsUpdate() << ","
+        << "\"recordingsUpdate\":" << StateChangeTracker::LastRecordingsUpdate() << ","
+        << "\"timersUpdate\":" << StateChangeTracker::LastTimersUpdate() << ","
+        << "\"eventsUpdate\":" << StateChangeTracker::LastEventsUpdate()
         << "}";
 
     std::string payload = json.str();
@@ -55,9 +55,9 @@ void ChangeStateResponder::replyXml(StreamExtension& se)
     se.writeXmlHeader();
     se.write("<change-state>");
     se.write(cString::sprintf("<bootID>%s</bootID>", StateChangeTracker::bootID.c_str()));
-    se.write(cString::sprintf("<channelsUpdate>%llu</channelsUpdate>", (unsigned long long)StateChangeTracker::lastChannelsUpdate()));
-    se.write(cString::sprintf("<recordingsUpdate>%llu</recordingsUpdate>", (unsigned long long)StateChangeTracker::lastRecordingsUpdate()));
-    se.write(cString::sprintf("<timersUpdate>%llu</timersUpdate>", (unsigned long long)StateChangeTracker::lastTimersUpdate()));
-    se.write(cString::sprintf("<eventsUpdate>%llu</eventsUpdate>", (unsigned long long)StateChangeTracker::lastEventsUpdate()));
+    se.write(cString::sprintf("<channelsUpdate>%llu</channelsUpdate>", (unsigned long long)StateChangeTracker::LastChannelsUpdate()));
+    se.write(cString::sprintf("<recordingsUpdate>%llu</recordingsUpdate>", (unsigned long long)StateChangeTracker::LastRecordingsUpdate()));
+    se.write(cString::sprintf("<timersUpdate>%llu</timersUpdate>", (unsigned long long)StateChangeTracker::LastTimersUpdate()));
+    se.write(cString::sprintf("<eventsUpdate>%llu</eventsUpdate>", (unsigned long long)StateChangeTracker::LastEventsUpdate()));
     se.write("</change-state>");
 }

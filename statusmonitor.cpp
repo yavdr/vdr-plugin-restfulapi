@@ -68,7 +68,6 @@ bool TextOsd::ReplaceItem(TextOsdItem* item, int i)
      return true;
   }
   return false;
-
 }
 
 int TextOsd::CountItems()
@@ -171,7 +170,7 @@ void StatusMonitor::ChannelChange(const cChannel *Channel)
 {
   (void)Channel;
 
-  StateChangeTracker::updateChannels();
+  StateChangeTracker::UpdateChannels();
 }
 
 void StatusMonitor::TimerChange(const cTimer *Timer, eTimerChange Change)
@@ -179,16 +178,17 @@ void StatusMonitor::TimerChange(const cTimer *Timer, eTimerChange Change)
   (void)Timer;
   (void)Change;
 
-  StateChangeTracker::updateTimers();
+  StateChangeTracker::UpdateTimers();
 }
 
 void StatusMonitor::ChannelSwitch(const cDevice *Device, int ChannelNumber, bool LiveView)
 {
   (void)Device;
 
-  if (ChannelNumber != 0 && LiveView) {
-     channel_number = ChannelNumber;
-     StateChangeTracker::updateChannels();
+  if (ChannelNumber != 0 && LiveView)
+  {
+    channel_number = ChannelNumber;
+    StateChangeTracker::UpdateChannels();
   }
 }
 
@@ -199,7 +199,7 @@ void StatusMonitor::Recording(const cDevice *Device, const char *Name, const cha
   (void)FileName;
   (void)On;
 
-  StateChangeTracker::updateRecordings();
+  StateChangeTracker::UpdateRecordings();
 }
 
 void StatusMonitor::Replaying(const cControl *Control, const char *Name, const char *FileName, bool On)

@@ -2,57 +2,57 @@
 
 #include <chrono>
 
-namespace {
-uint64_t monotonicTimestampNanoSeconds() {
-	return std::chrono::duration_cast<std::chrono::nanoseconds>(
-                      std::chrono::steady_clock::now().time_since_epoch()).count();
+namespace
+{
+    uint64_t monotonicTimestampNanoSeconds()
+    {
+        return std::chrono::duration_cast<std::chrono::nanoseconds>(
+                   std::chrono::steady_clock::now().time_since_epoch())
+            .count();
+    }
 }
 
-
-}
-
-uint64_t StateChangeTracker::lastChannelsUpdate()
+uint64_t StateChangeTracker::LastChannelsUpdate()
 {
     return channelsUpdate.load(std::memory_order_relaxed);
 }
 
-uint64_t StateChangeTracker::lastRecordingsUpdate()
+uint64_t StateChangeTracker::LastRecordingsUpdate()
 {
     return recordingsUpdate.load(std::memory_order_relaxed);
 }
 
-uint64_t StateChangeTracker::lastTimersUpdate()
+uint64_t StateChangeTracker::LastTimersUpdate()
 {
     return timersUpdate.load(std::memory_order_relaxed);
 }
 
-uint64_t StateChangeTracker::lastEventsUpdate()
+uint64_t StateChangeTracker::LastEventsUpdate()
 {
     return eventsUpdate.load(std::memory_order_relaxed);
 }
 
-void StateChangeTracker::update(std::atomic<uint64_t>& lastChanged)
+void StateChangeTracker::Update(std::atomic<uint64_t> &lastChanged)
 {
     lastChanged.store(monotonicTimestampNanoSeconds(), std::memory_order_relaxed);
 }
 
-void StateChangeTracker::updateChannels()
+void StateChangeTracker::UpdateChannels()
 {
-    update(channelsUpdate);
+    Update(channelsUpdate);
 }
 
-void StateChangeTracker::updateRecordings()
+void StateChangeTracker::UpdateRecordings()
 {
-    update(recordingsUpdate);
+    Update(recordingsUpdate);
 }
 
-void StateChangeTracker::updateTimers()
+void StateChangeTracker::UpdateTimers()
 {
-    update(timersUpdate);
+    Update(timersUpdate);
 }
 
-void StateChangeTracker::updateEvents()
+void StateChangeTracker::UpdateEvents()
 {
-    update(eventsUpdate);
+    Update(eventsUpdate);
 }
-
