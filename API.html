@@ -191,6 +191,7 @@
                 <li><a href="#Preface">Preface</a>
                 <li><a href="#Requirements">Requirements</a>
                 <li><a href="#Configuration">Configuration</a>
+                <li><a href="#ChangeState">Change State</a>
                 <li><a href="#Channels">Channels</a>
                     <ul>
                         <li><a href="#ChannelGroups">Groups</a>
@@ -305,6 +306,50 @@
                     --epgimages=/var/cache/vdr/epgimages
                     --channellogos=/usr/share/vdr/channel-logos
                     --webapp=/var/lib/vdr/plugins/restfulapi/webapp,/var/lib/vdr/plugins/restfulapi/a-second-webapp
+                </div>
+            </section>
+
+            <a id="ChangeState"></a>
+            <section data-header="Change State">
+                <p class="description">This service returns lightweight change state information for clients that want to avoid polling larger datasets unnecessarily.</p>
+                <p class="method">GET</p>
+                <div class="code" data-header="Examples:">
+                    GET http://&lt;ip&gt;:&lt;port&gt;/change-state.&lt;format&gt;
+                    GET http://&lt;ip&gt;:&lt;port&gt;/change-state.json
+                    GET http://&lt;ip&gt;:&lt;port&gt;/change-state.xml
+                </div>
+
+                <ul class="param-desc" data-header="Description of the Parameters:">
+                    <li>&lt;format&gt; - The requested format: json or xml.
+                </ul>
+
+                <div class="param-desc" data-header="Description:">
+                    bootID - ID of the current system boot. Clients can use this value to detect that the VDR host has been restarted.
+                    channelsUpdate - Monotonic timestamp of the last channel related update.
+                    recordingsUpdate - Monotonic timestamp of the last recording related update.
+                    timersUpdate - Monotonic timestamp of the last timer related update.
+                    eventsUpdate - Monotonic timestamp of the last event related update. This value may stay 0 if no suitable event update trigger is available.
+                </div>
+
+                <div class="code" data-header="JSON Example:">
+{
+  "bootID": "654d74f6db4b49fba310b4ba43627617",
+  "channelsUpdate": 893362601689,
+  "recordingsUpdate": 0,
+  "timersUpdate": 0,
+  "eventsUpdate": 0
+}
+                </div>
+
+                <div class="code" data-header="XML Example:">
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;change-state&gt;
+  &lt;bootID&gt;654d74f6db4b49fba310b4ba43627617&lt;/bootID&gt;
+  &lt;channelsUpdate&gt;893362601689&lt;/channelsUpdate&gt;
+  &lt;recordingsUpdate&gt;0&lt;/recordingsUpdate&gt;
+  &lt;timersUpdate&gt;0&lt;/timersUpdate&gt;
+  &lt;eventsUpdate&gt;0&lt;/eventsUpdate&gt;
+&lt;/change-state&gt;
                 </div>
             </section>
 
