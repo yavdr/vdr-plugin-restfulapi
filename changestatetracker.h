@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <chrono>
 #include <fstream>
 #include <random>
 #include <iostream>
@@ -10,6 +11,13 @@
 
 namespace
 {
+    inline uint64_t monotonicTimestampNanoSeconds()
+    {
+        return std::chrono::duration_cast<std::chrono::nanoseconds>(
+                   std::chrono::steady_clock::now().time_since_epoch())
+            .count();
+    }
+
     inline std::string GenerateRandomHexString(size_t length)
     {
         const char hex_chars[] = "0123456789abcdef";
@@ -60,10 +68,10 @@ public:
 
 private:
     static void Update(std::atomic<uint64_t> &counter);
-    inline static std::atomic<uint64_t> channelsUpdate{0};
-    inline static std::atomic<uint64_t> recordingsUpdate{0};
-    inline static std::atomic<uint64_t> timersUpdate{0};
-    inline static std::atomic<uint64_t> eventsUpdate{0};
+    inline static std::atomic<uint64_t> channelsUpdate{monotonicTimestampNanoSeconds()};
+    inline static std::atomic<uint64_t> recordingsUpdate{monotonicTimestampNanoSeconds()};
+    inline static std::atomic<uint64_t> timersUpdate{monotonicTimestampNanoSeconds()};
+    inline static std::atomic<uint64_t> eventsUpdate{monotonicTimestampNanoSeconds()};
 };
 
 #endif

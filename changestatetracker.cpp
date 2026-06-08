@@ -1,16 +1,5 @@
 #include "changestatetracker.h"
 
-#include <chrono>
-
-namespace
-{
-    uint64_t monotonicTimestampNanoSeconds()
-    {
-        return std::chrono::duration_cast<std::chrono::nanoseconds>(
-                   std::chrono::steady_clock::now().time_since_epoch())
-            .count();
-    }
-}
 
 uint64_t StateChangeTracker::LastChannelsUpdate()
 {
