@@ -212,9 +212,9 @@ void Settings::initDefault()
 {
   SetPort((string)"8002");
   SetIp((string)"0.0.0.0");
-  SetEpgImageDirectory((string)"/var/cache/vdr/epgimages");
-  SetChannelLogoDirectory((string)"/usr/share/vdr/channel-logos");
-  SetWebappDirectory((string)"/var/lib/vdr/plugins/restfulapi/webapp");
+  SetEpgImageDirectory((string)EPG_IMAGE_DIR);
+  SetChannelLogoDirectory((string)CHANNEL_LOGO_DIR);
+  SetWebappDirectory((string)WEBAPP_DIR);
   SetHeaders((string)"true");
   webapp_filetypes_filename = "webapp_file_types.conf";
 }

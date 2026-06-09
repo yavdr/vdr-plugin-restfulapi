@@ -44,6 +44,18 @@
 #define DOCUMENT_ROOT "/var/lib/vdr/plugins/restfulapi/"
 #endif
 
+#ifndef WEBAPP_DIR
+#define WEBAPP_DIR "/var/lib/vdr/plugins/restfulapi/webapp"
+#endif
+
+#ifndef EPG_IMAGE_DIR
+#define EPG_IMAGE_DIR "/var/cache/vdr/epgimages"
+#endif
+
+#ifndef CHANNEL_LOGO_DIR
+#define CHANNEL_LOGO_DIR "/usr/share/vdr/channel-logos"
+#endif
+
 class Settings
 {
   private:
