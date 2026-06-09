@@ -1208,8 +1208,14 @@ string VdrExtension::MoveRecording(cRecording const * recording, string const & 
 #else
 	  cRecordings& recordings = Recordings;
 #endif
-  if (!copy)
+  if (!copy) {
+#if APIVERSNUM > 20300
+	  if (cRecording *rec = recordings.GetByName(oldname.c_str()))
+	     recordings.Del(rec);
+#else
 	  recordings.DelByName(oldname.c_str());
+#endif
+  }
   recordings.AddByName(newname.c_str());
   cRecordingUserCommand::InvokeCommand(*cString::sprintf("rename \"%s\"", *strescape(oldname.c_str(), "\\\"$'")), newname.c_str());
   return newname;
