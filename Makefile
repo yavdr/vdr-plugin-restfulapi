@@ -16,7 +16,7 @@ PLGCFG = $(call PKGCFG,plgcfg)
 TMPDIR ?= /tmp
 
 export CFLAGS   = $(call PKGCFG,cflags)
-export CXXFLAGS = $(call PKGCFG,cxxflags)
+export CXXFLAGS = $(call PKGCFG,cxxflags) -std=c++17
 
 APIVERSION = $(call PKGCFG,apiversion)
 
