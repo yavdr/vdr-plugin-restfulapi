@@ -28,7 +28,7 @@ SOFILE = libvdr-$(PLUGIN).so
 
 DEFINES += -DPLUGIN_NAME_I18N='"$(PLUGIN)"'
 
-LIBS    += $(shell cxxtools-config --libs) -lcxxtools-http
+LIBS    += $(shell pkg-config --libs cxxtools-http 2>/dev/null || { cxxtools-config --libs; echo -lcxxtools-http; })
 CONFDIR  = $(call PKGCFG,configdir)
 PLGCONFDIR = $(CONFDIR)/plugins/$(PLUGIN)
 
