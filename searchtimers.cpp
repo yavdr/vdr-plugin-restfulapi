@@ -6,7 +6,7 @@ void SearchTimersResponder::reply(ostream& out, cxxtools::http::Request& request
   QueryHandler::addHeader(reply);
 
   if ( request.method() == "OPTIONS" ) {
-      reply.addHeader("Allow", "GET, POST, DELETE");
+      reply.addHeader("Allow", "GET, POST, PUT, DELETE");
       reply.httpReturn(200, "OK");
       return;
   }
@@ -105,6 +105,36 @@ void SearchTimersResponder::replyCreate(ostream& out, cxxtools::http::Request& r
   }
 
   delete searchTimer;
+}
+
+void SearchTimersResponder::replyUpdate(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
+{
+  QueryHandler q("/searchtimers", request);
+  vdrlive::SearchTimers searchTimers;
+  string id = q.getParamAsString(0);
+
+  vdrlive::SearchTimer* existingSearchTimer = searchTimers.GetByTimerId(id);
+  if (existingSearchTimer == NULL)
+  {
+     reply.httpReturn(404, "Searchtimer not found.");
+     return;
+  }
+
+  vdrlive::SearchTimer updatedSearchTimer(*existingSearchTimer);
+  string result = updatedSearchTimer.LoadFromQuery(q);
+  updatedSearchTimer.SetId(existingSearchTimer->Id());
+
+  if (result.length() > 0)
+  {
+     reply.httpReturn(406, result.c_str());
+  } else {
+     bool succeeded = searchTimers.Save(&updatedSearchTimer);
+     if(succeeded) {
+        reply.httpReturn(200, (const char*)cString::sprintf("OK, Id:%i", updatedSearchTimer.Id()));
+     } else {
+        reply.httpReturn(409, "Updating searchtimer failed.");
+     }
+  }
 }
 
 void SearchTimersResponder::replyDelete(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
