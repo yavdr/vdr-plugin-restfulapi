@@ -26,6 +26,7 @@ class SearchTimersResponder : public cxxtools::http::Responder
     virtual void reply(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     virtual void replyShow(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     virtual void replyCreate(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
+    virtual void replyUpdate(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     virtual void replyDelete(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     virtual void replySearch(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);
     virtual void replyChannelGroups(std::ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply);

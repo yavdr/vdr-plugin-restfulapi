@@ -527,7 +527,7 @@ void JsonEventList::addEvent(const cEvent* event)
   serEvent.TimerExists = timer != NULL ? true : false;
   serEvent.TimerActive = false;
   if ( timer != NULL ) {
-     serEvent.TimerActive = timer->Flags() & 0x01 == 0x01 ? true : false;
+     serEvent.TimerActive = (timer->Flags() & 0x01) != 0;
      serEvent.TimerId = StringExtension::UTF8Decode(VdrExtension::getTimerID(timer));
   }
 
@@ -606,7 +606,7 @@ void XmlEventList::addEvent(const cEvent* event)
   bool timer_active = false;
   string timer_id = "";
   if ( timer_exists ) {
-     timer_active = timer->Flags() & 0x01 == 0x01 ? true : false;
+     timer_active = (timer->Flags() & 0x01) != 0;
      timer_id = VdrExtension::getTimerID(timer);
   }
 

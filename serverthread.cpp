@@ -86,18 +86,18 @@ void cServerThread::Action(void)
   services->appendService(wirbelscanCountries);
   services->appendService(femon);
 
-  server->addService(*info->Regex(), infoService);
-  server->addService(*channels->Regex(), channelsService);
-  server->addService(*events->Regex(), eventsService);
-  server->addService(*recordings->Regex(), recordingsService);
-  server->addService(*remote->Regex(), remoteService);
-  server->addService(*timers->Regex(), timersService);
-  server->addService(*changeState->Regex(), changeStateService);
-  server->addService(*osd->Regex(), osdService);
-  server->addService(*searchtimers->Regex(), searchTimersService);
-  server->addService(*scraper->Regex(), scraperService);
-  server->addService(*wirbelscan->Regex(), wirbelscanService);
-  server->addService(*femon->Regex(), femonService);
+  server->addService(std::move(*info->Regex()), infoService);
+  server->addService(std::move(*channels->Regex()), channelsService);
+  server->addService(std::move(*events->Regex()), eventsService);
+  server->addService(std::move(*recordings->Regex()), recordingsService);
+  server->addService(std::move(*remote->Regex()), remoteService);
+  server->addService(std::move(*timers->Regex()), timersService);
+  server->addService(std::move(*changeState->Regex()), changeStateService);
+  server->addService(std::move(*osd->Regex()), osdService);
+  server->addService(std::move(*searchtimers->Regex()), searchTimersService);
+  server->addService(std::move(*scraper->Regex()), scraperService);
+  server->addService(std::move(*wirbelscan->Regex()), wirbelscanService);
+  server->addService(std::move(*femon->Regex()), femonService);
 
   map<string, string> webapps = Settings::get()->Webapps();
   map<string, string>::iterator it;
@@ -137,7 +137,7 @@ void cServerThread::addWebappService(string name) {
   if (false == occupied) {
       RestfulService* service = new RestfulService(path, true, 1);
       services->appendService(service);
-      server->addService(*service->Regex(), webappService);
+      server->addService(std::move(*service->Regex()), webappService);
       esyslog("restfulapi: webapp service '%s' added", name.c_str());
   } else {
       esyslog("restfulapi: could not add service '%s' because it already exists", name.c_str());

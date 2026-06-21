@@ -212,9 +212,9 @@ void Settings::initDefault()
 {
   SetPort((string)"8002");
   SetIp((string)"0.0.0.0");
-  SetEpgImageDirectory((string)"/var/cache/vdr/epgimages");
-  SetChannelLogoDirectory((string)"/usr/share/vdr/channel-logos");
-  SetWebappDirectory((string)"/var/lib/vdr/plugins/restfulapi/webapp");
+  SetEpgImageDirectory((string)EPG_IMAGE_DIR);
+  SetChannelLogoDirectory((string)CHANNEL_LOGO_DIR);
+  SetWebappDirectory((string)WEBAPP_DIR);
   SetHeaders((string)"true");
   webapp_filetypes_filename = "webapp_file_types.conf";
 }
@@ -1208,8 +1208,14 @@ string VdrExtension::MoveRecording(cRecording const * recording, string const & 
 #else
 	  cRecordings& recordings = Recordings;
 #endif
-  if (!copy)
+  if (!copy) {
+#if APIVERSNUM > 20300
+	  if (cRecording *rec = recordings.GetByName(oldname.c_str()))
+	     recordings.Del(rec);
+#else
 	  recordings.DelByName(oldname.c_str());
+#endif
+  }
   recordings.AddByName(newname.c_str());
   cRecordingUserCommand::InvokeCommand(*cString::sprintf("rename \"%s\"", *strescape(oldname.c_str(), "\\\"$'")), newname.c_str());
   return newname;

@@ -162,7 +162,7 @@ string SearchTimer::LoadCommonFromQuery(QueryHandler& q) {
   if ( search.length() > 0 ) { m_search = search; } else { return "Search required."; }
 
   m_mode = q.getBodyAsInt("mode");
-  if ( m_mode < 0 | m_mode > 5 )  { //0=phrase, 1=all words, 2=at least one word, 3=match exactly, 4=regex, 5=fuzzy
+  if ( m_mode < 0 || m_mode > 5 )  { //0=phrase, 1=all words, 2=at least one word, 3=match exactly, 4=regex, 5=fuzzy
       m_mode = 0;
   }
 

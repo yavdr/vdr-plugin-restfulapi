@@ -121,6 +121,7 @@ class StatusMonitor : public cStatus
     void OsdCreate(void);
     void OsdDestroy(void);
   protected:
+    void ChannelChange(const cChannel *Channel);
     void TimerChange(const cTimer *Timer, eTimerChange Change);
     void ChannelSwitch(const cDevice *Device, int ChannelNumber, bool LiveView);
     void Recording(const cDevice *Device, const char *Name, const char *FileName, bool On);
@@ -158,4 +159,3 @@ class DeleteOsdTask : BaseTask
 };
 
 #endif
-

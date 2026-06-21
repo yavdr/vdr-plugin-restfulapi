@@ -336,8 +336,14 @@ void RecordingsResponder::moveRecording(ostream& out, cxxtools::http::Request& r
       return;
    }
     
-   if (!copy_only)
+   if (!copy_only) {
+#if APIVERSNUM > 20300
+      if (cRecording *rec = recordings.GetByName(oldname.c_str()))
+         recordings.Del(rec);
+#else
       recordings.DelByName(oldname.c_str());
+#endif
+   }
    recordings.AddByName(newname.c_str());
    cRecordingUserCommand::InvokeCommand(*cString::sprintf("rename \"%s\"", *strescape(oldname.c_str(), "\\\"$'")), newname.c_str());
 
@@ -426,7 +432,13 @@ void RecordingsResponder::deleteRecordingByName(ostream& out, cxxtools::http::Re
                 syncMap->erase(StringExtension::toString(delRecording->FileName()));
             }
 
+#if APIVERSNUM > 20300
+            LOCK_DELETEDRECORDINGS_WRITE;
+            recordings.Del(delRecording, false);
+            DeletedRecordings->Add(delRecording);
+#else
             recordings.DelByName(delRecording->FileName());
+#endif
             reply.httpReturn(200, "Recording deleted!");
             return;
         }
@@ -437,29 +449,42 @@ void RecordingsResponder::deleteRecordingByName(ostream& out, cxxtools::http::Re
 void RecordingsResponder::deleteRecording(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
   QueryHandler q("/recordings", request);
-  cRecording* delRecording = getRecordingByRequestWrite(q);
   string syncId = q.getOptionAsString("syncId");
 
-  if ( delRecording == NULL ) {
-      reply.httpReturn(404, "Recording not found!");
-      return;
+#if APIVERSNUM > 20300
+  LOCK_RECORDINGS_WRITE;
+  cRecordings& recordings = *Recordings;
+#else
+  cThreadLock RecordingsLock(&Recordings);
+  cRecordings& recordings = Recordings;
+#endif
+  string path = q.getParamAsRecordingPath();
+  esyslog("restfulapi: path: %s", path.c_str());
+  cRecording* delRecording = recordings.GetByName(path.c_str());
+  if (delRecording == NULL) {
+    int recording_number = q.getParamAsInt(0);
+    if (recording_number >= 0 && recording_number < recordings.Count())
+      delRecording = recordings.Get(recording_number);
+  }
+  if (delRecording == NULL) {
+    esyslog("restfulapi: requested recording not found (write)");
+    reply.httpReturn(404, "Recording not found!");
+    return;
   }
 
   esyslog("restfulapi: delete recording %s", delRecording->FileName());
-  if ( delRecording->Delete() ) {
-
+  if (delRecording->Delete()) {
     if (syncId != "") {
       SyncMap* syncMap = new SyncMap(q, true);
       syncMap->erase(StringExtension::toString(delRecording->FileName()));
     }
-
 #if APIVERSNUM > 20300
-    LOCK_RECORDINGS_WRITE;
-    cRecordings& recordings = *Recordings;
+    LOCK_DELETEDRECORDINGS_WRITE;
+    recordings.Del(delRecording, false);
+    DeletedRecordings->Add(delRecording);
 #else
-    cRecordings& recordings = Recordings;
-#endif
     recordings.DelByName(delRecording->FileName());
+#endif
     reply.httpReturn(200, "Recording deleted!");
     return;
   }
