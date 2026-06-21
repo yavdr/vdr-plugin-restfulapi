@@ -36,10 +36,12 @@ void SearchTimersResponder::reply(ostream& out, cxxtools::http::Request& request
         replyShow(out, request, reply);
      } else if (request.method() == "POST") {
         replyCreate(out, request, reply);
+     } else if (request.method() == "PUT") {
+        replyUpdate(out, request, reply);
      } else if (request.method() == "DELETE") {
         replyDelete(out, request, reply);
      } else {
-        reply.httpReturn(404, "The searchtimer-service does only support the following methods: GET, POST and DELETE.");
+        reply.httpReturn(404, "The searchtimer-service does only support the following methods: GET, POST, PUT and DELETE.");
      }
   }
 }
