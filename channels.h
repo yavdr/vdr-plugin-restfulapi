@@ -5,6 +5,7 @@
 #include <cxxtools/jsonserializer.h>
 #include <cxxtools/serializationinfo.h>
 #include <cxxtools/utf8codec.h>
+#include <vector>
 #include <vdr/channels.h>
 #include "tools.h"
 #include "scraper2vdr.h"
@@ -33,6 +34,8 @@ struct SerChannel
   cxxtools::String ChannelId;
   int Transponder;
   bool Image;
+  bool IsEncrypted;
+  std::vector<cxxtools::String> Caids;
   cxxtools::String Stream;
   cxxtools::String Group;
   bool IsAtsc;
