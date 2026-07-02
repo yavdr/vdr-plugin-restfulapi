@@ -1,5 +1,70 @@
 #include "channels.h"
+
+#include <cstdio>
 using namespace std;
+
+namespace {
+
+vector<int> ChannelCaids(const cChannel* channel)
+{
+  vector<int> caids;
+
+  if (channel == NULL) {
+     return caids;
+  }
+
+  for (int i = 0; i < MAXCAIDS; ++i) {
+      int caid = channel->Ca(i);
+      if (caid == 0) {
+         break;
+      }
+      caids.push_back(caid & 0xFFFF);
+  }
+
+  return caids;
+}
+
+bool ChannelIsEncrypted(const vector<int>& caids)
+{
+  for (size_t i = 0; i < caids.size(); ++i) {
+      if (caids[i] >= CA_ENCRYPTED_MIN && caids[i] <= CA_ENCRYPTED_MAX) {
+         return true;
+      }
+  }
+
+  return false;
+}
+
+vector<cxxtools::String> ChannelCaidStrings(const vector<int>& caids)
+{
+  vector<cxxtools::String> values;
+
+  for (size_t i = 0; i < caids.size(); ++i) {
+      char buffer[16];
+      snprintf(buffer, sizeof(buffer), "%04X", caids[i] & 0xFFFF);
+      values.push_back(cxxtools::String(buffer));
+  }
+
+  return values;
+}
+
+string ChannelCaidsText(const vector<int>& caids)
+{
+  string text;
+
+  for (size_t i = 0; i < caids.size(); ++i) {
+      char buffer[16];
+      snprintf(buffer, sizeof(buffer), "%04X", caids[i] & 0xFFFF);
+      if (!text.empty()) {
+         text += ",";
+      }
+      text += buffer;
+  }
+
+  return text;
+}
+
+}
 
 void ChannelsResponder::reply(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply)
 {
@@ -220,6 +285,8 @@ void operator<<= (cxxtools::SerializationInfo& si, const SerChannel& c)
   si.addMember("channel_id") <<= c.ChannelId;
   si.addMember("image") <<= c.Image;
   si.addMember("group") <<= c.Group;
+  si.addMember("encrypted") <<= c.IsEncrypted;
+  si.addMember("caids") <<= c.Caids;
   si.addMember("transponder") <<= c.Transponder;
   si.addMember("stream") <<= c.Stream;
   si.addMember("is_atsc") <<= c.IsAtsc;
@@ -274,6 +341,9 @@ void JsonChannelList::addChannel(const cChannel* channel, string group, bool ima
   serChannel.ChannelId = StringExtension::UTF8Decode((string)channel->GetChannelID().ToString());
   serChannel.Image = image;
   serChannel.Group = StringExtension::UTF8Decode(group);
+  vector<int> caids = ChannelCaids(channel);
+  serChannel.IsEncrypted = ChannelIsEncrypted(caids);
+  serChannel.Caids = ChannelCaidStrings(caids);
   serChannel.Transponder = channel->Transponder();
   serChannel.Stream = StringExtension::UTF8Decode(((string)channel->GetChannelID().ToString() + (string)suffix).c_str());
   serChannel.IsAtsc = channel->IsAtsc();
@@ -312,6 +382,10 @@ void XmlChannelList::addChannel(const cChannel* channel, string group, bool imag
   s->write(cString::sprintf("  <param name=\"channel_id\">%s</param>\n",  StringExtension::encodeToXml( (string)channel->GetChannelID().ToString()).c_str()));
   s->write(cString::sprintf("  <param name=\"image\">%s</param>\n", (image ? "true" : "false")));
   s->write(cString::sprintf("  <param name=\"group\">%s</param>\n", StringExtension::encodeToXml( group ).c_str()));
+  vector<int> caids = ChannelCaids(channel);
+  s->write(cString::sprintf("  <param name=\"encrypted\">%s</param>\n", ChannelIsEncrypted(caids) ? "true" : "false"));
+  s->write(cString::sprintf("  <param name=\"caids\">%s</param>\n",
+          StringExtension::encodeToXml(ChannelCaidsText(caids)).c_str()));
   s->write(cString::sprintf("  <param name=\"transponder\">%i</param>\n", channel->Transponder()));
   s->write(cString::sprintf("  <param name=\"stream\">%s</param>\n", StringExtension::encodeToXml( ((string)channel->GetChannelID().ToString() + (string)suffix).c_str()).c_str()));
   s->write(cString::sprintf("  <param name=\"is_atsc\">%s</param>\n", channel->IsAtsc() ? "true" : "false"));
