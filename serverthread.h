@@ -19,6 +19,7 @@
 #include "remote.h"
 #include "timers.h"
 #include "changestate.h"
+#include "eventsstreamthread.h"
 #include "osd.h"
 #include "searchtimers.h"
 #include "epgsearch.h"
@@ -36,6 +37,7 @@ private:
     unsigned short int listenPort;
     cxxtools::EventLoop loop;
     cxxtools::http::Server *server;
+    EventsStreamThread eventsStreamThread;
     void Action(void);
     WebappService webappService;
     RestfulServices* services;

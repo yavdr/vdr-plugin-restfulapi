@@ -9,15 +9,20 @@ void cServerThread::Initialize()
   listenIp = Settings::get()->Ip();
   listenPort = Settings::get()->Port();
 
+  eventsStreamThread.Initialize(listenIp, static_cast<unsigned short int>(listenPort + 1));
+  eventsStreamThread.Start();
+
   isyslog("create server");
   server = new cxxtools::http::Server(loop, listenIp, listenPort);
 
   services = RestfulServices::get();
-}
+
+  }
 
 void cServerThread::Stop() {
+  eventsStreamThread.Stop();
   active = false;
-  loop.exit();
+    loop.exit();
   int now = time(NULL);
   esyslog("restfulapi: will end server thread: /%i/", now);
   usleep(100000);//100ms//sleep(1);
