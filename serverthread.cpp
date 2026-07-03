@@ -2,8 +2,7 @@
 
 void cServerThread::Initialize()
 {
-
-	SetDescription("Restfulapi Serverthread");
+  SetDescription("Restfulapi Serverthread");
   active = false; 
 
   listenIp = Settings::get()->Ip();
@@ -16,13 +15,12 @@ void cServerThread::Initialize()
   server = new cxxtools::http::Server(loop, listenIp, listenPort);
 
   services = RestfulServices::get();
-
-  }
+}
 
 void cServerThread::Stop() {
   eventsStreamThread.Stop();
   active = false;
-    loop.exit();
+  loop.exit();
   int now = time(NULL);
   esyslog("restfulapi: will end server thread: /%i/", now);
   usleep(100000);//100ms//sleep(1);
@@ -132,7 +130,6 @@ void cServerThread::addWebappService(string name) {
   int i=0;
 
   for (; it != end; it++) {
-
       if (restfulservices[i]->Path() == path) {
 	  occupied = true;
       }
