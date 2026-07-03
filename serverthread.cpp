@@ -2,12 +2,14 @@
 
 void cServerThread::Initialize()
 {
-
-	SetDescription("Restfulapi Serverthread");
+  SetDescription("Restfulapi Serverthread");
   active = false; 
 
   listenIp = Settings::get()->Ip();
   listenPort = Settings::get()->Port();
+
+  eventsStreamThread.Initialize(listenIp, static_cast<unsigned short int>(listenPort + 1));
+  eventsStreamThread.Start();
 
   isyslog("create server");
   server = new cxxtools::http::Server(loop, listenIp, listenPort);
@@ -16,6 +18,7 @@ void cServerThread::Initialize()
 }
 
 void cServerThread::Stop() {
+  eventsStreamThread.Stop();
   active = false;
   loop.exit();
   int now = time(NULL);
@@ -127,7 +130,6 @@ void cServerThread::addWebappService(string name) {
   int i=0;
 
   for (; it != end; it++) {
-
       if (restfulservices[i]->Path() == path) {
 	  occupied = true;
       }

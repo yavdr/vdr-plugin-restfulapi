@@ -2818,5 +2818,67 @@
             </section>
         </article>
     </div>
+
+<h2>Event stream</h2>
+
+<p>
+The RESTful API provides a Server-Sent Events stream for lightweight VDR state change notifications.
+The stream is available on the event stream port, which defaults to the configured REST port plus one.
+For example, if the REST API listens on port 8002, the event stream listens on port 8003.
+</p>
+
+<pre>
+GET /eventstream
+</pre>
+
+<p>
+The stream uses:
+</p>
+
+<pre>
+Content-Type: text/event-stream; charset=utf-8
+Cache-Control: no-cache
+Connection: keep-alive
+</pre>
+
+<p>
+The stream sends an initial hello event:
+</p>
+
+<pre>
+event: hello
+data: {"source":"restfulapi","bootID":"...","domains":[]}
+</pre>
+
+<p>
+State changes are emitted as vdr-change events. The event payload only contains the changed domains.
+Clients should use the event as an invalidation signal and reload the affected REST resources.
+</p>
+
+<pre>
+event: vdr-change
+id: 123456789
+data: {"source":"restfulapi","domains":["timers"]}
+</pre>
+
+<p>
+Known domains are:
+</p>
+
+<ul>
+  <li>channels</li>
+  <li>recordings</li>
+  <li>timers</li>
+  <li>events</li>
+</ul>
+
+<p>
+Heartbeat comments are sent periodically to keep the connection alive:
+</p>
+
+<pre>
+: heartbeat
+</pre>
+
 </body>
 </html>
