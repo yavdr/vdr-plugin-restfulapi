@@ -1,7 +1,10 @@
 #include "recordinganalysis.h"
 
+#include <cstdint>
 #include <cstring>
 #include <limits>
+#include <sstream>
+#include <sys/stat.h>
 
 #include <vdr/menu.h>
 #include <vdr/recording.h>
@@ -66,6 +69,59 @@ bool parseRemoteTimerId(
 
   remote = value.substr(separator + 1);
   return !remote.empty();
+}
+
+long long fingerprint(const std::string& value)
+{
+  std::uint64_t hash = 1469598103934665603ULL;
+  for (unsigned char character : value) {
+    hash ^= character;
+    hash *= 1099511628211ULL;
+  }
+  return static_cast<long long>(hash & 0x7FFFFFFFFFFFFFFFULL);
+}
+
+long long recordingFingerprint(const std::string& recordingFile, bool found)
+{
+  std::ostringstream state;
+  state << recordingFile << '|';
+  state << (found ? "found" : "missing");
+
+  struct stat fileState;
+  if (found && stat(recordingFile.c_str(), &fileState) == 0) {
+    state << '|' << static_cast<unsigned long long>(fileState.st_dev);
+    state << '|' << static_cast<unsigned long long>(fileState.st_ino);
+    state << '|' << static_cast<long long>(fileState.st_mtime);
+    state << '|' << static_cast<long long>(fileState.st_ctime);
+  }
+  else if (found) {
+    state << "|stat-unavailable";
+  }
+
+  return fingerprint(state.str());
+}
+
+long long timerFingerprint(
+  bool replaying,
+  const RecordingHandlerLookupResult& handlerUsage,
+  const RecordingLocalTimerLookupResult& localTimer,
+  const RecordingRemoteTimerLookupResult& remoteTimer,
+  const RecordingSearchTimerLookupResult& searchTimer)
+{
+  std::ostringstream state;
+  state << "replay=" << replaying;
+  state << "|handler-known=" << handlerUsage.known;
+  state << "|handler-busy=" << handlerUsage.busy;
+  state << "|local-known=" << localTimer.known;
+  state << "|local-active=" << localTimer.active;
+  state << "|remote-known=" << remoteTimer.known;
+  state << "|remote-active=" << remoteTimer.active;
+  state << "|remote-id=" << remoteTimer.timerId;
+  state << "|remote=" << remoteTimer.remote;
+  state << "|search-known=" << searchTimer.known;
+  state << "|search-recording=" << searchTimer.searchTimerRecording;
+  state << "|search-id=" << searchTimer.searchTimerId;
+  return fingerprint(state.str());
 }
 
 }
@@ -221,6 +277,7 @@ RecordingMutationAnalysis RecordingTrashAnalyzer::analyze(
   analysis.revision.recordingFile = recordingFile;
 
   const RecordingLookupResult recording = recordingLookup.find(recordingFile);
+  analysis.revision.recordingsState = recordingFingerprint(recordingFile, recording.found);
 
   if (!recording.found) {
     analysis.constraints.push_back(RecordingConstraint::RecordingMissing);
@@ -229,8 +286,10 @@ RecordingMutationAnalysis RecordingTrashAnalyzer::analyze(
 
   analysis.recordingFile = recording.recordingFile;
   analysis.revision.recordingFile = recording.recordingFile;
+  analysis.revision.recordingsState = recordingFingerprint(recording.recordingFile, true);
 
-  if (replayLookup.isReplaying(recording.recordingFile))
+  const bool replaying = replayLookup.isReplaying(recording.recordingFile);
+  if (replaying)
     analysis.constraints.push_back(RecordingConstraint::ReplayActive);
 
   const RecordingHandlerLookupResult handlerUsage =
@@ -264,6 +323,13 @@ RecordingMutationAnalysis RecordingTrashAnalyzer::analyze(
     analysis.constraints.push_back(RecordingConstraint::UnknownSearchTimerState);
   else if (searchTimer.searchTimerRecording)
     analysis.constraints.push_back(RecordingConstraint::SearchTimerRecording);
+
+  analysis.revision.timersState = timerFingerprint(
+    replaying,
+    handlerUsage,
+    localTimer,
+    remoteTimer,
+    searchTimer);
 
   return analysis;
 }
