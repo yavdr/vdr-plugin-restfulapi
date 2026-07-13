@@ -41,8 +41,11 @@ RecordingMutationPlan RecordingMutationPlanner::buildTrashPlan(
   if (analysis.hasConstraint(RecordingConstraint::UnknownRecordingHandlerState))
     addBlocker(plan, RecordingConstraint::UnknownRecordingHandlerState);
 
-  if (analysis.hasConstraint(RecordingConstraint::UnknownTimerState))
-    addBlocker(plan, RecordingConstraint::UnknownTimerState);
+  if (analysis.hasConstraint(RecordingConstraint::UnknownLocalTimerState))
+    addBlocker(plan, RecordingConstraint::UnknownLocalTimerState);
+
+  if (analysis.hasConstraint(RecordingConstraint::UnknownRemoteTimerState))
+    addBlocker(plan, RecordingConstraint::UnknownRemoteTimerState);
 
   if (analysis.hasConstraint(RecordingConstraint::UnknownSearchTimerState))
     addBlocker(plan, RecordingConstraint::UnknownSearchTimerState);
@@ -98,7 +101,8 @@ const char* RecordingConstraintName(RecordingConstraint constraint)
     case RecordingConstraint::RemoteTimerActive: return "remote-timer-active";
     case RecordingConstraint::SearchTimerRecording: return "searchtimer-recording";
     case RecordingConstraint::UnknownRecordingHandlerState: return "unknown-recording-handler-state";
-    case RecordingConstraint::UnknownTimerState: return "unknown-timer-state";
+    case RecordingConstraint::UnknownLocalTimerState: return "unknown-local-timer-state";
+    case RecordingConstraint::UnknownRemoteTimerState: return "unknown-remote-timer-state";
     case RecordingConstraint::UnknownSearchTimerState: return "unknown-searchtimer-state";
   }
   return "unknown";
