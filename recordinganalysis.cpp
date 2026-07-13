@@ -6,6 +6,70 @@
 #include <vdr/menu.h>
 #include <vdr/recording.h>
 
+namespace {
+
+bool parsePositiveInteger(const std::string& value, int& result)
+{
+  try {
+    std::size_t parsed = 0;
+    const long number = std::stol(value, &parsed, 10);
+    if (parsed != value.size() || number < 0 || number > std::numeric_limits<int>::max())
+      return false;
+    result = static_cast<int>(number);
+    return true;
+  }
+  catch (...) {
+    return false;
+  }
+}
+
+bool parseSearchTimerId(const char* aux, bool& present, int& searchTimerId)
+{
+  present = false;
+  searchTimerId = -1;
+
+  if (!aux || !*aux)
+    return true;
+
+  const std::string value(aux);
+  const std::string openTag = "<s-id>";
+  const std::string closeTag = "</s-id>";
+  const std::string::size_type begin = value.find(openTag);
+
+  if (begin == std::string::npos)
+    return true;
+
+  const std::string::size_type contentBegin = begin + openTag.size();
+  const std::string::size_type end = value.find(closeTag, contentBegin);
+  if (end == std::string::npos || end == contentBegin)
+    return false;
+
+  const std::string idText = value.substr(contentBegin, end - contentBegin);
+  if (!parsePositiveInteger(idText, searchTimerId))
+    return false;
+
+  present = true;
+  return true;
+}
+
+bool parseRemoteTimerId(
+  const std::string& value,
+  int& timerId,
+  std::string& remote)
+{
+  const std::string::size_type separator = value.find('@');
+  if (separator == std::string::npos || separator == 0 || separator + 1 >= value.size())
+    return false;
+
+  if (!parsePositiveInteger(value.substr(0, separator), timerId) || timerId <= 0)
+    return false;
+
+  remote = value.substr(separator + 1);
+  return !remote.empty();
+}
+
+}
+
 RecordingLookupResult VdrRecordingLookup::find(const std::string& recordingFile) const
 {
   RecordingLookupResult result;
@@ -75,24 +139,7 @@ RecordingRemoteTimerLookupResult VdrRecordingRemoteTimerLookup::findActive(
     return result;
   }
 
-  const std::string value(timerId);
-  const std::string::size_type separator = value.find('@');
-  if (separator == std::string::npos || separator == 0 || separator + 1 >= value.size())
-    return result;
-
-  try {
-    std::size_t parsed = 0;
-    const long id = std::stol(value.substr(0, separator), &parsed, 10);
-    if (parsed != separator || id <= 0 || id > std::numeric_limits<int>::max())
-      return result;
-    result.timerId = static_cast<int>(id);
-  }
-  catch (...) {
-    return result;
-  }
-
-  result.remote = value.substr(separator + 1);
-  if (result.remote.empty())
+  if (!parseRemoteTimerId(timerId, result.timerId, result.remote))
     return result;
 
   LOCK_TIMERS_READ;
@@ -105,17 +152,63 @@ RecordingRemoteTimerLookupResult VdrRecordingRemoteTimerLookup::findActive(
   return result;
 }
 
+RecordingSearchTimerLookupResult VdrRecordingSearchTimerLookup::findOrigin(
+  const std::string& recordingFile) const
+{
+  RecordingSearchTimerLookupResult result;
+
+  if (recordingFile.empty())
+    return result;
+
+  LOCK_TIMERS_READ;
+
+  const cTimer* timer = nullptr;
+  if (cRecordControl* recordControl = cRecordControls::GetRecordControl(recordingFile.c_str()))
+    timer = recordControl->Timer();
+
+  if (!timer) {
+    const cString timerIdText = GetRecordingTimerId(recordingFile.c_str());
+    const char* timerId = *timerIdText;
+
+    if (!timerId || !*timerId) {
+      result.known = true;
+      return result;
+    }
+
+    int id = 0;
+    std::string remote;
+    if (!parseRemoteTimerId(timerId, id, remote))
+      return result;
+
+    timer = Timers->GetById(id, remote.c_str());
+    if (!timer)
+      return result;
+  }
+
+  bool present = false;
+  int searchTimerId = -1;
+  if (!parseSearchTimerId(timer->Aux(), present, searchTimerId))
+    return result;
+
+  result.known = true;
+  result.searchTimerRecording = present;
+  result.searchTimerId = present ? searchTimerId : -1;
+  return result;
+}
+
 RecordingTrashAnalyzer::RecordingTrashAnalyzer(
   const IRecordingLookup& recordingLookup,
   const IRecordingReplayLookup& replayLookup,
   const IRecordingHandlerLookup& recordingHandlerLookup,
   const IRecordingLocalTimerLookup& localTimerLookup,
-  const IRecordingRemoteTimerLookup& remoteTimerLookup)
+  const IRecordingRemoteTimerLookup& remoteTimerLookup,
+  const IRecordingSearchTimerLookup& searchTimerLookup)
   : recordingLookup(recordingLookup),
     replayLookup(replayLookup),
     recordingHandlerLookup(recordingHandlerLookup),
     localTimerLookup(localTimerLookup),
-    remoteTimerLookup(remoteTimerLookup)
+    remoteTimerLookup(remoteTimerLookup),
+    searchTimerLookup(searchTimerLookup)
 {
 }
 
@@ -164,7 +257,13 @@ RecordingMutationAnalysis RecordingTrashAnalyzer::analyze(
   else if (remoteTimer.active)
     analysis.constraints.push_back(RecordingConstraint::RemoteTimerActive);
 
-  analysis.constraints.push_back(RecordingConstraint::UnknownSearchTimerState);
+  const RecordingSearchTimerLookupResult searchTimer =
+    searchTimerLookup.findOrigin(recording.recordingFile);
+
+  if (!searchTimer.known)
+    analysis.constraints.push_back(RecordingConstraint::UnknownSearchTimerState);
+  else if (searchTimer.searchTimerRecording)
+    analysis.constraints.push_back(RecordingConstraint::SearchTimerRecording);
 
   return analysis;
 }
