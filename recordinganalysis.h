@@ -11,6 +11,12 @@ struct RecordingLookupResult
   std::string recordingFile;
 };
 
+struct RecordingHandlerLookupResult
+{
+  bool known = false;
+  bool busy = false;
+};
+
 class IRecordingLookup
 {
 public:
@@ -25,6 +31,13 @@ public:
   virtual bool isReplaying(const std::string& recordingFile) const = 0;
 };
 
+class IRecordingHandlerLookup
+{
+public:
+  virtual ~IRecordingHandlerLookup() = default;
+  virtual RecordingHandlerLookupResult getUsage(const std::string& recordingFile) const = 0;
+};
+
 class VdrRecordingLookup : public IRecordingLookup
 {
 public:
@@ -37,18 +50,26 @@ public:
   bool isReplaying(const std::string& recordingFile) const override;
 };
 
+class VdrRecordingHandlerLookup : public IRecordingHandlerLookup
+{
+public:
+  RecordingHandlerLookupResult getUsage(const std::string& recordingFile) const override;
+};
+
 class RecordingTrashAnalyzer
 {
 public:
   RecordingTrashAnalyzer(
     const IRecordingLookup& recordingLookup,
-    const IRecordingReplayLookup& replayLookup);
+    const IRecordingReplayLookup& replayLookup,
+    const IRecordingHandlerLookup& recordingHandlerLookup);
 
   RecordingMutationAnalysis analyze(const std::string& recordingFile) const;
 
 private:
   const IRecordingLookup& recordingLookup;
   const IRecordingReplayLookup& replayLookup;
+  const IRecordingHandlerLookup& recordingHandlerLookup;
 };
 
 #endif
