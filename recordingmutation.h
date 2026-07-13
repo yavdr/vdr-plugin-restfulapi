@@ -22,7 +22,8 @@ enum class RecordingConstraint
   RemoteTimerActive,
   SearchTimerRecording,
   UnknownRecordingHandlerState,
-  UnknownTimerState,
+  UnknownLocalTimerState,
+  UnknownRemoteTimerState,
   UnknownSearchTimerState
 };
 
