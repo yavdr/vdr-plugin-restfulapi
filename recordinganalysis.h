@@ -17,6 +17,12 @@ struct RecordingHandlerLookupResult
   bool busy = false;
 };
 
+struct RecordingLocalTimerLookupResult
+{
+  bool known = false;
+  bool active = false;
+};
+
 class IRecordingLookup
 {
 public:
@@ -38,6 +44,13 @@ public:
   virtual RecordingHandlerLookupResult getUsage(const std::string& recordingFile) const = 0;
 };
 
+class IRecordingLocalTimerLookup
+{
+public:
+  virtual ~IRecordingLocalTimerLookup() = default;
+  virtual RecordingLocalTimerLookupResult findActive(const std::string& recordingFile) const = 0;
+};
+
 class VdrRecordingLookup : public IRecordingLookup
 {
 public:
@@ -56,13 +69,20 @@ public:
   RecordingHandlerLookupResult getUsage(const std::string& recordingFile) const override;
 };
 
+class VdrRecordingLocalTimerLookup : public IRecordingLocalTimerLookup
+{
+public:
+  RecordingLocalTimerLookupResult findActive(const std::string& recordingFile) const override;
+};
+
 class RecordingTrashAnalyzer
 {
 public:
   RecordingTrashAnalyzer(
     const IRecordingLookup& recordingLookup,
     const IRecordingReplayLookup& replayLookup,
-    const IRecordingHandlerLookup& recordingHandlerLookup);
+    const IRecordingHandlerLookup& recordingHandlerLookup,
+    const IRecordingLocalTimerLookup& localTimerLookup);
 
   RecordingMutationAnalysis analyze(const std::string& recordingFile) const;
 
@@ -70,6 +90,7 @@ private:
   const IRecordingLookup& recordingLookup;
   const IRecordingReplayLookup& replayLookup;
   const IRecordingHandlerLookup& recordingHandlerLookup;
+  const IRecordingLocalTimerLookup& localTimerLookup;
 };
 
 #endif
