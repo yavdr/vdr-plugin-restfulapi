@@ -1,6 +1,7 @@
 #include "recordinganalysis.h"
 
 #include <cstring>
+#include <limits>
 
 #include <vdr/menu.h>
 #include <vdr/recording.h>
@@ -58,15 +59,63 @@ RecordingLocalTimerLookupResult VdrRecordingLocalTimerLookup::findActive(
   return result;
 }
 
+RecordingRemoteTimerLookupResult VdrRecordingRemoteTimerLookup::findActive(
+  const std::string& recordingFile) const
+{
+  RecordingRemoteTimerLookupResult result;
+
+  if (recordingFile.empty())
+    return result;
+
+  const cString timerIdText = GetRecordingTimerId(recordingFile.c_str());
+  const char* timerId = *timerIdText;
+
+  if (!timerId || !*timerId) {
+    result.known = true;
+    return result;
+  }
+
+  const std::string value(timerId);
+  const std::string::size_type separator = value.find('@');
+  if (separator == std::string::npos || separator == 0 || separator + 1 >= value.size())
+    return result;
+
+  try {
+    std::size_t parsed = 0;
+    const long id = std::stol(value.substr(0, separator), &parsed, 10);
+    if (parsed != separator || id <= 0 || id > std::numeric_limits<int>::max())
+      return result;
+    result.timerId = static_cast<int>(id);
+  }
+  catch (...) {
+    return result;
+  }
+
+  result.remote = value.substr(separator + 1);
+  if (result.remote.empty())
+    return result;
+
+  LOCK_TIMERS_READ;
+  const cTimer* timer = Timers->GetById(result.timerId, result.remote.c_str());
+  if (!timer)
+    return result;
+
+  result.known = true;
+  result.active = timer->HasFlags(tfActive) || timer->Recording();
+  return result;
+}
+
 RecordingTrashAnalyzer::RecordingTrashAnalyzer(
   const IRecordingLookup& recordingLookup,
   const IRecordingReplayLookup& replayLookup,
   const IRecordingHandlerLookup& recordingHandlerLookup,
-  const IRecordingLocalTimerLookup& localTimerLookup)
+  const IRecordingLocalTimerLookup& localTimerLookup,
+  const IRecordingRemoteTimerLookup& remoteTimerLookup)
   : recordingLookup(recordingLookup),
     replayLookup(replayLookup),
     recordingHandlerLookup(recordingHandlerLookup),
-    localTimerLookup(localTimerLookup)
+    localTimerLookup(localTimerLookup),
+    remoteTimerLookup(remoteTimerLookup)
 {
 }
 
@@ -107,7 +156,14 @@ RecordingMutationAnalysis RecordingTrashAnalyzer::analyze(
   else if (localTimer.active)
     analysis.constraints.push_back(RecordingConstraint::LocalTimerActive);
 
-  analysis.constraints.push_back(RecordingConstraint::UnknownRemoteTimerState);
+  const RecordingRemoteTimerLookupResult remoteTimer =
+    remoteTimerLookup.findActive(recording.recordingFile);
+
+  if (!remoteTimer.known)
+    analysis.constraints.push_back(RecordingConstraint::UnknownRemoteTimerState);
+  else if (remoteTimer.active)
+    analysis.constraints.push_back(RecordingConstraint::RemoteTimerActive);
+
   analysis.constraints.push_back(RecordingConstraint::UnknownSearchTimerState);
 
   return analysis;
