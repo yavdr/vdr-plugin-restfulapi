@@ -38,7 +38,7 @@ LIBS += $(shell pkg-config --libs Magick++)
 CXXFLAGS += -DUSE_LIBMAGICKPLUSPLUS
 endif
 
-OBJS = $(PLUGIN).o serverthread.o tools.o info.o searchtimers.o channels.o events.o recordings.o remote.o timers.o changestate.o eventsstreamthread.o changestatetracker.o scraper2vdr.o statusmonitor.o osd.o jsonparser.o epgsearch.o wirbelscan.o webapp.o femon.o
+OBJS = $(PLUGIN).o serverthread.o tools.o info.o searchtimers.o channels.o events.o recordings.o recordingmutation.o remote.o timers.o changestate.o eventsstreamthread.o changestatetracker.o scraper2vdr.o statusmonitor.o osd.o jsonparser.o epgsearch.o wirbelscan.o webapp.o femon.o
 CFGS = API.html
 
 all: $(SOFILE) i18n
@@ -55,8 +55,8 @@ $(DEPFILE): Makefile
 
 PODIR     = po
 I18Npo    = $(wildcard $(PODIR)/*.po)
-I18Nmo    = $(addsuffix .mo, $(foreach file, $(I18Npo), $(basename $(file))))
-I18Nmsgs  = $(addprefix $(DESTDIR)$(LOCDIR)/, $(addsuffix /LC_MESSAGES/vdr-$(PLUGIN).mo, $(notdir $(foreach file, $(I18Npo), $(basename $(file))))))
+I18Nmo    = $(addsuffix .mo, $(foreach file,$(I18Npo),$(basename $(file))))
+I18Nmsgs  = $(addprefix $(DESTDIR)$(LOCDIR)/,$(addsuffix /LC_MESSAGES/vdr-$(PLUGIN).mo,$(notdir $(foreach file,$(I18Npo),$(basename $(file))))))
 I18Npot   = $(PODIR)/$(PLUGIN).pot
 
 %.mo: %.po
@@ -87,19 +87,3 @@ install-cfg: $(CFGS)
 	install -D $^ $(DESTDIR)$(PLGCONFDIR)/$^
 
 install: install-lib install-i18n install-cfg
-
-dist: $(I18Npo) clean
-	@-rm -rf $(TMPDIR)/$(ARCHIVE)
-	@mkdir $(TMPDIR)/$(ARCHIVE)
-	@cp -a * $(TMPDIR)/$(ARCHIVE)
-	@-rm -rf $(TMPDIR)/$(ARCHIVE)/debian
-	@tar czf $(PACKAGE).tgz -C $(TMPDIR) $(ARCHIVE)
-	@-rm -rf $(TMPDIR)/$(ARCHIVE)
-	@echo Distribution package created as $(PACKAGE).tgz
-
-clean:
-	@-rm -f $(PODIR)/*.mo $(PODIR)/*.pot
-	@-rm -f $(OBJS) $(DEPFILE) *.so *.tgz core* *~ ._*
-	
-archive:
-	git archive --format=tar.gz --prefix=vdr-plugin-restfulapi-${VERSION}/ --output=../vdr-plugin-restfulapi-${VERSION}.tar.gz master
