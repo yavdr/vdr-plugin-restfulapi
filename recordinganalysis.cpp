@@ -45,13 +45,28 @@ RecordingHandlerLookupResult VdrRecordingHandlerLookup::getUsage(
   return result;
 }
 
+RecordingLocalTimerLookupResult VdrRecordingLocalTimerLookup::findActive(
+  const std::string& recordingFile) const
+{
+  RecordingLocalTimerLookupResult result;
+
+  if (recordingFile.empty())
+    return result;
+
+  result.known = true;
+  result.active = cRecordControls::GetRecordControl(recordingFile.c_str()) != nullptr;
+  return result;
+}
+
 RecordingTrashAnalyzer::RecordingTrashAnalyzer(
   const IRecordingLookup& recordingLookup,
   const IRecordingReplayLookup& replayLookup,
-  const IRecordingHandlerLookup& recordingHandlerLookup)
+  const IRecordingHandlerLookup& recordingHandlerLookup,
+  const IRecordingLocalTimerLookup& localTimerLookup)
   : recordingLookup(recordingLookup),
     replayLookup(replayLookup),
-    recordingHandlerLookup(recordingHandlerLookup)
+    recordingHandlerLookup(recordingHandlerLookup),
+    localTimerLookup(localTimerLookup)
 {
 }
 
@@ -84,7 +99,15 @@ RecordingMutationAnalysis RecordingTrashAnalyzer::analyze(
   else if (handlerUsage.busy)
     analysis.constraints.push_back(RecordingConstraint::RecordingHandlerBusy);
 
-  analysis.constraints.push_back(RecordingConstraint::UnknownTimerState);
+  const RecordingLocalTimerLookupResult localTimer =
+    localTimerLookup.findActive(recording.recordingFile);
+
+  if (!localTimer.known)
+    analysis.constraints.push_back(RecordingConstraint::UnknownLocalTimerState);
+  else if (localTimer.active)
+    analysis.constraints.push_back(RecordingConstraint::LocalTimerActive);
+
+  analysis.constraints.push_back(RecordingConstraint::UnknownRemoteTimerState);
   analysis.constraints.push_back(RecordingConstraint::UnknownSearchTimerState);
 
   return analysis;
