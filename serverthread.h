@@ -17,6 +17,7 @@
 #include "events.h"
 #include "recordings.h"
 #include "recordingpreview.h"
+#include "recordingvalidate.h"
 #include "remote.h"
 #include "timers.h"
 #include "changestate.h"
