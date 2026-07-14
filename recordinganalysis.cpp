@@ -205,15 +205,23 @@ RecordingRemoteTimerLookupResult VdrRecordingRemoteTimerLookup::findActive(
 
   LOCK_TIMERS_READ;
 
-  const cTimer* timer = Timers->GetById(result.timerId, nullptr);
-  if (!timer)
-    timer = Timers->GetById(result.timerId, result.remote.c_str());
+  const cTimer* localTimer = Timers->GetById(result.timerId, nullptr);
+  if (localTimer) {
+    result.known = true;
+    result.active = false;
+    result.remote.clear();
+    return result;
+  }
 
-  if (!timer)
+  const cTimer* remoteTimer =
+    Timers->GetById(result.timerId, result.remote.c_str());
+
+  if (!remoteTimer)
     return result;
 
   result.known = true;
-  result.active = timer->HasFlags(tfActive) || timer->Recording();
+  result.active =
+    remoteTimer->HasFlags(tfActive) || remoteTimer->Recording();
   return result;
 }
 
