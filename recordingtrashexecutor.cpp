@@ -3,6 +3,7 @@
 #include "changestatetracker.h"
 
 #include <cstring>
+#include <unistd.h>
 
 #include <vdr/menu.h>
 #include <vdr/recording.h>
@@ -23,6 +24,11 @@ std::string deletedFileName(const std::string& recordingFile)
   return std::string();
 }
 
+bool pathExists(const std::string& path)
+{
+  return !path.empty() && access(path.c_str(), F_OK) == 0;
+}
+
 }
 
 RecordingTrashExecutor::RecordingTrashExecutor(const RecordingTrashExecutionGate& gate)
@@ -37,6 +43,22 @@ RecordingTrashExecutorResult RecordingTrashExecutor::executeNormalCase(
 {
   RecordingTrashExecutorResult result;
   result.recordingFile = recordingFile;
+
+  const std::string targetFile = deletedFileName(recordingFile);
+  if (targetFile.empty()) {
+    result.status = RecordingTrashExecutorStatus::Blocked;
+    result.message = "Only active .rec recordings can be moved to the VDR trash.";
+    return result;
+  }
+
+  result.deletedRecordingFile = targetFile;
+
+  if (!pathExists(recordingFile) && pathExists(targetFile)) {
+    result.status = RecordingTrashExecutorStatus::AlreadyTrashed;
+    result.message = "Recording is already present in the VDR trash.";
+    return result;
+  }
+
   result.gate = gate.validate(recordingFile, expectedRevision, policy);
 
   if (result.gate.status == RecordingTrashExecutionGateStatus::Conflict) {
@@ -51,20 +73,25 @@ RecordingTrashExecutorResult RecordingTrashExecutor::executeNormalCase(
     return result;
   }
 
-  const std::string targetFile = deletedFileName(recordingFile);
-  if (targetFile.empty()) {
-    result.status = RecordingTrashExecutorStatus::Blocked;
-    result.message = "Only active .rec recordings can be moved to the VDR trash.";
-    return result;
-  }
-
   LOCK_TIMERS_WRITE;
   LOCK_RECORDINGS_WRITE;
 
   cRecording* recording = Recordings->GetByName(recordingFile.c_str());
   if (!recording) {
-    result.status = RecordingTrashExecutorStatus::NotFound;
-    result.message = "Recording disappeared before execution.";
+    if (!pathExists(recordingFile) && pathExists(targetFile)) {
+      result.status = RecordingTrashExecutorStatus::AlreadyTrashed;
+      result.message = "Recording is already present in the VDR trash.";
+    }
+    else {
+      result.status = RecordingTrashExecutorStatus::NotFound;
+      result.message = "Recording disappeared before execution.";
+    }
+    return result;
+  }
+
+  if (pathExists(targetFile)) {
+    result.status = RecordingTrashExecutorStatus::Conflict;
+    result.message = "The VDR trash target already exists.";
     return result;
   }
 
@@ -101,6 +128,12 @@ RecordingTrashExecutorResult RecordingTrashExecutor::executeNormalCase(
     return result;
   }
 
+  if (pathExists(recordingFile) || !pathExists(targetFile)) {
+    result.status = RecordingTrashExecutorStatus::Failed;
+    result.message = "Recording trash postcondition verification failed.";
+    return result;
+  }
+
   {
     LOCK_DELETEDRECORDINGS_WRITE;
     Recordings->Del(recording, false);
@@ -111,7 +144,6 @@ RecordingTrashExecutorResult RecordingTrashExecutor::executeNormalCase(
   StateChangeTracker::UpdateRecordings();
 
   result.status = RecordingTrashExecutorStatus::Trashed;
-  result.deletedRecordingFile = targetFile;
   result.message = "Recording moved to the VDR trash.";
   return result;
 }
@@ -121,6 +153,8 @@ const char* RecordingTrashExecutorStatusName(RecordingTrashExecutorStatus status
   switch (status) {
     case RecordingTrashExecutorStatus::Trashed:
       return "trashed";
+    case RecordingTrashExecutorStatus::AlreadyTrashed:
+      return "already-trashed";
     case RecordingTrashExecutorStatus::Conflict:
       return "conflict";
     case RecordingTrashExecutorStatus::Blocked:
