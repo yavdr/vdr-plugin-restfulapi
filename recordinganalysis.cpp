@@ -64,7 +64,7 @@ bool parseRemoteTimerId(
   if (separator == std::string::npos || separator == 0 || separator + 1 >= value.size())
     return false;
 
-  if (!parsePositiveInteger(value.substr(0, separator), timerId) || timerId <= 0)
+  if (!parsePositiveInteger(value.substr(0, separator), timerId))
     return false;
 
   remote = value.substr(separator + 1);
@@ -198,6 +198,11 @@ RecordingRemoteTimerLookupResult VdrRecordingRemoteTimerLookup::findActive(
   if (!parseRemoteTimerId(timerId, result.timerId, result.remote))
     return result;
 
+  if (result.timerId == 0) {
+    result.known = true;
+    return result;
+  }
+
   LOCK_TIMERS_READ;
   const cTimer* timer = Timers->GetById(result.timerId, result.remote.c_str());
   if (!timer)
@@ -235,6 +240,11 @@ RecordingSearchTimerLookupResult VdrRecordingSearchTimerLookup::findOrigin(
     std::string remote;
     if (!parseRemoteTimerId(timerId, id, remote))
       return result;
+
+    if (id == 0) {
+      result.known = true;
+      return result;
+    }
 
     timer = Timers->GetById(id, remote.c_str());
     if (!timer)
