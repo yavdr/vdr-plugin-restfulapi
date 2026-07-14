@@ -72,8 +72,15 @@ $(I18Npot): $(wildcard *.cpp)
 $(I18Nmsgs): $(DESTDIR)$(LOCDIR)/%/LC_MESSAGES/vdr-$(PLUGIN).mo: $(PODIR)/%.mo
 	install -D -m644 $< $@
 
-.PHONY: i18n
+.PHONY: i18n test-recording-move-plan
 i18n: $(I18Nmo) $(I18Npot)
+
+test-recording-move-plan:
+	$(CXX) -std=c++17 -Wall -Wextra \
+		recordingmutation.cpp \
+		tests/test_recording_move_plan.cpp \
+		-o /tmp/test_recording_move_plan
+	/tmp/test_recording_move_plan
 
 install-i18n: $(I18Nmsgs)
 
