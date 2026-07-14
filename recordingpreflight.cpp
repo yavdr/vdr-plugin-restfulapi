@@ -2,9 +2,8 @@
 
 namespace {
 
-template <typename Result>
-void appendAnalysisAndPlan(
-  Result& result,
+void appendTrashAnalysisAndPlan(
+  RecordingTrashPreflightResult& result,
   const RecordingMutationAnalysis& analysis,
   const RecordingMutationPlan& plan)
 {
@@ -40,27 +39,6 @@ RecordingTrashPreflightResult RecordingTrashPreflightService::preview(
   RecordingTrashPreflightResult result;
   const RecordingMutationAnalysis analysis = analyzer.analyze(recordingFile);
   const RecordingMutationPlan plan = planner.buildTrashPlan(analysis, policy);
-  appendAnalysisAndPlan(result, analysis, plan);
-  return result;
-}
-
-RecordingMovePreflightService::RecordingMovePreflightService(
-  const RecordingMoveAnalyzer& analyzer,
-  const RecordingMutationPlanner& planner)
-  : analyzer(analyzer),
-    planner(planner)
-{
-}
-
-RecordingMovePreflightResult RecordingMovePreflightService::preview(
-  const std::string& recordingFile,
-  const std::string& targetFile,
-  const RecordingMutationPolicy& policy) const
-{
-  RecordingMovePreflightResult result;
-  const RecordingMutationAnalysis analysis = analyzer.analyze(recordingFile, targetFile);
-  const RecordingMutationPlan plan = planner.buildMovePlan(analysis, policy);
-  appendAnalysisAndPlan(result, analysis, plan);
-  result.targetFile = analysis.targetFile;
+  appendTrashAnalysisAndPlan(result, analysis, plan);
   return result;
 }
