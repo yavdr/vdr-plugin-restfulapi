@@ -6,6 +6,7 @@
 
 #include <vdr/menu.h>
 #include <vdr/recording.h>
+#include <vdr/videodir.h>
 
 namespace {
 
