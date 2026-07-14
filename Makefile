@@ -55,8 +55,8 @@ $(DEPFILE): Makefile
 
 PODIR     = po
 I18Npo    = $(wildcard $(PODIR)/*.po)
-I18Nmo    = $(addsuffix .mo, $(foreach file, $(I18Npo), $(basename $(file))))
-I18Nmsgs  = $(addprefix $(DESTDIR)$(LOCDIR)/, $(addsuffix /LC_MESSAGES/vdr-$(PLUGIN).mo, $(notdir $(foreach file, $(I18Npo), $(basename $(file))))))
+I18Nmo    = $(addsuffix .mo, $(foreach file,$(I18Npo),$(basename $(file))))
+I18Nmsgs  = $(addprefix $(DESTDIR)$(LOCDIR)/, $(addsuffix /LC_MESSAGES/vdr-$(PLUGIN).mo, $(notdir $(foreach file,$(I18Npo),$(basename $(file))))))
 I18Npot   = $(PODIR)/$(PLUGIN).pot
 
 %.mo: %.po
@@ -72,7 +72,7 @@ $(I18Npot): $(wildcard *.cpp)
 $(I18Nmsgs): $(DESTDIR)$(LOCDIR)/%/LC_MESSAGES/vdr-$(PLUGIN).mo: $(PODIR)/%.mo
 	install -D -m644 $< $@
 
-.PHONY: i18n test-recording-move-plan test-recording-move-analysis
+.PHONY: i18n test-recording-move-plan test-recording-move-analysis test-recording-move-preflight
 i18n: $(I18Nmo) $(I18Npot)
 
 test-recording-move-plan:
@@ -89,6 +89,15 @@ test-recording-move-analysis:
 		tests/test_recording_move_analysis.cpp \
 		-o /tmp/test_recording_move_analysis
 	/tmp/test_recording_move_analysis
+
+test-recording-move-preflight:
+	$(CXX) -std=c++17 -Wall -Wextra \
+		recordingmutation.cpp \
+		recordingmoveanalysis.cpp \
+		recordingpreflight.cpp \
+		tests/test_recording_move_preflight.cpp \
+		-o /tmp/test_recording_move_preflight
+	/tmp/test_recording_move_preflight
 
 install-i18n: $(I18Nmsgs)
 
@@ -109,7 +118,6 @@ dist: $(I18Npo) clean
 	@cp -a * $(TMPDIR)/$(ARCHIVE)
 	@-rm -rf $(TMPDIR)/$(ARCHIVE)/debian
 	@tar czf $(PACKAGE).tgz -C $(TMPDIR) $(ARCHIVE)
-	@-rm -rf $(TMPDIR)/$(ARCHIVE)
 	@echo Distribution package created as $(PACKAGE).tgz
 
 clean:
