@@ -115,6 +115,7 @@ void RecordingTrashResponder::reply(
       reply.httpReturn(500, result.message);
       return;
     case RecordingTrashExecutorStatus::Trashed:
+    case RecordingTrashExecutorStatus::AlreadyTrashed:
       break;
   }
 
