@@ -134,13 +134,6 @@ int main()
   assert(!sameTarget.hasConstraint(RecordingConstraint::MoveTargetExists));
 
   recordingLookup.results[target] = {true, target};
-  analyzer = makeAnalyzer(
-    recordingLookup,
-    replayLookup,
-    handlerLookup,
-    localTimerLookup,
-    remoteTimerLookup,
-    searchTimerLookup);
   const RecordingMutationAnalysis collision = analyzer.analyze(source, target);
   assert(collision.hasConstraint(RecordingConstraint::MoveTargetExists));
   assert(collision.revision.recordingsState != ready.revision.recordingsState);
@@ -150,13 +143,6 @@ int main()
   localTimerLookup.result.active = true;
   remoteTimerLookup.result.active = true;
   searchTimerLookup.result.searchTimerRecording = true;
-  analyzer = makeAnalyzer(
-    recordingLookup,
-    replayLookup,
-    handlerLookup,
-    localTimerLookup,
-    remoteTimerLookup,
-    searchTimerLookup);
   const RecordingMutationAnalysis active = analyzer.analyze(source, "/srv/vdr/video/Other/2026.rec");
   assert(active.hasConstraint(RecordingConstraint::ReplayActive));
   assert(active.hasConstraint(RecordingConstraint::RecordingHandlerBusy));
