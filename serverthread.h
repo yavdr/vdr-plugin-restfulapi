@@ -18,6 +18,7 @@
 #include "recordings.h"
 #include "recordingpreview.h"
 #include "recordingvalidate.h"
+#include "recordingtrash.h"
 #include "remote.h"
 #include "timers.h"
 #include "changestate.h"
