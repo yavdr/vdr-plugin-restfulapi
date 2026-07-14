@@ -93,6 +93,7 @@ test-recording-move-analysis:
 test-recording-move-preflight:
 	$(CXX) -std=c++17 -Wall -Wextra \
 		recordingmutation.cpp \
+		recordinganalysis.cpp \
 		recordingmoveanalysis.cpp \
 		recordingpreflight.cpp \
 		tests/test_recording_move_preflight.cpp \
