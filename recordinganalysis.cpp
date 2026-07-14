@@ -204,7 +204,11 @@ RecordingRemoteTimerLookupResult VdrRecordingRemoteTimerLookup::findActive(
   }
 
   LOCK_TIMERS_READ;
-  const cTimer* timer = Timers->GetById(result.timerId, result.remote.c_str());
+
+  const cTimer* timer = Timers->GetById(result.timerId, nullptr);
+  if (!timer)
+    timer = Timers->GetById(result.timerId, result.remote.c_str());
+
   if (!timer)
     return result;
 
@@ -246,7 +250,10 @@ RecordingSearchTimerLookupResult VdrRecordingSearchTimerLookup::findOrigin(
       return result;
     }
 
-    timer = Timers->GetById(id, remote.c_str());
+    timer = Timers->GetById(id, nullptr);
+    if (!timer)
+      timer = Timers->GetById(id, remote.c_str());
+
     if (!timer)
       return result;
   }
