@@ -8,6 +8,7 @@
 enum class RecordingTrashExecutorStatus
 {
   Trashed,
+  AlreadyTrashed,
   Conflict,
   Blocked,
   NotFound,
