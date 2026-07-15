@@ -38,7 +38,7 @@ LIBS += $(shell pkg-config --libs Magick++)
 CXXFLAGS += -DUSE_LIBMAGICKPLUSPLUS
 endif
 
-OBJS = $(PLUGIN).o serverthread.o tools.o info.o searchtimers.o channels.o events.o recordings.o recordingmutation.o recordinganalysis.o recordingmoveanalysis.o recordingrenameplan.o recordingrenamepreflight.o recordingpreflight.o recordingmovepreflight.o recordingpreview.o recordingmovepreview.o recordingexecution.o recordingmoveexecution.o recordingvalidate.o recordingmovevalidate.o recordingmoveexecutor.o recordingmove.o recordingtrashexecutor.o recordingtrash.o remote.o timers.o changestate.o eventsstreamthread.o changestatetracker.o scraper2vdr.o statusmonitor.o osd.o jsonparser.o epgsearch.o wirbelscan.o webapp.o femon.o
+OBJS = $(PLUGIN).o serverthread.o tools.o info.o searchtimers.o channels.o events.o recordings.o recordingmutation.o recordinganalysis.o recordingmoveanalysis.o recordingrenameplan.o recordingrenamepreflight.o recordingpreflight.o recordingmovepreflight.o recordingpreview.o recordingmovepreview.o recordingrenamepreview.o recordingexecution.o recordingmoveexecution.o recordingvalidate.o recordingmovevalidate.o recordingmoveexecutor.o recordingmove.o recordingtrashexecutor.o recordingtrash.o remote.o timers.o changestate.o eventsstreamthread.o changestatetracker.o scraper2vdr.o statusmonitor.o osd.o jsonparser.o epgsearch.o wirbelscan.o webapp.o femon.o
 CFGS = API.html
 
 all: $(SOFILE) i18n
@@ -147,8 +147,4 @@ dist: $(I18Npo) clean
 	@echo Distribution package created as $(PACKAGE).tgz
 
 clean:
-	@-rm -f $(PODIR)/*.mo $(PODIR)/*.pot
-	@-rm -f $(OBJS) $(DEPFILE) *.so *.tgz core* *~ ._*
-	
-archive:
-	git archive --format=tar.gz --prefix=vdr-plugin-restfulapi-${VERSION}/ --output=../vdr-plugin-restfulapi-${VERSION}.tar.gz master
+	@-rm -f $(PODIR)/*.mo $(PODIR)/*.pot $(OBJS) $(DEPFILE) $(SOFILE) *~
