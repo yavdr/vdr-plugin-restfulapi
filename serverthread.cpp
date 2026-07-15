@@ -43,6 +43,7 @@ void cServerThread::Action(void)
   RecordingMovePreviewService recordingMovePreviewService;
   RecordingRenamePreviewService recordingRenamePreviewService;
   RecordingMoveValidateService recordingMoveValidateService;
+  RecordingRenameValidateService recordingRenameValidateService;
   RecordingMoveService recordingMoveService;
   RecordingTrashPreviewService recordingTrashPreviewService;
   RecordingTrashValidateService recordingTrashValidateService;
@@ -69,6 +70,7 @@ void cServerThread::Action(void)
   RestfulService* recordingMovePreview = new RestfulService("/recordings/move/preview", true, 1, recordings);
   RestfulService* recordingRenamePreview = new RestfulService("/recordings/rename/preview", true, 1, recordings);
   RestfulService* recordingMoveValidate = new RestfulService("/recordings/move/validate", true, 1, recordings);
+  RestfulService* recordingRenameValidate = new RestfulService("/recordings/rename/validate", true, 1, recordings);
   RestfulService* recordingMove = new RestfulService("/recordings/move", true, 1, recordings);
   RestfulService* recordingTrashPreview = new RestfulService("/recordings/trash/preview", true, 1, recordings);
   RestfulService* recordingTrashValidate = new RestfulService("/recordings/trash/validate", true, 1, recordings);
@@ -96,6 +98,7 @@ void cServerThread::Action(void)
   services->appendService(recordingMovePreview);
   services->appendService(recordingRenamePreview);
   services->appendService(recordingMoveValidate);
+  services->appendService(recordingRenameValidate);
   services->appendService(recordingMove);
   services->appendService(recordingTrashPreview);
   services->appendService(recordingTrashValidate);
@@ -116,6 +119,7 @@ void cServerThread::Action(void)
   server->addService(std::move(*recordingMovePreview->Regex()), recordingMovePreviewService);
   server->addService(std::move(*recordingRenamePreview->Regex()), recordingRenamePreviewService);
   server->addService(std::move(*recordingMoveValidate->Regex()), recordingMoveValidateService);
+  server->addService(std::move(*recordingRenameValidate->Regex()), recordingRenameValidateService);
   server->addService(std::move(*recordingMove->Regex()), recordingMoveService);
   server->addService(std::move(*recordingTrashPreview->Regex()), recordingTrashPreviewService);
   server->addService(std::move(*recordingTrashValidate->Regex()), recordingTrashValidateService);
