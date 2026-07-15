@@ -18,6 +18,7 @@
 #include "recordings.h"
 #include "recordingpreview.h"
 #include "recordingmovepreview.h"
+#include "recordingrenamepreview.h"
 #include "recordingvalidate.h"
 #include "recordingmovevalidate.h"
 #include "recordingmove.h"
