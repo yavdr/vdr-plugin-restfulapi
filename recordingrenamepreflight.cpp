@@ -22,6 +22,11 @@ void appendMovePreflight(
     result.steps.push_back(RecordingMutationStepName(step));
 }
 
+std::string renameConstraintName(RecordingRenamePlanStatus status)
+{
+  return std::string("rename-") + RecordingRenamePlanStatusName(status);
+}
+
 }
 
 RecordingRenamePreflightService::RecordingRenamePreflightService(
@@ -50,9 +55,9 @@ RecordingRenamePreflightResult RecordingRenamePreflightService::preview(
   result.targetFile = renamePlan.targetFile;
 
   if (!renamePlan.executable()) {
-    const std::string status = RecordingRenamePlanStatusName(renamePlan.status);
-    result.constraints.push_back(status);
-    result.blockers.push_back(status);
+    const std::string constraint = renameConstraintName(renamePlan.status);
+    result.constraints.push_back(constraint);
+    result.blockers.push_back(constraint);
     return result;
   }
 
