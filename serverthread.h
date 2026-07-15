@@ -19,6 +19,7 @@
 #include "recordingpreview.h"
 #include "recordingmovepreview.h"
 #include "recordingvalidate.h"
+#include "recordingmovevalidate.h"
 #include "recordingtrash.h"
 #include "remote.h"
 #include "timers.h"
