@@ -21,6 +21,7 @@
 #include "recordingrenamepreview.h"
 #include "recordingvalidate.h"
 #include "recordingmovevalidate.h"
+#include "recordingrenamevalidate.h"
 #include "recordingmove.h"
 #include "recordingtrash.h"
 #include "remote.h"
