@@ -23,6 +23,7 @@
 #include "recordingmovevalidate.h"
 #include "recordingrenamevalidate.h"
 #include "recordingmove.h"
+#include "recordingrename.h"
 #include "recordingtrash.h"
 #include "remote.h"
 #include "timers.h"
