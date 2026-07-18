@@ -21,20 +21,11 @@ void addStep(RecordingMutationPlan& plan, RecordingMutationStep step)
     plan.steps.push_back(step);
 }
 
-}
-
-RecordingMutationPlan RecordingMutationPlanner::buildTrashPlan(
+void addCommonSafetyConstraints(
+  RecordingMutationPlan& plan,
   const RecordingMutationAnalysis& analysis,
-  const RecordingMutationPolicy& policy) const
+  const RecordingMutationPolicy& policy)
 {
-  RecordingMutationPlan plan;
-  plan.type = RecordingMutationType::Trash;
-  plan.warnings = analysis.warnings;
-  plan.expectedRevision = analysis.revision;
-
-  if (analysis.type != RecordingMutationType::Trash)
-    addBlocker(plan, RecordingConstraint::RecordingMissing);
-
   if (analysis.hasConstraint(RecordingConstraint::RecordingMissing))
     addBlocker(plan, RecordingConstraint::RecordingMissing);
 
@@ -80,9 +71,64 @@ RecordingMutationPlan RecordingMutationPlanner::buildTrashPlan(
 
   if (analysis.hasConstraint(RecordingConstraint::SearchTimerRecording))
     plan.warnings.push_back("EPGSearch may classify an interrupted recording as incomplete.");
+}
+
+}
+
+RecordingMutationPlan RecordingMutationPlanner::buildTrashPlan(
+  const RecordingMutationAnalysis& analysis,
+  const RecordingMutationPolicy& policy) const
+{
+  RecordingMutationPlan plan;
+  plan.type = RecordingMutationType::Trash;
+  plan.warnings = analysis.warnings;
+  plan.expectedRevision = analysis.revision;
+
+  if (analysis.type != RecordingMutationType::Trash)
+    addBlocker(plan, RecordingConstraint::RecordingMissing);
+
+  addCommonSafetyConstraints(plan, analysis, policy);
 
   if (plan.blockers.empty()) {
     addStep(plan, RecordingMutationStep::TrashRecording);
+    addStep(plan, RecordingMutationStep::RefreshRecordings);
+    addStep(plan, RecordingMutationStep::NotifyChange);
+    plan.executable = true;
+  }
+
+  return plan;
+}
+
+RecordingMutationPlan RecordingMutationPlanner::buildMovePlan(
+  const RecordingMutationAnalysis& analysis,
+  const RecordingMutationPolicy& policy) const
+{
+  RecordingMutationPlan plan;
+  plan.type = RecordingMutationType::Move;
+  plan.warnings = analysis.warnings;
+  plan.expectedRevision = analysis.revision;
+
+  if (analysis.type != RecordingMutationType::Move)
+    addBlocker(plan, RecordingConstraint::RecordingMissing);
+
+  addCommonSafetyConstraints(plan, analysis, policy);
+
+  if (analysis.targetFile.empty() ||
+      analysis.hasConstraint(RecordingConstraint::MoveTargetMissing))
+    addBlocker(plan, RecordingConstraint::MoveTargetMissing);
+
+  if (analysis.hasConstraint(RecordingConstraint::MoveTargetInvalid))
+    addBlocker(plan, RecordingConstraint::MoveTargetInvalid);
+
+  if (analysis.recordingFile == analysis.targetFile ||
+      analysis.hasConstraint(RecordingConstraint::MoveTargetSameAsSource))
+    addBlocker(plan, RecordingConstraint::MoveTargetSameAsSource);
+
+  if (analysis.hasConstraint(RecordingConstraint::MoveTargetExists))
+    addBlocker(plan, RecordingConstraint::MoveTargetExists);
+
+  if (plan.blockers.empty()) {
+    addStep(plan, RecordingMutationStep::MoveRecording);
     addStep(plan, RecordingMutationStep::RefreshRecordings);
     addStep(plan, RecordingMutationStep::NotifyChange);
     plan.executable = true;
@@ -104,6 +150,10 @@ const char* RecordingConstraintName(RecordingConstraint constraint)
     case RecordingConstraint::UnknownLocalTimerState: return "unknown-local-timer-state";
     case RecordingConstraint::UnknownRemoteTimerState: return "unknown-remote-timer-state";
     case RecordingConstraint::UnknownSearchTimerState: return "unknown-searchtimer-state";
+    case RecordingConstraint::MoveTargetMissing: return "move-target-missing";
+    case RecordingConstraint::MoveTargetInvalid: return "move-target-invalid";
+    case RecordingConstraint::MoveTargetSameAsSource: return "move-target-same-as-source";
+    case RecordingConstraint::MoveTargetExists: return "move-target-exists";
   }
   return "unknown";
 }
@@ -118,6 +168,7 @@ const char* RecordingMutationStepName(RecordingMutationStep step)
     case RecordingMutationStep::TrashRecording: return "trash-recording";
     case RecordingMutationStep::RestoreRecording: return "restore-recording";
     case RecordingMutationStep::PurgeRecording: return "purge-recording";
+    case RecordingMutationStep::MoveRecording: return "move-recording";
     case RecordingMutationStep::RefreshRecordings: return "refresh-recordings";
     case RecordingMutationStep::NotifyChange: return "notify-change";
   }

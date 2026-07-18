@@ -38,7 +38,7 @@ LIBS += $(shell pkg-config --libs Magick++)
 CXXFLAGS += -DUSE_LIBMAGICKPLUSPLUS
 endif
 
-OBJS = $(PLUGIN).o serverthread.o tools.o info.o searchtimers.o channels.o events.o recordings.o recordingmutation.o recordinganalysis.o recordingpreflight.o recordingpreview.o recordingexecution.o recordingvalidate.o recordingtrashexecutor.o recordingtrash.o remote.o timers.o changestate.o eventsstreamthread.o changestatetracker.o scraper2vdr.o statusmonitor.o osd.o jsonparser.o epgsearch.o wirbelscan.o webapp.o femon.o
+OBJS = $(PLUGIN).o serverthread.o tools.o info.o searchtimers.o channels.o events.o recordings.o recordingmutation.o recordinganalysis.o recordingmoveanalysis.o recordingpreflight.o recordingmovepreflight.o recordingpreview.o recordingmovepreview.o recordingexecution.o recordingmoveexecution.o recordingvalidate.o recordingmovevalidate.o recordingmoveexecutor.o recordingmove.o recordingtrashexecutor.o recordingtrash.o remote.o timers.o changestate.o eventsstreamthread.o changestatetracker.o scraper2vdr.o statusmonitor.o osd.o jsonparser.o epgsearch.o wirbelscan.o webapp.o femon.o
 CFGS = API.html
 
 all: $(SOFILE) i18n
@@ -55,8 +55,8 @@ $(DEPFILE): Makefile
 
 PODIR     = po
 I18Npo    = $(wildcard $(PODIR)/*.po)
-I18Nmo    = $(addsuffix .mo, $(foreach file, $(I18Npo), $(basename $(file))))
-I18Nmsgs  = $(addprefix $(DESTDIR)$(LOCDIR)/, $(addsuffix /LC_MESSAGES/vdr-$(PLUGIN).mo, $(notdir $(foreach file, $(I18Npo), $(basename $(file))))))
+I18Nmo    = $(addsuffix .mo, $(foreach file,$(I18Npo),$(basename $(file))))
+I18Nmsgs  = $(addprefix $(DESTDIR)$(LOCDIR)/, $(addsuffix /LC_MESSAGES/vdr-$(PLUGIN).mo, $(notdir $(foreach file,$(I18Npo),$(basename $(file))))))
 I18Npot   = $(PODIR)/$(PLUGIN).pot
 
 %.mo: %.po
@@ -72,8 +72,41 @@ $(I18Npot): $(wildcard *.cpp)
 $(I18Nmsgs): $(DESTDIR)$(LOCDIR)/%/LC_MESSAGES/vdr-$(PLUGIN).mo: $(PODIR)/%.mo
 	install -D -m644 $< $@
 
-.PHONY: i18n
+.PHONY: i18n test-recording-move-plan test-recording-move-analysis test-recording-move-preflight test-recording-move-execution-gate
 i18n: $(I18Nmo) $(I18Npot)
+
+test-recording-move-plan:
+	$(CXX) -std=c++17 -Wall -Wextra \
+		recordingmutation.cpp \
+		tests/test_recording_move_plan.cpp \
+		-o /tmp/test_recording_move_plan
+	/tmp/test_recording_move_plan
+
+test-recording-move-analysis:
+	$(CXX) -std=c++17 -Wall -Wextra \
+		recordingmutation.cpp \
+		recordingmoveanalysis.cpp \
+		tests/test_recording_move_analysis.cpp \
+		-o /tmp/test_recording_move_analysis
+	/tmp/test_recording_move_analysis
+
+test-recording-move-preflight:
+	$(CXX) -std=c++17 -Wall -Wextra \
+		recordingmutation.cpp \
+		recordingmoveanalysis.cpp \
+		recordingmovepreflight.cpp \
+		tests/test_recording_move_preflight.cpp \
+		-o /tmp/test_recording_move_preflight
+	/tmp/test_recording_move_preflight
+
+test-recording-move-execution-gate:
+	$(CXX) -std=c++17 -Wall -Wextra \
+		recordingmutation.cpp \
+		recordingmoveanalysis.cpp \
+		recordingmoveexecution.cpp \
+		tests/test_recording_move_execution_gate.cpp \
+		-o /tmp/test_recording_move_execution_gate
+	/tmp/test_recording_move_execution_gate
 
 install-i18n: $(I18Nmsgs)
 
@@ -94,7 +127,6 @@ dist: $(I18Npo) clean
 	@cp -a * $(TMPDIR)/$(ARCHIVE)
 	@-rm -rf $(TMPDIR)/$(ARCHIVE)/debian
 	@tar czf $(PACKAGE).tgz -C $(TMPDIR) $(ARCHIVE)
-	@-rm -rf $(TMPDIR)/$(ARCHIVE)
 	@echo Distribution package created as $(PACKAGE).tgz
 
 clean:

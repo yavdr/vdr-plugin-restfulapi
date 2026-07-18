@@ -138,4 +138,28 @@ private:
   const IRecordingSearchTimerLookup& searchTimerLookup;
 };
 
+class RecordingMoveAnalyzer
+{
+public:
+  RecordingMoveAnalyzer(
+    const IRecordingLookup& recordingLookup,
+    const IRecordingReplayLookup& replayLookup,
+    const IRecordingHandlerLookup& recordingHandlerLookup,
+    const IRecordingLocalTimerLookup& localTimerLookup,
+    const IRecordingRemoteTimerLookup& remoteTimerLookup,
+    const IRecordingSearchTimerLookup& searchTimerLookup);
+
+  RecordingMutationAnalysis analyze(
+    const std::string& recordingFile,
+    const std::string& targetFile) const;
+
+private:
+  const IRecordingLookup& recordingLookup;
+  const IRecordingReplayLookup& replayLookup;
+  const IRecordingHandlerLookup& recordingHandlerLookup;
+  const IRecordingLocalTimerLookup& localTimerLookup;
+  const IRecordingRemoteTimerLookup& remoteTimerLookup;
+  const IRecordingSearchTimerLookup& searchTimerLookup;
+};
+
 #endif

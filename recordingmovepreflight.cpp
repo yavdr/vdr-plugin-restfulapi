@@ -2,13 +2,14 @@
 
 namespace {
 
-void appendTrashAnalysisAndPlan(
-  RecordingTrashPreflightResult& result,
+void appendMoveAnalysisAndPlan(
+  RecordingMovePreflightResult& result,
   const RecordingMutationAnalysis& analysis,
   const RecordingMutationPlan& plan)
 {
   result.executable = plan.executable;
   result.recordingFile = analysis.recordingFile;
+  result.targetFile = analysis.targetFile;
   result.warnings = plan.warnings;
   result.revision = plan.expectedRevision;
 
@@ -24,21 +25,22 @@ void appendTrashAnalysisAndPlan(
 
 }
 
-RecordingTrashPreflightService::RecordingTrashPreflightService(
-  const RecordingTrashAnalyzer& analyzer,
+RecordingMovePreflightService::RecordingMovePreflightService(
+  const RecordingMoveAnalyzer& analyzer,
   const RecordingMutationPlanner& planner)
   : analyzer(analyzer),
     planner(planner)
 {
 }
 
-RecordingTrashPreflightResult RecordingTrashPreflightService::preview(
+RecordingMovePreflightResult RecordingMovePreflightService::preview(
   const std::string& recordingFile,
+  const std::string& targetFile,
   const RecordingMutationPolicy& policy) const
 {
-  RecordingTrashPreflightResult result;
-  const RecordingMutationAnalysis analysis = analyzer.analyze(recordingFile);
-  const RecordingMutationPlan plan = planner.buildTrashPlan(analysis, policy);
-  appendTrashAnalysisAndPlan(result, analysis, plan);
+  RecordingMovePreflightResult result;
+  const RecordingMutationAnalysis analysis = analyzer.analyze(recordingFile, targetFile);
+  const RecordingMutationPlan plan = planner.buildMovePlan(analysis, policy);
+  appendMoveAnalysisAndPlan(result, analysis, plan);
   return result;
 }

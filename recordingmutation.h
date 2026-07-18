@@ -24,7 +24,11 @@ enum class RecordingConstraint
   UnknownRecordingHandlerState,
   UnknownLocalTimerState,
   UnknownRemoteTimerState,
-  UnknownSearchTimerState
+  UnknownSearchTimerState,
+  MoveTargetMissing,
+  MoveTargetInvalid,
+  MoveTargetSameAsSource,
+  MoveTargetExists
 };
 
 enum class RecordingMutationStep
@@ -36,6 +40,7 @@ enum class RecordingMutationStep
   TrashRecording,
   RestoreRecording,
   PurgeRecording,
+  MoveRecording,
   RefreshRecordings,
   NotifyChange
 };
@@ -43,6 +48,7 @@ enum class RecordingMutationStep
 struct RecordingMutationRevision
 {
   std::string recordingFile;
+  std::string targetFile;
   long long recordingsState = 0;
   long long timersState = 0;
 };
@@ -51,6 +57,7 @@ struct RecordingMutationAnalysis
 {
   RecordingMutationType type = RecordingMutationType::Trash;
   std::string recordingFile;
+  std::string targetFile;
   std::vector<RecordingConstraint> constraints;
   std::vector<std::string> warnings;
   RecordingMutationRevision revision;
@@ -80,6 +87,10 @@ class RecordingMutationPlanner
 {
 public:
   RecordingMutationPlan buildTrashPlan(
+    const RecordingMutationAnalysis& analysis,
+    const RecordingMutationPolicy& policy) const;
+
+  RecordingMutationPlan buildMovePlan(
     const RecordingMutationAnalysis& analysis,
     const RecordingMutationPolicy& policy) const;
 };
