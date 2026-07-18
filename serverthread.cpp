@@ -40,6 +40,9 @@ void cServerThread::Action(void)
   ChannelsService channelsService;
   EventsService eventsService;
   RecordingsService recordingsService;
+  RecordingTrashPreviewService recordingTrashPreviewService;
+  RecordingTrashValidateService recordingTrashValidateService;
+  RecordingTrashService recordingTrashService;
   RemoteService remoteService;
   TimersService timersService;
   ChangeStateService changeStateService;
@@ -59,6 +62,9 @@ void cServerThread::Action(void)
   RestfulService* recordings = new RestfulService("/recordings", true, 1);
   RestfulService* recordingsCut = new RestfulService("/recordings/cut", true, 1, recordings);
   RestfulService* recordingsMarks = new RestfulService("/recordings/marks", true, 1, recordings);
+  RestfulService* recordingTrashPreview = new RestfulService("/recordings/trash/preview", true, 1, recordings);
+  RestfulService* recordingTrashValidate = new RestfulService("/recordings/trash/validate", true, 1, recordings);
+  RestfulService* recordingTrash = new RestfulService("/recordings/trash", true, 1, recordings);
   RestfulService* remote = new RestfulService("/remote", true, 1);
   RestfulService* timers = new RestfulService("/timers", true, 1);
   RestfulService* changeState = new RestfulService("/change-state", true, 1);
@@ -79,6 +85,9 @@ void cServerThread::Action(void)
   services->appendService(recordings);
   services->appendService(recordingsCut);
   services->appendService(recordingsMarks);
+  services->appendService(recordingTrashPreview);
+  services->appendService(recordingTrashValidate);
+  services->appendService(recordingTrash);
   services->appendService(remote);
   services->appendService(timers);
   services->appendService(changeState);
@@ -92,6 +101,9 @@ void cServerThread::Action(void)
   server->addService(std::move(*info->Regex()), infoService);
   server->addService(std::move(*channels->Regex()), channelsService);
   server->addService(std::move(*events->Regex()), eventsService);
+  server->addService(std::move(*recordingTrashPreview->Regex()), recordingTrashPreviewService);
+  server->addService(std::move(*recordingTrashValidate->Regex()), recordingTrashValidateService);
+  server->addService(std::move(*recordingTrash->Regex()), recordingTrashService);
   server->addService(std::move(*recordings->Regex()), recordingsService);
   server->addService(std::move(*remote->Regex()), remoteService);
   server->addService(std::move(*timers->Regex()), timersService);
