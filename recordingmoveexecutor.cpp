@@ -8,6 +8,7 @@
 
 #include <vdr/menu.h>
 #include <vdr/recording.h>
+#include <vdr/timers.h>
 #include <vdr/videodir.h>
 
 namespace {
@@ -16,6 +17,85 @@ bool pathExists(const std::string& path)
 {
   return !path.empty() && access(path.c_str(), F_OK) == 0;
 }
+
+const int kMutationLockAttemptTimeoutMs = 100;
+const int kMutationLockRetryDelayMs = 25;
+const int kMutationLockAttempts = 20;
+
+class RecordingMoveListLocks
+{
+public:
+  RecordingMoveListLocks()
+    : recordings(nullptr),
+      recordingsModified(false)
+  {
+  }
+
+  ~RecordingMoveListLocks()
+  {
+    release();
+  }
+
+  bool acquire()
+  {
+    for (int attempt = 0; attempt < kMutationLockAttempts; ++attempt) {
+      if (acquireOnce())
+        return true;
+
+      if (attempt + 1 < kMutationLockAttempts)
+        cCondWait::SleepMs(kMutationLockRetryDelayMs);
+    }
+
+    return false;
+  }
+
+  cRecordings* recordingsList() const
+  {
+    return recordings;
+  }
+
+  void markRecordingsModified()
+  {
+    recordingsModified = true;
+  }
+
+private:
+  bool acquireOnce()
+  {
+    cTimers* timers = cTimers::GetTimersWrite(
+      timersStateKey,
+      kMutationLockAttemptTimeoutMs);
+
+    if (!timers)
+      return false;
+
+    recordings = cRecordings::GetRecordingsWrite(
+      recordingsStateKey,
+      kMutationLockAttemptTimeoutMs);
+
+    if (recordings)
+      return true;
+
+    timersStateKey.Remove(false);
+    return false;
+  }
+
+  void release()
+  {
+    if (recordingsStateKey.InLock())
+      recordingsStateKey.Remove(recordingsModified);
+
+    if (timersStateKey.InLock())
+      timersStateKey.Remove(false);
+
+    recordings = nullptr;
+  }
+
+  cStateKey timersStateKey;
+  cStateKey recordingsStateKey;
+  cRecordings* recordings;
+  bool recordingsModified;
+};
 
 }
 
@@ -54,10 +134,19 @@ RecordingMoveExecutorResult RecordingMoveExecutor::executeNormalCase(
     return result;
   }
 
-  LOCK_TIMERS_WRITE;
-  LOCK_RECORDINGS_WRITE;
+  // VDR requires the global list lock order Timers -> Channels ->
+  // Recordings -> Schedules. When more than one list is locked at the same
+  // time, each lock attempt must be bounded so a contended later lock cannot
+  // deadlock the earlier one indefinitely.
+  RecordingMoveListLocks listLocks;
+  if (!listLocks.acquire()) {
+    result.status = RecordingMoveExecutorStatus::Conflict;
+    result.message = "Recording state is busy; retry the move.";
+    return result;
+  }
 
-  cRecording* recording = Recordings->GetByName(recordingFile.c_str());
+  cRecordings* recordings = listLocks.recordingsList();
+  cRecording* recording = recordings->GetByName(recordingFile.c_str());
   if (!recording) {
     if (!pathExists(recordingFile) && pathExists(targetFile)) {
       result.status = RecordingMoveExecutorStatus::AlreadyMoved;
@@ -70,7 +159,7 @@ RecordingMoveExecutorResult RecordingMoveExecutor::executeNormalCase(
     return result;
   }
 
-  if (pathExists(targetFile) || Recordings->GetByName(targetFile.c_str())) {
+  if (pathExists(targetFile) || recordings->GetByName(targetFile.c_str())) {
     result.status = RecordingMoveExecutorStatus::Conflict;
     result.message = "The recording move target already exists.";
     return result;
@@ -116,10 +205,11 @@ RecordingMoveExecutorResult RecordingMoveExecutor::executeNormalCase(
     return result;
   }
 
-  Recordings->Del(recording);
-  Recordings->AddByName(targetFile.c_str());
+  listLocks.markRecordingsModified();
+  recordings->Del(recording);
+  recordings->AddByName(targetFile.c_str());
 
-  const cRecording* movedRecording = Recordings->GetByName(targetFile.c_str());
+  const cRecording* movedRecording = recordings->GetByName(targetFile.c_str());
   if (!movedRecording) {
     result.status = RecordingMoveExecutorStatus::Failed;
     result.message = "Moved recording was not registered under its target identity.";
