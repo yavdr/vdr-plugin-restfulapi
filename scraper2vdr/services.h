@@ -84,6 +84,15 @@ public:
   int episodeId;
 };
 
+// Shared by TVScraper and scraper2vdr: ask the plugin for its real image root.
+// Use the same ABI layout as the plugins' published GetEnvironment service.
+class cEnvironment {
+public:
+    std::string basePath;
+    std::string seriesPath;
+    std::string moviesPath;
+};
+
 //Data structure for full series and episode information
 class cMovie {
 public:

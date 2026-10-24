@@ -1,12 +1,35 @@
 #include "scraper2vdr.h"
+#include "scraperimagepaths.h"
+
 using namespace std;
+
+namespace {
+// For modern TVScraper/scraper2vdr use the provider's advertised image cache.
+// On older plugins retain the explicitly configured legacy EPG image location.
+cPlugin* lookupScraperPlugin() {
+  cPlugin* provider = cPluginManager::GetPlugin("scraper2vdr");
+  if (!provider)
+    provider = cPluginManager::GetPlugin("tvscraper");
+  return provider;
+}
+
+string scraperImageRoot(cPlugin* provider) {
+  if (provider) {
+    cEnvironment environment;
+    if (provider->Service("GetEnvironment", &environment) &&
+        !environment.basePath.empty())
+      return environment.basePath;
+  }
+  return Settings::get()->EpgImageDirectory();
+}
+} // namespace
 
 /**
  * initialize scraper service
  */
 Scraper2VdrService::Scraper2VdrService() {
   scraper = getScraperPlugin();
-  epgImagesDir = Settings::get()->EpgImageDirectory();
+  epgImagesDir = scraperImageRoot(scraper);
 };
 
 /**
@@ -22,11 +45,7 @@ Scraper2VdrService::~Scraper2VdrService() {
  */
 cPlugin *Scraper2VdrService::getScraperPlugin () {
 
-  cPlugin *pScraper = cPluginManager::GetPlugin("scraper2vdr");
-  if ( !pScraper )
-    pScraper = cPluginManager::GetPlugin("tvscraper");
-
-  return pScraper;
+  return lookupScraperPlugin();
 };
 
 /**
@@ -183,9 +202,7 @@ string Scraper2VdrService::getMedia(const cRecording* recording) {
  */
 string Scraper2VdrService::cleanImagePath(string path) {
 
-  path = StringExtension::replace(path, epgImagesDir, "");
-  path.erase(0, path.find_first_not_of("/"));
-  return path;
+  return ScraperImagePaths::relative(path, epgImagesDir);
 };
 
 /**
@@ -527,90 +544,139 @@ string Scraper2VdrService::getMovieMedia(ScraperGetEventType &eventType) {
  * return void
  */
 void ScraperImageResponder::reply(ostream& out, cxxtools::http::Request& request, cxxtools::http::Reply& reply) {
+  if (request.method() == "OPTIONS") {
+    QueryHandler::addHeader(reply);
+    reply.addHeader("Allow", "GET");
+    reply.httpReturn(200, "OK");
+    return;
+  }
+  if (request.method() != "GET") {
+    reply.httpReturn(403, "To retrieve images use the GET method!");
+    return;
+  }
 
-  if ( request.method() == "OPTIONS" ) {
-	  QueryHandler::addHeader(reply);
-      reply.addHeader("Allow", "GET");
-      reply.httpReturn(200, "OK");
+  const string base = "/scraper/image/";
+  const string url = request.url();
+  if (url.compare(0, base.size(), base) != 0) {
+    reply.httpReturn(404, "File not found");
+    return;
+  }
+
+  string image;
+  if (!ScraperImagePaths::decodeUrlPath(url.substr(base.size()), image)) {
+    reply.httpReturn(400, "Invalid image path");
+    return;
+  }
+
+  // The image path must come from the same scraper that supplied the JSON
+  // metadata, not an unrelated default EPG-image directory.
+  const string imageRoot = scraperImageRoot(lookupScraperPlugin());
+  if (imageRoot.empty()) {
+    reply.httpReturn(404, "No scraper image root configured");
+    return;
+  }
+
+  string imageFile = image;
+#ifdef USE_LIBMAGICKPLUSPLUS
+  bool aspect = false;
+  int width = 0;
+  int height = 0;
+  imageFile = parseResize(image, width, height, aspect);
+#endif
+  if (!ScraperImagePaths::validRelative(std::filesystem::path(imageFile))) {
+    reply.httpReturn(400, "Invalid scraper image path");
+    return;
+  }
+
+  // canonical() limits reads to existing regular files under the image root,
+  // including when the requested path contains symlinks.
+  const string sourceFile = ScraperImagePaths::existingFile(imageRoot, imageFile);
+  if (sourceFile.empty()) {
+    reply.httpReturn(404, "File not found");
+    return;
+  }
+  string outFile = sourceFile;
+
+#ifdef USE_LIBMAGICKPLUSPLUS
+  if (image != imageFile) {
+    if ((width == 0 && height == 0) || width < 0 || height < 0 ||
+        width > 4096 || height > 4096) {
+      reply.httpReturn(400, "Invalid image dimensions");
       return;
-  }
-  if ( request.method() != "GET") {
-     reply.httpReturn(403, "To retrieve images use the GET method!");
-     return;
-  }
-
-  string base = "/scraper/image/";
-  string url = request.url();
-
-  if ( (int)url.find(base) == 0 ) {
-
-      dsyslog("restfulapi Scraper: image request url %s", url.c_str());
-
-#ifdef USE_LIBMAGICKPLUSPLUS
-      bool aspect = false;
-      int width = 0;
-      int height = 0;
-#endif
-      double timediff = -1;
-      string epgImagesPath = Settings::get()->EpgImageDirectory() + (string)"/";
-      string cacheDir = (string)Settings::get()->CacheDirectory() + base;
-      string image = url.replace(0, base.length(), "");
-      string outFile = epgImagesPath + image;
-#ifdef USE_LIBMAGICKPLUSPLUS
-      string targetImage = parseResize(image, width, height, aspect);
-
-      if ( image != targetImage ) {
-
-	  string sourceImage = epgImagesPath + targetImage;
-	  outFile = cacheDir + image;
-	  string targetPath = cacheDir + image.substr(0, ( image.find_last_of("/") ));
-
-	  if (
-	      !FileExtension::get()->exists(outFile) &&
-	      !(hasPath(targetPath) && resizeImage(sourceImage, outFile, width, height, aspect))
-	  ) {
-	      outFile = epgImagesPath + image;
-	  }
+    }
+    // Resize results belong in RESTfulAPI's private cache. Never create
+    // directories relative to an empty cache path or through a symlink
+    // leading outside that cache.
+    const string privateCache = Settings::get()->CacheDirectory();
+    if (privateCache.empty()) {
+      reply.httpReturn(404, "Image cache unavailable");
+      return;
+    }
+    const string cacheRoot = privateCache + base;
+    std::error_code ec;
+    std::filesystem::create_directories(cacheRoot, ec);
+    if (ec) {
+      reply.httpReturn(404, "Image cache unavailable");
+      return;
+    }
+    outFile = ScraperImagePaths::existingFile(cacheRoot, image);
+    if (outFile.empty()) {
+      const string target = ScraperImagePaths::writableCacheFile(cacheRoot, image);
+      if (target.empty()) {
+        reply.httpReturn(400, "Invalid cache image path");
+        return;
       }
+      std::filesystem::create_directories(std::filesystem::path(target).parent_path(), ec);
+      if (ec || ScraperImagePaths::writableCacheFile(cacheRoot, image) != target ||
+          !resizeImage(sourceFile, target, width, height, aspect)) {
+        reply.httpReturn(404, "Could not resize image");
+        return;
+      }
+      outFile = ScraperImagePaths::existingFile(cacheRoot, image);
+      if (outFile.empty()) {
+        reply.httpReturn(404, "Resized image missing");
+        return;
+      }
+    }
+  }
 #endif
 
-      dsyslog("restfulapi Scraper: image file %s", outFile.c_str());
-
-      if (!FileExtension::get()->exists(outFile)) {
-	  esyslog("restfulapi Scraper: image %s does not exist", url.c_str());
-	  QueryHandler::addHeader(reply);
-	  reply.httpReturn(404, "File not found");
-	  return;
-      }
-
-      if (request.hasHeader("If-Modified-Since")) {
-	  timediff = difftime(FileExtension::get()->getModifiedTime(outFile), FileExtension::get()->getModifiedSinceTime(request));
-      }
-      if (timediff > 0.0 || timediff < 0.0) {
-	  string type = image.substr(image.find_last_of(".")+1);
-	  string contenttype = (string)"image/" + type;
-	  StreamExtension se(&out);
-	  if ( se.writeBinary(outFile) ) {
-	      dsyslog("restfulapi Scraper: successfully piped image %s", url.c_str());
-	      QueryHandler::addHeader(reply);
-	      FileExtension::get()->addModifiedHeader(outFile, reply);
-	      reply.addHeader("Content-Type", contenttype.c_str());
-	  } else {
-	      dsyslog("restfulapi Scraper: error piping image %s", url.c_str());
-	      reply.httpReturn(404, "File not found");
-	  }
-      } else {
-	  QueryHandler::addHeader(reply);
-	  dsyslog("restfulapi Scraper: image %s not modified, returning 304", url.c_str());
-	  reply.httpReturn(304, "Not-Modified");
-      }
+  const string type = std::filesystem::path(imageFile).extension().string();
+  string contentType;
+  if (type == ".jpg" || type == ".jpeg" || type == ".JPG" || type == ".JPEG")
+    contentType = "image/jpeg";
+  else if (type == ".png" || type == ".PNG")
+    contentType = "image/png";
+  else if (type == ".webp" || type == ".WEBP")
+    contentType = "image/webp";
+  else if (type == ".gif" || type == ".GIF")
+    contentType = "image/gif";
+  else if (type == ".avif" || type == ".AVIF")
+    contentType = "image/avif";
+  else if (type == ".bmp" || type == ".BMP")
+    contentType = "image/bmp";
+  else {
+    reply.httpReturn(415, "Unsupported image type");
+    return;
   }
-};
 
-bool ScraperImageResponder::hasPath(std::string targetPath) {
+  if (request.hasHeader("If-Modified-Since") &&
+      difftime(FileExtension::get()->getModifiedTime(outFile),
+               FileExtension::get()->getModifiedSinceTime(request)) == 0.0) {
+    QueryHandler::addHeader(reply);
+    reply.httpReturn(304, "Not-Modified");
+    return;
+  }
 
-  return FileExtension::get()->exists(targetPath) || system(("mkdir -p " + targetPath).c_str()) == 0;
-};
+  StreamExtension se(&out);
+  if (!se.writeBinary(outFile)) {
+    reply.httpReturn(404, "File not found");
+    return;
+  }
+  QueryHandler::addHeader(reply);
+  FileExtension::get()->addModifiedHeader(outFile, reply);
+  reply.addHeader("Content-Type", contentType.c_str());
+}
 
 #ifdef USE_LIBMAGICKPLUSPLUS
 std::string ScraperImageResponder::parseResize(std::string url, int& width, int& height, bool& aspect) {

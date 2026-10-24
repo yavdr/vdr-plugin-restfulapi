@@ -452,6 +452,11 @@ FileCaches* FileCaches::get()
 void FileCaches::cacheEventImages()
 {
   string imageFolder = Settings::get()->EpgImageDirectory();
+  // Empty optional EPG directory must not turn into a scan of filesystem '/'.
+  if (imageFolder.empty()) {
+    eventImages.clear();
+    return;
+  }
   string folderWildcard = imageFolder + (string)"/*";
   VdrExtension::scanForFiles(folderWildcard, eventImages);
 }
@@ -1374,6 +1379,9 @@ int StringExtension::strtoi(string str)
 
 string StringExtension::replace(string const& text, string const& substring, string const& replacement)
 {
+  // An absent optional image directory must never cause a zero-progress loop.
+  if (substring.empty())
+    return text;
   std::string result = text;
   std::string::size_type pos = 0;
   while ( ( pos = result.find( substring, pos ) ) != std::string::npos ) {
