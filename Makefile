@@ -72,7 +72,7 @@ $(I18Npot): $(wildcard *.cpp)
 $(I18Nmsgs): $(DESTDIR)$(LOCDIR)/%/LC_MESSAGES/vdr-$(PLUGIN).mo: $(PODIR)/%.mo
 	install -D -m644 $< $@
 
-.PHONY: i18n test-recording-move-plan test-recording-move-analysis test-recording-move-preflight test-recording-move-execution-gate test-recording-rename-plan test-recording-rename-preflight
+.PHONY: test-scraper-image-paths i18n test-recording-move-plan test-recording-move-analysis test-recording-move-preflight test-recording-move-execution-gate test-recording-rename-plan test-recording-rename-preflight
 i18n: $(I18Nmo) $(I18Npot)
 
 test-recording-move-plan:
@@ -124,6 +124,10 @@ test-recording-rename-preflight:
 		tests/test_recording_rename_preflight.cpp \
 		-o /tmp/test_recording_rename_preflight
 	/tmp/test_recording_rename_preflight
+
+test-scraper-image-paths:
+	$(CXX) -std=c++17 -Wall -Wextra -Werror -I. tests/test_scraper_image_paths.cpp -o /tmp/test_scraper_image_paths
+	/tmp/test_scraper_image_paths
 
 install-i18n: $(I18Nmsgs)
 
