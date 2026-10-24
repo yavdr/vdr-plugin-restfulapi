@@ -1,5 +1,3 @@
-#pragma once
-
 #include <cxxtools/http/request.h>
 #include <cxxtools/http/reply.h>
 #include <cxxtools/http/responder.h>
