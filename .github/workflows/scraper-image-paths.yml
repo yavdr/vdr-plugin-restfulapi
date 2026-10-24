@@ -1,0 +1,30 @@
+name: RESTfulAPI scraper image compatibility
+
+on:
+  push:
+    branches:
+      - fix/upstream-scraper-image-roots
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install VDR and RESTfulAPI build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            vdr-dev libcxxtools-dev libmagick++-dev gettext pkg-config
+      - name: Test safe scraper artwork paths
+        run: make test-scraper-image-paths
+      - name: Build RESTfulAPI with image resizing disabled
+        run: make -j2 USE_LIBMAGICKPLUSPLUS=0 libvdr-restfulapi.so
+      - name: Build RESTfulAPI with ImageMagick enabled
+        run: |
+          make clean
+          make -j2 USE_LIBMAGICKPLUSPLUS=1 libvdr-restfulapi.so
